@@ -266,7 +266,7 @@ function showError(message) {
     <div style="text-align: center; padding: 3rem;">
       <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #ff5555;"></i>
       <p style="color: #ff5555; margin-top: 1rem; font-size: 1.2rem;">${message}</p>
-      <a href="events.html" style="display: inline-block; margin-top: 1rem; background: #39FF14; color: #0a0a0a; padding: 0.8rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
+      <a href="/dashboard/events" style="display: inline-block; margin-top: 1rem; background: #39FF14; color: #0a0a0a; padding: 0.8rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
         Back to Events
       </a>
     </div>

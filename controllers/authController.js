@@ -2,7 +2,7 @@
 
 const User = require("../models/User");
 const crypto = require("crypto");
-const { sendVerificationEmail, sendWelcomeEmail } = require("../utils/emailService");
+// const { sendVerificationEmail, sendWelcomeEmail } = require("../utils/emailService");
 
 
 exports.register = async (req, res) => {
@@ -54,7 +54,7 @@ exports.register = async (req, res) => {
       password,
       verificationToken,
       verificationTokenExpires,
-      isVerified: false,
+      isVerified: true,
       referredBy: referralCode || null,
     });
 
@@ -74,16 +74,16 @@ exports.register = async (req, res) => {
       await processReferralReward(referralCode, "signup");
     }
 
-    // Send verification email
-    const emailResult = await sendVerificationEmail(email, username, verificationToken);
-    if (!emailResult.success) {
-      console.error("Failed to send verification email:", emailResult.error);
-    }
+    // // Send verification email
+    // const emailResult = await sendVerificationEmail(email, username, verificationToken);
+    // if (!emailResult.success) {
+    //   console.error("Failed to send verification email:", emailResult.error);
+    // }
 
     // Response
     res.status(201).json({
       success: true,
-      message: "Registration successful! Please check your email to verify your account.",
+      message: "Registration successful! Please login your account.",
       requiresVerification: true,
     });
   } catch (error) {

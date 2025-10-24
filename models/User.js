@@ -56,6 +56,57 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: null
   },
+  // Profile data
+  bio: {
+    type: String,
+    default: ''
+  },
+  twitter: {
+    type: String,
+    default: ''
+  },
+  github: {
+    type: String,
+    default: ''
+  },
+  telegram: {
+    type: String,
+    default: ''
+  },
+  // Notification preferences
+  notifications: {
+    newQuests: {
+      type: Boolean,
+      default: true
+    },
+    newBounties: {
+      type: Boolean,
+      default: true
+    },
+    eventReminders: {
+      type: Boolean,
+      default: true
+    },
+    weeklyDigest: {
+      type: Boolean,
+      default: false
+    },
+    submissionUpdates: {
+      type: Boolean,
+      default: true
+    }
+  },
+  // Privacy settings
+  privacy: {
+    showOnLeaderboard: {
+      type: Boolean,
+      default: true
+    },
+    publicProfile: {
+      type: Boolean,
+      default: true
+    }
+  },
   activeQuests: {
     type: Array,
     default: []

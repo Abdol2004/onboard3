@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>ONBOARD3</h1>
+                <p>Web3 Builder Hub</p>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="/dashboard" class="menu-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/dashboard/quests" class="menu-item">
+                    <i class="fas fa-trophy"></i>
+                    <span>Quests</span>
+                </a>
+                <a href="/dashboard/learn" class="menu-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Learn</span>
+                </a>
+                <!-- <a href="/dashboard/bounties" class="menu-item">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Bounties</span>
+                </a> -->
+                <!-- <a href="/dashboard/referral" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Referral</span>
+                </a> -->
+                <a href="/dashboard/events" class="menu-item">
+                   <i class="fas fa-calendar"></i>
+                    <span>Events</span>
+                </a>
+                 
+                <a href="/dashboard/settings" class="menu-item active">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="#" class="menu-item logout" onclick="handleLogout(event)">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>v1.0 — Powered by</p>
+                <p class="version">ONBOARD3</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2>Settings ⚙️</h2>
+                        <p>Manage your account and preferences</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Alert Messages -->
+                <div id="alertMessage" style="display: none; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; animation: slideIn 0.3s ease;"></div>
+
+                <!-- Profile Settings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-user"></i> Profile Settings</h3>
+                    </div>
+                    <form id="profileForm">
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" id="username" name="username" value="<%= user.username %>" readonly style="background: rgba(255,255,255,0.05); cursor: not-allowed;">
+                                <small style="color: #888; font-size: 0.85rem;">Username cannot be changed</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Email Address</label>
+                                <input type="email" id="email" name="email" value="<%= user.email %>" readonly style="background: rgba(255,255,255,0.05); cursor: not-allowed;">
+                                <small style="color: #888; font-size: 0.85rem;">Email cannot be changed</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Bio</label>
+                                <textarea id="bio" name="bio" placeholder="Tell us about yourself..."><%= user.bio || '' %></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Twitter/X Handle</label>
+                                <input type="text" id="twitter" name="twitter" value="<%= user.twitter || '' %>" placeholder="@yourusername">
+                            </div>
+                            <div class="form-group">
+                                <label>GitHub Username</label>
+                                <input type="text" id="github" name="github" value="<%= user.github || '' %>" placeholder="yourgithub">
+                            </div>
+                            <div class="form-group">
+                                <label>Telegram Handle</label>
+                                <input type="text" id="telegram" name="telegram" value="<%= user.telegram || '' %>" placeholder="@yourtelegram">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Profile Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Wallet Settings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-wallet"></i> Wallet Settings</h3>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <% if (user.walletAddress) { %>
+                            <div class="form-group">
+                                <label>Connected Wallet Address</label>
+                                <input type="text" value="<%= user.walletAddress %>" readonly style="font-family: monospace; color: #39FF14; background: rgba(57,255,20,0.1);">
+                            </div>
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <button onclick="disconnectWallet()" class="btn btn-secondary">
+                                    <i class="fas fa-unlink"></i> Disconnect Wallet
+                                </button>
+                                <button onclick="withdrawUSDC()" class="btn btn-primary">
+                                    <i class="fas fa-money-bill-wave"></i> Withdraw USDC
+                                </button>
+                            </div>
+                        <% } else { %>
+                            <div style="text-align: center; padding: 2rem; background: rgba(255,255,255,0.05); border-radius: 12px;">
+                                <i class="fas fa-wallet" style="font-size: 3rem; color: #666; margin-bottom: 1rem;"></i>
+                                <p style="color: #888; margin-bottom: 1rem;">No wallet connected</p>
+                                <button onclick="connectWallet()" class="btn btn-primary">
+                                    <i class="fas fa-link"></i> Connect Wallet
+                                </button>
+                            </div>
+                        <% } %>
+                        <div style="background: rgba(57,255,20,0.1); padding: 1rem; border-radius: 12px; border-left: 3px solid #39FF14;">
+                            <p style="font-size: 0.9rem; color: #888;">
+                                <i class="fas fa-info-circle" style="color: #39FF14;"></i> 
+                                Your current balance: <strong style="color: #39FF14;">$<%= user.usdcBalance || 0 %> USDC</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Change -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-lock"></i> Change Password</h3>
+                    </div>
+                    <form id="passwordForm">
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div class="form-group">
+                                <label>Current Password</label>
+                                <input type="password" id="currentPassword" name="currentPassword" required>
+                            </div>
+                            <div class="form-group">
+                                <label>New Password</label>
+                                <input type="password" id="newPassword" name="newPassword" required minlength="6">
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm New Password</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-key"></i> Update Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Notification Settings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-bell"></i> Notification Settings</h3>
+                    </div>
+                    <form id="notificationForm">
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <input type="checkbox" name="newQuests" <%= user.notifications?.newQuests ? 'checked' : '' %> style="width: 20px; height: 20px; accent-color: #39FF14;">
+                                <div>
+                                    <span style="display: block; font-weight: 500;">New Quest Notifications</span>
+                                    <span style="display: block; font-size: 0.85rem; color: #888; margin-top: 0.2rem;">Get notified when new quests are available</span>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <input type="checkbox" name="newBounties" <%= user.notifications?.newBounties ? 'checked' : '' %> style="width: 20px; height: 20px; accent-color: #39FF14;">
+                                <div>
+                                    <span style="display: block; font-weight: 500;">New Bounty Notifications</span>
+                                    <span style="display: block; font-size: 0.85rem; color: #888; margin-top: 0.2rem;">Receive updates about new bounties</span>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <input type="checkbox" name="eventReminders" <%= user.notifications?.eventReminders ? 'checked' : '' %> style="width: 20px; height: 20px; accent-color: #39FF14;">
+                                <div>
+                                    <span style="display: block; font-weight: 500;">Event Reminders</span>
+                                    <span style="display: block; font-size: 0.85rem; color: #888; margin-top: 0.2rem;">Get reminders for upcoming events</span>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <input type="checkbox" name="weeklyDigest" <%= user.notifications?.weeklyDigest ? 'checked' : '' %> style="width: 20px; height: 20px; accent-color: #39FF14;">
+                                <div>
+                                    <span style="display: block; font-weight: 500;">Weekly Digest</span>
+                                    <span style="display: block; font-size: 0.85rem; color: #888; margin-top: 0.2rem;">Receive a weekly summary of your activity</span>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <input type="checkbox" name="submissionUpdates" <%= user.notifications?.submissionUpdates ? 'checked' : '' %> style="width: 20px; height: 20px; accent-color: #39FF14;">
+                                <div>
+                                    <span style="display: block; font-weight: 500;">Submission Status Updates</span>
+                                    <span style="display: block; font-size: 0.85rem; color: #888; margin-top: 0.2rem;">Get notified when your submissions are reviewed</span>
+                                </div>
+                            </label>
+                            <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">
+                                <i class="fas fa-bell"></i> Save Notification Preferences
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Privacy & Security -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-shield-alt"></i> Privacy & Security</h3>
+                    </div>
+                    <form id="privacyForm">
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <input type="checkbox" name="showOnLeaderboard" <%= user.privacy?.showOnLeaderboard !== false ? 'checked' : '' %> style="width: 20px; height: 20px; accent-color: #39FF14;">
+                                <div>
+                                    <span style="display: block; font-weight: 500;">Show Profile on Leaderboard</span>
+                                    <span style="display: block; font-size: 0.85rem; color: #888; margin-top: 0.2rem;">Display your profile on public leaderboards</span>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                <input type="checkbox" name="publicProfile" <%= user.privacy?.publicProfile !== false ? 'checked' : '' %> style="width: 20px; height: 20px; accent-color: #39FF14;">
+                                <div>
+                                    <span style="display: block; font-weight: 500;">Public Profile</span>
+                                    <span style="display: block; font-size: 0.85rem; color: #888; margin-top: 0.2rem;">Allow others to view your profile and achievements</span>
+                                </div>
+                            </label>
+                            <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">
+                                <i class="fas fa-shield-alt"></i> Save Privacy Settings
+                            </button>
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <button type="button" onclick="deleteAccount()" class="btn btn-secondary" style="background: rgba(255,68,68,0.1); border-color: rgba(255,68,68,0.3); color: #ff4444;">
+                                    <i class="fas fa-trash-alt"></i> Delete Account
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <script>
+        function showAlert(message, type) {
+            const alert = document.getElementById('alertMessage');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            alert.style.background = type === 'success' ? 'rgba(57,255,20,0.1)' : 'rgba(255,68,68,0.1)';
+            alert.style.border = type === 'success' ? '1px solid rgba(57,255,20,0.3)' : '1px solid rgba(255,68,68,0.3)';
+            alert.style.color = type === 'success' ? '#39FF14' : '#ff4444';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Profile Form
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                bio: document.getElementById('bio').value,
+                twitter: document.getElementById('twitter').value,
+                github: document.getElementById('github').value,
+                telegram: document.getElementById('telegram').value
+            };
+
+            try {
+                const response = await fetch('/dashboard/settings/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                showAlert(data.message, data.success ? 'success' : 'error');
+            } catch (error) {
+                showAlert('Error updating profile', 'error');
+            }
+        });
+
+        // Password Form
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                showAlert('New passwords do not match', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/dashboard/settings/password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+
+                const data = await response.json();
+                showAlert(data.message, data.success ? 'success' : 'error');
+                
+                if (data.success) {
+                    document.getElementById('passwordForm').reset();
+                }
+            } catch (error) {
+                showAlert('Error updating password', 'error');
+            }
+        });
+
+        // Notification Form
+        document.getElementById('notificationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const notifications = {
+                newQuests: formData.get('newQuests') === 'on',
+                newBounties: formData.get('newBounties') === 'on',
+                eventReminders: formData.get('eventReminders') === 'on',
+                weeklyDigest: formData.get('weeklyDigest') === 'on',
+                submissionUpdates: formData.get('submissionUpdates') === 'on'
+            };
+
+            try {
+                const response = await fetch('/dashboard/settings/notifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notifications })
+                });
+
+                const data = await response.json();
+                showAlert(data.message, data.success ? 'success' : 'error');
+            } catch (error) {
+                showAlert('Error updating notifications', 'error');
+            }
+        });
+
+        // Privacy Form
+        document.getElementById('privacyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const privacy = {
+                showOnLeaderboard: formData.get('showOnLeaderboard') === 'on',
+                publicProfile: formData.get('publicProfile') === 'on'
+            };
+
+            try {
+                const response = await fetch('/dashboard/settings/privacy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ privacy })
+                });
+
+                const data = await response.json();
+                showAlert(data.message, data.success ? 'success' : 'error');
+            } catch (error) {
+                showAlert('Error updating privacy settings', 'error');
+            }
+        });
+
+        // Wallet Functions
+        async function connectWallet() {
+            const walletAddress = prompt('Enter your wallet address:');
+            if (!walletAddress) return;
+
+            try {
+                const response = await fetch('/dashboard/settings/wallet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ walletAddress, action: 'connect' })
+                });
+
+                const data = await response.json();
+                showAlert(data.message, data.success ? 'success' : 'error');
+                
+                if (data.success) {
+                    setTimeout(() => location.reload(), 2000);
+                }
+            } catch (error) {
+                showAlert('Error connecting wallet', 'error');
+            }
+        }
+
+        async function disconnectWallet() {
+            if (!confirm('Are you sure you want to disconnect your wallet?')) return;
+
+            try {
+                const response = await fetch('/dashboard/settings/wallet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'disconnect' })
+                });
+
+                const data = await response.json();
+                showAlert(data.message, data.success ? 'success' : 'error');
+                
+                if (data.success) {
+                    setTimeout(() => location.reload(), 2000);
+                }
+            } catch (error) {
+                showAlert('Error disconnecting wallet', 'error');
+            }
+        }
+
+        function withdrawUSDC() {
+            alert('Withdrawal feature coming soon! You will be able to withdraw your USDC to your connected wallet.');
+        }
+
+        function deleteAccount() {
+            const confirmed = confirm('⚠️ WARNING: This action cannot be undone!\n\nAre you absolutely sure you want to delete your account? All your data, progress, and rewards will be permanently lost.');
+            
+            if (confirmed) {
+                const doubleCheck = prompt('Type "DELETE" to confirm account deletion:');
+                if (doubleCheck === 'DELETE') {
+                    alert('Account deletion feature will be available soon. Please contact support for now.');
+                }
+            }
+        }
+
+        async function handleLogout(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                try {
+                    const response = await fetch('/auth/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (response.ok) {
+                        window.location.href = '/auth';
+                    }
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

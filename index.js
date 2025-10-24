@@ -8,6 +8,8 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const questRoutes = require("./routes/questRoutes");
 const referralRoutes = require("./routes/referralRoutes");
 const eventRoutes = require("./routes/eventRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
+const courseRoutes = require("./routes/courseRoutes");
 const cors = require('cors');
 dotenv.config();
 const app = express();
@@ -51,8 +53,8 @@ app.use("/dashboard", dashboardRoutes);
 app.use("/dashboard/quests", questRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/dashboard/referral", referralRoutes);
-
-
+app.use("/dashboard/settings", settingsRoutes);
+app.use("/api/learn", courseRoutes);
 
 
 app.get("/", (req, res) => {
@@ -112,6 +114,12 @@ app.get("/dashboard/learn", isAuthenticated, (req, res) => {
     user: req.session.userId ? { username: req.session.username } : null
   });
 });
+app.get("/dashboard/settings", isAuthenticated, (req, res) => {
+  res.render("dashboard/settings", { 
+    title: "Learn",
+    user: req.session.userId ? { username: req.session.username } : null
+  });
+});
 
 app.get("/dashboard/events/:eventId", isAuthenticated, (req, res) => {
   res.render("dashboard/event-details", { 
@@ -120,6 +128,8 @@ app.get("/dashboard/events/:eventId", isAuthenticated, (req, res) => {
     user: req.session.userId ? { username: req.session.username } : null
   });
 });
+
+
 
 app.get("/auth", (req, res) => {
   if (req.session.userId) {

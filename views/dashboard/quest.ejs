@@ -277,7 +277,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    alert('Quest started! Good luck! 🚀');
+                    alert('Quest started! Good luck! ');
                     window.location.href = `/dashboard/quests/${questId}`;
                 } else {
                     alert(data.message || 'Failed to start quest');

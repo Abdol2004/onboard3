@@ -27,22 +27,10 @@
                     <i class="fas fa-trophy"></i>
                     <span>Quests</span>
                 </a>
-                <!-- <a href="quest-leaderboard.html" class="menu-item">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Quest Rank</span>
-                </a> -->
                 <a href="/dashboard/learn" class="menu-item active">
                     <i class="fas fa-graduation-cap"></i>
                     <span>Learn</span>
                 </a>
-                <!-- <a href="bounties.html" class="menu-item">
-                    <i class="fas fa-briefcase"></i>
-                    <span>Bounties</span>
-                </a>
-                <a href="bounty-leaderboard.html" class="menu-item">
-                    <i class="fas fa-medal"></i>
-                    <span>Bounty Rank</span>
-                </a> -->
                 <a href="/dashboard/events" class="menu-item">
                     <i class="fas fa-calendar"></i>
                     <span>Events</span>
@@ -74,6 +62,17 @@
             </header>
 
             <div class="content">
+                <!-- My Applications -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-list-check"></i> My Applications</h3>
+                    </div>
+                    <div id="myApplicationsContainer">
+                        <p style="color: #888; text-align: center; padding: 2rem;">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Apply for Courses -->
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-graduation-cap"></i> Apply for Courses</h3>
@@ -119,31 +118,53 @@
                             <textarea id="experience" placeholder="Share any relevant experience or projects..."></textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Application</button>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-paper-plane"></i> Submit Application
+                        </button>
                     </form>
                 </div>
 
+                <!-- Course Information -->
                 <div class="card">
                     <div class="card-header">
-                        <h3><i class="fas fa-list-check"></i> My Applications</h3>
+                        <h3><i class="fas fa-info-circle"></i> Available Courses</h3>
                     </div>
-                    <div class="bounty-item">
-                        <div class="bounty-header">
-                            <div>
-                                <div class="bounty-title">Content Creation</div>
-                                <p style="color: #888; font-size: 0.85rem; margin-top: 0.5rem;">Applied: September 15, 2025</p>
-                            </div>
-                            <span class="status-badge status-approved">✓ Admitted</span>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-pen-nib"></i> Content Creation</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Learn to create engaging Web3 content and build your personal brand</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 6 weeks</p>
                         </div>
-                        <p style="color: #39FF14; font-size: 0.9rem; margin-top: 1rem;">🎉 Congratulations! Check your email for course details.</p>
-                    </div>
-                    <div class="bounty-item">
-                        <div class="bounty-header">
-                            <div>
-                                <div class="bounty-title">Community Management</div>
-                                <p style="color: #888; font-size: 0.85rem; margin-top: 0.5rem;">Applied: October 1, 2025</p>
-                            </div>
-                            <span class="status-badge status-pending">⏳ Pending</span>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-users"></i> Community Management</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Master building and managing thriving Web3 communities</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 8 weeks</p>
+                        </div>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-code"></i> Smart Contract Development</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Build secure and efficient smart contracts with Solidity</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 12 weeks</p>
+                        </div>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-laptop-code"></i> Frontend Development</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Create beautiful Web3 frontends with React and Web3.js</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 10 weeks</p>
+                        </div>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-chart-line"></i> Marketing & Growth</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Drive growth and engagement for Web3 projects</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 6 weeks</p>
+                        </div>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-paint-brush"></i> Product Design</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Design user-friendly Web3 products and experiences</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 8 weeks</p>
                         </div>
                     </div>
                 </div>
@@ -151,113 +172,6 @@
         </main>
     </div>
 
-    <script>// User data
-const userData = {
-    username: 'Builder_0x4A2',
-    isStudent: true,
-    usdcBalance: 450,
-    xp: 342,
-    questRank: 47,
-    bountyRank: 23,
-    courseApplications: [
-        { course: 'Content Creation', status: 'approved', appliedDate: '2025-09-15' },
-        { course: 'Community Management', status: 'pending', appliedDate: '2025-10-01' }
-    ]
-};
-
-// Set active menu item based on current page
-function setActiveMenuItem() {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    const menuItems = document.querySelectorAll('.menu-item');
-    
-    menuItems.forEach(item => {
-        const href = item.getAttribute('href');
-        if (href === currentPage || (currentPage === '' && href === 'index.html')) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
-        }
-    });
-}
-
-// Animate progress bars
-function animateProgressBars() {
-    const progressBars = document.querySelectorAll('.progress-bar, .quest-progress-fill');
-    progressBars.forEach(bar => {
-        const width = bar.style.width;
-        bar.style.width = '0%';
-        setTimeout(() => {
-            bar.style.width = width;
-        }, 100);
-    });
-}
-
-// Handle logout
-function handleLogout(event) {
-    event.preventDefault();
-    if (confirm('Are you sure you want to logout?')) {
-        alert('Logging out...');
-        // Add logout logic here
-    }
-}
-
-// Modal functions
-function openBountyModal(title, reward) {
-    const modal = document.getElementById('bountyModal');
-    if (modal) {
-        document.getElementById('bountyTitle').value = title + ' - ' + reward + ' USDC';
-        modal.classList.add('active');
-    }
-}
-
-function closeModal() {
-    const modal = document.getElementById('bountyModal');
-    if (modal) {
-        modal.classList.remove('active');
-        const form = document.getElementById('bountySubmissionForm');
-        if (form) form.reset();
-    }
-}
-
-// Initialize page
-window.addEventListener('load', () => {
-    setActiveMenuItem();
-    animateProgressBars();
-    attachFormListeners();
-    
-    // Close modal on background click
-    const modal = document.getElementById('bountyModal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-    }
-});
-
-// Attach form listeners
-function attachFormListeners() {
-    // Course application form
-    const courseForm = document.getElementById('courseApplicationForm');
-    if (courseForm) {
-        courseForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const course = document.getElementById('courseSelect').value;
-            alert(`Application submitted for ${course}! You'll receive a response within 3-5 business days.`);
-            this.reset();
-        });
-    }
-
-    // Bounty submission form
-    const bountyForm = document.getElementById('bountySubmissionForm');
-    if (bountyForm) {
-        bountyForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Bounty submission received! We\'ll review it and get back to you soon.');
-            closeModal();
-        });
-    }
-}</script>
+    <script src="/js/learn.js"></script>
 </body>
 </html>
