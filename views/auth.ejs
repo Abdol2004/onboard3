@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONBOARD3 - Authentication</title>
+    <link rel="stylesheet" href="/css/head.css">
+    <link rel="stylesheet" href="/css/load.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Space Grotesk', sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; display: flex; flex-direction: column; }
+        .bg-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(57, 255, 20, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(57, 255, 20, 0.05) 1px, transparent 1px); background-size: 50px 50px; pointer-events: none; z-index: 0; }
+        .glow-orb { position: fixed; width: 600px; height: 600px; border-radius: 50%; filter: blur(100px); opacity: 0.3; pointer-events: none; z-index: 0; }
+        .glow-orb-1 { background: #39FF14; top: -200px; left: -200px; }
+        .glow-orb-2 { background: #39FF14; bottom: -200px; right: -200px; }
+        .auth-container { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; margin-top: 80px; }
+        .auth-box { background: rgba(20, 20, 20, 0.8); border: 1px solid rgba(57, 255, 20, 0.2); border-radius: 20px; padding: 3rem; max-width: 450px; width: 100%; backdrop-filter: blur(10px); }
+        .auth-header { text-align: center; margin-bottom: 2rem; }
+        .auth-header h1 { font-size: 2rem; color: #39FF14; margin-bottom: 0.5rem; }
+        .auth-header p { color: rgba(255, 255, 255, 0.7); font-size: 0.95rem; }
+        .auth-tabs { display: flex; gap: 1rem; margin-bottom: 2rem; }
+        .auth-tab { flex: 1; padding: 0.75rem; background: transparent; border: 1px solid rgba(57, 255, 20, 0.2); border-radius: 10px; color: rgba(255, 255, 255, 0.7); font-size: 1rem; cursor: pointer; transition: all 0.3s; }
+        .auth-tab.active { background: rgba(57, 255, 20, 0.1); border-color: #39FF14; color: #39FF14; }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: rgba(255, 255, 255, 0.9); font-size: 0.95rem; }
+        .form-group input { width: 100%; padding: 0.875rem; background: rgba(30, 30, 30, 0.5); border: 1px solid rgba(57, 255, 20, 0.2); border-radius: 10px; color: #fff; font-size: 1rem; transition: all 0.3s; }
+        .form-group input:focus { outline: none; border-color: #39FF14; background: rgba(30, 30, 30, 0.8); }
+        .btn-submit { width: 100%; padding: 1rem; background: #39FF14; color: #0a0a0a; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-submit:hover { background: #2ee012; transform: translateY(-2px); box-shadow: 0 5px 20px rgba(57, 255, 20, 0.4); }
+        .alert { padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; font-size: 0.95rem; display: none; }
+        .alert.show { display: block; }
+        .alert-success { background: rgba(57, 255, 20, 0.1); border: 1px solid rgba(57, 255, 20, 0.3); color: #39FF14; }
+        .alert-error { background: rgba(255, 20, 20, 0.1); border: 1px solid rgba(255, 20, 20, 0.3); color: #ff4444; }
+        .alert-warning { background: rgba(255, 165, 0, 0.1); border: 1px solid rgba(255, 165, 0, 0.3); color: #ffa500; }
+        .resend-link { color: #39FF14; text-decoration: none; font-size: 0.9rem; display: inline-block; margin-top: 0.5rem; }
+        .resend-link:hover { text-decoration: underline; }
+        @media (max-width: 768px) { .auth-box { padding: 2rem; } .auth-header h1 { font-size: 1.5rem; } }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <div class="logo-icon">O3</div>
+                <span class="logo-text">ONBOARD3</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/irl" class="nav-link">Events</a></li>
+                <li><a href="/partner" class="nav-link">Partners</a></li>
+            </ul>
+            <div class="nav-cta">
+                <a href="/auth" class="btn btn-secondary">User</a>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <h1>Welcome to ONBOARD3</h1>
+                <p>Join the future of Web3 development</p>
+            </div>
+
+            <div id="alert" class="alert"></div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Login</button>
+                <button class="auth-tab" data-tab="register">Register</button>
+            </div>
+
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" name="password" required>
+                </div>
+                <button type="submit" class="btn-submit">Login</button>
+            </form>
+
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerUsername">Username</label>
+                    <input type="text" id="registerUsername" name="username" required minlength="3">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" name="password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="referralCode">Referral Code (Optional)</label>
+                    <input type="text" id="referralCode" name="referralCode" placeholder="Enter referral code if you have one" style="text-transform: uppercase;">
+                </div>
+                <button type="submit" class="btn-submit">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const tabs = document.querySelectorAll('.auth-tab');
+        const forms = document.querySelectorAll('.auth-form');
+        let unverifiedEmail = null;
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                tabs.forEach(t => t.classList.remove('active'));
+                forms.forEach(f => f.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`${targetTab}Form`).classList.add('active');
+                hideAlert();
+            });
+        });
+
+        function showAlert(message, type, showResend = false) {
+            const alert = document.getElementById('alert');
+            alert.innerHTML = message;
+            if (showResend && unverifiedEmail) {
+                alert.innerHTML += `<br><a href="#" class="resend-link" onclick="resendVerification(event)">Resend verification email</a>`;
+            }
+            alert.className = `alert alert-${type} show`;
+        }
+
+        function hideAlert() {
+            document.getElementById('alert').className = 'alert';
+        }
+
+        async function resendVerification(e) {
+            e.preventDefault();
+            if (!unverifiedEmail) return;
+
+            try {
+                const response = await fetch('/auth/resend-verification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: unverifiedEmail })
+                });
+
+                const data = await response.json();
+                showAlert(data.message, data.success ? 'success' : 'error');
+            } catch (error) {
+                showAlert('An error occurred. Please try again.', 'error');
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Login successful! Redirecting...', 'success');
+                    setTimeout(() => { window.location.href = '/dashboard'; }, 1500);
+                } else {
+                    if (data.requiresVerification) {
+                        unverifiedEmail = data.email;
+                        showAlert(data.message, 'warning', true);
+                    } else {
+                        showAlert(data.message, 'error');
+                    }
+                }
+            } catch (error) {
+                showAlert('An error occurred. Please try again.', 'error');
+            }
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                showAlert('Passwords do not match', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password, confirmPassword })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    document.getElementById('registerForm').reset();
+                } else {
+                    showAlert(data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('An error occurred. Please try again.', 'error');
+            }
+        });
+    </script>
+    <script src="/js/head.js"></script>
+    <script>
+       // Add to your main JavaScript file
+document.addEventListener('DOMContentLoaded', function() {
+    // Create preloader element
+    const preloader = document.createElement('div');
+    preloader.id = 'preloader';
+    preloader.innerHTML = `
+        <div class="preloader-content">
+            <div class="loader"></div>
+            <p class="loader-text">Please wait, do not click again...</p>
+        </div>
+    `;
+    document.body.appendChild(preloader);
+    
+    // Hide preloader initially
+    preloader.style.display = 'none';
+    
+    let isLoading = false;
+    
+    // Function to show and hide preloader
+    function showPreloader() {
+        if (isLoading) return;
+        
+        isLoading = true;
+        preloader.style.display = 'flex';
+        
+        // Hide after exactly 3 seconds
+        setTimeout(() => {
+            preloader.style.display = 'none';
+            isLoading = false;
+        }, 3000);
+    }
+    
+    // Show preloader on button clicks (not links)
+    document.querySelectorAll('btn-submit').forEach(button => {
+        button.addEventListener('click', function(e) {
+            // Don't prevent default, just show preloader
+            if (!isLoading) {
+                showPreloader();
+            }
+        });
+    });
+    
+    // Show preloader on form submissions
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            // Prevent page reload
+            e.preventDefault();
+            
+            if (!isLoading) {
+                showPreloader();
+                
+                // Get form data and submit via fetch or your existing method
+                const formData = new FormData(this);
+                
+                // You can add your AJAX submission here
+                // Example:
+                // fetch(this.action, {
+                //     method: this.method,
+                //     body: formData
+                // }).then(response => response.json())
+                //   .then(data => {
+                //       // Handle response after preloader hides
+                //   });
+            }
+        });
+    });
+});
+    </script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONBOARD3 Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>ONBOARD3</h1>
+                <p>Web3 Builder Hub</p>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="/dashboard" class="menu-item active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard Overview</span>
+                </a>
+                <a href="/dashboard/quests" class="menu-item">
+                    <i class="fas fa-trophy"></i>
+                    <span>Quests</span>
+                </a>
+                <a href="/dashboard/learn" class="menu-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Learn (Apply)</span>
+                </a>
+                <!-- <a href="/dashboard/bounties" class="menu-item">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Bounties</span>
+                </a> -->
+                <!-- <a href="/dashboard/leaderboard" class="menu-item">
+                    <i class="fas fa-medal"></i>
+                    <span>Leaderboard</span>
+                </a> -->
+                <a href="/dashboard/events" class="menu-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>Events</span>
+                </a>
+                <a href="/dashboard/settings" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="#" class="menu-item logout" onclick="handleLogout(event)">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>v1.0 — Powered by</p>
+                <p class="version">ONBOARD3</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2>Welcome back, <%= user.username %> </h2>
+                        <p>Track your learning, bounties, and progress.</p>
+                    </div>
+                    <div class="header-stats">
+                        <div class="stat-badge">
+                            <i class="fas fa-star" style="color: #39FF14;"></i>
+                            <span><%= user.profession || 'No Profession Yet' %></span>
+                        </div>
+                        <div class="stat-badge">
+                            <i class="fas fa-coins" style="color: #39FF14;"></i>
+                            <span><%= user.xp || 0 %> XP</span>
+                        </div>
+                        <div class="stat-badge">
+                            <i class="fas fa-dollar-sign" style="color: #39FF14;"></i>
+                            <span>$<%= user.usdcBalance || 0 %> USDC</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="card xp-card">
+                    <div class="xp-info">
+                        <h3>Total XP Balance</h3>
+                        <span class="xp-value"><%= user.xp || 0 %> XP</span>
+                    </div>
+                    <p class="progress-label" style="margin-top: 1rem; color: #888;">Complete quests and bounties to earn more XP</p>
+                </div>
+
+                <div class="grid-3">
+                    <!-- <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Quest Rank</h3>
+                        </div>
+                        <div style="text-align: center; padding: 1rem;">
+                            <div style="font-size: 3rem; color: #39FF14; font-weight: 700;">#<%= user.questRank || 'N/A' %></div>
+                            <p style="color: #888; margin-top: 0.5rem;">Out of <%= totalUsers || 0 %> builders</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-medal"></i> Bounty Rank</h3>
+                        </div>
+                        <div style="text-align: center; padding: 1rem;">
+                            <div style="font-size: 3rem; color: #39FF14; font-weight: 700;">#<%= user.bountyRank || 'N/A' %></div>
+                            <p style="color: #888; margin-top: 0.5rem;"><%= user.bountyRank && user.bountyRank <= 10 ? 'Top performer' : 'Keep building!' %></p>
+                        </div>
+                    </div> -->
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-wallet"></i> USDC Balance</h3>
+                        </div>
+                        <div style="text-align: center; padding: 1rem;">
+                            <div style="font-size: 2.5rem; color: #39FF14; font-weight: 700;">$<%= user.usdcBalance || 0 %></div>
+                            <p style="color: #888; margin-top: 0.5rem;">Available to withdraw</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-trophy"></i> Active Quests</h3>
+                        </div>
+                        <% if (user.activeQuests && user.activeQuests.length > 0) { %>
+                            <% user.activeQuests.forEach(quest => { %>
+                                <div class="quest-item">
+                                    <div class="quest-header">
+                                        <span class="quest-title"><%= quest.title %></span>
+                                        <span class="quest-reward"><%= quest.xpReward %> XP</span>
+                                    </div>
+                                    <div class="quest-progress">
+                                        <div class="quest-progress-fill" style="width: <%= quest.progress %>%"></div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <p style="color: #888; padding: 1rem; text-align: center;">No active quests. Start exploring!</p>
+                        <% } %>
+                    </div>
+<!-- 
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-briefcase"></i> My Bounties</h3>
+                        </div>
+                        <% if (user.activeBounties && user.activeBounties.length > 0) { %>
+                            <% user.activeBounties.forEach(bounty => { %>
+                                <div class="bounty-item">
+                                    <div class="bounty-header">
+                                        <span class="bounty-title"><%= bounty.title %></span>
+                                        <span class="bounty-reward"><%= bounty.reward %> USDC</span>
+                                    </div>
+                                    <span class="bounty-status status-<%= bounty.status %>"><%= bounty.statusText %></span>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <p style="color: #888; padding: 1rem; text-align: center;">No active bounties. Check available bounties!</p>
+                        <% } %>
+                    </div> -->
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-graduation-cap"></i> Course Status</h3>
+                    </div>
+                    <% if (user.courseApplications && user.courseApplications.length > 0) { %>
+                        <% user.courseApplications.forEach(application => { %>
+                            <div class="bounty-item">
+                                <div class="bounty-header">
+                                    <span class="bounty-title"><%= application.courseName %></span>
+                                    <span class="status-badge status-<%= application.status %>">
+                                        <%= application.status === 'approved' ? '✓ Admitted' : application.status === 'pending' ? '⏳ Pending' : '✗ Rejected' %>
+                                    </span>
+                                </div>
+                                <p style="color: #888; font-size: 0.85rem; margin-top: 0.5rem;">Applied: <%= new Date(application.appliedDate).toLocaleDateString() %></p>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p style="color: #888; padding: 1rem; text-align: center;">No course applications yet. Apply for courses to start learning!</p>
+                    <% } %>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+                    </div>
+                    <% if (user.recentActivity && user.recentActivity.length > 0) { %>
+                        <% user.recentActivity.forEach(activity => { %>
+                            <div style="padding: 0.75rem; border-bottom: 1px solid rgba(57, 255, 20, 0.1);">
+                                <p style="color: #fff; margin-bottom: 0.25rem;"><%= activity.action %></p>
+                                <p style="color: #888; font-size: 0.85rem;"><%= new Date(activity.timestamp).toLocaleString() %></p>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p style="color: #888; padding: 1rem; text-align: center;">No recent activity</p>
+                    <% } %>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        async function handleLogout(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                try {
+                    const response = await fetch('/auth/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (response.ok) {
+                        window.location.href = '/auth';
+                    } else {
+                        alert('Logout failed. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    alert('An error occurred during logout.');
+                }
+            }
+        }
+
+        // Animate progress bars on load
+        window.addEventListener('load', () => {
+            const progressBars = document.querySelectorAll('.progress-bar, .quest-progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                    bar.style.transition = 'width 1s ease-out';
+                }, 100);
+            });
+
+            // Set active menu item
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.menu-item').forEach(item => {
+                if (item.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                } else if (!item.classList.contains('logout')) {
+                    item.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

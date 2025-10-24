@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details - ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>ONBOARD3</h1>
+                <p>Web3 Builder Hub</p>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="/dashboard" class="menu-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard Overview</span>
+                </a>
+                <a href="/dashboard/quests" class="menu-item">
+                    <i class="fas fa-trophy"></i>
+                    <span>Quests</span>
+                </a>
+                <a href="/dashboard/learn" class="menu-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Learn (Apply)</span>
+                </a>
+                <!-- <a href="bounties.html" class="menu-item">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Bounties</span>
+                </a>
+                <a href="bounty-leaderboard.html" class="menu-item">
+                    <i class="fas fa-medal"></i>
+                    <span>Bounty Leaderboard</span>
+                </a> -->
+                <a href="/dashboard/events" class="menu-item active">
+                    <i class="fas fa-calendar"></i>
+                    <span>Events</span>
+                </a>
+                <a href="/dashboard/settings" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="#" class="menu-item logout" onclick="handleLogout(event)">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>v1.0 — Powered by</p>
+                <p class="version">ONBOARD3</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <a href="/dashboard/events" style="color: #39FF14; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <i class="fas fa-arrow-left"></i> Back to Events
+                        </a>
+                        <h2 id="eventTitle">Event Details</h2>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Loading State -->
+                <div id="loadingState" class="card" style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #39FF14;"></i>
+                    <p style="color: #888; margin-top: 1rem;">Loading event details...</p>
+                </div>
+
+                <!-- Event Details Content -->
+                <div id="eventDetailsContent" style="display: none;">
+                    <!-- Hero Card -->
+                    <div class="card" style="background: linear-gradient(135deg, rgba(57,255,20,0.1) 0%, rgba(57,255,20,0.05) 100%);">
+                        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+                            <div style="flex: 1; min-width: 300px;">
+                                <h1 id="eventTitleMain" style="color: #39FF14; margin: 0 0 1rem 0; font-size: 2rem;"></h1>
+                                <p id="eventDescription" style="color: #ccc; font-size: 1.1rem; line-height: 1.6;"></p>
+                                
+                                <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                                    <span id="eventTypeBadge" class="status-badge"></span>
+                                    <span id="eventCategoryBadge" class="status-badge"></span>
+                                    <span id="eventStatusBadge" class="status-badge"></span>
+                                </div>
+                            </div>
+                            
+                            <div id="actionButtons" style="display: flex; flex-direction: column; gap: 0.8rem; min-width: 200px;">
+                                <!-- Dynamic buttons will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Info -->
+                    <div class="card">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <i class="fas fa-calendar-alt" style="font-size: 2rem; color: #39FF14;"></i>
+                                    <div>
+                                        <p style="color: #888; font-size: 0.85rem; margin: 0;">Date</p>
+                                        <p id="eventDate" style="color: #fff; font-size: 1.1rem; font-weight: 600; margin: 0.3rem 0 0 0;"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <i class="fas fa-clock" style="font-size: 2rem; color: #39FF14;"></i>
+                                    <div>
+                                        <p style="color: #888; font-size: 0.85rem; margin: 0;">Time</p>
+                                        <p id="eventTime" style="color: #fff; font-size: 1.1rem; font-weight: 600; margin: 0.3rem 0 0 0;"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="venueCard" style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2); display: none;">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <i class="fas fa-map-marker-alt" style="font-size: 2rem; color: #39FF14;"></i>
+                                    <div>
+                                        <p style="color: #888; font-size: 0.85rem; margin: 0;">Venue</p>
+                                        <p id="eventVenue" style="color: #fff; font-size: 1.1rem; font-weight: 600; margin: 0.3rem 0 0 0;"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <i class="fas fa-users" style="font-size: 2rem; color: #39FF14;"></i>
+                                    <div>
+                                        <p style="color: #888; font-size: 0.85rem; margin: 0;">Registered</p>
+                                        <p id="eventRegistrations" style="color: #fff; font-size: 1.1rem; font-weight: 600; margin: 0.3rem 0 0 0;"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Virtual Link (if applicable) -->
+                    <div id="virtualLinkCard" class="card" style="display: none; background: rgba(57,255,20,0.1);">
+                        <h3 style="color: #39FF14; margin-top: 0;"><i class="fas fa-video"></i> Join Virtually</h3>
+                        <p style="color: #ccc; margin-bottom: 1rem;">Click the link below to join the virtual event:</p>
+                        <a id="virtualLink" href="#" target="_blank" style="display: inline-block; background: #39FF14; color: #0a0a0a; padding: 0.8rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                            Join Event <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+
+                    <!-- Prize Pool (if applicable) -->
+                    <div id="prizePoolCard" class="card" style="display: none;">
+                        <h3 style="color: #39FF14; margin-top: 0;"><i class="fas fa-trophy"></i> Prize Pool</h3>
+                        <p id="prizePool" style="color: #fff; font-size: 1.5rem; font-weight: 700;"></p>
+                    </div>
+
+                    <!-- Requirements -->
+                    <div id="requirementsCard" class="card" style="display: none;">
+                        <h3 style="color: #39FF14; margin-top: 0;"><i class="fas fa-check-circle"></i> Requirements</h3>
+                        <ul id="requirementsList" style="color: #ccc; line-height: 2;"></ul>
+                    </div>
+
+                    <!-- Agenda -->
+                    <div id="agendaCard" class="card" style="display: none;">
+                        <h3 style="color: #39FF14; margin-top: 0;"><i class="fas fa-list"></i> Event Agenda</h3>
+                        <div id="agendaList"></div>
+                    </div>
+
+                    <!-- Speakers -->
+                    <div id="speakersCard" class="card" style="display: none;">
+                        <h3 style="color: #39FF14; margin-top: 0;"><i class="fas fa-microphone"></i> Speakers</h3>
+                        <div id="speakersList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;"></div>
+                    </div>
+
+                    <!-- Registered Attendees -->
+                    <div id="attendeesCard" class="card">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3><i class="fas fa-user-friends"></i> Registered Attendees (<span id="attendeeCount">0</span>)</h3>
+                        </div>
+                        <div id="attendeesList"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/event-details.js"></script>
+</body>
+</html>

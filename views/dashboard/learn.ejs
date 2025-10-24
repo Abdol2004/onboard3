@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn - ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>ONBOARD3</h1>
+                <p>Web3 Builder Hub</p>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="/dashboard" class="menu-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/dashboard/quests" class="menu-item">
+                    <i class="fas fa-trophy"></i>
+                    <span>Quests</span>
+                </a>
+                <!-- <a href="quest-leaderboard.html" class="menu-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Quest Rank</span>
+                </a> -->
+                <a href="/dashboard/learn" class="menu-item active">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Learn</span>
+                </a>
+                <!-- <a href="bounties.html" class="menu-item">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Bounties</span>
+                </a>
+                <a href="bounty-leaderboard.html" class="menu-item">
+                    <i class="fas fa-medal"></i>
+                    <span>Bounty Rank</span>
+                </a> -->
+                <a href="/dashboard/events" class="menu-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>Events</span>
+                </a>
+                <a href="/dashboard/settings" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="#" class="menu-item logout" onclick="handleLogout(event)">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>v1.0 — Powered by</p>
+                <p class="version">ONBOARD3</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2>Learn & Apply 🎓</h2>
+                        <p>Apply for specialized courses and become a certified builder</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-graduation-cap"></i> Apply for Courses</h3>
+                    </div>
+                    <p style="color: #888; margin-bottom: 2rem;">Choose a specialization track and apply to become a certified ONBOARD3 builder</p>
+
+                    <form id="courseApplicationForm">
+                        <div class="form-group">
+                            <label>Select Course *</label>
+                            <select id="courseSelect" required>
+                                <option value="">-- Choose a course --</option>
+                                <option value="Content Creation">Content Creation</option>
+                                <option value="Community Management">Community Management</option>
+                                <option value="Smart Contract Development">Smart Contract Development</option>
+                                <option value="Frontend Development">Frontend Development</option>
+                                <option value="Marketing & Growth">Marketing & Growth</option>
+                                <option value="Product Design">Product Design</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" id="fullName" placeholder="John Doe" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email Address *</label>
+                            <input type="email" id="email" placeholder="john@example.com" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Twitter/X Handle</label>
+                            <input type="text" id="twitter" placeholder="@yourusername">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Why do you want to join this course? *</label>
+                            <textarea id="motivation" placeholder="Tell us about your goals and what you hope to learn..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Previous Experience (if any)</label>
+                            <textarea id="experience" placeholder="Share any relevant experience or projects..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Application</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-list-check"></i> My Applications</h3>
+                    </div>
+                    <div class="bounty-item">
+                        <div class="bounty-header">
+                            <div>
+                                <div class="bounty-title">Content Creation</div>
+                                <p style="color: #888; font-size: 0.85rem; margin-top: 0.5rem;">Applied: September 15, 2025</p>
+                            </div>
+                            <span class="status-badge status-approved">✓ Admitted</span>
+                        </div>
+                        <p style="color: #39FF14; font-size: 0.9rem; margin-top: 1rem;">🎉 Congratulations! Check your email for course details.</p>
+                    </div>
+                    <div class="bounty-item">
+                        <div class="bounty-header">
+                            <div>
+                                <div class="bounty-title">Community Management</div>
+                                <p style="color: #888; font-size: 0.85rem; margin-top: 0.5rem;">Applied: October 1, 2025</p>
+                            </div>
+                            <span class="status-badge status-pending">⏳ Pending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>// User data
+const userData = {
+    username: 'Builder_0x4A2',
+    isStudent: true,
+    usdcBalance: 450,
+    xp: 342,
+    questRank: 47,
+    bountyRank: 23,
+    courseApplications: [
+        { course: 'Content Creation', status: 'approved', appliedDate: '2025-09-15' },
+        { course: 'Community Management', status: 'pending', appliedDate: '2025-10-01' }
+    ]
+};
+
+// Set active menu item based on current page
+function setActiveMenuItem() {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const menuItems = document.querySelectorAll('.menu-item');
+    
+    menuItems.forEach(item => {
+        const href = item.getAttribute('href');
+        if (href === currentPage || (currentPage === '' && href === 'index.html')) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
+
+// Animate progress bars
+function animateProgressBars() {
+    const progressBars = document.querySelectorAll('.progress-bar, .quest-progress-fill');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 100);
+    });
+}
+
+// Handle logout
+function handleLogout(event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to logout?')) {
+        alert('Logging out...');
+        // Add logout logic here
+    }
+}
+
+// Modal functions
+function openBountyModal(title, reward) {
+    const modal = document.getElementById('bountyModal');
+    if (modal) {
+        document.getElementById('bountyTitle').value = title + ' - ' + reward + ' USDC';
+        modal.classList.add('active');
+    }
+}
+
+function closeModal() {
+    const modal = document.getElementById('bountyModal');
+    if (modal) {
+        modal.classList.remove('active');
+        const form = document.getElementById('bountySubmissionForm');
+        if (form) form.reset();
+    }
+}
+
+// Initialize page
+window.addEventListener('load', () => {
+    setActiveMenuItem();
+    animateProgressBars();
+    attachFormListeners();
+    
+    // Close modal on background click
+    const modal = document.getElementById('bountyModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    }
+});
+
+// Attach form listeners
+function attachFormListeners() {
+    // Course application form
+    const courseForm = document.getElementById('courseApplicationForm');
+    if (courseForm) {
+        courseForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const course = document.getElementById('courseSelect').value;
+            alert(`Application submitted for ${course}! You'll receive a response within 3-5 business days.`);
+            this.reset();
+        });
+    }
+
+    // Bounty submission form
+    const bountyForm = document.getElementById('bountySubmissionForm');
+    if (bountyForm) {
+        bountyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Bounty submission received! We\'ll review it and get back to you soon.');
+            closeModal();
+        });
+    }
+}</script>
+</body>
+</html>

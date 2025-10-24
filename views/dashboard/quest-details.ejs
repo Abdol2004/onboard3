@@ -1,0 +1,416 @@
+<!-- ========================================== -->
+<!-- views/dashboard/quest-details.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>ONBOARD3</h1>
+                <p>Web3 Builder Hub</p>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="/dashboard" class="menu-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/dashboard/quests" class="menu-item active">
+                    <i class="fas fa-trophy"></i>
+                    <span>Quests</span>
+                </a>
+                <a href="/dashboard/learn" class="menu-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Learn</span>
+                </a>
+                <!-- <a href="/dashboard/bounties" class="menu-item">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Bounties</span>
+                </a>
+                <a href="/dashboard/bounty-leaderboard" class="menu-item">
+                    <i class="fas fa-medal"></i>
+                    <span>Bounty Leaderboard</span>
+                </a> -->
+                <a href="/dashboard/events" class="menu-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>Events</span>
+                </a>
+                <a href="/dashboard/settings" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="#" class="menu-item logout" onclick="handleLogout(event)">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>v1.0 — Powered by</p>
+                <p class="version">ONBOARD3</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <a href="/dashboard/quests" style="color: #39FF14; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                            <i class="fas fa-arrow-left"></i> Back to Quests
+                        </a>
+                        <h2><%= quest.title %></h2>
+                        <p><%= quest.shortDescription %></p>
+                    </div>
+                    <div class="header-stats">
+                        <div class="stat-badge">
+                            <i class="fas fa-star" style="color: #39FF14;"></i>
+                            <span><%= quest.xpReward %> XP</span>
+                        </div>
+                        <% if (quest.usdcReward > 0) { %>
+                        <div class="stat-badge">
+                            <i class="fas fa-coins" style="color: #39FF14;"></i>
+                            <span><%= quest.usdcReward %> USDC</span>
+                        </div>
+                        <% } %>
+                        <div class="stat-badge">
+                            <i class="fas fa-tasks" style="color: #39FF14;"></i>
+                            <span><%= userProgress.tasksCompleted %>/<%= quest.tasks.length %> Tasks</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Quest Progress Overview -->
+                <div class="card xp-card">
+                    <div class="xp-info">
+                        <h3>Quest Progress</h3>
+                        <span class="xp-value"><%= userProgress.progress %>% Complete</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: <%= userProgress.progress %>%"></div>
+                    </div>
+                    <p class="progress-label">Complete all <%= quest.tasks.length %> tasks to earn <%= quest.xpReward %> XP<% if (quest.usdcReward > 0) { %> and <%= quest.usdcReward %> USDC<% } %></p>
+                </div>
+
+                <!-- Quest Description -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-info-circle"></i> Quest Description</h3>
+                    </div>
+                    <p style="color: #ccc; line-height: 1.6; margin-bottom: 1rem;">
+                        <%= quest.description %>
+                    </p>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem;">
+                        <div style="background: rgba(57,255,20,0.1); padding: 0.8rem 1.2rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.3);">
+                            <div style="color: #888; font-size: 0.75rem; margin-bottom: 0.3rem;">Difficulty</div>
+                            <div style="color: #39FF14; font-weight: 600; text-transform: capitalize;"><%= quest.difficulty %></div>
+                        </div>
+                        <div style="background: rgba(57,255,20,0.1); padding: 0.8rem 1.2rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.3);">
+                            <div style="color: #888; font-size: 0.75rem; margin-bottom: 0.3rem;">Duration</div>
+                            <div style="color: #39FF14; font-weight: 600;"><%= quest.estimatedDuration %></div>
+                        </div>
+                        <div style="background: rgba(57,255,20,0.1); padding: 0.8rem 1.2rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.3);">
+                            <div style="color: #888; font-size: 0.75rem; margin-bottom: 0.3rem;">Category</div>
+                            <div style="color: #39FF14; font-weight: 600; text-transform: capitalize;"><%= quest.category %></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quest Tasks -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-tasks"></i> Quest Tasks</h3>
+                    </div>
+
+                    <% quest.tasks.forEach((task, index) => { 
+                        const taskProgress = userProgress.taskProgress.find(tp => tp.taskId.toString() === task._id.toString());
+                        const isCompleted = taskProgress && taskProgress.isCompleted;
+                        const isPreviousCompleted = index === 0 || userProgress.taskProgress[index - 1]?.isCompleted;
+                        const isLocked = !isPreviousCompleted && !isCompleted;
+                    %>
+
+                    <% if (isCompleted) { %>
+                    <!-- Completed Task -->
+                    <div class="quest-task completed" style="background: rgba(57,255,20,0.05); padding: 1.2rem; border-radius: 12px; margin-bottom: 1rem; border-left: 3px solid #39FF14;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.8rem;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                                    <span style="color: #39FF14; font-size: 1.2rem;"><i class="fas fa-check-circle"></i></span>
+                                    <h4 style="font-size: 1rem; color: #39FF14;">Task <%= index + 1 %>: <%= task.title %></h4>
+                                </div>
+                                <p style="color: #888; font-size: 0.85rem; line-height: 1.5;"><%= task.description %></p>
+                            </div>
+                            <span class="status-badge status-approved" style="margin-top: 0;">✓ Completed</span>
+                        </div>
+                        <div style="color: #666; font-size: 0.8rem;">
+                            <i class="fas fa-clock"></i> Completed <%= new Date(taskProgress.completedAt).toLocaleString() %>
+                        </div>
+                    </div>
+                    <% } else if (isLocked) { %>
+                    <!-- Locked Task -->
+                    <div class="quest-task locked" style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 12px; margin-bottom: 1rem; border-left: 3px solid #666; opacity: 0.6;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.8rem;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                                    <span style="color: #666; font-size: 1.2rem;"><i class="fas fa-lock"></i></span>
+                                    <h4 style="font-size: 1rem; color: #888;">Task <%= index + 1 %>: <%= task.title %></h4>
+                                </div>
+                                <p style="color: #666; font-size: 0.85rem; line-height: 1.5;"><%= task.description %></p>
+                            </div>
+                            <span class="status-badge" style="background: rgba(100,100,100,0.2); color: #666; margin-top: 0;">🔒 Locked</span>
+                        </div>
+                        <div style="background: rgba(255,193,7,0.1); padding: 0.6rem; border-radius: 8px; margin-top: 0.8rem;">
+                            <p style="color: #FFC107; font-size: 0.8rem;"><i class="fas fa-info-circle"></i> Complete Task <%= index %> to unlock this task</p>
+                        </div>
+                    </div>
+                    <% } else { %>
+                    <!-- Active Task -->
+                    <div class="quest-task active" style="background: rgba(255,255,255,0.05); padding: 1.2rem; border-radius: 12px; margin-bottom: 1rem; border-left: 3px solid #FFC107;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.8rem;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                                    <span style="color: #FFC107; font-size: 1.2rem;"><i class="fas fa-play-circle"></i></span>
+                                    <h4 style="font-size: 1rem;">Task <%= index + 1 %>: <%= task.title %></h4>
+                                </div>
+                                <p style="color: #888; font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem;"><%= task.description %></p>
+                                <% if (task.requirements && task.requirements.url) { %>
+                                <a href="<%= task.requirements.url %>" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                                    <i class="fas fa-external-link-alt"></i> <%= task.requirements.action || 'Visit Link' %>
+                                </a>
+                                <% } %>
+                            </div>
+                            <span class="status-badge status-active" style="margin-top: 0;">In Progress</span>
+                        </div>
+
+                        <!-- Task Action Form -->
+                        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                            <form class="task-submit-form" data-task-id="<%= task._id %>" data-quest-id="<%= quest._id %>">
+                                <% if (task.taskType === 'submission' || task.taskType === 'verification') { %>
+                                <div class="form-group" style="margin-bottom: 0.8rem;">
+                                    <label>Submission URL *</label>
+                                    <input type="url" name="submissionUrl" placeholder="https://..." required>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label>Additional Notes</label>
+                                    <textarea name="submissionText" placeholder="Any additional information..." rows="3"></textarea>
+                                </div>
+                                <% } else if (task.taskType === 'social') { %>
+                                <div class="form-group" style="margin-bottom: 0.8rem;">
+                                    <label>Your <%= task.requirements?.platform || 'Social' %> Username *</label>
+                                    <input type="text" name="username" placeholder="@yourusername" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label>Proof URL (optional)</label>
+                                    <input type="url" name="submissionUrl" placeholder="Screenshot or link to prove completion">
+                                </div>
+                                <% } else { %>
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label>Completion Details *</label>
+                                    <textarea name="submissionText" placeholder="Describe how you completed this task..." rows="3" required></textarea>
+                                </div>
+                                <% } %>
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                    <i class="fas fa-paper-plane"></i> Submit Task
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <% } %>
+                    <% }); %>
+                </div>
+
+                <!-- Learning Resources -->
+                <% if (quest.resources && quest.resources.length > 0) { %>
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-book"></i> Learning Resources</h3>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                        <% quest.resources.forEach(resource => { %>
+                        <a href="<%= resource.url %>" target="_blank" class="bounty-item" style="text-decoration: none; display: block;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <i class="fas fa-<%= resource.type === 'video' ? 'video' : resource.type === 'code' ? 'code' : 'file-alt' %>" style="color: #39FF14; font-size: 1.5rem;"></i>
+                                <div style="flex: 1;">
+                                    <div class="bounty-title"><%= resource.title %></div>
+                                    <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem; text-transform: capitalize;"><%= resource.type %></p>
+                                </div>
+                                <i class="fas fa-external-link-alt" style="color: #666;"></i>
+                            </div>
+                        </a>
+                        <% }); %>
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- Quest Leaderboard -->
+                <% if (leaderboard && leaderboard.length > 0) { %>
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-trophy"></i> Quest Leaderboard</h3>
+                        <span style="color: #888; font-size: 0.85rem;">Top builders on this quest</span>
+                    </div>
+
+                    <% leaderboard.forEach((entry, idx) => { 
+                        const rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+                        const rankEmoji = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : (idx + 1);
+                        const timeAgo = Math.floor((Date.now() - new Date(entry.completedAt)) / (1000 * 60 * 60 * 24));
+                    %>
+                    <div class="leaderboard-item <%= rankClass %>">
+                        <div class="leaderboard-rank">
+                            <span class="rank-number" style="<%= idx > 2 ? 'color: #888;' : '' %>"><%= rankEmoji %></span>
+                            <div class="user-info">
+                                <h4><%= entry.userId?.username || 'Anonymous' %></h4>
+                                <p>Completed in <%= entry.timeSpentMinutes %> minutes</p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="color: #39FF14; font-weight: 700; font-size: 1.1rem;"><%= entry.tasksCompleted %>/<%= entry.totalTasks %> ✓</div>
+                            <div style="color: #888; font-size: 0.75rem;"><%= timeAgo %> day<%= timeAgo !== 1 ? 's' : '' %> ago</div>
+                        </div>
+                    </div>
+                    <% }); %>
+
+                    <!-- Current User Progress -->
+                    <% if (userProgress.status !== 'completed') { %>
+                    <div style="padding: 1rem; text-align: center; color: #888; border-top: 2px solid rgba(57,255,20,0.2); margin-top: 1rem; background: rgba(57,255,20,0.05); border-radius: 12px;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                            <div>
+                                <strong style="color: #39FF14; font-size: 1rem;">Your Progress:</strong>
+                                <span style="color: #fff; font-size: 1rem; margin-left: 0.5rem;"><%= userProgress.tasksCompleted %>/<%= quest.tasks.length %> Tasks (<%= userProgress.progress %>%)</span>
+                            </div>
+                            <% if (userProgress.startedAt) { %>
+                            <div style="padding: 0 1rem; border-left: 1px solid rgba(57,255,20,0.3);">
+                                <strong style="color: #888;">Time Spent:</strong>
+                                <span style="color: #fff; margin-left: 0.5rem;"><%= Math.floor((Date.now() - new Date(userProgress.startedAt)) / 60000) %> min</span>
+                            </div>
+                            <% } %>
+                        </div>
+                        <p style="margin-top: 0.8rem; font-size: 0.85rem; color: #39FF14;">
+                            <i class="fas fa-fire"></i> Complete remaining tasks to join the leaderboard!
+                        </p>
+                    </div>
+                    <% } %>
+                </div>
+                <% } %>
+
+                <!-- Quest Statistics -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-bar"></i> Quest Statistics</h3>
+                    </div>
+                    <div class="grid-3">
+                        <div style="text-align: center; padding: 1rem; background: rgba(57,255,20,0.05); border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <div style="font-size: 2rem; color: #39FF14; font-weight: 700; margin-bottom: 0.5rem;"><%= quest.totalCompletions %></div>
+                            <div style="color: #888; font-size: 0.85rem;">Total Completions</div>
+                        </div>
+                        <div style="text-align: center; padding: 1rem; background: rgba(57,255,20,0.05); border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <div style="font-size: 2rem; color: #39FF14; font-weight: 700; margin-bottom: 0.5rem;"><%= quest.averageCompletionTime || 0 %>m</div>
+                            <div style="color: #888; font-size: 0.85rem;">Average Time</div>
+                        </div>
+                        <div style="text-align: center; padding: 1rem; background: rgba(57,255,20,0.05); border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <div style="font-size: 2rem; color: #39FF14; font-weight: 700; margin-bottom: 0.5rem;"><%= quest.totalAttempts > 0 ? Math.round((quest.totalCompletions / quest.totalAttempts) * 100) : 0 %>%</div>
+                            <div style="color: #888; font-size: 0.85rem;">Success Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help & Support -->
+                <div class="card" style="background: linear-gradient(135deg, rgba(57,255,20,0.05) 0%, rgba(0,0,0,0.4) 100%);">
+                    <div style="text-align: center; padding: 1rem;">
+                        <i class="fas fa-question-circle" style="color: #39FF14; font-size: 2.5rem; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 0.5rem;">Need Help?</h3>
+                        <p style="color: #888; margin-bottom: 1.5rem;">Join our Discord community for support and guidance</p>
+                        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-secondary">
+                                <i class="fab fa-discord"></i> Join Discord
+                            </button>
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-comments"></i> Ask Question
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Handle task submission
+        document.querySelectorAll('.task-submit-form').forEach(form => {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const taskId = this.dataset.taskId;
+                const questId = this.dataset.questId;
+                const formData = new FormData(this);
+                
+                const submitData = {
+                    questId,
+                    taskId,
+                    submissionUrl: formData.get('submissionUrl') || '',
+                    submissionText: formData.get('submissionText') || '',
+                    submissionData: {
+                        username: formData.get('username') || null
+                    }
+                };
+
+                try {
+                    const response = await fetch('/dashboard/quests/submit-task', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(submitData)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        if (data.isQuestCompleted) {
+                            alert(`🎉 Quest Completed! You earned ${data.rewards.xp} XP${data.rewards.usdc > 0 ? ' and ' + data.rewards.usdc + ' USDC' : ''}!`);
+                        } else {
+                            alert('Task submitted successfully! ✅');
+                        }
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'Failed to submit task');
+                    }
+                } catch (error) {
+                    console.error('Error submitting task:', error);
+                    alert('Error submitting task. Please try again.');
+                }
+            });
+        });
+
+        function handleLogout(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/auth/logout';
+            }
+        }
+
+        // Animate progress bar on load
+        window.addEventListener('load', () => {
+            const progressBar = document.querySelector('.progress-bar');
+            if (progressBar) {
+                const width = progressBar.style.width;
+                progressBar.style.width = '0%';
+                setTimeout(() => {
+                    progressBar.style.width = width;
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>

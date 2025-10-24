@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRL Events - ONBOARD3</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link rel="stylesheet" href="./css/head.css">
+ <link rel="stylesheet" href="./css/irl.css">
+</head>
+<body>
+    <div class="network-bg"></div>
+    <div class="grid-bg"></div>
+     <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <div class="logo-icon">O3</div>
+                <span class="logo-text">ONBOARD3</span>
+            </a>
+
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link active">Home</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/irl" class="nav-link">Events</a></li>
+                <!-- <li><a href="/community.html" class="nav-link">Community</a></li> -->
+                <li><a href="/partner" class="nav-link">Partners</a></li>
+            </ul>
+
+            <!-- <div class="nav-cta">
+                <a href="/auth.html" class="btn btn-secondary">User</a>
+            </div> -->
+
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-menu">
+            <br>
+            <li><a href="/" class="mobile-nav-link active">Home</a></li>
+            <li><a href="/about" class="mobile-nav-link">About</a></li>
+            <li><a href="/irl" class="mobile-nav-link">Events</a></li>
+            <!-- <li><a href="/community.html" class="mobile-nav-link">Community</a></li> -->
+            <li><a href="/partner" class="mobile-nav-link">Partners</a></li>
+        </ul>
+        <!-- <div class="mobile-cta">
+            <a href="/auth.html" class="btn btn-primary">User</a>
+        </div> -->
+    </div>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>IRL Events <br> Meet. Build. Ship.</h1>
+            <p class="subtext">Global meetups, hands-on workshops, and hackathons that turn learning into real work.</p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" onclick="document.getElementById('upcoming-events').scrollIntoView({behavior: 'smooth'})">See Upcoming Events</button>
+                <button class="btn btn-outline" onclick="document.getElementById('host-event').scrollIntoView({behavior: 'smooth'})">Host an Event</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Upcoming Events -->
+    <section id="upcoming-events">
+        <div class="container">
+            <h2 class="section-title">Upcoming Events</h2>
+
+            <div class="events-grid">
+                <!-- Event Card 1 - Student Only -->
+                <div class="event-card">
+                    <div class="event-image">
+                        <div class="modal-hero-image"
+        style="
+            background-image: url('https://pbs.twimg.com/profile_banners/1748059082529841152/1757899095/1080x360');
+            background-size: cover;
+            background-position: center;
+            width: 100%;
+            height: 220px; /* adjust to your modal height */
+            border-radius: 2px;
+        ">
+    </div>
+                        <span class="event-badge">Workshop</span>
+                    </div>
+                    <div class="event-content">
+                        <h3 class="event-title">Lagos — Builder Bootcamp</h3>
+                        <div class="event-meta">
+                            <div class="event-meta-item">
+                                <span>📅</span>
+                                <span>Nov 15, 2025 • 10:00 AM WAT</span>
+                            </div>
+                            <div class="event-meta-item">
+                                <span>📍</span>
+                                <span>CcHUB, Yaba, Lagos</span>
+                            </div>
+                        </div>
+                        <p class="event-tagline">3-day intensive smart contract development bootcamp for verified students.</p>
+                        <div class="event-tags">
+                            <span class="tag">Student Only</span>
+                            <span class="tag">Hands-on</span>
+                            <span class="tag">Solidity</span>
+                        </div>
+                        <div class="event-capacity">
+                            <span style="font-size: 0.9rem; color: #39FF14;">64/80 seats</span>
+                            <div class="capacity-bar">
+                                <div class="capacity-fill" style="width: 80%;"></div>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <button class="btn btn-outline btn-small" onclick="openEventModal('cairo-nft')">Details</button>
+                            <button class="btn btn-primary btn-small" onclick="quickRSVP('Cairo NFT Creation Lab')">RSVP</button>
+                        </div>
+                    </div>
+                </div>
+
+               
+            </div>
+        </div>
+    </section>
+
+    <!-- Past Events Gallery -->
+    <section style="background: rgba(26, 26, 26, 0.2);">
+        <div class="container">
+            <h2 class="section-title">Past Events & Highlights</h2>
+
+            <div class="gallery-grid">
+               <div class="gallery-item">
+    <div class="gallery-image" 
+        style="
+            background-image: url('https://scontent.fiba2-2.fna.fbcdn.net/v/t39.30808-6/481247300_635286815815548_6489522814152935531_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=833d8c&_nc_ohc=HShcu6jmocAQ7kNvwH3JR9I&_nc_oc=AdnJ3ZFKJjxJKijEykP3HM2QdR7pVlafH84XYGHdHplIa7i7Nuww_p1XoIFecKfPi2k&_nc_zt=23&_nc_ht=scontent.fiba2-2.fna&_nc_gid=Ml55YoKR4jkGW6kvoofqPw&oh=00_AffEQTlE4H-lEvKJJ8J_-PVJFQDu_FQ1XFdAEa0yv6_rTQ&oe=68FAAC7B');
+            background-size: cover;
+            background-position: center;
+            height: 200px;
+            border-radius: 12px;
+        ">
+    </div>
+
+    <div class="gallery-overlay">
+        <div class="gallery-title">Crypto Moo Ilorin Hangout</div>
+        <div class="gallery-stat">100 attendees • 1 project launched</div>
+    </div>
+</div>
+
+
+             <div class="gallery-item">
+    <div class="gallery-image" 
+        style="
+            background-image: url('https://scontent.fiba2-1.fna.fbcdn.net/v/t39.30808-6/481900385_635202795823950_8409085361211880722_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=833d8c&_nc_ohc=0jD0ZJidvnoQ7kNvwF54aB9&_nc_oc=AdlR0sWNnx9_gagdscP6YpTB9F1fmjMbTccE3K6p8A167JLfL8n54TfJBz53cJd-Ims&_nc_zt=23&_nc_ht=scontent.fiba2-1.fna&_nc_gid=0i1xdwaTHXZn7354tVleJQ&oh=00_AffVCBl9WwTQ6Zc2i_-i5FYCPk0jxPyWkXnuHia5HMGaLA&oe=68FA87C7');
+            background-size: cover;
+            background-position: center;
+            height: 200px;
+            border-radius: 12px;
+        ">
+    </div>
+
+    <div class="gallery-overlay">
+        <div class="gallery-title">Crypto Moo Zamfara Hangout</div>
+        <div class="gallery-stat">50 attendees • 1 project launched</div>
+    </div>
+</div>
+
+             
+<div class="gallery-item">
+    <div class="gallery-image" 
+        style="
+            background-image: url('https://scontent.fiba2-2.fna.fbcdn.net/v/t39.30808-6/481198425_634931555851074_4164106572776921835_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=833d8c&_nc_ohc=hTbx9nWlBYwQ7kNvwFjFAXa&_nc_oc=AdmGrqla3smmQkSt09qxR3BDfnFnNcYdYmyOyzsJHOgXvZSYIusoPh7AFuxPevpwcbY&_nc_zt=23&_nc_ht=scontent.fiba2-2.fna&_nc_gid=DT7bZSFsRYfBMcwZ7bmzIg&oh=00_Aff1Ay83YRMVCg8CEE-QF4pRjqiF43cCRlyxqROwNrDLRA&oe=68FA9630');
+            background-size: cover;
+            background-position: center;
+            height: 200px;
+            border-radius: 12px;
+        ">
+    </div>
+
+    <div class="gallery-overlay">
+        <div class="gallery-title">Crypto Moo Kwara Hangout</div>
+        <div class="gallery-stat">200 attendees • 1 project launched</div>
+    </div>
+</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Host an Event -->
+    <section id="host-event">
+        <div class="container">
+            <h2 class="section-title">Host or Sponsor an ONBOARD3 Event</h2>
+
+            <div class="host-form">
+                <div class="benefit-list">
+                    <div class="benefit-item">Access to verified students</div>
+                    <div class="benefit-item">Live onboarding integration</div>
+                    <div class="benefit-item">Branding at event</div>
+                    <div class="benefit-item">Custom quest campaigns</div>
+                    <div class="benefit-item">Post-event analytics</div>
+                    <div class="benefit-item">Community amplification</div>
+                </div>
+
+                <form id="hostForm">
+                    <div class="form-group">
+                        <label>Your Name *</label>
+                        <input type="text" placeholder="Full name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Organization *</label>
+                        <input type="text" placeholder="Company or project name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Event Type *</label>
+                        <select required>
+                            <option value="">Select event type</option>
+                            <option value="workshop">Workshop</option>
+                            <option value="hackathon">Hackathon</option>
+                            <option value="meetup">Meetup</option>
+                            <option value="conference">Conference</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Expected Attendees *</label>
+                        <select required>
+                            <option value="">Select range</option>
+                            <option value="20-50">20-50 people</option>
+                            <option value="50-100">50-100 people</option>
+                            <option value="100-200">100-200 people</option>
+                            <option value="200+">200+ people</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Goals & Description *</label>
+                        <textarea placeholder="Tell us about your event vision, objectives, and what you hope to achieve..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Contact Email *</label>
+                        <input type="email" placeholder="your@email.com" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Host Request</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Waitlist Section -->
+    <section style="background: rgba(26, 26, 26, 0.2);">
+        <div class="container">
+            <h2 class="section-title">Join the Waitlist</h2>
+
+            <div class="waitlist-container">
+                <p style="color: #b0b0b0; margin-bottom: 35px; font-size: 1.1rem;">Be the first to know about events in your city. Get early access to tickets and exclusive opportunities.</p>
+
+                <form id="waitlistForm">
+                    <div class="form-group">
+                        <input type="text" placeholder="Your Name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="email" placeholder="Email Address" required>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="text" placeholder="Wallet Address (Optional)">
+                    </div>
+
+                    <div class="form-group">
+                        <select required>
+                            <option value="">Area of Interest</option>
+                            <option value="dev">Development</option>
+                            <option value="creator">Content Creation</option>
+                            <option value="community">Community Building</option>
+                            <option value="design">Design</option>
+                            <option value="all">All of the Above</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <select required>
+                            <option value="">Preferred City</option>
+                            <option value="lagos">Lagos</option>
+                            <option value="nairobi">Nairobi</option>
+                            <option value="accra">Accra</option>
+                            <option value="cairo">Cairo</option>
+                            <option value="johannesburg">Johannesburg</option>
+                            <option value="kigali">Kigali</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Join Waitlist</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-cta">Ready to join a Builder Meetup?</div>
+            <div class="footer-buttons">
+                <button class="btn btn-primary" onclick="document.getElementById('upcoming-events').scrollIntoView({behavior: 'smooth'})">See Events</button>
+            </div>
+
+        <div class="footer-links">
+            <a href="/about">About</a>
+            <a href="/contact">Contact</a>
+        </div>
+        
+        <div class="social-icons" style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+            <!-- X (Twitter) -->
+            <a href="https://x.com/onboard3__" target="_blank" class="social-icon" style="color: #39FF14; font-size: 1.5rem;">
+                <i class="fab fa-twitter"></i>
+            </a>
+
+            <!-- Telegram -->
+            <a href="https://t.me/onboard_3" target="_blank" class="social-icon" style="color: #39FF14; font-size: 1.5rem;">
+                <i class="fab fa-telegram"></i>
+            </a>
+        </div>
+        
+       
+            <div class="copyright">
+                © 2025 ONBOARD3 — Onboard. Educate. Build.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content auth-modal-content">
+            <button class="modal-close" onclick="closeAuthModal()">×</button>
+            <h2 class="auth-title">Verification Required</h2>
+            <p class="auth-subtitle">This event requires Student verification. Please connect your wallet or login to continue.</p>
+            <div class="auth-options">
+                <button class="auth-btn" onclick="connectWallet()">
+                    <span>🔗</span>
+                    <span>Connect Wallet</span>
+                </button>
+                <button class="auth-btn" onclick="emailLogin()">
+                    <span>📧</span>
+                    <span>Login with Email</span>
+                </button>
+                <button class="auth-btn" onclick="enterAccessCode()">
+                    <span>🔑</span>
+                    <span>Enter Access Code</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Detail Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeEventModal()">×</button>
+           <div class="modal-header">
+    <div class="modal-hero-image"
+        style="
+            background-image: url('https://pbs.twimg.com/profile_banners/1748059082529841152/1757899095/1080x360');
+            background-size: cover;
+            background-position: center;
+            width: 100%;
+            height: 220px; /* adjust to your modal height */
+            border-radius: 12px;
+        ">
+    </div>
+</div>
+            <div class="modal-body">
+                <h2 class="modal-title" id="modalTitle">Lagos —  Bootcamp</h2>
+                
+                <div class="modal-section">
+                    <h3>Overview</h3>
+                    <p>An intensive 3-day bootcamp designed to take you from Web3 beginner to confident smart contract developer. Learn Solidity, deploy contracts, and build real-world dApps with hands-on mentorship from industry experts.</p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Agenda</h3>
+                    <ul>
+                        <li><strong>Day 1:</strong> Blockchain fundamentals, Solidity basics, and development environment setup</li>
+                        <li><strong>Day 2:</strong> Smart contract patterns, testing, and security best practices</li>
+                        <li><strong>Day 3:</strong> Build and deploy your first dApp, final presentations, and networking</li>
+                    </ul>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Speakers & Mentors</h3>
+                    <ul>
+                        <li>Chioma Okafor - Lead Blockchain Engineer at Polygon</li>
+                        <li>David Chen - Smart Contract Auditor</li>
+                        <li>Amara Nwosu - DeFi Protocol Founder</li>
+                    </ul>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Location</h3>
+                    <p>📍 CcHUB, 294 Herbert Macaulay Way, Yaba, Lagos, Nigeria</p>
+                    <p style="margin-top: 10px;"><a href="#" style="color: #39FF14;">View on Google Maps →</a></p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Prerequisites</h3>
+                    <ul>
+                        <li>Basic programming knowledge (JavaScript preferred)</li>
+                        <li>Laptop with development environment</li>
+                        <li>Verified ONBOARD3 Student status</li>
+                    </ul>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Ticket Types</h3>
+                    <div class="ticket-types">
+                        <div class="ticket-type">
+                            <h4>Public</h4>
+                            <p>General admission<br><strong>Waitlist Only</strong></p>
+                        </div>
+                        <div class="ticket-type">
+                            <h4>Student</h4>
+                            <p>Verified students only<br><strong>Free • 16 seats left</strong></p>
+                        </div>
+                        <div class="ticket-type">
+                            <h4>Partner</h4>
+                            <p>Sponsor invitations<br><strong>By invite</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-top: 40px;">
+                    <button class="btn btn-outline" onclick="alert('Added to calendar!')">📅 Add to Calendar</button>
+                    <button class="btn btn-primary" style="flex: 1;" onclick="openAuthModal('Event from Modal')">RSVP Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentEventName = '';
+
+        // Auth Modal Functions
+        function openAuthModal(eventName) {
+            currentEventName = eventName;
+            document.getElementById('authModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function connectWallet() {
+            alert('Connecting wallet...\n\nIn production, this would trigger MetaMask or WalletConnect integration.');
+            closeAuthModal();
+            setTimeout(() => {
+                alert(`✓ Wallet connected!\n\nYou're registered for: ${currentEventName}\n\nConfirmation sent to your email.`);
+            }, 1000);
+        }
+
+        function emailLogin() {
+            const email = prompt('Enter your email address:');
+            if (email && email.includes('@')) {
+                closeAuthModal();
+                alert(`✓ Login link sent to ${email}\n\nCheck your inbox to complete registration for: ${currentEventName}`);
+            }
+        }
+
+        function enterAccessCode() {
+            const code = prompt('Enter your ONBOARD3 Access Code:');
+            if (code) {
+                closeAuthModal();
+                alert(`✓ Access Code verified!\n\nYou're registered for: ${currentEventName}\n\nSee you at the event!`);
+            }
+        }
+
+        // Quick RSVP for Public Events
+        function quickRSVP(eventName) {
+            const name = prompt(`RSVP for ${eventName}\n\nEnter your name:`);
+            if (name) {
+                const email = prompt('Enter your email:');
+                if (email && email.includes('@')) {
+                    alert(`✓ You're registered for ${eventName}!\n\nConfirmation sent to ${email}`);
+                }
+            }
+        }
+
+        // Event Detail Modal Functions
+        function openEventModal(eventId) {
+            document.getElementById('eventModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modals on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+        });
+
+        // Form submissions
+        document.getElementById('hostForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your interest in hosting an event!\n\nOur team will review your request and get back to you within 48 hours.');
+            this.reset();
+        });
+
+        document.getElementById('waitlistForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('✓ You\'re on the waitlist!\n\nWe\'ll notify you when events are announced in your area.');
+            this.reset();
+        });
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.event-card, .gallery-item').forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+            scrollObserver.observe(el);
+        });
+
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+    <script src="./js//head.js"></script>
+</body>
+</html> 
