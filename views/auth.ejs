@@ -38,6 +38,7 @@
         .alert-warning { background: rgba(255, 165, 0, 0.1); border: 1px solid rgba(255, 165, 0, 0.3); color: #ffa500; }
         .resend-link { color: #39FF14; text-decoration: none; font-size: 0.9rem; display: inline-block; margin-top: 0.5rem; }
         .resend-link:hover { text-decoration: underline; }
+        .referral-note { background: rgba(57, 255, 20, 0.05); border: 1px solid rgba(57, 255, 20, 0.2); padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem; color: #39FF14; }
         @media (max-width: 768px) { .auth-box { padding: 2rem; } .auth-header h1 { font-size: 1.5rem; } }
     </style>
 </head>
@@ -113,6 +114,9 @@
                 <div class="form-group">
                     <label for="referralCode">Referral Code (Optional)</label>
                     <input type="text" id="referralCode" name="referralCode" placeholder="Enter referral code if you have one" style="text-transform: uppercase;">
+                    <div id="referralNote" class="referral-note" style="display: none;">
+                        <i class="fas fa-gift"></i> You'll earn rewards when referred by a friend!
+                    </div>
                 </div>
                 <button type="submit" class="btn-submit">Register</button>
             </form>
@@ -124,6 +128,23 @@
         const forms = document.querySelectorAll('.auth-form');
         let unverifiedEmail = null;
 
+        // Check for referral code in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref');
+        
+        if (refCode) {
+            // Switch to register tab
+            tabs.forEach(t => t.classList.remove('active'));
+            forms.forEach(f => f.classList.remove('active'));
+            tabs[1].classList.add('active');
+            document.getElementById('registerForm').classList.add('active');
+            
+            // Fill referral code
+            const referralInput = document.getElementById('referralCode');
+            referralInput.value = refCode.toUpperCase();
+            document.getElementById('referralNote').style.display = 'block';
+        }
+
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const targetTab = tab.dataset.tab;
@@ -133,6 +154,12 @@
                 document.getElementById(`${targetTab}Form`).classList.add('active');
                 hideAlert();
             });
+        });
+
+        // Show note when referral code is entered
+        document.getElementById('referralCode').addEventListener('input', (e) => {
+            const note = document.getElementById('referralNote');
+            note.style.display = e.target.value ? 'block' : 'none';
         });
 
         function showAlert(message, type, showResend = false) {
@@ -202,6 +229,7 @@
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            const referralCode = document.getElementById('referralCode').value.trim().toUpperCase();
 
             if (password !== confirmPassword) {
                 showAlert('Passwords do not match', 'error');
@@ -212,7 +240,7 @@
                 const response = await fetch('/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, email, password, confirmPassword })
+                    body: JSON.stringify({ username, email, password, confirmPassword, referralCode })
                 });
 
                 const data = await response.json();
@@ -220,6 +248,9 @@
                 if (data.success) {
                     showAlert(data.message, 'success');
                     document.getElementById('registerForm').reset();
+                    setTimeout(() => {
+                        tabs[0].click(); // Switch to login tab
+                    }, 2000);
                 } else {
                     showAlert(data.message, 'error');
                 }
@@ -229,74 +260,5 @@
         });
     </script>
     <script src="/js/head.js"></script>
-    <script>
-       // Add to your main JavaScript file
-document.addEventListener('DOMContentLoaded', function() {
-    // Create preloader element
-    const preloader = document.createElement('div');
-    preloader.id = 'preloader';
-    preloader.innerHTML = `
-        <div class="preloader-content">
-            <div class="loader"></div>
-            <p class="loader-text">Please wait, do not click again...</p>
-        </div>
-    `;
-    document.body.appendChild(preloader);
-    
-    // Hide preloader initially
-    preloader.style.display = 'none';
-    
-    let isLoading = false;
-    
-    // Function to show and hide preloader
-    function showPreloader() {
-        if (isLoading) return;
-        
-        isLoading = true;
-        preloader.style.display = 'flex';
-        
-        // Hide after exactly 3 seconds
-        setTimeout(() => {
-            preloader.style.display = 'none';
-            isLoading = false;
-        }, 3000);
-    }
-    
-    // Show preloader on button clicks (not links)
-    document.querySelectorAll('btn-submit').forEach(button => {
-        button.addEventListener('click', function(e) {
-            // Don't prevent default, just show preloader
-            if (!isLoading) {
-                showPreloader();
-            }
-        });
-    });
-    
-    // Show preloader on form submissions
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            // Prevent page reload
-            e.preventDefault();
-            
-            if (!isLoading) {
-                showPreloader();
-                
-                // Get form data and submit via fetch or your existing method
-                const formData = new FormData(this);
-                
-                // You can add your AJAX submission here
-                // Example:
-                // fetch(this.action, {
-                //     method: this.method,
-                //     body: formData
-                // }).then(response => response.json())
-                //   .then(data => {
-                //       // Handle response after preloader hides
-                //   });
-            }
-        });
-    });
-});
-    </script>
 </body>
 </html>

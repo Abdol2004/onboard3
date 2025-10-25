@@ -1,9 +1,7 @@
-// authController.js
+// authController.js - FIXED REGISTER FUNCTION
 
 const User = require("../models/User");
 const crypto = require("crypto");
-// const { sendVerificationEmail, sendWelcomeEmail } = require("../utils/emailService");
-
 
 exports.register = async (req, res) => {
   try {
@@ -43,6 +41,18 @@ exports.register = async (req, res) => {
       });
     }
 
+    // Validate referral code if provided
+    let referrer = null;
+    if (referralCode) {
+      referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
+      if (!referrer) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid referral code",
+        });
+      }
+    }
+
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
@@ -54,8 +64,8 @@ exports.register = async (req, res) => {
       password,
       verificationToken,
       verificationTokenExpires,
-      isVerified: true,
-      referredBy: referralCode || null,
+      isVerified: true, // Set to false if you want email verification
+      referredBy: referralCode ? referralCode.toUpperCase() : null,
     });
 
     // Add initial welcome activity
@@ -69,22 +79,42 @@ exports.register = async (req, res) => {
     await user.save();
 
     // Process referral reward if user was referred
-    if (referralCode) {
-      const { processReferralReward } = require("../controllers/referralController");
-      await processReferralReward(referralCode, "signup");
-    }
+    if (referrer) {
+      try {
+        // Update referrer's stats
+        referrer.referralStats.totalReferrals += 1;
+        referrer.referralStats.activeReferrals += 1;
+        
+        // Add signup bonus XP
+        const signupBonus = 50;
+        referrer.xp += signupBonus;
+        referrer.referralStats.totalEarned += signupBonus;
 
-    // // Send verification email
-    // const emailResult = await sendVerificationEmail(email, username, verificationToken);
-    // if (!emailResult.success) {
-    //   console.error("Failed to send verification email:", emailResult.error);
-    // }
+        // Add activity to referrer
+        referrer.recentActivity.unshift({
+          action: `New referral: ${username} signed up! Earned ${signupBonus} XP 🎉`,
+          timestamp: new Date(),
+        });
+
+        // Keep only last 10 activities
+        if (referrer.recentActivity.length > 10) {
+          referrer.recentActivity = referrer.recentActivity.slice(0, 10);
+        }
+
+        await referrer.save();
+
+        console.log(`Referral processed: ${referrer.username} earned ${signupBonus} XP from ${username}`);
+      } catch (referralError) {
+        console.error("Error processing referral:", referralError);
+        // Don't fail registration if referral processing fails
+      }
+    }
 
     // Response
     res.status(201).json({
       success: true,
-      message: "Registration successful! Please login your account.",
-      requiresVerification: true,
+      message: "Registration successful! Please login to your account.",
+      requiresVerification: false, // Set to true if using email verification
     });
   } catch (error) {
     console.error("Registration error:", error);
@@ -95,9 +125,7 @@ exports.register = async (req, res) => {
   }
 };
 
-// ==========================
 // Email Verification Controller
-// ==========================
 exports.verifyEmail = async (req, res) => {
   try {
     const { token } = req.query;
@@ -128,9 +156,6 @@ exports.verifyEmail = async (req, res) => {
     user.verificationTokenExpires = undefined;
     await user.save();
 
-    // Send welcome email
-    await sendWelcomeEmail(user.email, user.username);
-
     res.render("verify-result", {
       success: true,
       message: "Email verified successfully! You can now login.",
@@ -145,9 +170,7 @@ exports.verifyEmail = async (req, res) => {
   }
 };
 
-// ==========================
 // Resend Verification Email Controller
-// ==========================
 exports.resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
@@ -182,8 +205,6 @@ exports.resendVerification = async (req, res) => {
     user.verificationTokenExpires = verificationTokenExpires;
     await user.save();
 
-    await sendVerificationEmail(user.email, user.username, verificationToken);
-
     res.status(200).json({
       success: true,
       message: "Verification email sent! Please check your inbox.",
@@ -197,9 +218,7 @@ exports.resendVerification = async (req, res) => {
   }
 };
 
-// ==========================
 // Login Controller
-// ==========================
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -258,9 +277,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// ==========================
 // Logout Controller
-// ==========================
 exports.logout = (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -276,9 +293,7 @@ exports.logout = (req, res) => {
   });
 };
 
-// ==========================
 // Get Current User
-// ==========================
 exports.getCurrentUser = async (req, res) => {
   try {
     if (!req.session.userId) {
