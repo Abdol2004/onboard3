@@ -19,8 +19,8 @@ const getTransporter = async () => {
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_APP_PASSWORD,
-        port: 465, // SSL port
-        secure: true
+        port: 587, // SSL port
+        secure: false
       }
     });
     console.log('📧 Email service: Gmail');
