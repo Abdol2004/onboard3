@@ -1,600 +1,316 @@
-const nodemailer = require("nodemailer");
-const adminEmail="abdulfatahabdol2004@gmail.com"
-const emailPassword="sbss rmqr kiub lmjz"
+// utils/emailService.js - COMPLETE EMAIL SERVICE
+
+const nodemailer = require('nodemailer');
+
+// Create reusable transporter
+let transporter = null;
+
+// Initialize transporter
+const getTransporter = async () => {
+  if (transporter) {
+    return transporter;
+  }
+
+  // Check which email service to use
+  if (process.env.EMAIL_SERVICE === 'gmail') {
+    // Gmail with App Password
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD
+      }
+    });
+    console.log('📧 Email service: Gmail');
+  } 
+  else if (process.env.SMTP_HOST) {
+    // Custom SMTP (works with any provider)
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD
+      }
+    });
+    console.log('📧 Email service: Custom SMTP');
+  }
+  else {
+    // Ethereal for testing (creates temporary account)
+    const testAccount = await nodemailer.createTestAccount();
+    transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass
+      }
+    });
+    console.log('📧 Email service: Ethereal (TEST MODE)');
+    console.log('📧 Test account:', testAccount.user);
+  }
+
+  return transporter;
+};
+
 // Send verification email
 exports.sendVerificationEmail = async (email, username, verificationToken) => {
-  // Check if email credentials are configured
-  if (!adminEmail || !emailPassword) {
-    console.error("❌ Email credentials not found in .env file!");
-    console.log("Please add EMAIL_USER and EMAIL_PASSWORD to your .env file");
-    return { success: false, error: "Email service not configured" };
-  }
-
-  // Create transporter
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: adminEmail,
-      pass: emailPassword
-    }
-  });
-
-  const verificationUrl = `${process.env.BASE_URL}/auth/verify-email?token=${verificationToken}`;
-
-  const mailOptions = {
-    from: `"ONBOARD3" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Verify Your Email - ONBOARD3",
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <style>
-          body {
-            font-family: 'Arial', sans-serif;
-            background-color: #0a0a0a;
-            color: #ffffff;
-            margin: 0;
-            padding: 0;
-          }
-          .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 40px 20px;
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
-          }
-          .logo {
-            font-size: 32px;
-            font-weight: bold;
-            color: #39FF14;
-            margin-bottom: 10px;
-          }
-          .content {
-            background: rgba(20, 20, 20, 0.9);
-            border: 1px solid rgba(57, 255, 20, 0.2);
-            border-radius: 15px;
-            padding: 30px;
-          }
-          h1 {
-            color: #39FF14;
-            font-size: 24px;
-            margin-bottom: 20px;
-          }
-          p {
-            line-height: 1.6;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 20px;
-          }
-          .button {
-            display: inline-block;
-            padding: 15px 40px;
-            background: #39FF14;
-            color: #0a0a0a;
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 16px;
-            margin: 20px 0;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 30px;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 14px;
-          }
-          .token {
-            background: rgba(57, 255, 20, 0.1);
-            padding: 15px;
-            border-radius: 8px;
-            font-family: monospace;
-            word-break: break-all;
-            margin: 20px 0;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <div class="logo">ONBOARD3</div>
-          </div>
-          <div class="content">
-            <h1>Welcome to ONBOARD3, ${username}! 🚀</h1>
-            <p>Thank you for joining the future of Web3 development. We're excited to have you onboard!</p>
-            <p>To complete your registration and activate your account, please verify your email address by clicking the button below:</p>
-            
-            <center>
-              <a href="${verificationUrl}" class="button">Verify Email Address</a>
-            </center>
-            
-            <p>Or copy and paste this link into your browser:</p>
-            <div class="token">${verificationUrl}</div>
-            
-            <p><strong>This verification link will expire in 24 hours.</strong></p>
-            
-            <p>If you didn't create an account with ONBOARD3, please ignore this email.</p>
-          </div>
-          <div class="footer">
-            <p>ONBOARD3 - Onboard. Educate. Build.</p>
-            <p>Building the Future of Web3</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
-  };
-
   try {
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Verification email sent to:", email);
-    return { success: true };
+    const transporter = await getTransporter();
+    const verificationLink = `${process.env.BASE_URL}/auth/verify-email?token=${verificationToken}`;
+
+    const mailOptions = {
+      from: `"ONBOARD3" <${process.env.EMAIL_USER || 'noreply@onboard3.com'}>`,
+      to: email,
+      subject: '🎉 Welcome to ONBOARD3 - Verify Your Email',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: 'Arial', sans-serif; background: #0a0a0a; color: #fff; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 0 auto; background: #1a1a1a; border: 2px solid #39FF14; border-radius: 12px; overflow: hidden; }
+            .header { background: linear-gradient(135deg, rgba(57,255,20,0.2) 0%, rgba(57,255,20,0.05) 100%); padding: 40px 20px; text-align: center; }
+            .logo { color: #39FF14; font-size: 32px; font-weight: 700; margin-bottom: 10px; }
+            .header h1 { color: #39FF14; margin: 0; font-size: 28px; }
+            .content { padding: 40px 30px; }
+            .content p { line-height: 1.8; color: #ccc; font-size: 16px; margin: 15px 0; }
+            .button { display: inline-block; background: #39FF14; color: #0a0a0a; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; margin: 25px 0; font-size: 18px; }
+            .footer { background: #0a0a0a; padding: 25px; text-align: center; color: #666; font-size: 14px; border-top: 1px solid #39FF14; }
+            .highlight { color: #39FF14; font-weight: 600; }
+            .link-box { background: rgba(57,255,20,0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(57,255,20,0.3); margin: 20px 0; word-break: break-all; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">ONBOARD3</div>
+              <h1>Welcome to Web3! 🚀</h1>
+            </div>
+            <div class="content">
+              <p>Hey <span class="highlight">${username}</span>,</p>
+              <p>Welcome to <strong>ONBOARD3</strong> - Your gateway to Web3 development! We're excited to have you join our community of builders.</p>
+              <p>To get started and unlock all features, please verify your email address:</p>
+              <center>
+                <a href="${verificationLink}" class="button">✓ Verify Email Address</a>
+              </center>
+              <p style="font-size: 14px; color: #888; margin-top: 30px;">
+                If the button doesn't work, copy and paste this link into your browser:
+              </p>
+              <div class="link-box">
+                <a href="${verificationLink}" style="color: #39FF14; text-decoration: none;">${verificationLink}</a>
+              </div>
+              <p style="font-size: 14px; color: #888;">
+                ⏰ This link will expire in <strong>24 hours</strong>.
+              </p>
+            </div>
+            <div class="footer">
+              <p>If you didn't create this account, please ignore this email.</p>
+              <p>© ${new Date().getFullYear()} ONBOARD3. All rights reserved.</p>
+              <p style="margin-top: 15px;">
+                <a href="${process.env.BASE_URL}" style="color: #39FF14; text-decoration: none;">Visit ONBOARD3</a>
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Hey ${username},\n\nWelcome to ONBOARD3!\n\nPlease verify your email by clicking this link:\n${verificationLink}\n\nThis link expires in 24 hours.\n\nIf you didn't create this account, please ignore this email.`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+
+    // Log preview URL for Ethereal
+    if (process.env.NODE_ENV !== 'production' && !process.env.EMAIL_SERVICE) {
+      console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info));
+    }
+
+    return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error("❌ Error sending email:", error.message);
+    console.error('❌ Email error:', error);
     return { success: false, error: error.message };
   }
 };
 
-// Send welcome email after verification
+// Send welcome email
 exports.sendWelcomeEmail = async (email, username) => {
-  // Check if email credentials are configured
-  if (!adminEmail || !emailPassword) {
-    console.error("❌ Email credentials not found in .env file!");
-    return;
-  }
+  try {
+    const transporter = await getTransporter();
 
-  // Create transporter
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: adminEmail,
-      pass: emailPassword
+    const mailOptions = {
+      from: `"ONBOARD3" <${process.env.EMAIL_USER || 'noreply@onboard3.com'}>`,
+      to: email,
+      subject: '🎊 Email Verified - Welcome to ONBOARD3!',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: 'Arial', sans-serif; background: #0a0a0a; color: #fff; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 0 auto; background: #1a1a1a; border: 2px solid #39FF14; border-radius: 12px; overflow: hidden; }
+            .header { background: linear-gradient(135deg, rgba(57,255,20,0.2) 0%, rgba(57,255,20,0.05) 100%); padding: 40px 20px; text-align: center; }
+            .logo { color: #39FF14; font-size: 32px; font-weight: 700; margin-bottom: 10px; }
+            .content { padding: 40px 30px; }
+            .content p { line-height: 1.8; color: #ccc; font-size: 16px; margin: 15px 0; }
+            .feature-box { background: rgba(57,255,20,0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(57,255,20,0.2); margin: 15px 0; }
+            .feature-box h3 { color: #39FF14; margin-top: 0; }
+            .button { display: inline-block; background: #39FF14; color: #0a0a0a; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; margin: 25px 0; font-size: 18px; }
+            .footer { background: #0a0a0a; padding: 25px; text-align: center; color: #666; font-size: 14px; border-top: 1px solid #39FF14; }
+            .highlight { color: #39FF14; font-weight: 600; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">ONBOARD3</div>
+              <h1>🎉 You're All Set!</h1>
+            </div>
+            <div class="content">
+              <p>Congratulations <span class="highlight">${username}</span>!</p>
+              <p>Your email has been verified successfully. You now have full access to all ONBOARD3 features!</p>
+              
+              <div class="feature-box">
+                <h3>🏆 Complete Quests</h3>
+                <p>Earn XP and climb the leaderboard by completing Web3 challenges.</p>
+              </div>
+              
+              <div class="feature-box">
+                <h3>🎓 Learn & Build</h3>
+                <p>Access courses and workshops to level up your Web3 skills.</p>
+              </div>
+              
+              <div class="feature-box">
+                <h3>🎪 Attend Events</h3>
+                <p>Join hackathons, meetups, and conferences in the Web3 space.</p>
+              </div>
+              
+              <div class="feature-box">
+                <h3>👥 Refer Friends</h3>
+                <p>Share your referral link and earn rewards when friends join!</p>
+              </div>
+
+              <center>
+                <a href="${process.env.BASE_URL}/dashboard" class="button">🚀 Go to Dashboard</a>
+              </center>
+
+              <p style="margin-top: 30px; color: #888;">
+                Need help getting started? Check out our <a href="${process.env.BASE_URL}/about" style="color: #39FF14;">Getting Started Guide</a>.
+              </p>
+            </div>
+            <div class="footer">
+              <p>Happy building! 🛠️</p>
+              <p>© ${new Date().getFullYear()} ONBOARD3. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `Congratulations ${username}!\n\nYour email has been verified successfully!\n\nYou now have full access to:\n- Complete Quests\n- Learn & Build\n- Attend Events\n- Refer Friends\n\nVisit your dashboard: ${process.env.BASE_URL}/dashboard\n\nHappy building!`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    
+    if (process.env.NODE_ENV !== 'production' && !process.env.EMAIL_SERVICE) {
+      console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info));
     }
-  });
 
-  const mailOptions = {
-    from: `"ONBOARD3" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Welcome to ONBOARD3! 🎉",
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <style>
-          body {
-            font-family: 'Arial', sans-serif;
-            background-color: #0a0a0a;
-            color: #ffffff;
-            margin: 0;
-            padding: 0;
-          }
-          .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 40px 20px;
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
-          }
-          .logo {
-            font-size: 32px;
-            font-weight: bold;
-            color: #39FF14;
-            margin-bottom: 10px;
-          }
-          .content {
-            background: rgba(20, 20, 20, 0.9);
-            border: 1px solid rgba(57, 255, 20, 0.2);
-            border-radius: 15px;
-            padding: 30px;
-          }
-          h1 {
-            color: #39FF14;
-            font-size: 24px;
-            margin-bottom: 20px;
-          }
-          p {
-            line-height: 1.6;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 15px;
-          }
-          .button {
-            display: inline-block;
-            padding: 15px 40px;
-            background: #39FF14;
-            color: #0a0a0a;
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 16px;
-            margin: 20px 0;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 30px;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 14px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <div class="logo">ONBOARD3</div>
-          </div>
-          <div class="content">
-            <h1>🎉 Your Account is Verified!</h1>
-            <p>Hi ${username},</p>
-            <p>Congratulations! Your email has been successfully verified and your ONBOARD3 account is now active.</p>
-            <p>You're now part of a community building the future of Web3. Here's what you can do next:</p>
-            <ul style="color: rgba(255, 255, 255, 0.9); line-height: 1.8;">
-              <li>Complete quests and earn rewards</li>
-              <li>Join hackathons and build real projects</li>
-              <li>Connect with other Web3 builders</li>
-              <li>Access exclusive learning resources</li>
-            </ul>
-            
-            <center>
-              <a href="${process.env.BASE_URL}" class="button">Start Building</a>
-            </center>
-            
-            <p>Welcome aboard! 🚀</p>
-          </div>
-          <div class="footer">
-            <p>ONBOARD3 - Onboard. Educate. Build.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Welcome email sent to:", email);
+    return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error("❌ Error sending welcome email:", error.message);
-  }
-};
-exports.sendCourseApplicationEmail = async (email, fullName, course) => {
-  try {
-    const mailOptions = {
-      from: `ONBOARD3 <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: `✅ Course Application Received - ${course}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body {
-              font-family: 'Arial', sans-serif;
-              background-color: #0a0a0a;
-              color: #ffffff;
-              margin: 0;
-              padding: 0;
-            }
-            .container {
-              max-width: 600px;
-              margin: 0 auto;
-              background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-              border: 1px solid #39FF14;
-              border-radius: 12px;
-              overflow: hidden;
-            }
-            .header {
-              background: linear-gradient(135deg, #39FF14 0%, #2dd10d 100%);
-              padding: 30px;
-              text-align: center;
-            }
-            .header h1 {
-              margin: 0;
-              color: #0a0a0a;
-              font-size: 28px;
-              font-weight: bold;
-            }
-            .content {
-              padding: 40px 30px;
-            }
-            .course-box {
-              background: rgba(57, 255, 20, 0.1);
-              border: 1px solid #39FF14;
-              border-radius: 8px;
-              padding: 20px;
-              margin: 20px 0;
-              text-align: center;
-            }
-            .footer {
-              background: #0a0a0a;
-              padding: 20px;
-              text-align: center;
-              color: #888;
-              font-size: 12px;
-              border-top: 1px solid #39FF14;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>📚 Application Received!</h1>
-            </div>
-            <div class="content">
-              <h2 style="color: #39FF14;">Hey ${fullName}!</h2>
-              <p>Thank you for applying to our <strong>${course}</strong> course!</p>
-              
-              <div class="course-box">
-                <h3 style="color: #39FF14; margin-top: 0;">${course}</h3>
-                <p style="color: #ccc;">Your application is being reviewed by our team</p>
-              </div>
-
-              <h3 style="color: #39FF14;">What's Next?</h3>
-              <ul style="line-height: 1.8; color: #ccc;">
-                <li>Our team will review your application within 3-5 business days</li>
-                <li>You'll receive an email notification about your application status</li>
-                <li>If approved, you'll get access to course materials and schedule</li>
-                <li>Track your application status on your dashboard</li>
-              </ul>
-
-              <p style="color: #888; font-size: 14px; margin-top: 30px;">
-                Questions? Feel free to reach out to us anytime!
-              </p>
-            </div>
-            <div class="footer">
-              <p>ONBOARD3 - Web3 Builder Hub</p>
-              <p>Empowering the next generation of Web3 builders 🚀</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    return { success: true };
-  } catch (error) {
-    console.error("Course application email error:", error);
+    console.error('❌ Email error:', error);
     return { success: false, error: error.message };
   }
 };
 
-// ------------------------------------------------------------
-// 🎉 2. Course Approval Email
-// ------------------------------------------------------------
-exports.sendCourseApprovalEmail = async (email, fullName, course, courseDetails) => {
+// Send event registration email
+exports.sendEventRegistrationEmail = async (email, username, event) => {
   try {
-    const startDate = courseDetails.startDate
-      ? new Date(courseDetails.startDate).toLocaleDateString("en-US", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })
-      : "TBA";
+    const transporter = await getTransporter();
+    const eventDate = new Date(event.startDate).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
 
     const mailOptions = {
-      from: `ONBOARD3 <${process.env.EMAIL_USER}>`,
+      from: `"ONBOARD3 Events" <${process.env.EMAIL_USER || 'events@onboard3.com'}>`,
       to: email,
-      subject: `🎉 Welcome to ${course} - Application Approved!`,
+      subject: `✅ Registered: ${event.title}`,
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <style>
-            body {
-              font-family: 'Arial', sans-serif;
-              background-color: #0a0a0a;
-              color: #ffffff;
-              margin: 0;
-              padding: 0;
-            }
-            .container {
-              max-width: 600px;
-              margin: 0 auto;
-              background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-              border: 1px solid #39FF14;
-              border-radius: 12px;
-              overflow: hidden;
-            }
-            .header {
-              background: linear-gradient(135deg, #39FF14 0%, #2dd10d 100%);
-              padding: 40px 30px;
-              text-align: center;
-            }
-            .header h1 {
-              margin: 0;
-              color: #0a0a0a;
-              font-size: 32px;
-              font-weight: bold;
-            }
-            .celebration {
-              font-size: 60px;
-              margin: 20px 0;
-            }
-            .content {
-              padding: 40px 30px;
-            }
-            .course-details {
-              background: rgba(57, 255, 20, 0.1);
-              border: 1px solid #39FF14;
-              border-radius: 8px;
-              padding: 25px;
-              margin: 25px 0;
-            }
-            .detail-item {
-              margin: 15px 0;
-              padding: 10px 0;
-              border-bottom: 1px solid rgba(57, 255, 20, 0.2);
-            }
-            .button {
-              display: inline-block;
-              background: #39FF14;
-              color: #0a0a0a;
-              text-decoration: none;
-              padding: 15px 35px;
-              border-radius: 8px;
-              font-weight: bold;
-              margin: 20px 0;
-            }
-            .footer {
-              background: #0a0a0a;
-              padding: 20px;
-              text-align: center;
-              color: #888;
-              font-size: 12px;
-              border-top: 1px solid #39FF14;
-            }
+            body { font-family: 'Arial', sans-serif; background: #0a0a0a; color: #fff; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 0 auto; background: #1a1a1a; border: 2px solid #39FF14; border-radius: 12px; overflow: hidden; }
+            .header { background: linear-gradient(135deg, rgba(57,255,20,0.2) 0%, rgba(57,255,20,0.05) 100%); padding: 40px 20px; text-align: center; }
+            .content { padding: 40px 30px; }
+            .event-details { background: rgba(57,255,20,0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(57,255,20,0.2); margin: 20px 0; }
+            .event-details h3 { color: #39FF14; margin-top: 0; }
+            .detail-row { display: flex; padding: 10px 0; border-bottom: 1px solid rgba(57,255,20,0.1); }
+            .detail-label { color: #888; min-width: 100px; }
+            .detail-value { color: #fff; font-weight: 600; }
+            .button { display: inline-block; background: #39FF14; color: #0a0a0a; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; margin: 25px 0; font-size: 18px; }
+            .footer { background: #0a0a0a; padding: 25px; text-align: center; color: #666; font-size: 14px; border-top: 1px solid #39FF14; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <div class="celebration">🎉</div>
-              <h1>Congratulations!</h1>
+              <h1>✅ Registration Confirmed!</h1>
             </div>
             <div class="content">
-              <h2 style="color: #39FF14;">Welcome, ${fullName}!</h2>
-              <p style="font-size: 18px;">We're thrilled to inform you that your application for <strong>${course}</strong> has been <span style="color: #39FF14;">APPROVED</span>!</p>
+              <p>Hey <strong style="color: #39FF14;">${username}</strong>,</p>
+              <p>You're successfully registered for:</p>
               
-              <div class="course-details">
-                <h3 style="color: #39FF14; margin-top: 0;">📚 Course Information</h3>
-
-                <div class="detail-item"><strong style="color: #39FF14;">Course:</strong> ${course}</div>
-                ${courseDetails.startDate ? `<div class="detail-item"><strong style="color: #39FF14;">Start Date:</strong> ${startDate}</div>` : ""}
-                ${courseDetails.link ? `<div class="detail-item"><strong style="color: #39FF14;">Course Portal:</strong> <a href="${courseDetails.link}" style="color:#39FF14;">${courseDetails.link}</a></div>` : ""}
+              <div class="event-details">
+                <h3>${event.title}</h3>
+                <div class="detail-row">
+                  <div class="detail-label">📅 Date:</div>
+                  <div class="detail-value">${eventDate}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">🕐 Time:</div>
+                  <div class="detail-value">${event.startTime} - ${event.endTime} ${event.timezone}</div>
+                </div>
+                ${event.venue ? `
+                <div class="detail-row">
+                  <div class="detail-label">📍 Venue:</div>
+                  <div class="detail-value">${event.venue}</div>
+                </div>
+                ` : ''}
+                ${event.virtualLink ? `
+                <div class="detail-row">
+                  <div class="detail-label">🔗 Link:</div>
+                  <div class="detail-value"><a href="${event.virtualLink}" style="color: #39FF14;">Join Virtual Event</a></div>
+                </div>
+                ` : ''}
               </div>
 
-              <h3 style="color: #39FF14;">🚀 Next Steps</h3>
-              <ul style="line-height: 1.8; color: #ccc;">
-                <li>Check your dashboard for course materials and schedule</li>
-                <li>Join our course community (link in course portal)</li>
-                <li>Prepare any required tools or wallets</li>
-                <li>Mark your calendar for the start date</li>
-              </ul>
+              <center>
+                <a href="${process.env.BASE_URL}/dashboard/events/${event._id}" class="button">View Event Details</a>
+              </center>
 
-              ${courseDetails.link ? `
-              <div style="text-align:center;">
-                <a href="${courseDetails.link}" class="button">Access Course Portal 🎓</a>
-              </div>` : ""}
-
-              <p style="color: #39FF14; text-align: center; margin-top: 30px; font-size: 18px;">
-                Welcome to the ONBOARD3 family! 🌟
+              <p style="margin-top: 30px; color: #888; font-size: 14px;">
+                We'll send you a reminder before the event starts. See you there! 🎉
               </p>
             </div>
             <div class="footer">
-              <p>ONBOARD3 - Web3 Builder Hub</p>
-              <p>Building the future, one builder at a time 🚀</p>
+              <p>© ${new Date().getFullYear()} ONBOARD3. All rights reserved.</p>
             </div>
           </div>
         </body>
         </html>
       `,
+      text: `Hey ${username},\n\nYou're registered for: ${event.title}\n\nDate: ${eventDate}\nTime: ${event.startTime} - ${event.endTime}\n\nSee you there!`
     };
 
-    await transporter.sendMail(mailOptions);
-    return { success: true };
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error("Course approval email error:", error);
-    return { success: false, error: error.message };
-  }
-};
-
-// ------------------------------------------------------------
-// ❌ 3. Course Rejection Email
-// ------------------------------------------------------------
-exports.sendCourseRejectionEmail = async (email, fullName, course, notes) => {
-  try {
-    const mailOptions = {
-      from: `ONBOARD3 <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: `Update on Your ${course} Application`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body {
-              font-family: 'Arial', sans-serif;
-              background-color: #0a0a0a;
-              color: #ffffff;
-              margin: 0;
-              padding: 0;
-            }
-            .container {
-              max-width: 600px;
-              margin: 0 auto;
-              background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-              border: 1px solid #39FF14;
-              border-radius: 12px;
-              overflow: hidden;
-            }
-            .header {
-              background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-              padding: 30px;
-              text-align: center;
-            }
-            .header h1 {
-              margin: 0;
-              color: #ffffff;
-              font-size: 28px;
-              font-weight: bold;
-            }
-            .content {
-              padding: 40px 30px;
-            }
-            .info-box {
-              background: rgba(255, 255, 255, 0.05);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              border-radius: 8px;
-              padding: 20px;
-              margin: 20px 0;
-            }
-            .footer {
-              background: #0a0a0a;
-              padding: 20px;
-              text-align: center;
-              color: #888;
-              font-size: 12px;
-              border-top: 1px solid #39FF14;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>📬 Application Update</h1>
-            </div>
-            <div class="content">
-              <h2 style="color: #39FF14;">Hi ${fullName},</h2>
-              <p>Thank you for your interest in our <strong>${course}</strong> course.</p>
-              <p>After careful review, we regret to inform you that we're unable to accept your application at this time.</p>
-              ${
-                notes
-                  ? `<div class="info-box">
-                      <strong style="color: #39FF14;">Feedback:</strong>
-                      <p style="color: #ccc; margin-top: 10px;">${notes}</p>
-                    </div>`
-                  : ""
-              }
-              <p style="color: #ccc;">We encourage you to reapply in the next cohort or explore other programs that match your interests.</p>
-              <p style="color: #39FF14; margin-top: 20px;">Keep building, your journey is just beginning 💪</p>
-            </div>
-            <div class="footer">
-              <p>ONBOARD3 - Web3 Builder Hub</p>
-              <p>See you in the next cohort 🚀</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    return { success: true };
-  } catch (error) {
-    console.error("Course rejection email error:", error);
+    console.error('❌ Email error:', error);
     return { success: false, error: error.message };
   }
 };

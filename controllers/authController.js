@@ -1,8 +1,10 @@
-// authController.js - FIXED REGISTER FUNCTION
+// controllers/authController.js - WITH EMAIL VERIFICATION
 
 const User = require("../models/User");
 const crypto = require("crypto");
+const { sendVerificationEmail, sendWelcomeEmail } = require("../utils/emailService");
 
+// Register
 exports.register = async (req, res) => {
   try {
     const { username, email, password, confirmPassword, referralCode } = req.body;
@@ -64,7 +66,7 @@ exports.register = async (req, res) => {
       password,
       verificationToken,
       verificationTokenExpires,
-      isVerified: true, // Set to false if you want email verification
+      isVerified: false, // User must verify email
       referredBy: referralCode ? referralCode.toUpperCase() : null,
     });
 
@@ -81,43 +83,45 @@ exports.register = async (req, res) => {
     // Process referral reward if user was referred
     if (referrer) {
       try {
-        // Update referrer's stats
         referrer.referralStats.totalReferrals += 1;
         referrer.referralStats.activeReferrals += 1;
         
-        // Add signup bonus XP
         const signupBonus = 50;
         referrer.xp += signupBonus;
         referrer.referralStats.totalEarned += signupBonus;
 
-        // Add activity to referrer
         referrer.recentActivity.unshift({
           action: `New referral: ${username} signed up! Earned ${signupBonus} XP 🎉`,
           timestamp: new Date(),
         });
 
-        // Keep only last 10 activities
         if (referrer.recentActivity.length > 10) {
           referrer.recentActivity = referrer.recentActivity.slice(0, 10);
         }
 
         await referrer.save();
-
-        console.log(`Referral processed: ${referrer.username} earned ${signupBonus} XP from ${username}`);
+        console.log(`✅ Referral: ${referrer.username} earned ${signupBonus} XP from ${username}`);
       } catch (referralError) {
-        console.error("Error processing referral:", referralError);
-        // Don't fail registration if referral processing fails
+        console.error("❌ Referral error:", referralError);
       }
     }
 
-    // Response
+    // Send verification email
+    const emailResult = await sendVerificationEmail(email, username, verificationToken);
+    
+    if (!emailResult.success) {
+      console.error("❌ Failed to send verification email:", emailResult.error);
+    } else {
+      console.log(`📧 Verification email sent to ${email}`);
+    }
+
     res.status(201).json({
       success: true,
-      message: "Registration successful! Please login to your account.",
-      requiresVerification: false, // Set to true if using email verification
+      message: "Registration successful! Please check your email to verify your account.",
+      requiresVerification: true,
     });
   } catch (error) {
-    console.error("Registration error:", error);
+    console.error("❌ Registration error:", error);
     res.status(500).json({
       success: false,
       message: "Server error during registration",
@@ -125,13 +129,13 @@ exports.register = async (req, res) => {
   }
 };
 
-// Email Verification Controller
+// Verify Email
 exports.verifyEmail = async (req, res) => {
   try {
     const { token } = req.query;
 
     if (!token) {
-      return res.status(400).render("verify-result", {
+      return res.render("verify-result", {
         success: false,
         message: "Verification token is missing",
       });
@@ -144,9 +148,9 @@ exports.verifyEmail = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).render("verify-result", {
+      return res.render("verify-result", {
         success: false,
-        message: "Invalid or expired verification token",
+        message: "Invalid or expired verification token. Please request a new one.",
       });
     }
 
@@ -154,7 +158,19 @@ exports.verifyEmail = async (req, res) => {
     user.isVerified = true;
     user.verificationToken = undefined;
     user.verificationTokenExpires = undefined;
+    
+    // Add activity
+    user.recentActivity.unshift({
+      action: "Email verified successfully! 🎉",
+      timestamp: new Date(),
+    });
+
     await user.save();
+
+    // Send welcome email
+    await sendWelcomeEmail(user.email, user.username);
+
+    console.log(`✅ Email verified: ${user.email}`);
 
     res.render("verify-result", {
       success: true,
@@ -162,15 +178,15 @@ exports.verifyEmail = async (req, res) => {
       username: user.username,
     });
   } catch (error) {
-    console.error("Verification error:", error);
-    res.status(500).render("verify-result", {
+    console.error("❌ Verification error:", error);
+    res.render("verify-result", {
       success: false,
       message: "Server error during verification",
     });
   }
 };
 
-// Resend Verification Email Controller
+// Resend Verification Email
 exports.resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
@@ -183,6 +199,7 @@ exports.resendVerification = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
+    
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -205,12 +222,24 @@ exports.resendVerification = async (req, res) => {
     user.verificationTokenExpires = verificationTokenExpires;
     await user.save();
 
+    // Send new verification email
+    const emailResult = await sendVerificationEmail(user.email, user.username, verificationToken);
+
+    if (!emailResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send verification email. Please try again.",
+      });
+    }
+
+    console.log(`📧 Verification email resent to ${email}`);
+
     res.status(200).json({
       success: true,
       message: "Verification email sent! Please check your inbox.",
     });
   } catch (error) {
-    console.error("Resend verification error:", error);
+    console.error("❌ Resend verification error:", error);
     res.status(500).json({
       success: false,
       message: "Server error. Please try again.",
@@ -218,7 +247,7 @@ exports.resendVerification = async (req, res) => {
   }
 };
 
-// Login Controller
+// Login
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -231,6 +260,7 @@ exports.login = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
+    
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -238,6 +268,7 @@ exports.login = async (req, res) => {
       });
     }
 
+    // Check if email is verified
     if (!user.isVerified) {
       return res.status(401).json({
         success: false,
@@ -248,6 +279,7 @@ exports.login = async (req, res) => {
     }
 
     const isMatch = await user.comparePassword(password);
+    
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -255,9 +287,11 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Session
+    // Create session
     req.session.userId = user._id;
     req.session.username = user.username;
+
+    console.log(`✅ Login: ${user.username}`);
 
     res.status(200).json({
       success: true,
@@ -269,7 +303,7 @@ exports.login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("❌ Login error:", error);
     res.status(500).json({
       success: false,
       message: "Server error during login",
@@ -277,8 +311,9 @@ exports.login = async (req, res) => {
   }
 };
 
-// Logout Controller
+// Logout
 exports.logout = (req, res) => {
+  const username = req.session.username;
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({
@@ -286,6 +321,7 @@ exports.logout = (req, res) => {
         message: "Error logging out",
       });
     }
+    console.log(`✅ Logout: ${username}`);
     res.status(200).json({
       success: true,
       message: "Logout successful",
@@ -304,6 +340,7 @@ exports.getCurrentUser = async (req, res) => {
     }
 
     const user = await User.findById(req.session.userId).select("-password");
+    
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -316,7 +353,7 @@ exports.getCurrentUser = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error("Get user error:", error);
+    console.error("❌ Get user error:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching user data",
