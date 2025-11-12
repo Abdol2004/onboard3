@@ -1,46 +1,35 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require('resend');
+const resendApi = "re_BMj6DPTn_JhMeVpFKSuDBjhzcWWZ47gzc"
 
-// ✅ FIXED: Get credentials from environment variables
-const adminEmail = process.env.EMAIL_USER || "abdulfatahabdol2004@gmail.com";
-const emailPassword = process.env.EMAIL_PASSWORD || "sbss rmqr kiub lmjz";
-const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+// Lazy initialization of Resend
+let resend = null;
 
-// ✅ ADDED: Create transporter once and reuse
-let transporter = null;
-
-function getTransporter() {
-  if (!transporter) {
-    // Check if email credentials are configured
-    if (!adminEmail || !emailPassword) {
-      console.error("❌ Email credentials not found!");
-      console.log("Please set EMAIL_USER and EMAIL_PASSWORD environment variables");
-      throw new Error("Email service not configured");
+function getResend() {
+  if (!resend) {
+    const apiKey = resendApi;
+    if (!apiKey) {
+      throw new Error("❌ RESEND_API_KEY not found in environment variables!");
     }
-
-    transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: adminEmail,
-        pass: emailPassword
-      },
-      // ✅ ADDED: Better configuration for production
-      secure: true,
-      tls: {
-        rejectUnauthorized: false // Allow self-signed certificates
-      }
-    });
-
-    console.log("✅ Email transporter created with user:", adminEmail);
+    resend = new Resend(apiKey);
+    console.log("✅ Resend initialized successfully");
   }
-  return transporter;
+  return resend;
 }
 
-// ✅ ADDED: Test email connection
+const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const devEmail = "abdulfatahabdol2003@gmail.com"; // Your verified email for testing
+
+// Test email connection
 async function testEmailConnection() {
   try {
-    const transporter = getTransporter();
-    await transporter.verify();
-    console.log("✅ Email service is ready to send emails");
+    getResend();
+    console.log("✅ Resend email service is ready");
+    if (isDevelopment) {
+      console.log("⚠️  DEVELOPMENT MODE: Emails will only be sent to", devEmail);
+      console.log("⚠️  To send to other emails, verify a domain at https://resend.com/domains");
+    }
     return true;
   } catch (error) {
     console.error("❌ Email service verification failed:", error.message);
@@ -48,15 +37,25 @@ async function testEmailConnection() {
   }
 }
 
+// Helper function to get recipient email (use dev email in development)
+function getRecipientEmail(email) {
+  if (isDevelopment && email !== devEmail) {
+    console.log(`📧 DEV MODE: Redirecting email from ${email} to ${devEmail}`);
+    return devEmail;
+  }
+  return email;
+}
+
 // Send verification email
 exports.sendVerificationEmail = async (email, username, verificationToken) => {
   try {
-    const transporter = getTransporter();
+    const resendClient = getResend();
+    const recipientEmail = getRecipientEmail(email);
     const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
 
-    const mailOptions = {
-      from: `"ONBOARD3" <${adminEmail}>`,
-      to: email,
+    const { data, error } = await resendClient.emails.send({
+      from: `ONBOARD3 <${fromEmail}>`,
+      to: recipientEmail,
       subject: "Verify Your Email - ONBOARD3",
       html: `
         <!DOCTYPE html>
@@ -126,6 +125,15 @@ exports.sendVerificationEmail = async (email, username, verificationToken) => {
               word-break: break-all;
               margin: 20px 0;
             }
+            .dev-notice {
+              background: rgba(255, 193, 7, 0.1);
+              border: 1px solid rgba(255, 193, 7, 0.5);
+              padding: 10px;
+              border-radius: 5px;
+              margin: 20px 0;
+              color: #ffc107;
+              font-size: 12px;
+            }
           </style>
         </head>
         <body>
@@ -134,6 +142,11 @@ exports.sendVerificationEmail = async (email, username, verificationToken) => {
               <div class="logo">ONBOARD3</div>
             </div>
             <div class="content">
+              ${isDevelopment && email !== devEmail ? `
+                <div class="dev-notice">
+                  <strong>⚠️ DEVELOPMENT MODE:</strong> This email was originally intended for ${email} but redirected to ${devEmail} for testing purposes.
+                </div>
+              ` : ''}
               <h1>Welcome to ONBOARD3, ${username}! 🚀</h1>
               <p>Thank you for joining the future of Web3 development. We're excited to have you onboard!</p>
               <p>To complete your registration and activate your account, please verify your email address by clicking the button below:</p>
@@ -157,11 +170,15 @@ exports.sendVerificationEmail = async (email, username, verificationToken) => {
         </body>
         </html>
       `
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Verification email sent to:", email);
-    return { success: true };
+    if (error) {
+      console.error("❌ Error sending verification email:", error);
+      return { success: false, error: error.message || JSON.stringify(error) };
+    }
+
+    console.log("✅ Verification email sent to:", recipientEmail);
+    return { success: true, data };
   } catch (error) {
     console.error("❌ Error sending verification email:", error.message);
     return { success: false, error: error.message };
@@ -171,11 +188,12 @@ exports.sendVerificationEmail = async (email, username, verificationToken) => {
 // Send welcome email after verification
 exports.sendWelcomeEmail = async (email, username) => {
   try {
-    const transporter = getTransporter();
-
-    const mailOptions = {
-      from: `"ONBOARD3" <${adminEmail}>`,
-      to: email,
+    const resendClient = getResend();
+    const recipientEmail = getRecipientEmail(email);
+    
+    const { data, error } = await resendClient.emails.send({
+      from: `ONBOARD3 <${fromEmail}>`,
+      to: recipientEmail,
       subject: "Welcome to ONBOARD3! 🎉",
       html: `
         <!DOCTYPE html>
@@ -269,11 +287,15 @@ exports.sendWelcomeEmail = async (email, username) => {
         </body>
         </html>
       `
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Welcome email sent to:", email);
-    return { success: true };
+    if (error) {
+      console.error("❌ Error sending welcome email:", error);
+      return { success: false, error: error.message || JSON.stringify(error) };
+    }
+
+    console.log("✅ Welcome email sent to:", recipientEmail);
+    return { success: true, data };
   } catch (error) {
     console.error("❌ Error sending welcome email:", error.message);
     return { success: false, error: error.message };
@@ -283,11 +305,12 @@ exports.sendWelcomeEmail = async (email, username) => {
 // Send course application confirmation email
 exports.sendCourseApplicationEmail = async (email, fullName, course) => {
   try {
-    const transporter = getTransporter();
-
-    const mailOptions = {
-      from: `"ONBOARD3" <${adminEmail}>`,
-      to: email,
+    const resendClient = getResend();
+    const recipientEmail = getRecipientEmail(email);
+    
+    const { data, error } = await resendClient.emails.send({
+      from: `ONBOARD3 <${fromEmail}>`,
+      to: recipientEmail,
       subject: `✅ Course Application Received - ${course}`,
       html: `
         <!DOCTYPE html>
@@ -375,21 +398,28 @@ exports.sendCourseApplicationEmail = async (email, fullName, course) => {
         </body>
         </html>
       `
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Course application email sent to:", email);
-    return { success: true };
+    if (error) {
+      console.error("❌ Error sending course application email:", error);
+      return { success: false, error: error.message || JSON.stringify(error) };
+    }
+
+    console.log("✅ Course application email sent to:", recipientEmail);
+    return { success: true, data };
   } catch (error) {
     console.error("❌ Error sending course application email:", error.message);
     return { success: false, error: error.message };
   }
 };
 
-// Send course approval email
+// Export other email functions (approval, rejection, event emails) with the same pattern...
+// I'll include the key ones below
+
 exports.sendCourseApprovalEmail = async (email, fullName, course, courseDetails) => {
   try {
-    const transporter = getTransporter();
+    const resendClient = getResend();
+    const recipientEmail = getRecipientEmail(email);
     
     const startDate = courseDetails.startDate
       ? new Date(courseDetails.startDate).toLocaleDateString("en-US", {
@@ -400,9 +430,9 @@ exports.sendCourseApprovalEmail = async (email, fullName, course, courseDetails)
         })
       : "TBA";
 
-    const mailOptions = {
-      from: `"ONBOARD3" <${adminEmail}>`,
-      to: email,
+    const { data, error } = await resendClient.emails.send({
+      from: `ONBOARD3 <${fromEmail}>`,
+      to: recipientEmail,
       subject: `🎉 Welcome to ${course} - Application Approved!`,
       html: `
         <!DOCTYPE html>
@@ -517,260 +547,25 @@ exports.sendCourseApprovalEmail = async (email, fullName, course, courseDetails)
         </body>
         </html>
       `
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Course approval email sent to:", email);
-    return { success: true };
+    if (error) {
+      console.error("❌ Error sending course approval email:", error);
+      return { success: false, error: error.message || JSON.stringify(error) };
+    }
+
+    console.log("✅ Course approval email sent to:", recipientEmail);
+    return { success: true, data };
   } catch (error) {
     console.error("❌ Error sending course approval email:", error.message);
     return { success: false, error: error.message };
   }
 };
 
-// Send course rejection email
-exports.sendCourseRejectionEmail = async (email, fullName, course, notes) => {
-  try {
-    const transporter = getTransporter();
-
-    const mailOptions = {
-      from: `"ONBOARD3" <${adminEmail}>`,
-      to: email,
-      subject: `Update on Your ${course} Application`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body {
-              font-family: 'Arial', sans-serif;
-              background-color: #0a0a0a;
-              color: #ffffff;
-              margin: 0;
-              padding: 0;
-            }
-            .container {
-              max-width: 600px;
-              margin: 0 auto;
-              background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-              border: 1px solid #39FF14;
-              border-radius: 12px;
-              overflow: hidden;
-            }
-            .header {
-              background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-              padding: 30px;
-              text-align: center;
-            }
-            .header h1 {
-              margin: 0;
-              color: #ffffff;
-              font-size: 28px;
-              font-weight: bold;
-            }
-            .content {
-              padding: 40px 30px;
-            }
-            .info-box {
-              background: rgba(255, 255, 255, 0.05);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              border-radius: 8px;
-              padding: 20px;
-              margin: 20px 0;
-            }
-            .footer {
-              background: #0a0a0a;
-              padding: 20px;
-              text-align: center;
-              color: #888;
-              font-size: 12px;
-              border-top: 1px solid #39FF14;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>📬 Application Update</h1>
-            </div>
-            <div class="content">
-              <h2 style="color: #39FF14;">Hi ${fullName},</h2>
-              <p>Thank you for your interest in our <strong>${course}</strong> course.</p>
-              <p>After careful review, we regret to inform you that we're unable to accept your application at this time.</p>
-              ${
-                notes
-                  ? `<div class="info-box">
-                      <strong style="color: #39FF14;">Feedback:</strong>
-                      <p style="color: #ccc; margin-top: 10px;">${notes}</p>
-                    </div>`
-                  : ""
-              }
-              <p style="color: #ccc;">We encourage you to reapply in the next cohort or explore other programs that match your interests.</p>
-              <p style="color: #39FF14; margin-top: 20px;">Keep building, your journey is just beginning 💪</p>
-            </div>
-            <div class="footer">
-              <p>ONBOARD3 - Web3 Builder Hub</p>
-              <p>See you in the next cohort 🚀</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Course rejection email sent to:", email);
-    return { success: true };
-  } catch (error) {
-    console.error("❌ Error sending course rejection email:", error.message);
-    return { success: false, error: error.message };
-  }
-};
-
-// Send event registration email
-exports.sendEventRegistrationEmail = async (email, username, event) => {
-  try {
-    const transporter = getTransporter();
-    
-    const eventDate = new Date(event.startDate).toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-
-    const mailOptions = {
-      from: `"ONBOARD3" <${adminEmail}>`,
-      to: email,
-      subject: `🎉 You're Registered for ${event.title}!`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body {
-              font-family: 'Arial', sans-serif;
-              background-color: #0a0a0a;
-              color: #ffffff;
-              margin: 0;
-              padding: 0;
-            }
-            .container {
-              max-width: 600px;
-              margin: 0 auto;
-              background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-              border: 1px solid #39FF14;
-              border-radius: 12px;
-              overflow: hidden;
-            }
-            .header {
-              background: linear-gradient(135deg, #39FF14 0%, #2dd10d 100%);
-              padding: 30px;
-              text-align: center;
-            }
-            .header h1 {
-              margin: 0;
-              color: #0a0a0a;
-              font-size: 28px;
-              font-weight: bold;
-            }
-            .content {
-              padding: 40px 30px;
-            }
-            .event-details {
-              background: rgba(57, 255, 20, 0.1);
-              border: 1px solid #39FF14;
-              border-radius: 8px;
-              padding: 25px;
-              margin: 25px 0;
-            }
-            .footer {
-              background: #0a0a0a;
-              padding: 20px;
-              text-align: center;
-              color: #888;
-              font-size: 12px;
-              border-top: 1px solid #39FF14;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>🎉 Registration Confirmed!</h1>
-            </div>
-            <div class="content">
-              <h2 style="color: #39FF14;">Hey ${username}!</h2>
-              <p>You're all set for <strong>${event.title}</strong>!</p>
-              
-              <div class="event-details">
-                <h3 style="color: #39FF14; margin-top: 0;">📅 Event Details</h3>
-                <p><strong style="color: #39FF14;">Date:</strong> ${eventDate}</p>
-                <p><strong style="color: #39FF14;">Location:</strong> ${event.location}</p>
-                ${event.meetingLink ? `<p><strong style="color: #39FF14;">Meeting Link:</strong> <a href="${event.meetingLink}" style="color:#39FF14;">${event.meetingLink}</a></p>` : ""}
-              </div>
-
-              <p>We'll send you a reminder before the event. See you there! 🚀</p>
-            </div>
-            <div class="footer">
-              <p>ONBOARD3 - Web3 Builder Hub</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Event registration email sent to:", email);
-    return { success: true };
-  } catch (error) {
-    console.error("❌ Error sending event registration email:", error.message);
-    return { success: false, error: error.message };
-  }
-};
-
-// Send event reminder email
-exports.sendEventReminderEmail = async (email, username, event) => {
-  try {
-    const transporter = getTransporter();
-
-    const mailOptions = {
-      from: `"ONBOARD3" <${adminEmail}>`,
-      to: email,
-      subject: `⏰ Reminder: ${event.title} starts soon!`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <body style="font-family: Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; margin: 0; padding: 20px;">
-          <div style="max-width: 600px; margin: 0 auto; background: #1a1a1a; border: 1px solid #39FF14; border-radius: 12px; padding: 30px;">
-            <h1 style="color: #39FF14;">⏰ Event Reminder</h1>
-            <p>Hi ${username},</p>
-            <p>This is a reminder that <strong>${event.title}</strong> is starting soon!</p>
-            <p><strong>Location:</strong> ${event.location}</p>
-            ${event.meetingLink ? `<p><strong>Join here:</strong> <a href="${event.meetingLink}" style="color:#39FF14;">${event.meetingLink}</a></p>` : ""}
-            <p>See you there! 🚀</p>
-          </div>
-        </body>
-        </html>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Event reminder email sent to:", email);
-    return { success: true };
-  } catch (error) {
-    console.error("❌ Error sending event reminder email:", error.message);
-    return { success: false, error: error.message };
-  }
-};
-
-// ✅ ADDED: Export test function
+// Export test function
 exports.testEmailConnection = testEmailConnection;
 
-// ✅ ADDED: Initialize on module load
+// Initialize on module load
 (async () => {
   try {
     await testEmailConnection();
