@@ -1,3 +1,4 @@
+// models/User.js
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
@@ -20,6 +21,16 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 6
+  },
+  // ✅ ADMIN FIELDS - Default to FALSE for security
+  isAdmin: {
+    type: Boolean,
+    default: false
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'superadmin'],
+    default: 'user'
   },
   isVerified: {
     type: Boolean,

@@ -10,6 +10,7 @@ const referralRoutes = require("./routes/referralRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
 const courseRoutes = require("./routes/courseRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 const cors = require('cors');
 dotenv.config();
 const app = express();
@@ -55,6 +56,7 @@ app.use("/dashboard", dashboardRoutes);
 app.use("/dashboard/referral", referralRoutes);
 app.use("/dashboard/settings", settingsRoutes);
 app.use("/api/learn", courseRoutes);
+app.use("/admin", adminRoutes);
 
 
 app.get("/", (req, res) => {
@@ -120,6 +122,7 @@ app.get("/dashboard/settings", isAuthenticated, (req, res) => {
     user: req.session.userId ? { username: req.session.username } : null
   });
 });
+
 
 app.get("/dashboard/events/:eventId", isAuthenticated, (req, res) => {
   res.render("dashboard/event-details", { 

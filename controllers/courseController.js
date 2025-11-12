@@ -48,17 +48,24 @@ exports.submitApplication = async (req, res) => {
 
     await application.save();
 
-    // Send confirmation email
+    // ✅ SEND CONFIRMATION EMAIL
     try {
-      await sendCourseApplicationEmail(email, fullName, course);
+      console.log("📧 Sending course application email to:", email);
+      const emailResult = await sendCourseApplicationEmail(email, fullName, course);
+      
+      if (emailResult.success) {
+        console.log("✅ Course application email sent successfully!");
+      } else {
+        console.error("❌ Failed to send course application email:", emailResult.error);
+      }
     } catch (emailError) {
-      console.error("Email error:", emailError);
+      console.error("❌ Email error:", emailError);
       // Continue even if email fails
     }
 
     res.status(201).json({
       success: true,
-      message: "Application submitted successfully! You'll receive a response within 3-5 business days.",
+      message: "Application submitted successfully! You'll receive a confirmation email shortly.",
       application
     });
 
@@ -297,9 +304,10 @@ exports.approveApplication = async (req, res) => {
       link: courseLink
     });
 
-    // Send approval email
+    // ✅ SEND APPROVAL EMAIL
     try {
-      await sendCourseApprovalEmail(
+      console.log("📧 Sending course approval email to:", application.email);
+      const emailResult = await sendCourseApprovalEmail(
         application.email,
         application.fullName,
         application.course,
@@ -309,13 +317,19 @@ exports.approveApplication = async (req, res) => {
           link: courseLink
         }
       );
+      
+      if (emailResult.success) {
+        console.log("✅ Course approval email sent successfully!");
+      } else {
+        console.error("❌ Failed to send approval email:", emailResult.error);
+      }
     } catch (emailError) {
-      console.error("Approval email error:", emailError);
+      console.error("❌ Approval email error:", emailError);
     }
 
     res.status(200).json({
       success: true,
-      message: "Application approved successfully",
+      message: "Application approved successfully. Approval email sent to applicant.",
       application
     });
 
@@ -347,21 +361,28 @@ exports.rejectApplication = async (req, res) => {
     // Reject application
     await application.reject(adminId, notes);
 
-    // Send rejection email
+    // ✅ SEND REJECTION EMAIL
     try {
-      await sendCourseRejectionEmail(
+      console.log("📧 Sending course rejection email to:", application.email);
+      const emailResult = await sendCourseRejectionEmail(
         application.email,
         application.fullName,
         application.course,
         notes
       );
+      
+      if (emailResult.success) {
+        console.log("✅ Course rejection email sent successfully!");
+      } else {
+        console.error("❌ Failed to send rejection email:", emailResult.error);
+      }
     } catch (emailError) {
-      console.error("Rejection email error:", emailError);
+      console.error("❌ Rejection email error:", emailError);
     }
 
     res.status(200).json({
       success: true,
-      message: "Application rejected",
+      message: "Application rejected. Notification email sent to applicant.",
       application
     });
 

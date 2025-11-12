@@ -18,6 +18,22 @@ const taskSchema = new mongoose.Schema({
     enum: ['social', 'submission', 'verification', 'quiz', 'external'],
     default: 'submission'
   },
+  buttonText: {
+    type: String,
+    default: null
+  },
+  buttonLink: {
+    type: String,
+    default: null
+  },
+  inputLabel: {
+    type: String,
+    default: null
+  },
+  inputName: {
+    type: String,
+    default: null
+  },
   requirements: {
     url: String,
     platform: String, // 'twitter', 'telegram', 'discord', etc.

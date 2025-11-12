@@ -152,11 +152,18 @@ exports.registerForEvent = async (req, res) => {
 
     await event.save();
 
-    // Send confirmation email
+    // ✅ SEND CONFIRMATION EMAIL
     try {
-      await sendEventRegistrationEmail(user.email, user.username, event);
+      console.log("📧 Sending event registration email to:", user.email);
+      const emailResult = await sendEventRegistrationEmail(user.email, user.username, event);
+      
+      if (emailResult.success) {
+        console.log("✅ Event registration email sent successfully!");
+      } else {
+        console.error("❌ Failed to send event registration email:", emailResult.error);
+      }
     } catch (emailError) {
-      console.error("Email error:", emailError);
+      console.error("❌ Email error:", emailError);
       // Continue even if email fails
     }
 
@@ -344,6 +351,63 @@ exports.getEventStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching event statistics"
+    });
+  }
+};
+
+// ✅ ADDED: Admin function to send event reminders
+exports.sendEventReminders = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    const event = await Event.findById(eventId)
+      .populate('registrations.user', 'username email');
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found"
+      });
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+
+    // Send reminder to all registered users
+    for (const registration of event.registrations) {
+      try {
+        console.log("📧 Sending event reminder to:", registration.email);
+        const emailResult = await sendEventReminderEmail(
+          registration.email,
+          registration.username,
+          event
+        );
+        
+        if (emailResult.success) {
+          successCount++;
+          console.log("✅ Event reminder sent to:", registration.email);
+        } else {
+          failCount++;
+          console.error("❌ Failed to send reminder to:", registration.email);
+        }
+      } catch (emailError) {
+        failCount++;
+        console.error("❌ Error sending reminder to:", registration.email, emailError);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Reminders sent! Success: ${successCount}, Failed: ${failCount}`,
+      successCount,
+      failCount
+    });
+
+  } catch (error) {
+    console.error("Send reminders error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error sending event reminders"
     });
   }
 };

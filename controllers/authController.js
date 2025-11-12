@@ -1,10 +1,7 @@
-// controllers/authController.js - WITH EMAIL VERIFICATION
-
 const User = require("../models/User");
 const crypto = require("crypto");
-const { sendVerificationEmail, sendWelcomeEmail } = require("../utils/emailService");
+const { sendVerificationEmail, sendWelcomeEmail } = require("../utils/emailService"); // ✅ ADDED
 
-// Register
 exports.register = async (req, res) => {
   try {
     const { username, email, password, confirmPassword, referralCode } = req.body;
@@ -66,8 +63,10 @@ exports.register = async (req, res) => {
       password,
       verificationToken,
       verificationTokenExpires,
-      isVerified: false, // User must verify email
+      isVerified: false, // ✅ CHANGED: Set to false to require email verification
       referredBy: referralCode ? referralCode.toUpperCase() : null,
+      isAdmin: false,
+      role: 'user'
     });
 
     // Add initial welcome activity
@@ -79,6 +78,21 @@ exports.register = async (req, res) => {
     ];
 
     await user.save();
+
+    // ✅ SEND VERIFICATION EMAIL
+    try {
+      console.log("📧 Attempting to send verification email to:", email);
+      const emailResult = await sendVerificationEmail(email, username, verificationToken);
+      
+      if (emailResult.success) {
+        console.log("✅ Verification email sent successfully!");
+      } else {
+        console.error("❌ Failed to send verification email:", emailResult.error);
+      }
+    } catch (emailError) {
+      console.error("❌ Error sending verification email:", emailError);
+      // Don't fail registration if email fails
+    }
 
     // Process referral reward if user was referred
     if (referrer) {
@@ -100,28 +114,20 @@ exports.register = async (req, res) => {
         }
 
         await referrer.save();
-        console.log(`✅ Referral: ${referrer.username} earned ${signupBonus} XP from ${username}`);
+        console.log(`Referral processed: ${referrer.username} earned ${signupBonus} XP from ${username}`);
       } catch (referralError) {
-        console.error("❌ Referral error:", referralError);
+        console.error("Error processing referral:", referralError);
       }
     }
 
-    // Send verification email
-    const emailResult = await sendVerificationEmail(email, username, verificationToken);
-    
-    if (!emailResult.success) {
-      console.error("❌ Failed to send verification email:", emailResult.error);
-    } else {
-      console.log(`📧 Verification email sent to ${email}`);
-    }
-
+    // Response
     res.status(201).json({
       success: true,
-      message: "Registration successful! Please check your email to verify your account.",
-      requiresVerification: true,
+      message: "Registration successful! Please check your email to verify your account.", // ✅ UPDATED MESSAGE
+      requiresVerification: true, // ✅ CHANGED to true
     });
   } catch (error) {
-    console.error("❌ Registration error:", error);
+    console.error("Registration error:", error);
     res.status(500).json({
       success: false,
       message: "Server error during registration",
@@ -129,13 +135,13 @@ exports.register = async (req, res) => {
   }
 };
 
-// Verify Email
+// Email Verification Controller
 exports.verifyEmail = async (req, res) => {
   try {
     const { token } = req.query;
 
     if (!token) {
-      return res.render("verify-result", {
+      return res.status(400).render("verify-result", {
         success: false,
         message: "Verification token is missing",
       });
@@ -148,9 +154,9 @@ exports.verifyEmail = async (req, res) => {
     });
 
     if (!user) {
-      return res.render("verify-result", {
+      return res.status(400).render("verify-result", {
         success: false,
-        message: "Invalid or expired verification token. Please request a new one.",
+        message: "Invalid or expired verification token",
       });
     }
 
@@ -158,19 +164,16 @@ exports.verifyEmail = async (req, res) => {
     user.isVerified = true;
     user.verificationToken = undefined;
     user.verificationTokenExpires = undefined;
-    
-    // Add activity
-    user.recentActivity.unshift({
-      action: "Email verified successfully! 🎉",
-      timestamp: new Date(),
-    });
-
     await user.save();
 
-    // Send welcome email
-    await sendWelcomeEmail(user.email, user.username);
-
-    console.log(`✅ Email verified: ${user.email}`);
+    // ✅ SEND WELCOME EMAIL
+    try {
+      console.log("📧 Sending welcome email to:", user.email);
+      await sendWelcomeEmail(user.email, user.username);
+      console.log("✅ Welcome email sent!");
+    } catch (emailError) {
+      console.error("❌ Error sending welcome email:", emailError);
+    }
 
     res.render("verify-result", {
       success: true,
@@ -178,15 +181,15 @@ exports.verifyEmail = async (req, res) => {
       username: user.username,
     });
   } catch (error) {
-    console.error("❌ Verification error:", error);
-    res.render("verify-result", {
+    console.error("Verification error:", error);
+    res.status(500).render("verify-result", {
       success: false,
       message: "Server error during verification",
     });
   }
 };
 
-// Resend Verification Email
+// Resend Verification Email Controller
 exports.resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
@@ -199,7 +202,6 @@ exports.resendVerification = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
-    
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -222,24 +224,32 @@ exports.resendVerification = async (req, res) => {
     user.verificationTokenExpires = verificationTokenExpires;
     await user.save();
 
-    // Send new verification email
-    const emailResult = await sendVerificationEmail(user.email, user.username, verificationToken);
-
-    if (!emailResult.success) {
+    // ✅ SEND VERIFICATION EMAIL
+    try {
+      console.log("📧 Resending verification email to:", email);
+      const emailResult = await sendVerificationEmail(email, user.username, verificationToken);
+      
+      if (!emailResult.success) {
+        console.error("❌ Failed to resend verification email:", emailResult.error);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to send verification email. Please try again.",
+        });
+      }
+    } catch (emailError) {
+      console.error("❌ Error resending verification email:", emailError);
       return res.status(500).json({
         success: false,
-        message: "Failed to send verification email. Please try again.",
+        message: "Error sending email. Please try again.",
       });
     }
-
-    console.log(`📧 Verification email resent to ${email}`);
 
     res.status(200).json({
       success: true,
       message: "Verification email sent! Please check your inbox.",
     });
   } catch (error) {
-    console.error("❌ Resend verification error:", error);
+    console.error("Resend verification error:", error);
     res.status(500).json({
       success: false,
       message: "Server error. Please try again.",
@@ -247,7 +257,7 @@ exports.resendVerification = async (req, res) => {
   }
 };
 
-// Login
+// Login Controller
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -260,7 +270,6 @@ exports.login = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
-    
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -268,7 +277,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Check if email is verified
+    // ✅ CHECK IF EMAIL IS VERIFIED
     if (!user.isVerified) {
       return res.status(401).json({
         success: false,
@@ -279,7 +288,6 @@ exports.login = async (req, res) => {
     }
 
     const isMatch = await user.comparePassword(password);
-    
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -287,11 +295,11 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Create session
     req.session.userId = user._id;
     req.session.username = user.username;
-
-    console.log(`✅ Login: ${user.username}`);
+    req.session.email = user.email;
+    req.session.isAdmin = user.isAdmin || false;
+    req.session.role = user.role || 'user';
 
     res.status(200).json({
       success: true,
@@ -300,10 +308,12 @@ exports.login = async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
+        isAdmin: user.isAdmin || false,
+        role: user.role || 'user'
       },
     });
   } catch (error) {
-    console.error("❌ Login error:", error);
+    console.error("Login error:", error);
     res.status(500).json({
       success: false,
       message: "Server error during login",
@@ -311,9 +321,8 @@ exports.login = async (req, res) => {
   }
 };
 
-// Logout
+// Logout Controller
 exports.logout = (req, res) => {
-  const username = req.session.username;
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({
@@ -321,7 +330,6 @@ exports.logout = (req, res) => {
         message: "Error logging out",
       });
     }
-    console.log(`✅ Logout: ${username}`);
     res.status(200).json({
       success: true,
       message: "Logout successful",
@@ -340,7 +348,6 @@ exports.getCurrentUser = async (req, res) => {
     }
 
     const user = await User.findById(req.session.userId).select("-password");
-    
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -350,10 +357,14 @@ exports.getCurrentUser = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      user,
+      user: {
+        ...user.toObject(),
+        isAdmin: user.isAdmin || false,
+        role: user.role || 'user'
+      },
     });
   } catch (error) {
-    console.error("❌ Get user error:", error);
+    console.error("Get user error:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching user data",

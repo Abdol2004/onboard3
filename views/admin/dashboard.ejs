@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONBOARD3 Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(57, 255, 20, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(57, 255, 20, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 15, 15, 0.95);
+            border-right: 1px solid rgba(57, 255, 20, 0.2);
+            padding: 2rem 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid rgba(57, 255, 20, 0.2);
+        }
+
+        .sidebar-logo h1 {
+            color: #39FF14;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-logo p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-menu {
+            padding: 2rem 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 2rem;
+            color: #888;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover,
+        .menu-item.active {
+            color: #39FF14;
+            background: rgba(57, 255, 20, 0.05);
+            border-left-color: #39FF14;
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 2rem;
+            width: calc(100% - 280px);
+        }
+
+        .header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            font-size: 2rem;
+            color: #39FF14;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #888;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(15, 15, 15, 0.95);
+            border: 1px solid rgba(57, 255, 20, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: #39FF14;
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card-header h3 {
+            color: #888;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(57, 255, 20, 0.1);
+            color: #39FF14;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #39FF14;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .card {
+            background: rgba(15, 15, 15, 0.95);
+            border: 1px solid rgba(57, 255, 20, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(57, 255, 20, 0.2);
+        }
+
+        .card-header h3 {
+            font-size: 1.25rem;
+            color: #fff;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(57, 255, 20, 0.05);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            color: #39FF14;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(57, 255, 20, 0.2);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(57, 255, 20, 0.1);
+            color: #fff;
+        }
+
+        tr:hover {
+            background: rgba(57, 255, 20, 0.05);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-pending {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+
+        .badge-approved {
+            background: rgba(57, 255, 20, 0.1);
+            color: #39FF14;
+            border: 1px solid #39FF14;
+        }
+
+        .badge-rejected {
+            background: rgba(255, 82, 82, 0.1);
+            color: #ff5252;
+            border: 1px solid #ff5252;
+        }
+
+        .badge-active {
+            background: rgba(57, 255, 20, 0.1);
+            color: #39FF14;
+            border: 1px solid #39FF14;
+        }
+
+        .badge-inactive {
+            background: rgba(136, 136, 136, 0.1);
+            color: #888;
+            border: 1px solid #888;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #39FF14;
+            color: #0a0a0a;
+        }
+
+        .btn-primary:hover {
+            background: #2ecc11;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(57, 255, 20, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(57, 255, 20, 0.1);
+            color: #39FF14;
+            border: 1px solid #39FF14;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(57, 255, 20, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(255, 82, 82, 0.1);
+            color: #ff5252;
+            border: 1px solid #ff5252;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-icon {
+            width: 35px;
+            height: 35px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert.active {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(57, 255, 20, 0.1);
+            border: 1px solid #39FF14;
+            color: #39FF14;
+        }
+
+        .alert-error {
+            background: rgba(255, 82, 82, 0.1);
+            border: 1px solid #ff5252;
+            color: #ff5252;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(15, 15, 15, 0.98);
+            border: 1px solid rgba(57, 255, 20, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(57, 255, 20, 0.2);
+        }
+
+        .modal-header h3 {
+            color: #39FF14;
+            font-size: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #39FF14;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #39FF14;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(15, 15, 15, 0.95);
+            border: 1px solid rgba(57, 255, 20, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #39FF14;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-item {
+            padding: 1rem;
+            background: rgba(57, 255, 20, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(57, 255, 20, 0.1);
+        }
+
+        .detail-item label {
+            display: block;
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-item p {
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .task-item {
+            padding: 1.5rem;
+            background: rgba(57, 255, 20, 0.03);
+            border: 1px solid rgba(57, 255, 20, 0.1);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>ONBOARD3</h1>
+                <p>Admin Dashboard</p>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a class="menu-item active" data-tab="overview">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Overview</span>
+                </a>
+                <a class="menu-item" data-tab="quests">
+                    <i class="fas fa-trophy"></i>
+                    <span>Quests</span>
+                </a>
+                <a class="menu-item" data-tab="events">
+                    <i class="fas fa-calendar"></i>
+                    <span>Events</span>
+                </a>
+                <a class="menu-item" data-tab="applications">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Applications</span>
+                </a>
+                <a class="menu-item" data-tab="users">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <!-- Overview Section -->
+            <div class="content-section active" id="overview">
+                <div class="header">
+                    <div>
+                        <h2>Admin Overview</h2>
+                        <p>Platform statistics and management</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-success" id="overviewAlert"></div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <h3>Total Users</h3>
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalUsers">0</div>
+                        <div class="stat-change">All time</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <h3>Active Quests</h3>
+                            <div class="stat-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="activeQuests">0</div>
+                        <div class="stat-change">Live now</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <h3>Upcoming Events</h3>
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="upcomingEvents">0</div>
+                        <div class="stat-change">Scheduled</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <h3>Pending Applications</h3>
+                            <div class="stat-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="pendingApplications">0</div>
+                        <div class="stat-change">Needs review</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quests Section -->
+            <div class="content-section" id="quests">
+                <div class="header">
+                    <div>
+                        <h2>Quest Management</h2>
+                        <p>Manage platform quests</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openCreateQuestModal()">
+                        <i class="fas fa-plus"></i> Create Quest
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Difficulty</th>
+                                    <th>Rewards</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="questsTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 2rem; color: #888;">
+                                        Loading quests...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events Section -->
+            <div class="content-section" id="events">
+                <div class="header">
+                    <div>
+                        <h2>Event Management</h2>
+                        <p>Manage platform events</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openCreateEventModal()">
+                        <i class="fas fa-plus"></i> Create Event
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Registrations</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eventsTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 2rem; color: #888;">
+                                        Loading events...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applications Section -->
+            <div class="content-section" id="applications">
+                <div class="header">
+                    <div>
+                        <h2>Course Applications</h2>
+                        <p>Review and manage applications</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Course</th>
+                                    <th>Email</th>
+                                    <th>Applied</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applicationsTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 2rem; color: #888;">
+                                        Loading applications...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div class="content-section" id="users">
+                <div class="header">
+                    <div>
+                        <h2>User Management</h2>
+                        <p>View and manage users</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>XP</th>
+                                    <th>USDC</th>
+                                    <th>Joined</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 2rem; color: #888;">
+                                        Loading users...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Quest Modal -->
+    <div class="modal" id="createQuestModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Quest</h3>
+                <button class="close-btn" onclick="closeModal('createQuestModal')">&times;</button>
+            </div>
+            <form id="createQuestForm" onsubmit="createQuest(event)">
+                <div class="form-group">
+                    <label>Quest Title *</label>
+                    <input type="text" id="questTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Short Description *</label>
+                    <input type="text" id="questShortDesc" required>
+                </div>
+                <div class="form-group">
+                    <label>Full Description *</label>
+                    <textarea id="questDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Category *</label>
+                    <select id="questCategory" required>
+                        <option value="development">Development</option>
+                        <option value="social">Social</option>
+                        <option value="learning">Learning</option>
+                        <option value="community">Community</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Difficulty *</label>
+                    <select id="questDifficulty" required>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>XP Reward *</label>
+                    <input type="number" id="questXP" min="0" value="100" required>
+                </div>
+                <div class="form-group">
+                    <label>USDC Reward</label>
+                    <input type="number" id="questUSDC" min="0" step="0.01" value="0">
+                </div>
+                
+                <div class="form-group">
+                    <label>Quest Tasks</label>
+                    <p style="color: #888; font-size: 0.85rem; margin-bottom: 0.5rem;">Add tasks that users need to complete</p>
+                    <div id="tasksList"></div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="addTask()" style="margin-top: 0.5rem;">
+                        <i class="fas fa-plus"></i> Add Task
+                    </button>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createQuestModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Quest</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Event Modal -->
+    <div class="modal" id="createEventModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Event</h3>
+                <button class="close-btn" onclick="closeModal('createEventModal')">&times;</button>
+            </div>
+            <form id="createEventForm" onsubmit="createEvent(event)">
+                <div class="form-group">
+                    <label>Event Title *</label>
+                    <input type="text" id="eventTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="eventDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Event Type *</label>
+                    <select id="eventType" required onchange="toggleEventFields()">
+                        <option value="virtual">Virtual</option>
+                        <option value="physical">Physical</option>
+                        <option value="hybrid">Hybrid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Category *</label>
+                    <select id="eventCategory" required>
+                        <option value="hackathon">Hackathon</option>
+                        <option value="workshop">Workshop</option>
+                        <option value="meetup">Meetup</option>
+                        <option value="conference">Conference</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Start Date *</label>
+                    <input type="date" id="eventStartDate" required>
+                </div>
+                <div class="form-group">
+                    <label>End Date *</label>
+                    <input type="date" id="eventEndDate" required>
+                </div>
+                <div class="form-group" id="venueGroup">
+                    <label>Venue/Location <span id="venueRequired">*</span></label>
+                    <input type="text" id="eventVenue">
+                </div>
+                <div class="form-group" id="linkGroup">
+                    <label>Virtual Link <span id="linkRequired">*</span></label>
+                    <input type="url" id="eventLink" placeholder="https://...">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createEventModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Application Modal -->
+    <div class="modal" id="viewApplicationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Application Details</h3>
+                <button class="close-btn" onclick="closeModal('viewApplicationModal')">&times;</button>
+            </div>
+            <div id="applicationDetails"></div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="closeModal('viewApplicationModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approve Application Modal -->
+    <div class="modal" id="approveApplicationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Approve Application</h3>
+                <button class="close-btn" onclick="closeModal('approveApplicationModal')">&times;</button>
+            </div>
+            <form id="approveApplicationForm" onsubmit="approveApplication(event)">
+                <input type="hidden" id="approveAppId">
+                <div class="form-group">
+                    <label>Course Start Date *</label>
+                    <input type="date" id="courseStartDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Course End Date *</label>
+                    <input type="date" id="courseEndDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Course Link *</label>
+                    <input type="url" id="courseLink" placeholder="https://..." required>
+                </div>
+                <div class="form-group">
+                    <label>Notes (Optional)</label>
+                    <textarea id="approveNotes" placeholder="Additional information..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('approveApplicationModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Approve Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reject Application Modal -->
+    <div class="modal" id="rejectApplicationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reject Application</h3>
+                <button class="close-btn" onclick="closeModal('rejectApplicationModal')">&times;</button>
+            </div>
+            <form id="rejectApplicationForm" onsubmit="rejectApplication(event)">
+                <input type="hidden" id="rejectAppId">
+                <div class="form-group">
+                    <label>Rejection Reason *</label>
+                    <textarea id="rejectNotes" placeholder="Please provide a reason..." required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('rejectApplicationModal')">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Reject Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let taskCounter = 0;
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function openCreateEventModal() {
+            document.getElementById('createEventForm').reset();
+            toggleEventFields();
+            openModal('createEventModal');
+        }
+
+        function openCreateQuestModal() {
+            document.getElementById('createQuestForm').reset();
+            document.getElementById('tasksList').innerHTML = '';
+            taskCounter = 0;
+            addTask();
+            openModal('createQuestModal');
+        }
+
+        // Alert function
+        function showAlert(message, type = 'success') {
+            const alertEl = document.getElementById('overviewAlert');
+            if (alertEl) {
+                alertEl.textContent = message;
+                alertEl.className = `alert alert-${type} active`;
+                setTimeout(() => alertEl.classList.remove('active'), 5000);
+            }
+        }
+
+        // Tab Navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuItems = document.querySelectorAll('.menu-item[data-tab]');
+            
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tab = this.getAttribute('data-tab');
+                    
+                    menuItems.forEach(mi => mi.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    document.querySelectorAll('.content-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    document.getElementById(tab).classList.add('active');
+                    
+                    loadSectionData(tab);
+                });
+            });
+            
+            loadSectionData('overview');
+        });
+
+        function loadSectionData(section) {
+            console.log('Loading section:', section);
+            
+            switch(section) {
+                case 'overview':
+                    loadOverviewData();
+                    break;
+                case 'quests':
+                    loadQuests();
+                    break;
+                case 'events':
+                    loadEvents();
+                    break;
+                case 'applications':
+                    loadApplications();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+            }
+        }
+
+        // Load Overview
+        async function loadOverviewData() {
+            try {
+                const [users, quests, events, apps] = await Promise.all([
+                    fetch('/admin/api/users/count').then(r => r.json()).catch(() => ({count: 0})),
+                    fetch('/admin/api/quests/stats').then(r => r.json()).catch(() => ({active: 0})),
+                    fetch('/admin/api/events/stats').then(r => r.json()).catch(() => ({upcoming: 0})),
+                    fetch('/admin/api/applications/stats').then(r => r.json()).catch(() => ({pending: 0}))
+                ]);
+                
+                document.getElementById('totalUsers').textContent = users.count || 0;
+                document.getElementById('activeQuests').textContent = quests.active || 0;
+                document.getElementById('upcomingEvents').textContent = events.upcoming || 0;
+                document.getElementById('pendingApplications').textContent = apps.pending || 0;
+            } catch (error) {
+                console.error('Error loading overview:', error);
+                showAlert('Error loading overview data', 'error');
+            }
+        }
+
+        // Load Quests
+        async function loadQuests() {
+            try {
+                const response = await fetch('/admin/api/quests');
+                const data = await response.json();
+                
+                if (data.success && data.quests) {
+                    const tbody = document.getElementById('questsTableBody');
+                    if (data.quests.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #888;">No quests found</td></tr>';
+                    } else {
+                        tbody.innerHTML = data.quests.map(q => `
+                            <tr>
+                                <td><strong>${q.title}</strong></td>
+                                <td>${q.category}</td>
+                                <td><span class="badge badge-${q.difficulty}">${q.difficulty}</span></td>
+                                <td>${q.xpReward} XP${q.usdcReward ? ` + ${q.usdcReward}` : ''}</td>
+                                <td><span class="badge badge-${q.isActive ? 'active' : 'inactive'}">${q.isActive ? 'Active' : 'Inactive'}</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-secondary btn-icon btn-sm" onclick="toggleQuestStatus('${q._id}', ${!q.isActive})" title="${q.isActive ? 'Deactivate' : 'Activate'}">
+                                            <i class="fas fa-power-off"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-icon btn-sm" onclick="deleteQuest('${q._id}')" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading quests:', error);
+                showAlert('Error loading quests', 'error');
+            }
+        }
+
+        // Load Events
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/events');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const allEvents = [...(data.activeEvents || []), ...(data.pastEvents || [])];
+                    const tbody = document.getElementById('eventsTableBody');
+                    if (allEvents.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #888;">No events found</td></tr>';
+                    } else {
+                        tbody.innerHTML = allEvents.map(e => `
+                            <tr>
+                                <td><strong>${e.title}</strong></td>
+                                <td><span class="badge badge-${e.eventType === 'virtual' ? 'active' : 'pending'}">${e.eventType}</span></td>
+                                <td>${new Date(e.startDate).toLocaleDateString()}</td>
+                                <td>${e.totalRegistrations || 0}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-secondary btn-icon btn-sm" onclick="window.open('/dashboard/events/${e._id}', '_blank')" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-icon btn-sm" onclick="deleteEvent('${e._id}')" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading events:', error);
+                showAlert('Error loading events', 'error');
+            }
+        }
+
+        // Load Applications
+        async function loadApplications() {
+            try {
+                const response = await fetch('/admin/api/applications');
+                const data = await response.json();
+                
+                if (data.success && data.applications) {
+                    const tbody = document.getElementById('applicationsTableBody');
+                    if (data.applications.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #888;">No applications found</td></tr>';
+                    } else {
+                        tbody.innerHTML = data.applications.map(app => `
+                            <tr>
+                                <td><strong>${app.fullName}</strong></td>
+                                <td>${app.course}</td>
+                                <td>${app.email}</td>
+                                <td>${new Date(app.appliedAt).toLocaleDateString()}</td>
+                                <td><span class="badge badge-${app.status}">${app.status}</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-secondary btn-icon btn-sm" onclick="viewApplication('${app._id}')" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        ${app.status === 'pending' ? `
+                                            <button class="btn btn-secondary btn-icon btn-sm" onclick="openApproveModal('${app._id}')" title="Approve" style="color: #39FF14;">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-icon btn-sm" onclick="openRejectModal('${app._id}')" title="Reject">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading applications:', error);
+                showAlert('Error loading applications', 'error');
+            }
+        }
+
+        // Load Users
+        async function loadUsers() {
+            try {
+                const response = await fetch('/admin/api/users');
+                const data = await response.json();
+                
+                if (data.success && data.users) {
+                    const tbody = document.getElementById('usersTableBody');
+                    if (data.users.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #888;">No users found</td></tr>';
+                    } else {
+                        tbody.innerHTML = data.users.map(user => `
+                            <tr>
+                                <td><strong>${user.username}</strong></td>
+                                <td>${user.email}</td>
+                                <td>${user.xp || 0} XP</td>
+                                <td>${user.usdcBalance || 0}</td>
+                                <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                                <td><span class="badge badge-${user.isVerified ? 'approved' : 'pending'}">${user.isVerified ? 'Verified' : 'Unverified'}</span></td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showAlert('Error loading users', 'error');
+            }
+        }
+
+        // ==================== QUEST FUNCTIONS ====================
+        
+        function addTask() {
+            taskCounter++;
+            const tasksList = document.getElementById('tasksList');
+
+            const taskItem = document.createElement('div');
+            taskItem.className = 'task-item';
+            taskItem.id = `task-${taskCounter}`;
+            taskItem.innerHTML = `
+                <h4 style="color: #39FF14; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(57,255,20,0.2);">
+                    <i class="fas fa-tasks"></i> Task ${taskCounter}
+                </h4>
+                
+                <div class="form-group">
+                    <label>Task Title *</label>
+                    <input type="text" class="task-title" placeholder="e.g., Follow us on Twitter" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Task Description *</label>
+                    <textarea class="task-description" placeholder="Describe what the user needs to do..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Task Type *</label>
+                    <select class="task-type">
+                        <option value="submission">Submission (requires user input)</option>
+                        <option value="social">Social Media</option>
+                        <option value="verification">Verification</option>
+                        <option value="quiz">Quiz</option>
+                        <option value="external">External Link</option>
+                    </select>
+                </div>
+
+                <div style="background: rgba(57,255,20,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(57,255,20,0.1); margin-bottom: 1rem;">
+                    <h5 style="color: #39FF14; font-size: 0.9rem; margin-bottom: 0.8rem;">
+                        <i class="fas fa-link"></i> Action Button (Optional)
+                    </h5>
+                    <p style="color: #888; font-size: 0.85rem; margin-bottom: 0.8rem;">
+                        Add a button that redirects users to perform the task (e.g., Twitter, GitHub, etc.)
+                    </p>
+                    
+                    <div class="form-group">
+                        <label>Button Text</label>
+                        <input type="text" class="task-buttonText" placeholder="e.g., Follow on Twitter, Visit GitHub">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Button Link (URL)</label>
+                        <input type="url" class="task-buttonLink" placeholder="https://twitter.com/your-profile">
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,193,7,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,193,7,0.1); margin-bottom: 1rem;">
+                    <h5 style="color: #FFC107; font-size: 0.9rem; margin-bottom: 0.8rem;">
+                        <i class="fas fa-keyboard"></i> User Input Field (Optional)
+                    </h5>
+                    <p style="color: #888; font-size: 0.85rem; margin-bottom: 0.8rem;">
+                        Add an input field where users submit proof of completion
+                    </p>
+                    
+                    <div class="form-group">
+                        <label>Input Label</label>
+                        <input type="text" class="task-inputLabel" placeholder="e.g., Enter your Twitter username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Input Name (Technical ID)</label>
+                        <input type="text" class="task-inputName" placeholder="e.g., twitterUsername, githubUrl">
+                        <small style="color: #888; font-size: 0.75rem; display: block; margin-top: 0.3rem;">
+                            Use camelCase with no spaces (e.g., twitterUsername, submissionUrl)
+                        </small>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeTask('task-${taskCounter}')" style="width: 100%;">
+                    <i class="fas fa-times"></i> Remove Task ${taskCounter}
+                </button>
+            `;
+            tasksList.appendChild(taskItem);
+        }
+        
+        function removeTask(taskId) {
+            const task = document.getElementById(taskId);
+            if (task) {
+                task.remove();
+            }
+        }
+        
+        async function createQuest(event) {
+            event.preventDefault();
+            
+            try {
+                const taskElements = document.querySelectorAll('.task-item');
+                const tasks = [];
+
+                taskElements.forEach((task, index) => {
+                    const title = task.querySelector('.task-title').value.trim();
+                    const description = task.querySelector('.task-description').value.trim();
+                    const buttonText = task.querySelector('.task-buttonText').value.trim();
+                    const buttonLink = task.querySelector('.task-buttonLink').value.trim();
+                    const inputLabel = task.querySelector('.task-inputLabel').value.trim();
+                    const inputName = task.querySelector('.task-inputName').value.trim();
+                    
+                    if (!title || !description) {
+                        alert(`Task ${index + 1} is missing required fields (title or description)`);
+                        return;
+                    }
+                    
+                    // Build task object
+                    const taskObj = {
+                        title: title,
+                        description: description,
+                        taskType: task.querySelector('.task-type').value
+                    };
+
+                    // Only add optional fields if they have values
+                    if (buttonText) taskObj.buttonText = buttonText;
+                    if (buttonLink) taskObj.buttonLink = buttonLink;
+                    if (inputLabel) taskObj.inputLabel = inputLabel;
+                    if (inputName) taskObj.inputName = inputName;
+
+                    tasks.push(taskObj);
+                });
+
+                if (tasks.length === 0) {
+                    alert('Please add at least one complete task');
+                    return;
+                }
+                
+                const formData = {
+                    title: document.getElementById('questTitle').value,
+                    shortDescription: document.getElementById('questShortDesc').value,
+                    description: document.getElementById('questDescription').value,
+                    category: document.getElementById('questCategory').value,
+                    difficulty: document.getElementById('questDifficulty').value,
+                    xpReward: parseInt(document.getElementById('questXP').value),
+                    usdcReward: parseFloat(document.getElementById('questUSDC').value) || 0,
+                    tasks: tasks
+                };
+
+                console.log('Creating quest with data:', formData);
+
+                const response = await fetch('/admin/api/quests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Quest created successfully!');
+                    closeModal('createQuestModal');
+                    document.getElementById('createQuestForm').reset();
+                    loadQuests();
+                } else {
+                    alert(data.message || 'Error creating quest');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error creating quest: ' + error.message);
+            }
+        }
+
+        async function toggleQuestStatus(questId, newStatus) {
+            if (confirm(`Are you sure you want to ${newStatus ? 'activate' : 'deactivate'} this quest?`)) {
+                try {
+                    const response = await fetch(`/admin/api/quests/${questId}/toggle`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ isActive: newStatus })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showAlert(`Quest ${newStatus ? 'activated' : 'deactivated'} successfully!`);
+                        loadQuests();
+                    } else {
+                        alert(data.message || 'Error updating quest');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error updating quest');
+                }
+            }
+        }
+
+        async function deleteQuest(questId) {
+            if (confirm('Are you sure you want to delete this quest? This action cannot be undone.')) {
+                try {
+                    const response = await fetch(`/admin/api/quests/${questId}`, {
+                        method: 'DELETE'
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showAlert('Quest deleted successfully!');
+                        loadQuests();
+                    } else {
+                        alert(data.message || 'Error deleting quest');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error deleting quest');
+                }
+            }
+        }
+
+        // ==================== EVENT FUNCTIONS ====================
+
+        function toggleEventFields() {
+            const eventType = document.getElementById('eventType').value;
+            const venueGroup = document.getElementById('venueGroup');
+            const linkGroup = document.getElementById('linkGroup');
+            const venueInput = document.getElementById('eventVenue');
+            const linkInput = document.getElementById('eventLink');
+            const venueRequired = document.getElementById('venueRequired');
+            const linkRequired = document.getElementById('linkRequired');
+
+            if (eventType === 'virtual') {
+                venueGroup.style.display = 'none';
+                linkGroup.style.display = 'block';
+                venueInput.removeAttribute('required');
+                linkInput.setAttribute('required', 'required');
+                venueRequired.style.display = 'none';
+                linkRequired.style.display = 'inline';
+            } else if (eventType === 'physical') {
+                venueGroup.style.display = 'block';
+                linkGroup.style.display = 'none';
+                venueInput.setAttribute('required', 'required');
+                linkInput.removeAttribute('required');
+                venueRequired.style.display = 'inline';
+                linkRequired.style.display = 'none';
+            } else { // hybrid
+                venueGroup.style.display = 'block';
+                linkGroup.style.display = 'block';
+                venueInput.setAttribute('required', 'required');
+                linkInput.setAttribute('required', 'required');
+                venueRequired.style.display = 'inline';
+                linkRequired.style.display = 'inline';
+            }
+        }
+
+        async function createEvent(event) {
+            event.preventDefault();
+            
+            try {
+                const eventType = document.getElementById('eventType').value;
+                const venue = document.getElementById('eventVenue').value.trim();
+                const virtualLink = document.getElementById('eventLink').value.trim();
+
+                const formData = {
+                    title: document.getElementById('eventTitle').value,
+                    description: document.getElementById('eventDescription').value,
+                    eventType: eventType,
+                    category: document.getElementById('eventCategory').value,
+                    startDate: document.getElementById('eventStartDate').value,
+                    endDate: document.getElementById('eventEndDate').value,
+                    startTime: '10:00',
+                    endTime: '17:00',
+                    timezone: 'WAT'
+                };
+
+                if (venue) formData.venue = venue;
+                if (virtualLink) formData.virtualLink = virtualLink;
+
+                console.log('Creating event:', formData);
+
+                const response = await fetch('/admin/api/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Event created successfully!');
+                    closeModal('createEventModal');
+                    document.getElementById('createEventForm').reset();
+                    loadEvents();
+                } else {
+                    alert(data.message || 'Error creating event');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error creating event: ' + error.message);
+            }
+        }
+
+        async function deleteEvent(eventId) {
+            if (confirm('Are you sure you want to delete this event?')) {
+                try {
+                    const response = await fetch(`/admin/api/events/${eventId}`, {
+                        method: 'DELETE'
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showAlert('Event deleted successfully!');
+                        loadEvents();
+                    } else {
+                        alert(data.message || 'Error deleting event');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error deleting event');
+                }
+            }
+        }
+
+        // ==================== APPLICATION FUNCTIONS ====================
+
+        async function viewApplication(appId) {
+            try {
+                const response = await fetch(`/api/learn/applications/${appId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const app = data.application;
+                    document.getElementById('applicationDetails').innerHTML = `
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Full Name</label>
+                                <p>${app.fullName}</p>
+                            </div>
+                            <div class="detail-item">
+                                <label>Email</label>
+                                <p>${app.email}</p>
+                            </div>
+                            <div class="detail-item">
+                                <label>Course</label>
+                                <p>${app.course}</p>
+                            </div>
+                            <div class="detail-item">
+                                <label>Twitter Handle</label>
+                                <p>${app.twitterHandle || 'Not provided'}</p>
+                            </div>
+                            <div class="detail-item">
+                                <label>Status</label>
+                                <p><span class="badge badge-${app.status}">${app.status}</span></p>
+                            </div>
+                            <div class="detail-item">
+                                <label>Applied Date</label>
+                                <p>${new Date(app.appliedAt).toLocaleString()}</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Motivation</label>
+                            <p style="color: #fff; padding: 1rem; background: rgba(57, 255, 20, 0.05); border-radius: 8px;">${app.motivation}</p>
+                        </div>
+                        ${app.experience ? `
+                        <div class="form-group">
+                            <label>Experience</label>
+                            <p style="color: #fff; padding: 1rem; background: rgba(57, 255, 20, 0.05); border-radius: 8px;">${app.experience}</p>
+                        </div>
+                        ` : ''}
+                    `;
+                    openModal('viewApplicationModal');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading application details');
+            }
+        }
+
+        function openApproveModal(appId) {
+            document.getElementById('approveAppId').value = appId;
+            openModal('approveApplicationModal');
+        }
+
+        function openRejectModal(appId) {
+            document.getElementById('rejectAppId').value = appId;
+            openModal('rejectApplicationModal');
+        }
+
+        async function approveApplication(event) {
+            event.preventDefault();
+            
+            const appId = document.getElementById('approveAppId').value;
+            const formData = {
+                courseStartDate: document.getElementById('courseStartDate').value,
+                courseEndDate: document.getElementById('courseEndDate').value,
+                courseLink: document.getElementById('courseLink').value,
+                notes: document.getElementById('approveNotes').value
+            };
+
+            try {
+                const response = await fetch(`/admin/api/applications/${appId}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Application approved successfully!');
+                    closeModal('approveApplicationModal');
+                    document.getElementById('approveApplicationForm').reset();
+                    loadApplications();
+                } else {
+                    alert(data.message || 'Error approving application');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error approving application');
+            }
+        }
+
+        async function rejectApplication(event) {
+            event.preventDefault();
+            
+            const appId = document.getElementById('rejectAppId').value;
+            const formData = {
+                notes: document.getElementById('rejectNotes').value
+            };
+
+            try {
+                const response = await fetch(`/admin/api/applications/${appId}/reject`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Application rejected');
+                    closeModal('rejectApplicationModal');
+                    document.getElementById('rejectApplicationForm').reset();
+                    loadApplications();
+                } else {
+                    alert(data.message || 'Error rejecting application');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error rejecting application');
+            }
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

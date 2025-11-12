@@ -198,36 +198,41 @@
                         </div>
 
                         <!-- Task Action Form -->
-                        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
-                            <form class="task-submit-form" data-task-id="<%= task._id %>" data-quest-id="<%= quest._id %>">
-                                <% if (task.taskType === 'submission' || task.taskType === 'verification') { %>
-                                <div class="form-group" style="margin-bottom: 0.8rem;">
-                                    <label>Submission URL *</label>
-                                    <input type="url" name="submissionUrl" placeholder="https://..." required>
-                                </div>
-                                <div class="form-group" style="margin-bottom: 1rem;">
-                                    <label>Additional Notes</label>
-                                    <textarea name="submissionText" placeholder="Any additional information..." rows="3"></textarea>
-                                </div>
-                                <% } else if (task.taskType === 'social') { %>
-                                <div class="form-group" style="margin-bottom: 0.8rem;">
-                                    <label>Your <%= task.requirements?.platform || 'Social' %> Username *</label>
-                                    <input type="text" name="username" placeholder="@yourusername" required>
-                                </div>
-                                <div class="form-group" style="margin-bottom: 1rem;">
-                                    <label>Proof URL (optional)</label>
-                                    <input type="url" name="submissionUrl" placeholder="Screenshot or link to prove completion">
-                                </div>
-                                <% } else { %>
-                                <div class="form-group" style="margin-bottom: 1rem;">
-                                    <label>Completion Details *</label>
-                                    <textarea name="submissionText" placeholder="Describe how you completed this task..." rows="3" required></textarea>
-                                </div>
-                                <% } %>
-                                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                                    <i class="fas fa-paper-plane"></i> Submit Task
-                                </button>
-                            </form>
+                  <!-- ✅ Dynamic Task Input -->
+<div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+    <form class="task-submit-form" data-task-id="<%= task._id %>" data-quest-id="<%= quest._id %>">
+
+        <% if (task.buttonText && task.buttonLink) { %>
+            <!-- ✅ OPTIONAL Action Button -->
+            <a href="<%= task.buttonLink %>" 
+               target="_blank" 
+               class="btn btn-secondary"
+               style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                <i class="fas fa-external-link-alt"></i> <%= task.buttonText %>
+            </a>
+        <% } %>
+
+        <% if (task.inputLabel && task.inputName) { %>
+            <!-- ✅ Dynamic Input Field -->
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label><%= task.inputLabel %></label>
+                <input 
+                    type="text"
+                    name="<%= task.inputName %>"
+                    placeholder="<%= task.inputLabel %>"
+                    required
+                >
+            </div>
+        <% } %>
+
+        <!-- ✅ Submit Button -->
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+            <i class="fas fa-paper-plane"></i> Submit Task
+        </button>
+
+    </form>
+</div>
+
                         </div>
                     </div>
                     <% } %>
@@ -359,15 +364,21 @@
                 const questId = this.dataset.questId;
                 const formData = new FormData(this);
                 
-                const submitData = {
-                    questId,
-                    taskId,
-                    submissionUrl: formData.get('submissionUrl') || '',
-                    submissionText: formData.get('submissionText') || '',
-                    submissionData: {
-                        username: formData.get('username') || null
-                    }
-                };
+                // ✅ Detect dynamic input name from the task
+const customFieldName = [...formData.keys()].find(k => k !== "submissionUrl" && k !== "submissionText" );
+let customValue = customFieldName ? formData.get(customFieldName) : null;
+
+const submitData = {
+    questId,
+    taskId,
+
+    // Old fields still supported for backwards compatibility
+    submissionUrl: formData.get('submissionUrl') || '',
+    submissionText: formData.get('submissionText') || '',
+
+    // ✅ New dynamic submission
+    submissionData: customFieldName ? { [customFieldName]: customValue } : null
+};
 
                 try {
                     const response = await fetch('/dashboard/quests/submit-task', {
