@@ -3,8 +3,6 @@ const UserQuestProgress = require("../models/UserQuestProgress");
 const User = require("../models/User");
 
 // ==================== QUEST LISTING ====================
-
-// Get all quests (active and inactive for user)
 exports.getAllQuests = async (req, res) => {
   try {
     if (!req.session.userId) {
@@ -17,24 +15,27 @@ exports.getAllQuests = async (req, res) => {
       return res.redirect('/auth');
     }
     
-    // Get all active quests (check dates too)
-    const now = new Date();
+    // Get ALL active quests (simplified query)
     const allQuests = await Quest.find({ 
-      isActive: true,
-      $or: [
-        { startDate: null },
-        { startDate: { $lte: now } }
-      ],
-      $or: [
-        { endDate: null },
-        { endDate: { $gte: now } }
-      ]
+      isActive: true
     }).sort({ createdAt: -1 });
+    
+    console.log('📋 Total active quests found:', allQuests.length);
+    
+    // Debug each quest
+    allQuests.forEach(quest => {
+      console.log(`\n🔍 Quest: "${quest.title}"`);
+      console.log(`   - Start Date: ${quest.startDate}`);
+      console.log(`   - End Date: ${quest.endDate}`);
+      console.log(`   - Is Active: ${quest.isActive}`);
+    });
     
     // Get user's progress for all quests
     const userProgress = await UserQuestProgress.find({ 
       userId: req.session.userId 
     });
+
+    console.log('📊 User progress records:', userProgress.length);
 
     // Create a map of quest progress
     const progressMap = {};
@@ -45,8 +46,27 @@ exports.getAllQuests = async (req, res) => {
     // Categorize quests
     const activeQuests = [];
     const availableQuests = [];
+    const completedQuests = [];
 
     allQuests.forEach(quest => {
+      const now = new Date();
+      
+      console.log(`\n⏰ Checking quest: "${quest.title}"`);
+      console.log(`   Current time: ${now}`);
+      console.log(`   Start Date check: ${!quest.startDate} || ${quest.startDate} <= ${now} = ${!quest.startDate || quest.startDate <= now}`);
+      console.log(`   End Date check: ${!quest.endDate} || ${quest.endDate} >= ${now} = ${!quest.endDate || quest.endDate >= now}`);
+      
+      // Check if quest is currently active based on dates
+      const isAvailableNow = (!quest.startDate || quest.startDate <= now) && 
+                             (!quest.endDate || quest.endDate >= now);
+      
+      console.log(`   ✓ Is Available Now: ${isAvailableNow}`);
+      
+      if (!isAvailableNow) {
+        console.log(`   ❌ Quest skipped - not available`);
+        return; // Skip this quest
+      }
+
       const progress = progressMap[quest._id.toString()];
       
       const questData = {
@@ -54,29 +74,39 @@ exports.getAllQuests = async (req, res) => {
         userProgress: progress ? progress.toObject() : null
       };
 
-      if (progress && progress.status === 'in_progress') {
+      if (progress && progress.status === 'completed') {
+        completedQuests.push(questData);
+        console.log(`   ✅ Added to COMPLETED`);
+      } else if (progress && progress.status === 'in_progress') {
         activeQuests.push(questData);
-      } else if (!progress || progress.status === 'not_started') {
+        console.log(`   🔥 Added to ACTIVE`);
+      } else {
         availableQuests.push(questData);
+        console.log(`   ✨ Added to AVAILABLE`);
       }
     });
+
+    console.log('\n📊 FINAL COUNTS:');
+    console.log('✅ Available:', availableQuests.length);
+    console.log('🔥 Active:', activeQuests.length);
+    console.log('✔️ Completed:', completedQuests.length);
 
     res.render('dashboard/quest', { 
       title: 'Quests',
       user: user.toObject(),
       activeQuests: activeQuests || [],
       availableQuests: availableQuests || [],
-      completedCount: userProgress.filter(p => p.status === 'completed').length
+      completedQuests: completedQuests || [],
+      completedCount: completedQuests.length
     });
 
   } catch (error) {
-    console.error("Get quests error:", error);
+    console.error("❌ Get quests error:", error);
     res.status(500).send("Error loading quests");
   }
 };
 
 // ==================== QUEST DETAILS ====================
-
 exports.getQuestDetails = async (req, res) => {
   try {
     if (!req.session.userId) {
@@ -120,7 +150,7 @@ exports.getQuestDetails = async (req, res) => {
       status: 'completed'
     })
     .populate('userId', 'username')
-    .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 }) // Sort by XP, then completion time
+    .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 })
     .limit(20);
 
     // Find user's rank
@@ -144,7 +174,6 @@ exports.getQuestDetails = async (req, res) => {
 };
 
 // ==================== START QUEST ====================
-
 exports.startQuest = async (req, res) => {
   try {
     const { questId } = req.body;
@@ -210,7 +239,6 @@ exports.startQuest = async (req, res) => {
     await quest.save();
 
     // ==================== REFERRAL BONUS ====================
-    // If this quest has referral bonuses enabled, credit the referrer
     const user = await User.findById(req.session.userId);
     
     if (quest.referralConfig?.enabled && user.referredBy) {
@@ -243,7 +271,6 @@ exports.startQuest = async (req, res) => {
 };
 
 // ==================== SUBMIT TASK ====================
-
 exports.submitTask = async (req, res) => {
   try {
     const { questId, taskId, submissionUrl, submissionText, submissionData } = req.body;
@@ -339,7 +366,7 @@ exports.submitTask = async (req, res) => {
       userProgress.usdcEarned = quest.usdcReward || 0;
       userProgress.badgeEarned = quest.badgeReward;
 
-      // Calculate total XP (including referral bonuses already earned)
+      // Calculate total XP
       const totalQuestXp = userProgress.xpBreakdown.totalXp;
 
       // Update user stats with rewards
@@ -409,7 +436,6 @@ exports.submitTask = async (req, res) => {
 };
 
 // ==================== QUEST LEADERBOARD ====================
-
 exports.getQuestLeaderboard = async (req, res) => {
   try {
     if (!req.session.userId) {
@@ -453,8 +479,6 @@ exports.getQuestLeaderboard = async (req, res) => {
 };
 
 // ==================== HELPER FUNCTIONS ====================
-
-// Process referral bonus when someone JOINS a quest
 async function processReferralJoinBonus(referralCode, referredUserId, questId, xpBonus) {
   try {
     if (xpBonus <= 0) return;
@@ -462,14 +486,12 @@ async function processReferralJoinBonus(referralCode, referredUserId, questId, x
     const referrer = await User.findOne({ referralCode });
     if (!referrer) return;
 
-    // Find referrer's progress on this quest
     let referrerProgress = await UserQuestProgress.findOne({
       userId: referrer._id,
       questId: questId
     });
 
     if (referrerProgress) {
-      // Add to referral tracking
       referrerProgress.referralStats.referralsJoined.push({
         userId: referredUserId,
         joinedAt: new Date(),
@@ -479,7 +501,6 @@ async function processReferralJoinBonus(referralCode, referredUserId, questId, x
       referrerProgress.calculateReferralXp();
       await referrerProgress.save();
 
-      // Add XP to referrer's main balance
       referrer.xp += xpBonus;
       referrer.recentActivity.unshift({
         action: `Earned ${xpBonus} XP - Referral joined quest 🎁`,
@@ -497,7 +518,6 @@ async function processReferralJoinBonus(referralCode, referredUserId, questId, x
   }
 }
 
-// Process referral bonus when someone COMPLETES a quest
 async function processReferralCompleteBonus(referralCode, referredUserId, questId, xpBonus) {
   try {
     if (xpBonus <= 0) return;
@@ -537,19 +557,16 @@ async function processReferralCompleteBonus(referralCode, referredUserId, questI
   }
 }
 
-// Update leaderboard rankings and assign winners
 async function updateQuestLeaderboard(questId, quest) {
   try {
     const topWinners = quest.competitionConfig?.topWinnersCount || 10;
     const winnerBonusXp = quest.competitionConfig?.winnerBonusXP || 0;
 
-    // Get all completed progress, sorted by completion time (FCFS)
     const allCompleted = await UserQuestProgress.find({
       questId: questId,
       status: 'completed'
     }).sort({ completedAt: 1 });
 
-    // Assign ranks and winner bonuses
     for (let i = 0; i < allCompleted.length; i++) {
       const progress = allCompleted[i];
       progress.leaderboardRank = i + 1;
@@ -558,7 +575,6 @@ async function updateQuestLeaderboard(questId, quest) {
         progress.isWinner = true;
         progress.winnerRank = i + 1;
 
-        // Award winner bonus XP
         if (winnerBonusXp > 0 && progress.xpBreakdown.winnerBonus === 0) {
           progress.xpBreakdown.winnerBonus = winnerBonusXp;
           

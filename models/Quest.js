@@ -217,15 +217,18 @@ questSchema.pre('save', function(next) {
   next();
 });
 
-// Check if quest is currently active based on dates
 questSchema.methods.isCurrentlyActive = function() {
   const now = new Date();
   
   if (!this.isActive) return false;
   
+  // Check start date
   if (this.startDate && now < this.startDate) return false;
+  
+  // Check end date
   if (this.endDate && now > this.endDate) return false;
   
+  // Check max participants
   if (this.maxParticipants && this.totalParticipants >= this.maxParticipants) return false;
   
   return true;

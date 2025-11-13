@@ -18,4 +18,6 @@ router.post("/submit-task", isAuthenticated, questController.submitTask);
 router.get("/leaderboard", isAuthenticated, questController.getQuestLeaderboard);
 router.get("/leaderboard/:questId", isAuthenticated, questController.getQuestLeaderboard);
 
+
+
 module.exports = router;

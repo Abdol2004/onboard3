@@ -103,7 +103,7 @@
                                     </p>
                                     <div style="display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap;">
                                         <span style="background: rgba(57,255,20,0.1); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #39FF14;">
-                                            <i class="fas fa-star"></i> <%= quest.xpReward %> XP
+                                            <i class="fas fa-star"></i> <%= quest.baseXpReward || quest.xpReward || 0 %> XP
                                         </span>
                                         <% if (quest.usdcReward > 0) { %>
                                         <span style="background: rgba(57,255,20,0.1); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #39FF14;">
@@ -176,7 +176,82 @@
                         </p>
                     <% } %>
                 </div>
-
+                <!-- Completed Quests -->
+<% if (completedQuests && completedQuests.length > 0) { %>
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-check-circle"></i> Completed Quests</h3>
+        <span style="color: #888; font-size: 0.85rem;"><%= completedQuests.length %> completed</span>
+    </div>
+    
+    <% completedQuests.forEach(quest => { %>
+    <a href="/dashboard/quests/<%= quest._id %>" style="text-decoration: none; color: inherit;">
+        <div class="quest-item" style="background: rgba(57,255,20,0.05); border-left: 3px solid #39FF14;">
+            <div class="quest-header">
+                <div>
+                    <div class="quest-title">
+                        <%= quest.title %>
+                        <i class="fas fa-check-circle" style="color: #39FF14; margin-left: 0.5rem;"></i>
+                    </div>
+                    <p style="color: #888; font-size: 0.85rem; margin: 0.5rem 0;">
+                        <%= quest.shortDescription %>
+                    </p>
+                    <div style="display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; align-items: center;">
+                        <!-- XP Breakdown -->
+                        <% if (quest.userProgress && quest.userProgress.xpBreakdown) { %>
+                            <span style="background: rgba(57,255,20,0.2); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #39FF14; border: 1px solid #39FF14;">
+                                <i class="fas fa-star"></i> <%= quest.userProgress.xpBreakdown.totalXp %> Total XP
+                            </span>
+                        <% } else { %>
+                            <span style="background: rgba(57,255,20,0.1); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #39FF14;">
+                                <i class="fas fa-star"></i> <%= quest.xpReward %> XP
+                            </span>
+                        <% } %>
+                        
+                        <!-- Referral Stats -->
+                        <% if (quest.userProgress && quest.userProgress.referralStats) { %>
+                            <% const joinedCount = quest.userProgress.referralStats.referralsJoined?.length || 0; %>
+                            <% const completedCount = quest.userProgress.referralStats.referralsCompleted?.length || 0; %>
+                            <% if (joinedCount > 0) { %>
+                                <span style="background: rgba(57,255,20,0.1); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #39FF14;">
+                                    <i class="fas fa-users"></i> <%= joinedCount %> joined
+                                </span>
+                            <% } %>
+                            <% if (completedCount > 0) { %>
+                                <span style="background: rgba(57,255,20,0.1); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #39FF14;">
+                                    <i class="fas fa-trophy"></i> <%= completedCount %> completed
+                                </span>
+                            <% } %>
+                        <% } %>
+                        
+                        <!-- Leaderboard Rank -->
+                        <% if (quest.userProgress && quest.userProgress.leaderboardRank) { %>
+                            <span style="background: rgba(255,193,7,0.1); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #FFC107; border: 1px solid #FFC107;">
+                                <i class="fas fa-medal"></i> Rank #<%= quest.userProgress.leaderboardRank %>
+                            </span>
+                        <% } %>
+                        
+                        <!-- Winner Badge -->
+                        <% if (quest.userProgress && quest.userProgress.isWinner) { %>
+                            <span style="background: rgba(255,193,7,0.2); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #FFC107; border: 1px solid #FFC107;">
+                                🏆 Winner
+                            </span>
+                        <% } %>
+                        
+                        <span style="color: #666; font-size: 0.75rem;">
+                            <i class="fas fa-clock"></i> Completed <%= new Date(quest.userProgress.completedAt).toLocaleDateString() %>
+                        </span>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" style="padding: 0.6rem 1.2rem;">
+                    View Details
+                </button>
+            </div>
+        </div>
+    </a>
+    <% }); %>
+</div>
+<% } %>
                 <!-- Quest Stats -->
                 <div class="card">
                     <div class="card-header">
