@@ -20,20 +20,33 @@ exports.getReferralPage = async (req, res) => {
       await user.save();
     }
 
-    // Get referrals
-    const referrals = await User.find({ referredBy: user.referralCode })
+    // Get VERIFIED referrals only ✅
+    const referrals = await User.find({ 
+      referredBy: user.referralCode,
+      isVerified: true 
+    })
       .select('username xp createdAt isVerified')
       .sort({ createdAt: -1 });
 
+    // Get pending (unverified) referrals ✅
+    const pendingReferrals = await User.find({
+      referredBy: user.referralCode,
+      isVerified: false
+    })
+      .select('username email createdAt')
+      .sort({ createdAt: -1 });
+
     // Calculate stats
-    const totalReferrals = referrals.length;
-    const activeReferrals = referrals.filter(r => r.isVerified).length;
+    const totalReferrals = referrals.length; // Only verified
+    const activeReferrals = referrals.filter(r => r.xp > 0).length;
+    const pendingCount = pendingReferrals.length;
     const totalEarned = user.referralStats?.totalEarned || 0;
 
     // Update user stats
     user.referralStats = {
       totalReferrals,
       activeReferrals,
+      pendingReferrals: pendingCount, // ✅ ADD THIS
       totalEarned
     };
     await user.save();
@@ -49,7 +62,16 @@ exports.getReferralPage = async (req, res) => {
       username: ref.username,
       xp: ref.xp || 0,
       createdAt: ref.createdAt,
-      isActive: ref.isVerified
+      isActive: ref.xp > 0,
+      isVerified: true
+    }));
+
+    // Format pending referrals ✅
+    const formattedPending = pendingReferrals.map(ref => ({
+      username: ref.username,
+      email: ref.email,
+      createdAt: ref.createdAt,
+      isVerified: false
     }));
 
     // Generate referral link
@@ -59,6 +81,7 @@ exports.getReferralPage = async (req, res) => {
       title: 'Referral Program',
       user: user.toObject(),
       referrals: formattedReferrals,
+      pendingReferrals: formattedPending, // ✅ ADD THIS
       referralLink,
       topReferrers: topReferrers.map(r => ({
         username: r.username,
@@ -73,24 +96,29 @@ exports.getReferralPage = async (req, res) => {
   }
 };
 
-// Process Referral Reward
-exports.processReferralReward = async (referralCode, eventType) => {
+// Process Referral Reward - ONLY for additional events (quests, courses)
+exports.processReferralReward = async (referralCode, eventType, referredUserId = null) => {
   try {
-    // Find the referrer
     const referrer = await User.findOne({ referralCode });
     
     if (!referrer) {
       return;
     }
 
+    // Verify the referred user if ID provided
+    if (referredUserId) {
+      const referredUser = await User.findById(referredUserId);
+      
+      if (!referredUser || !referredUser.isVerified) {
+        console.log('Referred user not verified');
+        return;
+      }
+    }
+
     let xpReward = 0;
     let activityMessage = '';
 
     switch (eventType) {
-      case 'signup':
-        xpReward = 50;
-        activityMessage = 'Earned 50 XP from referral signup 🎉';
-        break;
       case 'first_quest':
         xpReward = 100;
         activityMessage = 'Earned 100 XP from referral first quest 🏆';

@@ -270,7 +270,7 @@ exports.startQuest = async (req, res) => {
   }
 };
 
-// ==================== SUBMIT TASK ====================
+// ==================== SUBMIT TASK - FIXED ====================
 exports.submitTask = async (req, res) => {
   try {
     const { questId, taskId, submissionUrl, submissionText, submissionData } = req.body;
@@ -335,14 +335,17 @@ exports.submitTask = async (req, res) => {
     // Award XP for this specific task
     const taskXp = task.xpReward || 0;
     taskProgress.xpEarned = taskXp;
+    
+    // ✅ QUEST-SPECIFIC XP (for leaderboard)
     userProgress.xpBreakdown.taskXp += taskXp;
 
     // Update overall progress
     userProgress.tasksCompleted += 1;
     userProgress.progress = Math.round((userProgress.tasksCompleted / userProgress.totalTasks) * 100);
 
-    // Add activity for task completion
+    // ✅ GLOBAL XP (for dashboard) - Add task XP immediately
     const user = await User.findById(req.session.userId);
+    user.xp += taskXp;
     
     user.recentActivity.unshift({
       action: `Completed task: ${task.title} (+${taskXp} XP)`,
@@ -361,17 +364,18 @@ exports.submitTask = async (req, res) => {
         );
       }
 
-      // Award base XP
-      userProgress.xpBreakdown.baseXp = quest.baseXpReward || 0;
+      // ✅ QUEST-SPECIFIC: Base XP for completing quest
+      const baseQuestXp = quest.baseXpReward || 0;
+      userProgress.xpBreakdown.baseXp = baseQuestXp;
       userProgress.usdcEarned = quest.usdcReward || 0;
       userProgress.badgeEarned = quest.badgeReward;
 
-      // Calculate total XP
-      const totalQuestXp = userProgress.xpBreakdown.totalXp;
-
-      // Update user stats with rewards
-      user.xp += totalQuestXp;
+      // ✅ GLOBAL XP: Add base quest XP to user's total
+      user.xp += baseQuestXp;
       user.usdcBalance += userProgress.usdcEarned;
+      
+      // Calculate total quest XP for display (taskXp is already added above)
+      const totalQuestXp = userProgress.xpBreakdown.taskXp + baseQuestXp;
       
       user.recentActivity.unshift({
         action: `🎉 Completed quest: ${quest.title} (+${totalQuestXp} XP${userProgress.usdcEarned > 0 ? ', +' + userProgress.usdcEarned + ' USDC' : ''})`,
@@ -420,7 +424,7 @@ exports.submitTask = async (req, res) => {
       isQuestCompleted: userProgress.status === 'completed',
       taskXpEarned: taskXp,
       rewards: userProgress.status === 'completed' ? {
-        xp: userProgress.xpBreakdown.totalXp,
+        xp: userProgress.xpBreakdown.totalXp,  // Quest-specific total
         usdc: userProgress.usdcEarned,
         badge: userProgress.badgeEarned
       } : null
@@ -478,7 +482,7 @@ exports.getQuestLeaderboard = async (req, res) => {
   }
 };
 
-// ==================== HELPER FUNCTIONS ====================
+// ==================== HELPER FUNCTIONS - FIXED ====================
 async function processReferralJoinBonus(referralCode, referredUserId, questId, xpBonus) {
   try {
     if (xpBonus <= 0) return;
@@ -492,6 +496,7 @@ async function processReferralJoinBonus(referralCode, referredUserId, questId, x
     });
 
     if (referrerProgress) {
+      // ✅ QUEST-SPECIFIC: Add to quest leaderboard XP
       referrerProgress.referralStats.referralsJoined.push({
         userId: referredUserId,
         joinedAt: new Date(),
@@ -501,6 +506,7 @@ async function processReferralJoinBonus(referralCode, referredUserId, questId, x
       referrerProgress.calculateReferralXp();
       await referrerProgress.save();
 
+      // ✅ GLOBAL: Add to user's total XP
       referrer.xp += xpBonus;
       referrer.recentActivity.unshift({
         action: `Earned ${xpBonus} XP - Referral joined quest 🎁`,
@@ -531,6 +537,7 @@ async function processReferralCompleteBonus(referralCode, referredUserId, questI
     });
 
     if (referrerProgress) {
+      // ✅ QUEST-SPECIFIC: Add to quest leaderboard XP
       referrerProgress.referralStats.referralsCompleted.push({
         userId: referredUserId,
         completedAt: new Date(),
@@ -540,6 +547,7 @@ async function processReferralCompleteBonus(referralCode, referredUserId, questI
       referrerProgress.calculateReferralXp();
       await referrerProgress.save();
 
+      // ✅ GLOBAL: Add to user's total XP
       referrer.xp += xpBonus;
       referrer.recentActivity.unshift({
         action: `Earned ${xpBonus} XP - Referral completed quest 🏆`,
@@ -576,8 +584,10 @@ async function updateQuestLeaderboard(questId, quest) {
         progress.winnerRank = i + 1;
 
         if (winnerBonusXp > 0 && progress.xpBreakdown.winnerBonus === 0) {
+          // ✅ QUEST-SPECIFIC: Add winner bonus to quest XP
           progress.xpBreakdown.winnerBonus = winnerBonusXp;
           
+          // ✅ GLOBAL: Add winner bonus to user's total XP
           const user = await User.findById(progress.userId);
           if (user) {
             user.xp += winnerBonusXp;

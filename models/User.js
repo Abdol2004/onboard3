@@ -144,12 +144,22 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // ✅ ADD THIS NEW FIELD
+  referralRewardGiven: {
+    type: Boolean,
+    default: false
+  },
   referralStats: {
     totalReferrals: {
       type: Number,
       default: 0
     },
     activeReferrals: {
+      type: Number,
+      default: 0
+    },
+    // ✅ ADD THIS NEW FIELD
+    pendingReferrals: {
       type: Number,
       default: 0
     },

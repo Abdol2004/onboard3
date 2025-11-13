@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const crypto = require("crypto");
-const { sendVerificationEmail, sendWelcomeEmail } = require("../utils/emailService"); // ✅ ADDED
+const { sendVerificationEmail, sendWelcomeEmail } = require("../utils/emailService");
 
 exports.register = async (req, res) => {
   try {
@@ -54,7 +54,7 @@ exports.register = async (req, res) => {
 
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    const verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
 
     // Create new user
     const user = new User({
@@ -63,8 +63,9 @@ exports.register = async (req, res) => {
       password,
       verificationToken,
       verificationTokenExpires,
-      isVerified: false, // ✅ CHANGED: Set to false to require email verification
+      isVerified: false,
       referredBy: referralCode ? referralCode.toUpperCase() : null,
+      referralRewardGiven: false, // ✅ ADD THIS
       isAdmin: false,
       role: 'user'
     });
@@ -72,14 +73,14 @@ exports.register = async (req, res) => {
     // Add initial welcome activity
     user.recentActivity = [
       {
-        action: "Account created - Welcome to ONBOARD3! ",
+        action: "Account created - Welcome to ONBOARD3! 🚀",
         timestamp: new Date(),
       },
     ];
 
     await user.save();
 
-    // ✅ SEND VERIFICATION EMAIL
+    // Send verification email
     try {
       console.log("📧 Attempting to send verification email to:", email);
       const emailResult = await sendVerificationEmail(email, username, verificationToken);
@@ -91,40 +92,15 @@ exports.register = async (req, res) => {
       }
     } catch (emailError) {
       console.error("❌ Error sending verification email:", emailError);
-      // Don't fail registration if email fails
     }
 
-    // Process referral reward if user was referred
-    if (referrer) {
-      try {
-        referrer.referralStats.totalReferrals += 1;
-        referrer.referralStats.activeReferrals += 1;
-        
-        const signupBonus = 50;
-        referrer.xp += signupBonus;
-        referrer.referralStats.totalEarned += signupBonus;
-
-        referrer.recentActivity.unshift({
-          action: `New referral: ${username} signed up! Earned ${signupBonus} XP 🎉`,
-          timestamp: new Date(),
-        });
-
-        if (referrer.recentActivity.length > 10) {
-          referrer.recentActivity = referrer.recentActivity.slice(0, 10);
-        }
-
-        await referrer.save();
-        console.log(`Referral processed: ${referrer.username} earned ${signupBonus} XP from ${username}`);
-      } catch (referralError) {
-        console.error("Error processing referral:", referralError);
-      }
-    }
+    // ❌ REMOVE THE REFERRAL REWARD CODE FROM HERE (lines 91-110 in your original)
 
     // Response
     res.status(201).json({
       success: true,
-      message: "Registration successful! Please check your email to verify your account.", // ✅ UPDATED MESSAGE
-      requiresVerification: true, // ✅ CHANGED to true
+      message: "Registration successful! Please check your email to verify your account.",
+      requiresVerification: true,
     });
   } catch (error) {
     console.error("Registration error:", error);
@@ -166,7 +142,54 @@ exports.verifyEmail = async (req, res) => {
     user.verificationTokenExpires = undefined;
     await user.save();
 
-    // ✅ SEND WELCOME EMAIL
+    // ✅ ADD REFERRAL REWARD PROCESSING HERE
+    if (user.referredBy && !user.referralRewardGiven) {
+      try {
+        const referrer = await User.findOne({ referralCode: user.referredBy });
+        
+        if (referrer) {
+          // Initialize referralStats if not exists
+          if (!referrer.referralStats) {
+            referrer.referralStats = {
+              totalReferrals: 0,
+              activeReferrals: 0,
+              pendingReferrals: 0,
+              totalEarned: 0
+            };
+          }
+
+          // Update stats
+          referrer.referralStats.totalReferrals += 1;
+          referrer.referralStats.activeReferrals += 1;
+          
+          const signupBonus = 50;
+          referrer.xp += signupBonus;
+          referrer.referralStats.totalEarned += signupBonus;
+
+          // Add activity
+          referrer.recentActivity.unshift({
+            action: `New verified referral: ${user.username} joined! Earned ${signupBonus} XP 🎉`,
+            timestamp: new Date(),
+          });
+
+          if (referrer.recentActivity.length > 10) {
+            referrer.recentActivity = referrer.recentActivity.slice(0, 10);
+          }
+
+          await referrer.save();
+
+          // Mark reward as given
+          user.referralRewardGiven = true;
+          await user.save();
+
+          console.log(`✅ Referral reward: ${referrer.username} earned ${signupBonus} XP from ${user.username}`);
+        }
+      } catch (referralError) {
+        console.error("❌ Error processing referral:", referralError);
+      }
+    }
+
+    // Send welcome email
     try {
       console.log("📧 Sending welcome email to:", user.email);
       await sendWelcomeEmail(user.email, user.username);
@@ -224,7 +247,7 @@ exports.resendVerification = async (req, res) => {
     user.verificationTokenExpires = verificationTokenExpires;
     await user.save();
 
-    // ✅ SEND VERIFICATION EMAIL
+    // Send verification email
     try {
       console.log("📧 Resending verification email to:", email);
       const emailResult = await sendVerificationEmail(email, user.username, verificationToken);
@@ -277,7 +300,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // ✅ CHECK IF EMAIL IS VERIFIED
     if (!user.isVerified) {
       return res.status(401).json({
         success: false,

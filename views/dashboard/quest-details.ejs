@@ -65,6 +65,29 @@
             font-weight: 500;
             font-size: 0.9rem;
         }
+
+        .leaderboard-row:hover {
+            background: rgba(255,255,255,0.05) !important;
+            transform: translateX(5px);
+        }
+
+        #leaderboardList::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #leaderboardList::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+
+        #leaderboardList::-webkit-scrollbar-thumb {
+            background: rgba(57,255,20,0.3);
+            border-radius: 10px;
+        }
+
+        #leaderboardList::-webkit-scrollbar-thumb:hover {
+            background: rgba(57,255,20,0.5);
+        }
     </style>
 </head>
 <body>
@@ -354,6 +377,7 @@
                 <a href="<%= task.buttonLink %>" 
                    target="_blank" 
                    class="btn btn-secondary"
+                   onclick="trackTaskClick('<%= task._id %>')"
                    style="display: inline-flex; align-items: center; gap: 0.5rem;">
                     <i class="fas fa-external-link-alt"></i> <%= task.buttonText %>
                 </a>
@@ -361,7 +385,7 @@
             
             <button 
                 class="btn btn-primary" 
-                onclick="openTaskModal('<%= task._id %>', '<%= quest._id %>', '<%= task.title.replace(/'/g, "\\'") %>', '<%= task.inputLabel || '' %>', '<%= task.inputName || '' %>')"
+                onclick="openTaskModal('<%= task._id %>', '<%= quest._id %>', '<%= task.title.replace(/'/g, "\\'") %>', '<%= task.inputLabel || '' %>', '<%= task.inputName || '' %>', <%= !!task.buttonLink %>)"
                 style="display: inline-flex; align-items: center; gap: 0.5rem;">
                 <i class="fas fa-paper-plane"></i> Submit Task
             </button>
@@ -397,47 +421,69 @@
                 <!-- Leaderboard -->
                 <% if (leaderboard && leaderboard.length > 0) { %>
 <div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-trophy"></i> Quest Leaderboard</h3>
-        <span style="color: #888; font-size: 0.85rem;">Ranked by Total XP</span>
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h3><i class="fas fa-trophy"></i> Quest Leaderboard</h3>
+            <span style="color: #888; font-size: 0.85rem;">Ranked by Total XP • <%= leaderboard.length %> Participants</span>
+        </div>
+        <div style="position: relative; flex: 1; max-width: 300px;">
+            <input 
+                type="text" 
+                id="leaderboardSearch" 
+                placeholder="Search by username..." 
+                style="width: 100%; padding: 0.6rem 1rem 0.6rem 2.5rem; background: rgba(15,15,15,0.95); border: 1px solid rgba(57,255,20,0.2); border-radius: 12px; color: #fff; font-size: 0.85rem;"
+                onkeyup="filterLeaderboard()"
+            >
+            <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #666;"></i>
+        </div>
     </div>
 
+    <!-- Top 3 Podium -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; padding: 1rem; background: rgba(57,255,20,0.02); border-radius: 12px;">
+        <% for(let i = 0; i < Math.min(3, leaderboard.length); i++) { 
+            var entry = leaderboard[i];
+            var totalXp = entry.xpBreakdown?.totalXp || entry.xpEarned || 0;
+        %>
+        <div style="text-align: center; padding: 1rem; background: <%= i === 0 ? 'rgba(255,215,0,0.1)' : i === 1 ? 'rgba(192,192,192,0.1)' : 'rgba(205,127,50,0.1)' %>; border-radius: 12px; border: 1px solid <%= i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : '#CD7F32' %>;">
+            <div style="font-size: 2rem; margin-bottom: 0.3rem;"><%= i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉' %></div>
+            <div style="color: #fff; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem;"><%= entry.userId?.username || 'Anonymous' %></div>
+            <div style="color: #39FF14; font-weight: 700;"><%= totalXp %> XP</div>
+            <div style="color: #666; font-size: 0.7rem; margin-top: 0.3rem;"><%= entry.timeSpentMinutes %>m</div>
+        </div>
+        <% } %>
+    </div>
+
+    <!-- Compact Scrollable List -->
+    <div id="leaderboardList" style="max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 0.5rem;">
     <% leaderboard.forEach(function(entry, idx) { 
-        var rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
-        var rankEmoji = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : (idx + 1);
-        var timeAgo = Math.floor((Date.now() - new Date(entry.completedAt)) / (1000 * 60 * 60 * 24));
         var totalXp = entry.xpBreakdown?.totalXp || entry.xpEarned || 0;
+        var isCurrentUser = entry.userId?._id?.toString() === user?._id?.toString();
     %>
-    <div class="leaderboard-item <%= rankClass %>" style="<%= entry.isWinner ? 'background: rgba(57,255,20,0.05); border-left: 3px solid #39FF14;' : '' %>">
-        <div class="leaderboard-rank">
-            <span class="rank-number" style="<%= idx > 2 ? 'color: #888;' : '' %>"><%= rankEmoji %></span>
-            <div class="user-info">
-                <h4>
+    <div class="leaderboard-row" data-username="<%= (entry.userId?.username || 'Anonymous').toLowerCase() %>" style="display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1rem; margin-bottom: 0.3rem; background: <%= isCurrentUser ? 'rgba(57,255,20,0.1)' : 'rgba(255,255,255,0.02)' %>; border-radius: 8px; border-left: 3px solid <%= entry.isWinner ? '#39FF14' : 'transparent' %>; transition: all 0.2s;">
+        <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+            <span style="color: <%= idx < 3 ? (idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : '#CD7F32') : '#888' %>; font-weight: 700; min-width: 35px; font-size: 0.9rem;">
+                #<%= idx + 1 %>
+            </span>
+            <div style="flex: 1;">
+                <div style="color: #fff; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
                     <%= entry.userId?.username || 'Anonymous' %>
+                    <% if (isCurrentUser) { %>
+                        <span style="background: #39FF14; color: #000; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.65rem; font-weight: 700;">YOU</span>
+                    <% } %>
                     <% if (entry.isWinner) { %>
-                        <span style="color: #39FF14; margin-left: 0.5rem;">🏆</span>
+                        <span style="color: #39FF14;">🏆</span>
                     <% } %>
-                </h4>
-                <p>
-                    Completed in <%= entry.timeSpentMinutes %> minutes
-                    <% if (entry.xpBreakdown) { %>
-                        <br>
-                        <small style="color: #666;">
-                            Task: <%= entry.xpBreakdown.taskXp %> | Base: <%= entry.xpBreakdown.baseXp %>
-                            <% if (entry.xpBreakdown.referralJoinBonus + entry.xpBreakdown.referralCompleteBonus > 0) { %>
-                                | Referral: <%= entry.xpBreakdown.referralJoinBonus + entry.xpBreakdown.referralCompleteBonus %>
-                            <% } %>
-                        </small>
-                    <% } %>
-                </p>
+                </div>
+                <div style="color: #666; font-size: 0.75rem;"><%= entry.timeSpentMinutes %>m • <%= Math.floor((Date.now() - new Date(entry.completedAt)) / (1000 * 60 * 60 * 24)) %>d ago</div>
             </div>
         </div>
         <div style="text-align: right;">
-            <div style="color: #39FF14; font-weight: 700; font-size: 1.3rem;"><%= totalXp %> XP</div>
-            <div style="color: #888; font-size: 0.75rem;"><%= timeAgo %> day<%= timeAgo !== 1 ? 's' : '' %> ago</div>
+            <div style="color: #39FF14; font-weight: 700; font-size: 1rem;"><%= totalXp %></div>
+            <div style="color: #666; font-size: 0.7rem;">XP</div>
         </div>
     </div>
     <% }); %>
+    </div>
 
                     <!-- Current User Progress -->
                     <% if (userProgress.status !== 'completed') { %>
@@ -536,10 +582,46 @@
     <script>
         let currentTaskId = null;
         let currentQuestId = null;
+        let taskClickTracking = {};
+        let taskStartTime = {};
 
-        function openTaskModal(taskId, questId, taskTitle, inputLabel, inputName) {
+        // Track when user clicks on task action button
+        function trackTaskClick(taskId) {
+            taskClickTracking[taskId] = Date.now();
+            localStorage.setItem('taskClick_' + taskId, Date.now().toString());
+        }
+
+        // Check if user clicked the task button (within last 5 minutes)
+        function hasClickedTaskButton(taskId) {
+            const clickTime = taskClickTracking[taskId] || localStorage.getItem('taskClick_' + taskId);
+            if (!clickTime) return false;
+            
+            const timeDiff = Date.now() - parseInt(clickTime);
+            return timeDiff < 5 * 60 * 1000; // 5 minutes
+        }
+
+        // Track time spent on task
+        function startTaskTimer(taskId) {
+            taskStartTime[taskId] = Date.now();
+        }
+
+        function getTaskTimeSpent(taskId) {
+            if (!taskStartTime[taskId]) return 0;
+            return Math.floor((Date.now() - taskStartTime[taskId]) / 1000); // in seconds
+        }
+
+        function openTaskModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton) {
             currentTaskId = taskId;
             currentQuestId = questId;
+            
+            // Start tracking time
+            startTaskTimer(taskId);
+            
+            // Check if user clicked the task button (if task has a button)
+            if (hasButton && !hasClickedTaskButton(taskId)) {
+                showWarningModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton);
+                return;
+            }
             
             document.getElementById('taskModalTitle').innerHTML = `<i class="fas fa-paper-plane"></i> Submit: ${taskTitle}`;
             
@@ -557,11 +639,15 @@
                             name="${inputName}"
                             placeholder="Enter ${inputLabel.toLowerCase()}"
                             required
+                            minlength="3"
                         >
                         <small style="color: #666; font-size: 0.8rem; display: block; margin-top: 0.5rem;">
                             <i class="fas fa-info-circle"></i> Make sure to provide accurate information
                         </small>
                     </div>
+                    
+                    <!-- Hidden verification field -->
+                    <input type="hidden" id="taskVerification" name="verification" value="${generateVerificationCode(taskId)}">
                 `;
             } else {
                 inputContainer.innerHTML = `
@@ -569,6 +655,7 @@
                         <i class="fas fa-check-circle" style="color: #39FF14; font-size: 2rem; margin-bottom: 0.5rem;"></i>
                         <p style="color: #ccc; margin: 0;">Click submit to complete this task</p>
                     </div>
+                    <input type="hidden" id="taskVerification" name="verification" value="${generateVerificationCode(taskId)}">
                 `;
             }
             
@@ -581,11 +668,94 @@
             }, 100);
         }
 
+        function showWarningModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton) {
+            const inputContainer = document.getElementById('taskInputContainer');
+            
+            document.getElementById('taskModalTitle').innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #FFC107;"></i> Action Required`;
+            
+            inputContainer.innerHTML = `
+                <div style="background: rgba(255,193,7,0.1); padding: 1.5rem; border-radius: 12px; border: 1px solid #FFC107; text-align: center;">
+                    <i class="fas fa-hand-point-up" style="color: #FFC107; font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <h4 style="color: #FFC107; margin-bottom: 1rem;">Complete the Task First!</h4>
+                    <p style="color: #ccc; line-height: 1.6; margin-bottom: 1.5rem;">
+                        Before submitting, you need to click the task button and complete the required action. 
+                        This ensures you've actually performed the task.
+                    </p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <p style="color: #888; font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="fas fa-lightbulb"></i> <strong>Steps to complete:</strong>
+                        </p>
+                        <ol style="color: #ccc; text-align: left; font-size: 0.85rem; padding-left: 1.5rem; margin: 0;">
+                            <li style="margin-bottom: 0.5rem;">Click the task action button above</li>
+                            <li style="margin-bottom: 0.5rem;">Complete the required task</li>
+                            <li>Return and click "Submit Task"</li>
+                        </ol>
+                    </div>
+                    <button 
+                        class="btn btn-primary" 
+                        onclick="closeTaskModal()"
+                        style="margin-top: 1rem; width: 100%;">
+                        <i class="fas fa-arrow-left"></i> Got it! Let me do the task first
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('taskModal').style.display = 'flex';
+            
+            // Hide the submit button in modal footer
+            const modalFooter = document.querySelector('.modal-footer');
+            modalFooter.style.display = 'none';
+            
+            setTimeout(() => {
+                modalFooter.style.display = 'flex';
+            }, 1000);
+        }
+
+        function generateVerificationCode(taskId) {
+            // Simple verification code based on task ID and timestamp
+            const timestamp = Date.now();
+            return btoa(taskId + ':' + timestamp).substr(0, 20);
+        }
+
         function closeTaskModal() {
             document.getElementById('taskModal').style.display = 'none';
             document.getElementById('taskSubmitForm').reset();
             currentTaskId = null;
             currentQuestId = null;
+        }
+
+        // Leaderboard search function
+        function filterLeaderboard() {
+            const searchInput = document.getElementById('leaderboardSearch');
+            const filter = searchInput.value.toLowerCase();
+            const rows = document.querySelectorAll('.leaderboard-row');
+            
+            let visibleCount = 0;
+            rows.forEach(row => {
+                const username = row.getAttribute('data-username');
+                if (username.includes(filter)) {
+                    row.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Show "no results" message if needed
+            const leaderboardList = document.getElementById('leaderboardList');
+            let noResultsMsg = document.getElementById('noResultsMsg');
+            
+            if (visibleCount === 0 && filter !== '') {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.id = 'noResultsMsg';
+                    noResultsMsg.style.cssText = 'text-align: center; padding: 2rem; color: #888;';
+                    noResultsMsg.innerHTML = '<i class="fas fa-search" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>No users found matching "' + filter + '"';
+                    leaderboardList.appendChild(noResultsMsg);
+                }
+            } else if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
         }
 
         // Handle task submission
@@ -596,6 +766,13 @@
                 alert('Error: Task information missing');
                 return;
             }
+
+            // Check time spent (at least 5 seconds)
+            const timeSpent = getTaskTimeSpent(currentTaskId);
+            if (timeSpent < 5) {
+                alert('⏱️ Please take a moment to review the task requirements before submitting.');
+                return;
+            }
             
             const formData = new FormData(this);
             const submitData = {
@@ -603,12 +780,14 @@
                 taskId: currentTaskId,
                 submissionUrl: formData.get('submissionUrl') || '',
                 submissionText: formData.get('submissionText') || '',
-                submissionData: {}
+                submissionData: {},
+                verification: formData.get('verification') || '',
+                timeSpent: timeSpent
             };
             
             // Collect all form data
             for (let [key, value] of formData.entries()) {
-                if (key !== 'submissionUrl' && key !== 'submissionText') {
+                if (key !== 'submissionUrl' && key !== 'submissionText' && key !== 'verification') {
                     submitData.submissionData[key] = value;
                 }
             }
@@ -631,6 +810,11 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    // Clear tracking
+                    localStorage.removeItem('taskClick_' + currentTaskId);
+                    delete taskClickTracking[currentTaskId];
+                    delete taskStartTime[currentTaskId];
+                    
                     closeTaskModal();
                     
                     if (data.isQuestCompleted) {
@@ -689,6 +873,14 @@
                     progressBar.style.width = width;
                 }, 100);
             }
+
+            // Scroll to current user in leaderboard if completed
+            setTimeout(() => {
+                const currentUserRow = document.querySelector('.leaderboard-row[style*="rgba(57,255,20,0.1)"]');
+                if (currentUserRow) {
+                    currentUserRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 500);
         });
     </script>
 </body>

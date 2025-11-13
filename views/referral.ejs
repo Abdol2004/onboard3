@@ -4,16 +4,371 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Referral Program - ONBOARD3</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        /* Override animations for performance */
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        /* Referral specific styles matching dashboard */
+        .referral-link-container {
+            flex: 1;
+            min-width: 280px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .referral-link-container label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .referral-input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .referral-input-group input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-size: 0.95rem;
+            padding: 0.5rem;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .referral-input-group input:focus {
+            outline: none;
+        }
+
+        .referral-code-input {
+            font-size: 1.5rem !important;
+            font-weight: 700 !important;
+            text-align: center !important;
+            letter-spacing: 2px !important;
+        }
+
+        /* Stats cards */
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem 1rem;
+        }
+
+        .stat-card i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Reward cards */
+        .reward-card {
+            background: rgba(57, 255, 20, 0.05);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .reward-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .reward-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(57, 255, 20, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .reward-icon i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .reward-info h4 {
+            color: var(--primary);
+            margin-bottom: 0.3rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .reward-info p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .reward-badge {
+            background: rgba(57, 255, 20, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Referral list item */
+        .referral-list-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            padding: 1.25rem;
+        }
+
+        .referral-number {
+            width: 40px;
+            height: 40px;
+            background: rgba(57, 255, 20, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .referral-user-info {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .referral-user-info h4 {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            font-size: 1rem;
+        }
+
+        .referral-user-info p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .referral-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .referral-xp-badge {
+            background: rgba(57, 255, 20, 0.1);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Scrollable leaderboard */
+        .leaderboard-scroll-container {
+            max-height: 600px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .leaderboard-scroll-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .leaderboard-scroll-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .leaderboard-scroll-container::-webkit-scrollbar-thumb {
+            background: rgba(57, 255, 20, 0.3);
+            border-radius: 10px;
+        }
+
+        .leaderboard-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(57, 255, 20, 0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--bg-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p:first-of-type {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .empty-state p:last-of-type {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .referral-link-container {
+                min-width: 100%;
+            }
+
+            .referral-input-group {
+                flex-direction: column;
+            }
+
+            .referral-input-group input {
+                width: 100%;
+                text-align: center;
+                font-size: 0.85rem !important;
+            }
+
+            .referral-code-input {
+                font-size: 1.2rem !important;
+            }
+
+            .stat-card i {
+                font-size: 2.5rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .reward-card {
+                padding: 1.25rem;
+            }
+
+            .reward-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .reward-icon {
+                width: 45px;
+                height: 45px;
+            }
+
+            .reward-icon i {
+                font-size: 1.25rem;
+            }
+
+            .referral-list-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+                padding: 1rem;
+            }
+
+            .referral-stats {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .leaderboard-scroll-container {
+                max-height: 500px;
+            }
+
+            .leaderboard-item {
+                padding: 1rem;
+            }
+
+            .rank-number {
+                font-size: 1.25rem !important;
+                min-width: 35px !important;
+            }
+
+            .user-info h4 {
+                font-size: 0.95rem;
+            }
+
+            .user-info p {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stat-card {
+                padding: 1rem 0.5rem;
+            }
+
+            .stat-value {
+                font-size: 1.75rem;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+
+            .reward-info h4 {
+                font-size: 0.9rem;
+            }
+
+            .reward-info p {
+                font-size: 0.8rem;
+            }
+
+            .reward-badge {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.75rem;
+            }
+
+            .referral-user-info h4 {
+                font-size: 0.9rem;
+            }
+
+            .referral-user-info p {
+                font-size: 0.75rem;
+            }
+
+            .referral-xp-badge {
+                font-size: 0.75rem;
+                padding: 0.35rem 0.7rem;
+            }
+        }
+    </style>
 </head>
-<style>
-  * {
-    animation: none !important;
-    transition: none !important;
-  }
-</style>
 <body>
     <div class="grid-bg"></div>
     
@@ -37,10 +392,6 @@
                     <i class="fas fa-graduation-cap"></i>
                     <span>Learn</span>
                 </a>
-                <!-- <a href="/dashboard/bounties" class="menu-item">
-                    <i class="fas fa-briefcase"></i>
-                    <span>Bounties</span>
-                </a> -->
                 <a href="/dashboard/referral" class="menu-item active">
                     <i class="fas fa-users"></i>
                     <span>Referral</span>
@@ -49,10 +400,6 @@
                     <i class="fas fa-calendar"></i>
                     <span>Events</span>
                 </a>
-                <!-- <a href="/dashboard/leaderboard" class="menu-item">
-                    <i class="fas fa-medal"></i>
-                    <span>Leaderboard</span>
-                </a> -->
                 <a href="/dashboard/settings" class="menu-item">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
@@ -91,27 +438,27 @@
 
             <div class="content">
                 <!-- Referral Link Card -->
-                <div class="card" style="background: linear-gradient(135deg, rgba(57, 255, 20, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);">
+                <div class="card xp-card">
                     <div class="card-header">
                         <h3><i class="fas fa-link"></i> Your Referral Link</h3>
                     </div>
-                    <p style="color: #888; margin-bottom: 1rem;">Share your unique link with friends and earn rewards when they sign up!</p>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">Share your unique link with friends and earn rewards when they sign up!</p>
                     
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
-                        <div style="flex: 1; min-width: 300px; background: rgba(0, 0, 0, 0.5); padding: 1rem; border-radius: 12px; border: 1px solid rgba(57, 255, 20, 0.2);">
-                            <label style="display: block; color: #888; font-size: 0.85rem; margin-bottom: 0.5rem;">Referral Link</label>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <input type="text" id="referralLink" value="<%= referralLink %>" readonly style="flex: 1; background: transparent; border: none; color: #39FF14; font-size: 0.95rem; padding: 0.5rem;">
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                        <div class="referral-link-container">
+                            <label>Referral Link</label>
+                            <div class="referral-input-group">
+                                <input type="text" id="referralLink" value="<%= referralLink %>" readonly>
                                 <button onclick="copyReferralLink()" class="btn btn-primary" style="padding: 0.5rem 1.5rem; white-space: nowrap;">
                                     <i class="fas fa-copy"></i> Copy
                                 </button>
                             </div>
                         </div>
                         
-                        <div style="flex: 1; min-width: 300px; background: rgba(0, 0, 0, 0.5); padding: 1rem; border-radius: 12px; border: 1px solid rgba(57, 255, 20, 0.2);">
-                            <label style="display: block; color: #888; font-size: 0.85rem; margin-bottom: 0.5rem;">Your Referral Code</label>
-                            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                <input type="text" id="referralCode" value="<%= user.referralCode %>" readonly style="flex: 1; background: transparent; border: none; color: #39FF14; font-size: 1.5rem; font-weight: 700; padding: 0.5rem; text-align: center; letter-spacing: 2px;">
+                        <div class="referral-link-container">
+                            <label>Your Referral Code</label>
+                            <div class="referral-input-group">
+                                <input type="text" id="referralCode" value="<%= user.referralCode %>" readonly class="referral-code-input">
                                 <button onclick="copyReferralCode()" class="btn btn-secondary" style="padding: 0.5rem 1rem;">
                                     <i class="fas fa-copy"></i>
                                 </button>
@@ -122,13 +469,13 @@
                     <!-- Social Share Buttons -->
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <button onclick="shareTwitter()" class="btn btn-secondary" style="flex: 1; min-width: 150px;">
-                            <i class="fab fa-twitter"></i> Share on Twitter
+                            <i class="fab fa-twitter"></i> Twitter
                         </button>
                         <button onclick="shareTelegram()" class="btn btn-secondary" style="flex: 1; min-width: 150px;">
-                            <i class="fab fa-telegram"></i> Share on Telegram
+                            <i class="fab fa-telegram"></i> Telegram
                         </button>
                         <button onclick="shareWhatsApp()" class="btn btn-secondary" style="flex: 1; min-width: 150px;">
-                            <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                            <i class="fab fa-whatsapp"></i> WhatsApp
                         </button>
                     </div>
                 </div>
@@ -136,32 +483,26 @@
                 <!-- Referral Stats -->
                 <div class="grid-3">
                     <div class="card">
-                        <div style="text-align: center; padding: 1rem;">
-                            <i class="fas fa-users" style="font-size: 3rem; color: #39FF14; margin-bottom: 1rem;"></i>
-                            <div style="font-size: 2.5rem; color: #39FF14; font-weight: 700; margin-bottom: 0.5rem;">
-                                <%= user.referralStats.totalReferrals || 0 %>
-                            </div>
-                            <p style="color: #888; font-size: 0.9rem;">Total Referrals</p>
+                        <div class="stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="stat-value"><%= user.referralStats.totalReferrals || 0 %></div>
+                            <p class="stat-label">Total Referrals</p>
                         </div>
                     </div>
 
                     <div class="card">
-                        <div style="text-align: center; padding: 1rem;">
-                            <i class="fas fa-user-check" style="font-size: 3rem; color: #39FF14; margin-bottom: 1rem;"></i>
-                            <div style="font-size: 2.5rem; color: #39FF14; font-weight: 700; margin-bottom: 0.5rem;">
-                                <%= user.referralStats.activeReferrals || 0 %>
-                            </div>
-                            <p style="color: #888; font-size: 0.9rem;">Active Referrals</p>
+                        <div class="stat-card">
+                            <i class="fas fa-user-check"></i>
+                            <div class="stat-value"><%= user.referralStats.activeReferrals || 0 %></div>
+                            <p class="stat-label">Active Referrals</p>
                         </div>
                     </div>
 
                     <div class="card">
-                        <div style="text-align: center; padding: 1rem;">
-                            <i class="fas fa-coins" style="font-size: 3rem; color: #39FF14; margin-bottom: 1rem;"></i>
-                            <div style="font-size: 2.5rem; color: #39FF14; font-weight: 700; margin-bottom: 0.5rem;">
-                                <%= user.referralStats.totalEarned || 0 %>
-                            </div>
-                            <p style="color: #888; font-size: 0.9rem;">XP Earned</p>
+                        <div class="stat-card">
+                            <i class="fas fa-coins"></i>
+                            <div class="stat-value"><%= user.referralStats.totalEarned || 0 %></div>
+                            <p class="stat-label">XP Earned</p>
                         </div>
                     </div>
                 </div>
@@ -172,72 +513,64 @@
                         <h3><i class="fas fa-gift"></i> Referral Rewards</h3>
                     </div>
                     <div class="grid-2">
-                        <div style="background: rgba(57, 255, 20, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57, 255, 20, 0.2);">
-                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                                <div style="width: 50px; height: 50px; background: rgba(57, 255, 20, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-user-plus" style="font-size: 1.5rem; color: #39FF14;"></i>
+                        <div class="reward-card">
+                            <div class="reward-header">
+                                <div class="reward-icon">
+                                    <i class="fas fa-user-plus"></i>
                                 </div>
-                                <div>
-                                    <h4 style="color: #39FF14; margin-bottom: 0.3rem;">Sign Up Bonus</h4>
-                                    <p style="color: #888; font-size: 0.85rem;">When your friend signs up</p>
+                                <div class="reward-info">
+                                    <h4>Sign Up Bonus</h4>
+                                    <p>When your friend signs up</p>
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <span style="background: rgba(57, 255, 20, 0.1); padding: 0.5rem 1rem; border-radius: 8px; color: #39FF14; font-weight: 600;">
-                                    <i class="fas fa-star"></i> +50 XP
-                                </span>
-                            </div>
+                            <span class="reward-badge">
+                                <i class="fas fa-star"></i> +50 XP
+                            </span>
                         </div>
 
-                        <div style="background: rgba(57, 255, 20, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57, 255, 20, 0.2);">
-                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                                <div style="width: 50px; height: 50px; background: rgba(57, 255, 20, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-check-circle" style="font-size: 1.5rem; color: #39FF14;"></i>
+                        <div class="reward-card">
+                            <div class="reward-header">
+                                <div class="reward-icon">
+                                    <i class="fas fa-check-circle"></i>
                                 </div>
-                                <div>
-                                    <h4 style="color: #39FF14; margin-bottom: 0.3rem;">First Quest Bonus</h4>
-                                    <p style="color: #888; font-size: 0.85rem;">When they complete first quest</p>
+                                <div class="reward-info">
+                                    <h4>First Quest Bonus</h4>
+                                    <p>When they complete first quest</p>
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <span style="background: rgba(57, 255, 20, 0.1); padding: 0.5rem 1rem; border-radius: 8px; color: #39FF14; font-weight: 600;">
-                                    <i class="fas fa-star"></i> +100 XP
-                                </span>
-                            </div>
+                            <span class="reward-badge">
+                                <i class="fas fa-star"></i> +100 XP
+                            </span>
                         </div>
 
-                        <div style="background: rgba(57, 255, 20, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57, 255, 20, 0.2);">
-                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                                <div style="width: 50px; height: 50px; background: rgba(57, 255, 20, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-graduation-cap" style="font-size: 1.5rem; color: #39FF14;"></i>
+                        <div class="reward-card">
+                            <div class="reward-header">
+                                <div class="reward-icon">
+                                    <i class="fas fa-graduation-cap"></i>
                                 </div>
-                                <div>
-                                    <h4 style="color: #39FF14; margin-bottom: 0.3rem;">Course Admission</h4>
-                                    <p style="color: #888; font-size: 0.85rem;">When they get admitted to a course</p>
+                                <div class="reward-info">
+                                    <h4>Course Admission</h4>
+                                    <p>When they get admitted to a course</p>
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <span style="background: rgba(57, 255, 20, 0.1); padding: 0.5rem 1rem; border-radius: 8px; color: #39FF14; font-weight: 600;">
-                                    <i class="fas fa-star"></i> +200 XP
-                                </span>
-                            </div>
+                            <span class="reward-badge">
+                                <i class="fas fa-star"></i> +200 XP
+                            </span>
                         </div>
 
-                        <div style="background: rgba(57, 255, 20, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57, 255, 20, 0.2);">
-                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                                <div style="width: 50px; height: 50px; background: rgba(57, 255, 20, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-infinity" style="font-size: 1.5rem; color: #39FF14;"></i>
+                        <div class="reward-card">
+                            <div class="reward-header">
+                                <div class="reward-icon">
+                                    <i class="fas fa-infinity"></i>
                                 </div>
-                                <div>
-                                    <h4 style="color: #39FF14; margin-bottom: 0.3rem;">Lifetime Commission</h4>
-                                    <p style="color: #888; font-size: 0.85rem;">Earn from their activities</p>
+                                <div class="reward-info">
+                                    <h4>Lifetime Commission</h4>
+                                    <p>Earn from their activities</p>
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <span style="background: rgba(57, 255, 20, 0.1); padding: 0.5rem 1rem; border-radius: 8px; color: #39FF14; font-weight: 600;">
-                                    10% of their earnings
-                                </span>
-                            </div>
+                            <span class="reward-badge">
+                                10% of their earnings
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -246,24 +579,20 @@
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-list"></i> Your Referrals</h3>
-                        <span style="color: #888; font-size: 0.85rem;"><%= referrals.length %> total</span>
+                        <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;"><%= referrals.length %> total</span>
                     </div>
                     
                     <% if (referrals && referrals.length > 0) { %>
                         <% referrals.forEach((referral, index) => { %>
                         <div class="bounty-item">
-                            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                                <div style="width: 40px; height: 40px; background: rgba(57, 255, 20, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #39FF14;">
-                                    <%= index + 1 %>
+                            <div class="referral-list-item">
+                                <div class="referral-number"><%= index + 1 %></div>
+                                <div class="referral-user-info">
+                                    <h4><%= referral.username %></h4>
+                                    <p>Joined <%= new Date(referral.createdAt).toLocaleDateString() %></p>
                                 </div>
-                                <div style="flex: 1; min-width: 200px;">
-                                    <div style="font-weight: 600; margin-bottom: 0.3rem;"><%= referral.username %></div>
-                                    <div style="color: #888; font-size: 0.85rem;">
-                                        Joined <%= new Date(referral.createdAt).toLocaleDateString() %>
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                                    <span style="background: rgba(57, 255, 20, 0.1); padding: 0.4rem 0.8rem; border-radius: 6px; color: #39FF14; font-size: 0.85rem;">
+                                <div class="referral-stats">
+                                    <span class="referral-xp-badge">
                                         <i class="fas fa-star"></i> <%= referral.xp || 0 %> XP
                                     </span>
                                     <span class="status-badge <%= referral.isActive ? 'status-approved' : 'status-pending' %>">
@@ -274,10 +603,10 @@
                         </div>
                         <% }); %>
                     <% } else { %>
-                        <div style="text-align: center; padding: 3rem;">
-                            <i class="fas fa-users" style="font-size: 4rem; color: #333; margin-bottom: 1rem;"></i>
-                            <p style="color: #888; font-size: 1.1rem; margin-bottom: 0.5rem;">No referrals yet</p>
-                            <p style="color: #666; font-size: 0.9rem;">Share your referral link to start earning rewards!</p>
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <p>No referrals yet</p>
+                            <p>Share your referral link to start earning rewards!</p>
                         </div>
                     <% } %>
                 </div>
@@ -286,27 +615,38 @@
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-trophy"></i> Top Referrers</h3>
+                        <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;">
+                            <% if (topReferrers && topReferrers.length > 0) { %>
+                                Showing <%= topReferrers.length %> referrers
+                            <% } %>
+                        </span>
                     </div>
                     
                     <% if (topReferrers && topReferrers.length > 0) { %>
-                        <% topReferrers.forEach((referrer, index) => { %>
-                        <div class="leaderboard-item <%= index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '' %>">
-                            <div class="leaderboard-rank">
-                                <div class="rank-number" style="color: <%= index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#39FF14' %>">
-                                    #<%= index + 1 %>
+                        <div class="leaderboard-scroll-container">
+                            <% topReferrers.forEach((referrer, index) => { %>
+                            <div class="leaderboard-item <%= index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '' %>">
+                                <div class="leaderboard-rank">
+                                    <div class="rank-number" style="color: <%= index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : 'var(--primary)' %>">
+                                        #<%= index + 1 %>
+                                    </div>
+                                    <div class="user-info">
+                                        <h4><%= referrer.username %></h4>
+                                        <p><%= referrer.totalReferrals %> referrals • <%= referrer.totalEarned %> XP earned</p>
+                                    </div>
                                 </div>
-                                <div class="user-info">
-                                    <h4><%= referrer.username %></h4>
-                                    <p><%= referrer.totalReferrals %> referrals • <%= referrer.totalEarned %> XP earned</p>
-                                </div>
+                                <span style="background: rgba(57, 255, 20, 0.15); padding: 0.5rem 1rem; border-radius: 8px; color: var(--primary); font-weight: 600;">
+                                    <i class="fas fa-trophy"></i>
+                                </span>
                             </div>
-                            <span style="background: rgba(57, 255, 20, 0.2); padding: 0.5rem 1rem; border-radius: 8px; color: #39FF14; font-weight: 600;">
-                                <i class="fas fa-trophy"></i>
-                            </span>
+                            <% }); %>
                         </div>
-                        <% }); %>
                     <% } else { %>
-                        <p style="color: #888; text-align: center; padding: 2rem;">No leaderboard data yet</p>
+                        <div class="empty-state">
+                            <i class="fas fa-trophy"></i>
+                            <p>No leaderboard data yet</p>
+                            <p>Start referring to appear on the leaderboard!</p>
+                        </div>
                     <% } %>
                 </div>
             </div>

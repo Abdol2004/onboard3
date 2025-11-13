@@ -4,9 +4,347 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> - ONBOARD3</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        /* Custom Modal Styles */
+        .custom-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .custom-modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .custom-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 30px rgba(57, 255, 20, 0.15);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .custom-modal-overlay.show .custom-modal {
+            transform: scale(1);
+        }
+
+        /* Loading State */
+        .modal-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .loading-spinner {
+            width: 70px;
+            height: 70px;
+            border: 4px solid rgba(57, 255, 20, 0.2);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal-loading h3 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-loading p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* Success State */
+        .modal-success {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(57, 255, 20, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: popIn 0.5s ease;
+        }
+
+        .success-icon i {
+            font-size: 3rem;
+            color: var(--primary);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .modal-success h3 {
+            font-size: 1.75rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-success p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .modal-success .quest-info {
+            background: rgba(57, 255, 20, 0.08);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            width: 100%;
+        }
+
+        .quest-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .quest-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .quest-info-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .quest-info-value {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .modal-progress {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 100px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .modal-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+            width: 0%;
+            transition: width 2s ease;
+        }
+
+        /* Error State */
+        .modal-error {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(244, 67, 54, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .error-icon i {
+            font-size: 3rem;
+            color: #F44336;
+        }
+
+        .modal-error h3 {
+            font-size: 1.5rem;
+            color: #F44336;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-error p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* Buttons */
+        .modal-btn {
+            padding: 0.875rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            margin-top: 1rem;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #000;
+            box-shadow: 0 4px 16px rgba(57, 255, 20, 0.3);
+        }
+
+        .modal-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(57, 255, 20, 0.4);
+        }
+
+        .modal-btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .modal-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Quest Preview Modal Updates */
+        .preview-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .preview-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-modal-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text-primary);
+        }
+
+        .preview-modal-body p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .preview-modal-stats {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .preview-modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .custom-modal {
+                padding: 2rem 1.5rem;
+            }
+
+            .modal-success h3 {
+                font-size: 1.5rem;
+            }
+
+            .modal-success p {
+                font-size: 0.9rem;
+            }
+
+            .success-icon {
+                width: 70px;
+                height: 70px;
+            }
+
+            .success-icon i {
+                font-size: 2.5rem;
+            }
+
+            .preview-modal-footer {
+                flex-direction: column;
+            }
+
+            .modal-btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="grid-bg"></div>
@@ -21,7 +359,7 @@
             <nav class="sidebar-menu">
                 <a href="/dashboard" class="menu-item">
                     <i class="fas fa-home"></i>
-                    <span>Dashboard Overview</span>
+                    <span>Dashboard</span>
                 </a>
                 <a href="/dashboard/quests" class="menu-item active">
                     <i class="fas fa-trophy"></i>
@@ -31,18 +369,10 @@
                     <i class="fas fa-graduation-cap"></i>
                     <span>Learn</span>
                 </a>
-                 <a href="/dashboard/referral" class="menu-item">
+                <a href="/dashboard/referral" class="menu-item">
                     <i class="fas fa-users"></i>
                     <span>Referral</span>
                 </a>
-                <!-- <a href="/dashboard/bounties" class="menu-item">
-                    <i class="fas fa-briefcase"></i>
-                    <span>Bounties</span>
-                </a>
-                <a href="/dashboard/bounty-leaderboard" class="menu-item">
-                    <i class="fas fa-medal"></i>
-                    <span>Bounty Leaderboard</span>
-                </a> -->
                 <a href="/dashboard/events" class="menu-item">
                     <i class="fas fa-calendar"></i>
                     <span>Events</span>
@@ -67,7 +397,7 @@
             <header class="header">
                 <div class="header-content">
                     <div class="header-title">
-                        <h2>Quests </h2>
+                        <h2>Quests</h2>
                         <p>Complete quests to earn XP and unlock rewards</p>
                     </div>
                     <div class="header-stats">
@@ -89,7 +419,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-fire"></i> Active Quests</h3>
-                        <span style="color: #888; font-size: 0.85rem;"><%= activeQuests.length %> in progress</span>
+                        <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;"><%= activeQuests.length %> in progress</span>
                     </div>
                     
                     <% activeQuests.forEach(quest => { %>
@@ -98,7 +428,7 @@
                             <div class="quest-header">
                                 <div>
                                     <div class="quest-title"><%= quest.title %></div>
-                                    <p style="color: #888; font-size: 0.85rem; margin: 0.5rem 0;">
+                                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0.5rem 0;">
                                         <%= quest.shortDescription %>
                                     </p>
                                     <div style="display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap;">
@@ -110,7 +440,7 @@
                                             <i class="fas fa-coins"></i> <%= quest.usdcReward %> USDC
                                         </span>
                                         <% } %>
-                                        <span style="background: rgba(255,255,255,0.05); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #888;">
+                                        <span style="background: rgba(255,255,255,0.05); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: var(--text-secondary);">
                                             <%= quest.difficulty %>
                                         </span>
                                     </div>
@@ -135,7 +465,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-trophy"></i> Available Quests</h3>
-                        <span style="color: #888; font-size: 0.85rem;"><%= availableQuests.length %> available</span>
+                        <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;"><%= availableQuests.length %> available</span>
                     </div>
                     
                     <% if (availableQuests && availableQuests.length > 0) { %>
@@ -144,7 +474,7 @@
                             <div class="quest-header">
                                 <div>
                                     <div class="quest-title"><%= quest.title %></div>
-                                    <p style="color: #888; font-size: 0.85rem; margin: 0.5rem 0;">
+                                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0.5rem 0;">
                                         <%= quest.shortDescription %>
                                     </p>
                                     <div style="display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap;">
@@ -156,10 +486,10 @@
                                             <i class="fas fa-coins"></i> <%= quest.usdcReward %> USDC
                                         </span>
                                         <% } %>
-                                        <span style="background: rgba(255,255,255,0.05); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #888;">
+                                        <span style="background: rgba(255,255,255,0.05); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: var(--text-secondary);">
                                             <%= quest.difficulty %>
                                         </span>
-                                        <span style="background: rgba(255,255,255,0.05); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #888;">
+                                        <span style="background: rgba(255,255,255,0.05); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: var(--text-secondary);">
                                             <i class="fas fa-clock"></i> <%= quest.estimatedDuration %>
                                         </span>
                                     </div>
@@ -171,104 +501,65 @@
                         </div>
                         <% }); %>
                     <% } else { %>
-                        <p style="color: #888; text-align: center; padding: 2rem;">
+                        <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
                             No available quests at the moment. Check back later!
                         </p>
                     <% } %>
                 </div>
+
                 <!-- Completed Quests -->
-<% if (completedQuests && completedQuests.length > 0) { %>
-<div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-check-circle"></i> Completed Quests</h3>
-        <span style="color: #888; font-size: 0.85rem;"><%= completedQuests.length %> completed</span>
-    </div>
-    
-    <% completedQuests.forEach(quest => { %>
-    <a href="/dashboard/quests/<%= quest._id %>" style="text-decoration: none; color: inherit;">
-        <div class="quest-item" style="background: rgba(57,255,20,0.05); border-left: 3px solid #39FF14;">
-            <div class="quest-header">
-                <div>
-                    <div class="quest-title">
-                        <%= quest.title %>
-                        <i class="fas fa-check-circle" style="color: #39FF14; margin-left: 0.5rem;"></i>
+                <% if (completedQuests && completedQuests.length > 0) { %>
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-check-circle"></i> Completed Quests</h3>
+                        <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;"><%= completedQuests.length %> completed</span>
                     </div>
-                    <p style="color: #888; font-size: 0.85rem; margin: 0.5rem 0;">
-                        <%= quest.shortDescription %>
-                    </p>
-                    <div style="display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; align-items: center;">
-                        <!-- XP Breakdown -->
-                        <% if (quest.userProgress && quest.userProgress.xpBreakdown) { %>
-                            <span style="background: rgba(57,255,20,0.2); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #39FF14; border: 1px solid #39FF14;">
-                                <i class="fas fa-star"></i> <%= quest.userProgress.xpBreakdown.totalXp %> Total XP
-                            </span>
-                        <% } else { %>
-                            <span style="background: rgba(57,255,20,0.1); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #39FF14;">
-                                <i class="fas fa-star"></i> <%= quest.xpReward %> XP
-                            </span>
-                        <% } %>
-                        
-                        <!-- Referral Stats -->
-                        <% if (quest.userProgress && quest.userProgress.referralStats) { %>
-                            <% const joinedCount = quest.userProgress.referralStats.referralsJoined?.length || 0; %>
-                            <% const completedCount = quest.userProgress.referralStats.referralsCompleted?.length || 0; %>
-                            <% if (joinedCount > 0) { %>
-                                <span style="background: rgba(57,255,20,0.1); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #39FF14;">
-                                    <i class="fas fa-users"></i> <%= joinedCount %> joined
-                                </span>
-                            <% } %>
-                            <% if (completedCount > 0) { %>
-                                <span style="background: rgba(57,255,20,0.1); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #39FF14;">
-                                    <i class="fas fa-trophy"></i> <%= completedCount %> completed
-                                </span>
-                            <% } %>
-                        <% } %>
-                        
-                        <!-- Leaderboard Rank -->
-                        <% if (quest.userProgress && quest.userProgress.leaderboardRank) { %>
-                            <span style="background: rgba(255,193,7,0.1); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #FFC107; border: 1px solid #FFC107;">
-                                <i class="fas fa-medal"></i> Rank #<%= quest.userProgress.leaderboardRank %>
-                            </span>
-                        <% } %>
-                        
-                        <!-- Winner Badge -->
-                        <% if (quest.userProgress && quest.userProgress.isWinner) { %>
-                            <span style="background: rgba(255,193,7,0.2); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #FFC107; border: 1px solid #FFC107;">
-                                🏆 Winner
-                            </span>
-                        <% } %>
-                        
-                        <span style="color: #666; font-size: 0.75rem;">
-                            <i class="fas fa-clock"></i> Completed <%= new Date(quest.userProgress.completedAt).toLocaleDateString() %>
-                        </span>
-                    </div>
+                    
+                    <% completedQuests.forEach(quest => { %>
+                    <a href="/dashboard/quests/<%= quest._id %>" style="text-decoration: none; color: inherit;">
+                        <div class="quest-item" style="background: rgba(57,255,20,0.05); border-left: 3px solid #39FF14;">
+                            <div class="quest-header">
+                                <div>
+                                    <div class="quest-title">
+                                        <%= quest.title %>
+                                        <i class="fas fa-check-circle" style="color: #39FF14; margin-left: 0.5rem;"></i>
+                                    </div>
+                                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0.5rem 0;">
+                                        <%= quest.shortDescription %>
+                                    </p>
+                                    <div style="display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; align-items: center;">
+                                        <span style="color: #666; font-size: 0.75rem;">
+                                            <i class="fas fa-clock"></i> Completed <%= new Date(quest.userProgress.completedAt).toLocaleDateString() %>
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary" style="padding: 0.6rem 1.2rem;">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                    <% }); %>
                 </div>
-                <button class="btn btn-secondary" style="padding: 0.6rem 1.2rem;">
-                    View Details
-                </button>
-            </div>
-        </div>
-    </a>
-    <% }); %>
-</div>
-<% } %>
+                <% } %>
+
                 <!-- Quest Stats -->
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-chart-line"></i> Your Quest Stats</h3>
                     </div>
                     <div class="grid-3">
-                        <div style="text-align: center; padding: 1rem; background: rgba(57,255,20,0.05); border-radius: 12px;">
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(57,255,20,0.05); border-radius: 12px; border: 1px solid var(--border);">
                             <div style="font-size: 2rem; color: #39FF14; font-weight: 700;"><%= completedCount %></div>
-                            <div style="color: #888; font-size: 0.85rem;">Completed</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Completed</div>
                         </div>
-                        <div style="text-align: center; padding: 1rem; background: rgba(255,193,7,0.05); border-radius: 12px;">
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(255,193,7,0.05); border-radius: 12px; border: 1px solid rgba(255,193,7,0.15);">
                             <div style="font-size: 2rem; color: #FFC107; font-weight: 700;"><%= activeQuests.length %></div>
-                            <div style="color: #888; font-size: 0.85rem;">In Progress</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">In Progress</div>
                         </div>
-                        <div style="text-align: center; padding: 1rem; background: rgba(57,255,20,0.05); border-radius: 12px;">
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(57,255,20,0.05); border-radius: 12px; border: 1px solid var(--border);">
                             <div style="font-size: 2rem; color: #39FF14; font-weight: 700;"><%= user.xp %></div>
-                            <div style="color: #888; font-size: 0.85rem;">Total XP</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Total XP</div>
                         </div>
                     </div>
                 </div>
@@ -277,73 +568,119 @@
     </div>
 
     <!-- Quest Preview Modal -->
-    <div id="questModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
-        <div class="modal-content" style="background: #1a1a1a; border-radius: 16px; padding: 2rem; max-width: 600px; width: 90%; border: 1px solid rgba(57,255,20,0.2);">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h3 id="modalTitle" style="margin: 0;">Quest Preview</h3>
-                <button class="close-btn" onclick="closeQuestModal()" style="background: none; border: none; color: #888; font-size: 1.5rem; cursor: pointer;">&times;</button>
+    <div id="questModal" class="custom-modal-overlay">
+        <div class="preview-modal">
+            <div class="preview-modal-header">
+                <h3 id="modalTitle">Quest Preview</h3>
+                <button class="close-btn" onclick="closeQuestModal()">&times;</button>
             </div>
-            <div class="modal-body">
-                <p id="modalDescription" style="color: #ccc; margin-bottom: 1rem;"></p>
-                <div id="modalStats" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;"></div>
-                <p style="color: #888; font-size: 0.85rem;">Click "Start Quest" to begin and track your progress.</p>
+            <div class="preview-modal-body">
+                <p id="modalDescription"></p>
+                <div id="modalStats" class="preview-modal-stats"></div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Click "Start Quest" to begin tracking your progress.</p>
             </div>
-            <div class="modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
-                <button class="btn btn-secondary" onclick="closeQuestModal()">Cancel</button>
-                <button id="modalStartBtn" class="btn btn-primary">Start Quest</button>
+            <div class="preview-modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeQuestModal()">Cancel</button>
+                <button id="modalStartBtn" class="modal-btn modal-btn-primary">Start Quest</button>
             </div>
         </div>
     </div>
 
-    <!-- Loading Spinner -->
-    <div id="loadingSpinner" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
-        <div style="text-align: center;">
-            <div style="border: 4px solid rgba(57,255,20,0.2); border-top: 4px solid #39FF14; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
-            <p style="color: #39FF14; font-size: 1.2rem; font-weight: 600;">Loading Quest...</p>
+    <!-- Custom Start Quest Modal -->
+    <div id="customModal" class="custom-modal-overlay">
+        <div class="custom-modal">
+            <!-- Loading State -->
+            <div id="loadingState" class="modal-loading">
+                <div class="loading-spinner"></div>
+                <h3>Starting Quest...</h3>
+                <p>Preparing your adventure</p>
+            </div>
+
+            <!-- Success State -->
+            <div id="successState" class="modal-success">
+                <div class="success-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h3>Good to Go! 🚀</h3>
+                <p>Your quest has started! Time to complete tasks and earn rewards.</p>
+                <div class="quest-info">
+                    <!-- <div class="quest-info-item">
+                        <span class="quest-info-label">Quest Reward</span>
+                        <span class="quest-info-value" id="successXP">0 XP</span>
+                    </div> -->
+                    <div class="quest-info-item" id="successUSDCContainer" style="display: none;">
+                        <span class="quest-info-label">Bonus Reward</span>
+                        <span class="quest-info-value" id="successUSDC">0 USDC</span>
+                    </div>
+                    <div class="quest-info-item">
+                        <span class="quest-info-label">Difficulty</span>
+                        <span class="quest-info-value" id="successDifficulty">Easy</span>
+                    </div>
+                </div>
+                <div class="modal-progress">
+                    <div class="modal-progress-fill" id="successProgress"></div>
+                </div>
+                <button class="modal-btn modal-btn-primary" id="continueBtn">Continue to Quest</button>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="modal-error">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Oops! Something went wrong</h3>
+                <p id="errorMessage">Failed to start quest. Please try again.</p>
+                <button class="modal-btn modal-btn-secondary" onclick="closeCustomModal()">Close</button>
+            </div>
         </div>
     </div>
-
-    <style>
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
 
     <script>
         let currentQuestId = null;
+        let currentQuestData = {};
 
         function showQuestModal(id, title, desc, xp, usdc, difficulty, duration) {
             currentQuestId = id;
+            currentQuestData = { id, title, desc, xp, usdc, difficulty, duration };
+            
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalDescription').textContent = desc;
             
             const stats = `
-                <span style="background: rgba(57,255,20,0.1); padding: 0.5rem 1rem; border-radius: 8px; color: #39FF14;">
+                <span style="background: rgba(57,255,20,0.1); padding: 0.5rem 1rem; border-radius: 8px; color: #39FF14; font-weight: 600;">
                     <i class="fas fa-star"></i> ${xp} XP
                 </span>
-                ${usdc > 0 ? `<span style="background: rgba(57,255,20,0.1); padding: 0.5rem 1rem; border-radius: 8px; color: #39FF14;">
+                ${usdc > 0 ? `<span style="background: rgba(57,255,20,0.1); padding: 0.5rem 1rem; border-radius: 8px; color: #39FF14; font-weight: 600;">
                     <i class="fas fa-coins"></i> ${usdc} USDC
                 </span>` : ''}
-                <span style="background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 8px; color: #888;">
+                <span style="background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 8px; color: var(--text-secondary); font-weight: 600;">
                     ${difficulty}
                 </span>
-                <span style="background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 8px; color: #888;">
+                <span style="background: rgba(255,255,255,0.05); padding: 0.5rem 1rem; border-radius: 8px; color: var(--text-secondary); font-weight: 600;">
                     <i class="fas fa-clock"></i> ${duration}
                 </span>
             `;
             
             document.getElementById('modalStats').innerHTML = stats;
             document.getElementById('modalStartBtn').onclick = () => startQuest(id);
-            document.getElementById('questModal').style.display = 'flex';
+            
+            const modal = document.getElementById('questModal');
+            modal.classList.add('show');
         }
 
         function closeQuestModal() {
-            document.getElementById('questModal').style.display = 'none';
+            const modal = document.getElementById('questModal');
+            modal.classList.remove('show');
             currentQuestId = null;
         }
 
         async function startQuest(questId) {
+            // Close preview modal
+            closeQuestModal();
+            
+            // Show custom modal with loading state
+            showCustomModal('loading');
+            
             try {
                 const response = await fetch('/dashboard/quests/start', {
                     method: 'POST',
@@ -356,15 +693,112 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    alert('Quest started! Good luck! ');
-                    window.location.href = `/dashboard/quests/${questId}`;
+                    // Show success state - NO ALERT!
+                    setTimeout(() => {
+                        showCustomModal('success', questId);
+                    }, 1000);
                 } else {
-                    alert(data.message || 'Failed to start quest');
+                    // Show error state - NO ALERT!
+                    setTimeout(() => {
+                        showCustomModal('error', null, data.message || 'Failed to start quest');
+                    }, 800);
                 }
             } catch (error) {
                 console.error('Error starting quest:', error);
-                alert('Error starting quest. Please try again.');
+                setTimeout(() => {
+                    showCustomModal('error', null, 'Network error. Please check your connection.');
+                }, 800);
             }
+        }
+
+        function startQuestFromButton(questId) {
+            // Find the quest data from the available quests on the page
+            const questItems = document.querySelectorAll('.quest-item');
+            questItems.forEach(item => {
+                const button = item.querySelector('.btn-primary');
+                if (button && button.getAttribute('onclick').includes(questId)) {
+                    // Extract quest data from the onclick attribute
+                    const onclickStr = item.parentElement.getAttribute('onclick') || item.getAttribute('onclick');
+                    if (onclickStr) {
+                        const match = onclickStr.match(/showQuestModal\('([^']+)',\s*`([^`]+)`,\s*`([^`]+)`,\s*(\d+),\s*(\d+),\s*'([^']+)',\s*'([^']+)'\)/);
+                        if (match) {
+                            currentQuestData = {
+                                id: match[1],
+                                title: match[2],
+                                desc: match[3],
+                                xp: parseInt(match[4]),
+                                usdc: parseInt(match[5]),
+                                difficulty: match[6],
+                                duration: match[7]
+                            };
+                        }
+                    }
+                }
+            });
+            
+            startQuest(questId);
+        }
+
+        function showCustomModal(state, questId = null, errorMsg = null) {
+            const modal = document.getElementById('customModal');
+            const loadingState = document.getElementById('loadingState');
+            const successState = document.getElementById('successState');
+            const errorState = document.getElementById('errorState');
+            
+            // Hide all states
+            loadingState.style.display = 'none';
+            successState.style.display = 'none';
+            errorState.style.display = 'none';
+            
+            // Show modal
+            modal.classList.add('show');
+            
+            if (state === 'loading') {
+                loadingState.style.display = 'flex';
+            } else if (state === 'success') {
+                successState.style.display = 'flex';
+                
+                // Populate success data with fallback values
+                const xpValue = currentQuestData.xp || 0;
+                const usdcValue = currentQuestData.usdc || 0;
+                const difficultyValue = currentQuestData.difficulty || 'Medium';
+                
+                document.getElementById('successXP').textContent = `${xpValue} XP`;
+                document.getElementById('successDifficulty').textContent = difficultyValue;
+                
+                // Show USDC if applicable
+                if (usdcValue > 0) {
+                    document.getElementById('successUSDCContainer').style.display = 'flex';
+                    document.getElementById('successUSDC').textContent = `${usdcValue} USDC`;
+                } else {
+                    document.getElementById('successUSDCContainer').style.display = 'none';
+                }
+                
+                // Animate progress bar
+                setTimeout(() => {
+                    document.getElementById('successProgress').style.width = '100%';
+                }, 100);
+                
+                // Set continue button action
+                document.getElementById('continueBtn').onclick = () => {
+                    window.location.href = `/dashboard/quests/${questId}`;
+                };
+            } else if (state === 'error') {
+                errorState.style.display = 'flex';
+                if (errorMsg) {
+                    document.getElementById('errorMessage').textContent = errorMsg;
+                }
+            }
+        }
+
+        function closeCustomModal() {
+            const modal = document.getElementById('customModal');
+            modal.classList.remove('show');
+            
+            // Reset progress bar
+            setTimeout(() => {
+                document.getElementById('successProgress').style.width = '0%';
+            }, 300);
         }
 
         function handleLogout(event) {
@@ -374,24 +808,35 @@
             }
         }
 
-        // Close modal on background click
+        // Close modals on background click
         document.getElementById('questModal')?.addEventListener('click', function(e) {
             if (e.target === this) {
                 closeQuestModal();
             }
         });
 
-        // Animate progress bars on load
-        window.addEventListener('load', () => {
-            const progressBars = document.querySelectorAll('.quest-progress-fill');
-            progressBars.forEach(bar => {
-                const width = bar.style.width;
-                bar.style.width = '0%';
-                setTimeout(() => {
-                    bar.style.width = width;
-                }, 100);
+        document.getElementById('customModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCustomModal();
+            }
+        });
+
+        // Prevent body scroll when modal is open
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target.classList.contains('show')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
             });
         });
+
+        const questModal = document.getElementById('questModal');
+        const customModal = document.getElementById('customModal');
+        
+        if (questModal) observer.observe(questModal, { attributes: true, attributeFilter: ['class'] });
+        if (customModal) observer.observe(customModal, { attributes: true, attributeFilter: ['class'] });
     </script>
 </body>
 </html>
