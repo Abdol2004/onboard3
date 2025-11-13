@@ -196,15 +196,6 @@ exports.getAvailableCourses = async (req, res) => {
         icon: 'fa-users'
       },
       {
-        id: 'smart-contract-development',
-        name: 'Smart Contract Development',
-        description: 'Build secure and efficient smart contracts with Solidity',
-        duration: '12 weeks',
-        level: 'Intermediate to Advanced',
-        skills: ['Solidity', 'Hardhat', 'Testing', 'Security Auditing'],
-        icon: 'fa-code'
-      },
-      {
         id: 'frontend-development',
         name: 'Frontend Development',
         description: 'Create beautiful and functional Web3 frontends with React and Web3.js',
@@ -213,24 +204,6 @@ exports.getAvailableCourses = async (req, res) => {
         skills: ['React', 'Web3.js', 'Ethers.js', 'Wallet Integration'],
         icon: 'fa-laptop-code'
       },
-      {
-        id: 'marketing-growth',
-        name: 'Marketing & Growth',
-        description: 'Drive growth and engagement for Web3 projects',
-        duration: '6 weeks',
-        level: 'Beginner to Intermediate',
-        skills: ['Growth Hacking', 'Marketing Strategy', 'Analytics', 'Campaign Management'],
-        icon: 'fa-chart-line'
-      },
-      {
-        id: 'product-design',
-        name: 'Product Design',
-        description: 'Design user-friendly Web3 products and experiences',
-        duration: '8 weeks',
-        level: 'Beginner to Intermediate',
-        skills: ['UI/UX Design', 'Figma', 'User Research', 'Prototyping'],
-        icon: 'fa-paint-brush'
-      }
     ];
 
     res.status(200).json({

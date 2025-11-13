@@ -745,68 +745,191 @@
         </main>
     </div>
 
-    <!-- Create Quest Modal -->
-    <div class="modal" id="createQuestModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Create New Quest</h3>
-                <button class="close-btn" onclick="closeModal('createQuestModal')">&times;</button>
-            </div>
-            <form id="createQuestForm" onsubmit="createQuest(event)">
+   <!-- Create Quest Modal - UPDATED WITH ALL NEW FEATURES -->
+<div class="modal" id="createQuestModal">
+    <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header">
+            <h3>Create New Quest</h3>
+            <button class="close-btn" onclick="closeModal('createQuestModal')">&times;</button>
+        </div>
+        <form id="createQuestForm" onsubmit="createQuest(event)">
+            
+            <!-- Basic Info -->
+            <div style="border-bottom: 2px solid rgba(57,255,20,0.2); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+                <h4 style="color: #39FF14; margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Basic Information</h4>
+                
                 <div class="form-group">
                     <label>Quest Title *</label>
                     <input type="text" id="questTitle" required>
                 </div>
+                
                 <div class="form-group">
                     <label>Short Description *</label>
                     <input type="text" id="questShortDesc" required>
                 </div>
+                
                 <div class="form-group">
                     <label>Full Description *</label>
                     <textarea id="questDescription" required></textarea>
                 </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select id="questCategory" required>
+                            <option value="development">Development</option>
+                            <option value="social">Social</option>
+                            <option value="learning">Learning</option>
+                            <option value="community">Community</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Difficulty *</label>
+                        <select id="questDifficulty" required>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quest Type -->
+            <div style="border-bottom: 2px solid rgba(57,255,20,0.2); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+                <h4 style="color: #39FF14; margin-bottom: 1rem;"><i class="fas fa-trophy"></i> Quest Type</h4>
+                
                 <div class="form-group">
-                    <label>Category *</label>
-                    <select id="questCategory" required>
-                        <option value="development">Development</option>
-                        <option value="social">Social</option>
-                        <option value="learning">Learning</option>
-                        <option value="community">Community</option>
+                    <label>Quest Type *</label>
+                    <select id="questType" onchange="toggleQuestTypeSettings()" required>
+                        <option value="standard">Standard (Regular quest)</option>
+                        <option value="referral_boost">Referral Boost (Earn XP from referrals)</option>
+                        <option value="fcfs">First Come First Serve (Speed competition)</option>
+                        <option value="competition">Competition (Leaderboard with prizes)</option>
                     </select>
+                    <small style="color: #888; display: block; margin-top: 0.5rem;">
+                        Standard: Normal quest | Referral Boost: Bonus XP for referred users | FCFS: First to finish wins | Competition: Top performers get prizes
+                    </small>
                 </div>
-                <div class="form-group">
-                    <label>Difficulty *</label>
-                    <select id="questDifficulty" required>
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>XP Reward *</label>
-                    <input type="number" id="questXP" min="0" value="100" required>
-                </div>
-                <div class="form-group">
-                    <label>USDC Reward</label>
-                    <input type="number" id="questUSDC" min="0" step="0.01" value="0">
+            </div>
+
+            <!-- Dates & Limits -->
+            <div style="border-bottom: 2px solid rgba(57,255,20,0.2); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+                <h4 style="color: #39FF14; margin-bottom: 1rem;"><i class="fas fa-calendar"></i> Duration & Limits</h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Start Date (Optional)</label>
+                        <input type="date" id="questStartDate">
+                        <small style="color: #888; display: block; margin-top: 0.3rem;">Leave empty for immediate start</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>End Date (Optional)</label>
+                        <input type="date" id="questEndDate">
+                        <small style="color: #888; display: block; margin-top: 0.3rem;">Leave empty for no end date</small>
+                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <label>Quest Tasks</label>
-                    <p style="color: #888; font-size: 0.85rem; margin-bottom: 0.5rem;">Add tasks that users need to complete</p>
-                    <div id="tasksList"></div>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="addTask()" style="margin-top: 0.5rem;">
-                        <i class="fas fa-plus"></i> Add Task
-                    </button>
+                    <label>Max Participants (Optional)</label>
+                    <input type="number" id="maxParticipants" min="0" placeholder="Leave empty for unlimited">
+                    <small style="color: #888; display: block; margin-top: 0.3rem;">Limit how many users can join this quest</small>
+                </div>
+            </div>
+
+            <!-- Base Rewards -->
+            <div style="border-bottom: 2px solid rgba(57,255,20,0.2); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+                <h4 style="color: #39FF14; margin-bottom: 1rem;"><i class="fas fa-gift"></i> Base Rewards (Quest Completion)</h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Base XP Reward *</label>
+                        <input type="number" id="baseXpReward" min="0" value="100" required>
+                        <small style="color: #888; display: block; margin-top: 0.3rem;">XP given when quest is fully completed</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>USDC Reward</label>
+                        <input type="number" id="questUSDC" min="0" step="0.01" value="0">
+                        <small style="color: #888; display: block; margin-top: 0.3rem;">Optional USDC reward</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral Settings -->
+            <div id="referralSettings" style="display: none; border-bottom: 2px solid rgba(57,255,20,0.2); padding-bottom: 1.5rem; margin-bottom: 1.5rem; background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px;">
+                <h4 style="color: #39FF14; margin-bottom: 1rem;"><i class="fas fa-users"></i> Referral Bonus Settings</h4>
+                
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="referralEnabled" onchange="toggleReferralFields()">
+                        Enable Referral Bonuses
+                    </label>
                 </div>
                 
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('createQuestModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Quest</button>
+                <div id="referralFields" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>XP Per Referral Join</label>
+                            <input type="number" id="xpPerReferralJoin" min="0" value="0">
+                            <small style="color: #888; display: block; margin-top: 0.3rem;">XP when referred user STARTS this quest</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>XP Per Referral Complete</label>
+                            <input type="number" id="xpPerReferralComplete" min="0" value="0">
+                            <small style="color: #888; display: block; margin-top: 0.3rem;">XP when referred user COMPLETES this quest</small>
+                        </div>
+                    </div>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Competition Settings -->
+            <div id="competitionSettings" style="display: none; border-bottom: 2px solid rgba(57,255,20,0.2); padding-bottom: 1.5rem; margin-bottom: 1.5rem; background: rgba(255,193,7,0.05); padding: 1.5rem; border-radius: 12px;">
+                <h4 style="color: #FFC107; margin-bottom: 1rem;"><i class="fas fa-medal"></i> Competition/Winner Settings</h4>
+                
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="competitionEnabled" onchange="toggleCompetitionFields()">
+                        Enable Competition Mode
+                    </label>
+                </div>
+                
+                <div id="competitionFields" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Top Winners Count</label>
+                            <input type="number" id="topWinnersCount" min="1" value="10">
+                            <small style="color: #888; display: block; margin-top: 0.3rem;">How many top performers get prizes (e.g., top 10)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Winner Bonus XP</label>
+                            <input type="number" id="winnerBonusXP" min="0" value="0">
+                            <small style="color: #888; display: block; margin-top: 0.3rem;">Extra XP for winners</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quest Tasks -->
+            <div style="border-bottom: 2px solid rgba(57,255,20,0.2); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+                <h4 style="color: #39FF14; margin-bottom: 1rem;"><i class="fas fa-tasks"></i> Quest Tasks</h4>
+                <p style="color: #888; font-size: 0.85rem; margin-bottom: 1rem;">Add tasks that users need to complete. Each task can have its own XP reward!</p>
+                <div id="tasksList"></div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="addTask()" style="margin-top: 0.5rem;">
+                    <i class="fas fa-plus"></i> Add Task
+                </button>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('createQuestModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Create Quest</button>
+            </div>
+        </form>
     </div>
+</div>
 
     <!-- Create Event Modal -->
     <div class="modal" id="createEventModal">
@@ -815,7 +938,7 @@
                 <h3>Create New Event</h3>
                 <button class="close-btn" onclick="closeModal('createEventModal')">&times;</button>
             </div>
-            <form id="createEventForm" onsubmit="createEvent(event)">
+            <form id="createEventForm" onsubmit="createNewEvent(event)">
                 <div class="form-group">
                     <label>Event Title *</label>
                     <input type="text" id="eventTitle" required>
@@ -932,710 +1055,1127 @@
             </form>
         </div>
     </div>
-
     <script>
-        // Global variables
-        let taskCounter = 0;
+// ==================== GLOBAL VARIABLES ====================
+let taskCounter = 0;
 
-        // Modal Functions
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-        }
+// ==================== UTILITY FUNCTIONS ====================
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
+function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+}
 
-        function openCreateEventModal() {
-            document.getElementById('createEventForm').reset();
-            toggleEventFields();
-            openModal('createEventModal');
-        }
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}
 
-        function openCreateQuestModal() {
-            document.getElementById('createQuestForm').reset();
-            document.getElementById('tasksList').innerHTML = '';
-            taskCounter = 0;
-            addTask();
-            openModal('createQuestModal');
-        }
+function showAlert(message, type = 'success') {
+    const alertEl = document.getElementById('overviewAlert');
+    if (alertEl) {
+        alertEl.textContent = message;
+        alertEl.className = `alert alert-${type} active`;
+        setTimeout(() => alertEl.classList.remove('active'), 5000);
+    }
+    console.log(`[${type.toUpperCase()}] ${message}`);
+}
 
-        // Alert function
-        function showAlert(message, type = 'success') {
-            const alertEl = document.getElementById('overviewAlert');
-            if (alertEl) {
-                alertEl.textContent = message;
-                alertEl.className = `alert alert-${type} active`;
-                setTimeout(() => alertEl.classList.remove('active'), 5000);
-            }
-        }
+// ==================== TAB NAVIGATION ====================
 
-        // Tab Navigation
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuItems = document.querySelectorAll('.menu-item[data-tab]');
+document.addEventListener('DOMContentLoaded', function() {
+    const menuItems = document.querySelectorAll('.menu-item[data-tab]');
+    
+    menuItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const tab = this.getAttribute('data-tab');
             
-            menuItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const tab = this.getAttribute('data-tab');
-                    
-                    menuItems.forEach(mi => mi.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    document.querySelectorAll('.content-section').forEach(section => {
-                        section.classList.remove('active');
-                    });
-                    document.getElementById(tab).classList.add('active');
-                    
-                    loadSectionData(tab);
-                });
+            menuItems.forEach(mi => mi.classList.remove('active'));
+            this.classList.add('active');
+            
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
             });
+            document.getElementById(tab).classList.add('active');
             
-            loadSectionData('overview');
+            loadSectionData(tab);
+        });
+    });
+    
+    loadSectionData('overview');
+});
+
+function loadSectionData(section) {
+    console.log('Loading section:', section);
+    
+    switch(section) {
+        case 'overview':
+            loadOverviewData();
+            break;
+        case 'quests':
+            loadQuests();
+            break;
+        case 'events':
+            loadEvents();
+            break;
+        case 'applications':
+            loadApplications();
+            break;
+        case 'users':
+            loadUsers();
+            break;
+    }
+}
+
+// ==================== OVERVIEW ====================
+
+async function loadOverviewData() {
+    try {
+        console.log('📊 Loading overview data...');
+        
+        const [users, quests, events, apps] = await Promise.all([
+            fetch('/admin/api/users/count').then(r => r.json()).catch(() => ({count: 0})),
+            fetch('/admin/api/quests/stats').then(r => r.json()).catch(() => ({active: 0})),
+            fetch('/admin/api/events/stats').then(r => r.json()).catch(() => ({upcoming: 0})),
+            fetch('/admin/api/applications/stats').then(r => r.json()).catch(() => ({pending: 0}))
+        ]);
+        
+        document.getElementById('totalUsers').textContent = users.count || 0;
+        document.getElementById('activeQuests').textContent = quests.active || 0;
+        document.getElementById('upcomingEvents').textContent = events.upcoming || 0;
+        document.getElementById('pendingApplications').textContent = apps.pending || 0;
+        
+        console.log('✅ Overview data loaded');
+    } catch (error) {
+        console.error('❌ Error loading overview:', error);
+        showAlert('Error loading overview data', 'error');
+    }
+}
+
+// ==================== USERS ====================
+
+async function loadUsers() {
+    try {
+        console.log('👥 Loading users...');
+        const response = await fetch('/admin/api/users');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Users data:', data);
+        
+        if (data.success && data.users) {
+            const tbody = document.getElementById('usersTableBody');
+            if (data.users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #888;">No users found</td></tr>';
+            } else {
+                tbody.innerHTML = data.users.map(user => `
+                    <tr>
+                        <td><strong>${user.username || 'N/A'}</strong></td>
+                        <td>${user.email || 'N/A'}</td>
+                        <td>${user.xp || 0} XP</td>
+                        <td>${user.usdcBalance || 0}</td>
+                        <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                        <td><span class="badge badge-${user.isVerified ? 'approved' : 'pending'}">${user.isVerified ? 'Verified' : 'Unverified'}</span></td>
+                    </tr>
+                `).join('');
+            }
+        } else {
+            throw new Error(data.message || 'Failed to load users');
+        }
+    } catch (error) {
+        console.error('❌ Error loading users:', error);
+        const tbody = document.getElementById('usersTableBody');
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #ff5252;">Error: ${error.message}</td></tr>`;
+        showAlert('Error loading users: ' + error.message, 'error');
+    }
+}
+
+// ==================== EVENTS ====================
+
+async function loadEvents() {
+    try {
+        console.log('📅 Loading events...');
+        const response = await fetch('/admin/api/events');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Events data:', data);
+        
+        if (data.success && data.events) {
+            const tbody = document.getElementById('eventsTableBody');
+            
+            if (data.events.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #888;">No events found</td></tr>';
+            } else {
+                tbody.innerHTML = data.events.map(e => `
+                    <tr>
+                        <td><strong>${e.title}</strong></td>
+                        <td><span class="badge badge-${e.eventType === 'virtual' ? 'active' : 'pending'}">${e.eventType}</span></td>
+                        <td>${new Date(e.startDate).toLocaleDateString()}</td>
+                        <td>${e.totalRegistrations || 0}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary btn-icon btn-sm" onclick="viewEvent('${e._id}')" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-danger btn-icon btn-sm" onclick="deleteEvent('${e._id}')" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } else {
+            throw new Error(data.message || 'Failed to load events');
+        }
+    } catch (error) {
+        console.error('❌ Error loading events:', error);
+        const tbody = document.getElementById('eventsTableBody');
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #ff5252;">Error: ${error.message}</td></tr>`;
+        showAlert('Error loading events: ' + error.message, 'error');
+    }
+}
+
+function openCreateEventModal() {
+    document.getElementById('createEventForm').reset();
+    toggleEventFields();
+    openModal('createEventModal');
+}
+
+function toggleEventFields() {
+    const eventType = document.getElementById('eventType').value;
+    const venueGroup = document.getElementById('venueGroup');
+    const linkGroup = document.getElementById('linkGroup');
+    const venueInput = document.getElementById('eventVenue');
+    const linkInput = document.getElementById('eventLink');
+    const venueRequired = document.getElementById('venueRequired');
+    const linkRequired = document.getElementById('linkRequired');
+
+    if (eventType === 'virtual') {
+        venueGroup.style.display = 'none';
+        linkGroup.style.display = 'block';
+        venueInput.removeAttribute('required');
+        linkInput.setAttribute('required', 'required');
+        venueRequired.style.display = 'none';
+        linkRequired.style.display = 'inline';
+    } else if (eventType === 'physical') {
+        venueGroup.style.display = 'block';
+        linkGroup.style.display = 'none';
+        venueInput.setAttribute('required', 'required');
+        linkInput.removeAttribute('required');
+        venueRequired.style.display = 'inline';
+        linkRequired.style.display = 'none';
+    } else {
+        venueGroup.style.display = 'block';
+        linkGroup.style.display = 'block';
+        venueInput.setAttribute('required', 'required');
+        linkInput.setAttribute('required', 'required');
+        venueRequired.style.display = 'inline';
+        linkRequired.style.display = 'inline';
+    }
+}
+
+async function createNewEvent(e) {
+    e.preventDefault();
+    
+    try {
+        const eventType = document.getElementById('eventType').value;
+        const venue = document.getElementById('eventVenue').value.trim();
+        const virtualLink = document.getElementById('eventLink').value.trim();
+        const title = document.getElementById('eventTitle').value.trim();
+        const description = document.getElementById('eventDescription').value.trim();
+        const startDate = document.getElementById('eventStartDate').value;
+        const endDate = document.getElementById('eventEndDate').value;
+        const category = document.getElementById('eventCategory').value;
+
+        console.log('🔍 Form values:', {
+            title,
+            description,
+            eventType,
+            category,
+            venue,
+            virtualLink,
+            startDate,
+            endDate
         });
 
-        function loadSectionData(section) {
-            console.log('Loading section:', section);
-            
-            switch(section) {
-                case 'overview':
-                    loadOverviewData();
-                    break;
-                case 'quests':
-                    loadQuests();
-                    break;
-                case 'events':
-                    loadEvents();
-                    break;
-                case 'applications':
-                    loadApplications();
-                    break;
-                case 'users':
-                    loadUsers();
-                    break;
+        // Basic validation
+        if (!title || !description) {
+            showAlert('Title and description are required', 'error');
+            return;
+        }
+
+        if (!startDate || !endDate) {
+            showAlert('Start and end dates are required', 'error');
+            return;
+        }
+
+        if (!eventType) {
+            showAlert('Event type is required', 'error');
+            return;
+        }
+
+        // Type-specific validation
+        if (eventType === 'physical' || eventType === 'hybrid') {
+            if (!venue || venue.length === 0) {
+                showAlert('Venue is required for physical and hybrid events', 'error');
+                return;
             }
         }
 
-        // Load Overview
-        async function loadOverviewData() {
-            try {
-                const [users, quests, events, apps] = await Promise.all([
-                    fetch('/admin/api/users/count').then(r => r.json()).catch(() => ({count: 0})),
-                    fetch('/admin/api/quests/stats').then(r => r.json()).catch(() => ({active: 0})),
-                    fetch('/admin/api/events/stats').then(r => r.json()).catch(() => ({upcoming: 0})),
-                    fetch('/admin/api/applications/stats').then(r => r.json()).catch(() => ({pending: 0}))
-                ]);
-                
-                document.getElementById('totalUsers').textContent = users.count || 0;
-                document.getElementById('activeQuests').textContent = quests.active || 0;
-                document.getElementById('upcomingEvents').textContent = events.upcoming || 0;
-                document.getElementById('pendingApplications').textContent = apps.pending || 0;
-            } catch (error) {
-                console.error('Error loading overview:', error);
-                showAlert('Error loading overview data', 'error');
+        if (eventType === 'virtual' || eventType === 'hybrid') {
+            if (!virtualLink || virtualLink.length === 0) {
+                showAlert('Virtual link is required for virtual and hybrid events', 'error');
+                return;
             }
         }
 
-        // Load Quests
-        async function loadQuests() {
-            try {
-                const response = await fetch('/admin/api/quests');
-                const data = await response.json();
-                
-                if (data.success && data.quests) {
-                    const tbody = document.getElementById('questsTableBody');
-                    if (data.quests.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #888;">No quests found</td></tr>';
-                    } else {
-                        tbody.innerHTML = data.quests.map(q => `
-                            <tr>
-                                <td><strong>${q.title}</strong></td>
-                                <td>${q.category}</td>
-                                <td><span class="badge badge-${q.difficulty}">${q.difficulty}</span></td>
-                                <td>${q.xpReward} XP${q.usdcReward ? ` + ${q.usdcReward}` : ''}</td>
-                                <td><span class="badge badge-${q.isActive ? 'active' : 'inactive'}">${q.isActive ? 'Active' : 'Inactive'}</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-secondary btn-icon btn-sm" onclick="toggleQuestStatus('${q._id}', ${!q.isActive})" title="${q.isActive ? 'Deactivate' : 'Activate'}">
-                                            <i class="fas fa-power-off"></i>
-                                        </button>
-                                        <button class="btn btn-danger btn-icon btn-sm" onclick="deleteQuest('${q._id}')" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('');
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading quests:', error);
-                showAlert('Error loading quests', 'error');
-            }
-        }
+        // Build form data
+        const formData = {
+            title,
+            description,
+            eventType,
+            category: category || 'other',
+            startDate,
+            endDate,
+            startTime: '10:00',
+            endTime: '17:00',
+            timezone: 'WAT'
+        };
 
-        // Load Events
-        async function loadEvents() {
-            try {
-                const response = await fetch('/api/events');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const allEvents = [...(data.activeEvents || []), ...(data.pastEvents || [])];
-                    const tbody = document.getElementById('eventsTableBody');
-                    if (allEvents.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #888;">No events found</td></tr>';
-                    } else {
-                        tbody.innerHTML = allEvents.map(e => `
-                            <tr>
-                                <td><strong>${e.title}</strong></td>
-                                <td><span class="badge badge-${e.eventType === 'virtual' ? 'active' : 'pending'}">${e.eventType}</span></td>
-                                <td>${new Date(e.startDate).toLocaleDateString()}</td>
-                                <td>${e.totalRegistrations || 0}</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-secondary btn-icon btn-sm" onclick="window.open('/dashboard/events/${e._id}', '_blank')" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-danger btn-icon btn-sm" onclick="deleteEvent('${e._id}')" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('');
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading events:', error);
-                showAlert('Error loading events', 'error');
-            }
+        // Only add venue/virtualLink if they have values
+        if (venue && venue.length > 0) {
+            formData.venue = venue;
         }
-
-        // Load Applications
-        async function loadApplications() {
-            try {
-                const response = await fetch('/admin/api/applications');
-                const data = await response.json();
-                
-                if (data.success && data.applications) {
-                    const tbody = document.getElementById('applicationsTableBody');
-                    if (data.applications.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #888;">No applications found</td></tr>';
-                    } else {
-                        tbody.innerHTML = data.applications.map(app => `
-                            <tr>
-                                <td><strong>${app.fullName}</strong></td>
-                                <td>${app.course}</td>
-                                <td>${app.email}</td>
-                                <td>${new Date(app.appliedAt).toLocaleDateString()}</td>
-                                <td><span class="badge badge-${app.status}">${app.status}</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-secondary btn-icon btn-sm" onclick="viewApplication('${app._id}')" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        ${app.status === 'pending' ? `
-                                            <button class="btn btn-secondary btn-icon btn-sm" onclick="openApproveModal('${app._id}')" title="Approve" style="color: #39FF14;">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-icon btn-sm" onclick="openRejectModal('${app._id}')" title="Reject">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        ` : ''}
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('');
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading applications:', error);
-                showAlert('Error loading applications', 'error');
-            }
-        }
-
-        // Load Users
-        async function loadUsers() {
-            try {
-                const response = await fetch('/admin/api/users');
-                const data = await response.json();
-                
-                if (data.success && data.users) {
-                    const tbody = document.getElementById('usersTableBody');
-                    if (data.users.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #888;">No users found</td></tr>';
-                    } else {
-                        tbody.innerHTML = data.users.map(user => `
-                            <tr>
-                                <td><strong>${user.username}</strong></td>
-                                <td>${user.email}</td>
-                                <td>${user.xp || 0} XP</td>
-                                <td>${user.usdcBalance || 0}</td>
-                                <td>${new Date(user.createdAt).toLocaleDateString()}</td>
-                                <td><span class="badge badge-${user.isVerified ? 'approved' : 'pending'}">${user.isVerified ? 'Verified' : 'Unverified'}</span></td>
-                            </tr>
-                        `).join('');
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading users:', error);
-                showAlert('Error loading users', 'error');
-            }
-        }
-
-        // ==================== QUEST FUNCTIONS ====================
         
-        function addTask() {
-            taskCounter++;
-            const tasksList = document.getElementById('tasksList');
+        if (virtualLink && virtualLink.length > 0) {
+            formData.virtualLink = virtualLink;
+        }
 
-            const taskItem = document.createElement('div');
-            taskItem.className = 'task-item';
-            taskItem.id = `task-${taskCounter}`;
-            taskItem.innerHTML = `
-                <h4 style="color: #39FF14; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(57,255,20,0.2);">
-                    <i class="fas fa-tasks"></i> Task ${taskCounter}
-                </h4>
-                
-                <div class="form-group">
-                    <label>Task Title *</label>
-                    <input type="text" class="task-title" placeholder="e.g., Follow us on Twitter" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Task Description *</label>
-                    <textarea class="task-description" placeholder="Describe what the user needs to do..." required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>Task Type *</label>
-                    <select class="task-type">
-                        <option value="submission">Submission (requires user input)</option>
-                        <option value="social">Social Media</option>
-                        <option value="verification">Verification</option>
-                        <option value="quiz">Quiz</option>
-                        <option value="external">External Link</option>
-                    </select>
-                </div>
+        console.log('📤 Sending event data:', formData);
 
-                <div style="background: rgba(57,255,20,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(57,255,20,0.1); margin-bottom: 1rem;">
-                    <h5 style="color: #39FF14; font-size: 0.9rem; margin-bottom: 0.8rem;">
-                        <i class="fas fa-link"></i> Action Button (Optional)
-                    </h5>
-                    <p style="color: #888; font-size: 0.85rem; margin-bottom: 0.8rem;">
-                        Add a button that redirects users to perform the task (e.g., Twitter, GitHub, etc.)
-                    </p>
-                    
-                    <div class="form-group">
-                        <label>Button Text</label>
-                        <input type="text" class="task-buttonText" placeholder="e.g., Follow on Twitter, Visit GitHub">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Button Link (URL)</label>
-                        <input type="url" class="task-buttonLink" placeholder="https://twitter.com/your-profile">
-                    </div>
-                </div>
+        const response = await fetch('/admin/api/events', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
 
-                <div style="background: rgba(255,193,7,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,193,7,0.1); margin-bottom: 1rem;">
-                    <h5 style="color: #FFC107; font-size: 0.9rem; margin-bottom: 0.8rem;">
-                        <i class="fas fa-keyboard"></i> User Input Field (Optional)
-                    </h5>
-                    <p style="color: #888; font-size: 0.85rem; margin-bottom: 0.8rem;">
-                        Add an input field where users submit proof of completion
-                    </p>
-                    
-                    <div class="form-group">
-                        <label>Input Label</label>
-                        <input type="text" class="task-inputLabel" placeholder="e.g., Enter your Twitter username">
+        console.log('📥 Response status:', response.status);
+        
+        const data = await response.json();
+        console.log('📥 Response data:', data);
+        
+        if (data.success) {
+            showAlert('Event created successfully! ✅');
+            closeModal('createEventModal');
+            document.getElementById('createEventForm').reset();
+            loadEvents();
+        } else {
+            showAlert(data.message || 'Error creating event', 'error');
+            console.error('Server error details:', data);
+        }
+    } catch (error) {
+        console.error('❌ Error creating event:', error);
+        showAlert('Error creating event: ' + error.message, 'error');
+    }
+}
+
+async function deleteEvent(eventId) {
+    if (!eventId || eventId === 'undefined') {
+        showAlert('Invalid event ID', 'error');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this event?')) {
+        return;
+    }
+
+    try {
+        console.log('Deleting event:', eventId);
+        
+        const response = await fetch(`/admin/api/events/${eventId}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+        console.log('Delete event response:', data);
+        
+        if (data.success) {
+            showAlert('Event deleted successfully!');
+            loadEvents();
+        } else {
+            showAlert(data.message || 'Error deleting event', 'error');
+        }
+    } catch (error) {
+        console.error('❌ Error deleting event:', error);
+        showAlert('Error deleting event: ' + error.message, 'error');
+    }
+}
+
+function viewEvent(eventId) {
+    window.open(`/dashboard/events/${eventId}`, '_blank');
+}
+
+// ==================== APPLICATIONS ====================
+
+async function loadApplications() {
+    try {
+        console.log('📝 Loading applications...');
+        const response = await fetch('/admin/api/applications');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Applications data:', data);
+        
+        if (data.success && data.applications) {
+            const tbody = document.getElementById('applicationsTableBody');
+            
+            if (data.applications.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #888;">No applications found</td></tr>';
+            } else {
+                tbody.innerHTML = data.applications.map(app => `
+                    <tr>
+                        <td><strong>${app.fullName}</strong></td>
+                        <td>${app.course}</td>
+                        <td>${app.email}</td>
+                        <td>${new Date(app.appliedAt).toLocaleDateString()}</td>
+                        <td><span class="badge badge-${app.status}">${app.status}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary btn-icon btn-sm" onclick="viewApplication('${app._id}')" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${app.status === 'pending' ? `
+                                    <button class="btn btn-secondary btn-icon btn-sm" onclick="openApproveModal('${app._id}')" title="Approve" style="color: #39FF14;">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-icon btn-sm" onclick="openRejectModal('${app._id}')" title="Reject">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } else {
+            throw new Error(data.message || 'Failed to load applications');
+        }
+    } catch (error) {
+        console.error('❌ Error loading applications:', error);
+        const tbody = document.getElementById('applicationsTableBody');
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #ff5252;">Error: ${error.message}</td></tr>`;
+        showAlert('Error loading applications: ' + error.message, 'error');
+    }
+}
+
+async function viewApplication(appId) {
+    try {
+        if (!appId || appId === 'undefined') {
+            showAlert('Invalid application ID', 'error');
+            return;
+        }
+
+        console.log('Viewing application:', appId);
+        
+        const response = await fetch(`/admin/api/applications/${appId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const app = data.application;
+            document.getElementById('applicationDetails').innerHTML = `
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <label>Full Name</label>
+                        <p>${app.fullName}</p>
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Input Name (Technical ID)</label>
-                        <input type="text" class="task-inputName" placeholder="e.g., twitterUsername, githubUrl">
-                        <small style="color: #888; font-size: 0.75rem; display: block; margin-top: 0.3rem;">
-                            Use camelCase with no spaces (e.g., twitterUsername, submissionUrl)
-                        </small>
+                    <div class="detail-item">
+                        <label>Email</label>
+                        <p>${app.email}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Course</label>
+                        <p>${app.course}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Twitter Handle</label>
+                        <p>${app.twitterHandle || 'Not provided'}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Status</label>
+                        <p><span class="badge badge-${app.status}">${app.status}</span></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Applied Date</label>
+                        <p>${new Date(app.appliedAt).toLocaleString()}</p>
                     </div>
                 </div>
-                
-                <button type="button" class="btn btn-danger btn-sm" onclick="removeTask('task-${taskCounter}')" style="width: 100%;">
-                    <i class="fas fa-times"></i> Remove Task ${taskCounter}
-                </button>
+                <div class="form-group">
+                    <label>Motivation</label>
+                    <p style="color: #fff; padding: 1rem; background: rgba(57, 255, 20, 0.05); border-radius: 8px;">${app.motivation}</p>
+                </div>
+                ${app.experience ? `
+                <div class="form-group">
+                    <label>Experience</label>
+                    <p style="color: #fff; padding: 1rem; background: rgba(57, 255, 20, 0.05); border-radius: 8px;">${app.experience}</p>
+                </div>
+                ` : ''}
             `;
-            tasksList.appendChild(taskItem);
+            openModal('viewApplicationModal');
+        } else {
+            showAlert(data.message || 'Error loading application', 'error');
         }
-        
-        function removeTask(taskId) {
-            const task = document.getElementById(taskId);
-            if (task) {
-                task.remove();
-            }
-        }
-        
-        async function createQuest(event) {
-            event.preventDefault();
-            
-            try {
-                const taskElements = document.querySelectorAll('.task-item');
-                const tasks = [];
+    } catch (error) {
+        console.error('❌ Error viewing application:', error);
+        showAlert('Error loading application: ' + error.message, 'error');
+    }
+}
 
-                taskElements.forEach((task, index) => {
-                    const title = task.querySelector('.task-title').value.trim();
-                    const description = task.querySelector('.task-description').value.trim();
-                    const buttonText = task.querySelector('.task-buttonText').value.trim();
-                    const buttonLink = task.querySelector('.task-buttonLink').value.trim();
-                    const inputLabel = task.querySelector('.task-inputLabel').value.trim();
-                    const inputName = task.querySelector('.task-inputName').value.trim();
-                    
-                    if (!title || !description) {
-                        alert(`Task ${index + 1} is missing required fields (title or description)`);
-                        return;
-                    }
-                    
-                    // Build task object
-                    const taskObj = {
-                        title: title,
-                        description: description,
-                        taskType: task.querySelector('.task-type').value
-                    };
+function openApproveModal(appId) {
+    document.getElementById('approveAppId').value = appId;
+    openModal('approveApplicationModal');
+}
 
-                    // Only add optional fields if they have values
-                    if (buttonText) taskObj.buttonText = buttonText;
-                    if (buttonLink) taskObj.buttonLink = buttonLink;
-                    if (inputLabel) taskObj.inputLabel = inputLabel;
-                    if (inputName) taskObj.inputName = inputName;
+function openRejectModal(appId) {
+    document.getElementById('rejectAppId').value = appId;
+    openModal('rejectApplicationModal');
+}
 
-                    tasks.push(taskObj);
-                });
+async function approveApplicationSubmit(e) {
+    e.preventDefault();
+    
+    try {
+        const appId = document.getElementById('approveAppId').value;
+        const courseStartDate = document.getElementById('courseStartDate').value;
+        const courseEndDate = document.getElementById('courseEndDate').value;
+        const courseLink = document.getElementById('courseLink').value;
+        const notes = document.getElementById('approveNotes').value;
 
-                if (tasks.length === 0) {
-                    alert('Please add at least one complete task');
-                    return;
-                }
-                
-                const formData = {
-                    title: document.getElementById('questTitle').value,
-                    shortDescription: document.getElementById('questShortDesc').value,
-                    description: document.getElementById('questDescription').value,
-                    category: document.getElementById('questCategory').value,
-                    difficulty: document.getElementById('questDifficulty').value,
-                    xpReward: parseInt(document.getElementById('questXP').value),
-                    usdcReward: parseFloat(document.getElementById('questUSDC').value) || 0,
-                    tasks: tasks
-                };
-
-                console.log('Creating quest with data:', formData);
-
-                const response = await fetch('/admin/api/quests', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    showAlert('Quest created successfully!');
-                    closeModal('createQuestModal');
-                    document.getElementById('createQuestForm').reset();
-                    loadQuests();
-                } else {
-                    alert(data.message || 'Error creating quest');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error creating quest: ' + error.message);
-            }
+        if (!appId || appId === 'undefined') {
+            showAlert('Invalid application ID', 'error');
+            return;
         }
 
-        async function toggleQuestStatus(questId, newStatus) {
-            if (confirm(`Are you sure you want to ${newStatus ? 'activate' : 'deactivate'} this quest?`)) {
-                try {
-                    const response = await fetch(`/admin/api/quests/${questId}/toggle`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ isActive: newStatus })
-                    });
-
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        showAlert(`Quest ${newStatus ? 'activated' : 'deactivated'} successfully!`);
-                        loadQuests();
-                    } else {
-                        alert(data.message || 'Error updating quest');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error updating quest');
-                }
-            }
+        if (!courseStartDate || !courseEndDate || !courseLink) {
+            showAlert('All course details are required', 'error');
+            return;
         }
 
-        async function deleteQuest(questId) {
-            if (confirm('Are you sure you want to delete this quest? This action cannot be undone.')) {
-                try {
-                    const response = await fetch(`/admin/api/quests/${questId}`, {
-                        method: 'DELETE'
-                    });
+        const formData = {
+            courseStartDate,
+            courseEndDate,
+            courseLink,
+            notes
+        };
 
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        showAlert('Quest deleted successfully!');
-                        loadQuests();
-                    } else {
-                        alert(data.message || 'Error deleting quest');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error deleting quest');
-                }
-            }
-        }
+        console.log('Approving application:', appId, formData);
 
-        // ==================== EVENT FUNCTIONS ====================
-
-        function toggleEventFields() {
-            const eventType = document.getElementById('eventType').value;
-            const venueGroup = document.getElementById('venueGroup');
-            const linkGroup = document.getElementById('linkGroup');
-            const venueInput = document.getElementById('eventVenue');
-            const linkInput = document.getElementById('eventLink');
-            const venueRequired = document.getElementById('venueRequired');
-            const linkRequired = document.getElementById('linkRequired');
-
-            if (eventType === 'virtual') {
-                venueGroup.style.display = 'none';
-                linkGroup.style.display = 'block';
-                venueInput.removeAttribute('required');
-                linkInput.setAttribute('required', 'required');
-                venueRequired.style.display = 'none';
-                linkRequired.style.display = 'inline';
-            } else if (eventType === 'physical') {
-                venueGroup.style.display = 'block';
-                linkGroup.style.display = 'none';
-                venueInput.setAttribute('required', 'required');
-                linkInput.removeAttribute('required');
-                venueRequired.style.display = 'inline';
-                linkRequired.style.display = 'none';
-            } else { // hybrid
-                venueGroup.style.display = 'block';
-                linkGroup.style.display = 'block';
-                venueInput.setAttribute('required', 'required');
-                linkInput.setAttribute('required', 'required');
-                venueRequired.style.display = 'inline';
-                linkRequired.style.display = 'inline';
-            }
-        }
-
-        async function createEvent(event) {
-            event.preventDefault();
-            
-            try {
-                const eventType = document.getElementById('eventType').value;
-                const venue = document.getElementById('eventVenue').value.trim();
-                const virtualLink = document.getElementById('eventLink').value.trim();
-
-                const formData = {
-                    title: document.getElementById('eventTitle').value,
-                    description: document.getElementById('eventDescription').value,
-                    eventType: eventType,
-                    category: document.getElementById('eventCategory').value,
-                    startDate: document.getElementById('eventStartDate').value,
-                    endDate: document.getElementById('eventEndDate').value,
-                    startTime: '10:00',
-                    endTime: '17:00',
-                    timezone: 'WAT'
-                };
-
-                if (venue) formData.venue = venue;
-                if (virtualLink) formData.virtualLink = virtualLink;
-
-                console.log('Creating event:', formData);
-
-                const response = await fetch('/admin/api/events', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    showAlert('Event created successfully!');
-                    closeModal('createEventModal');
-                    document.getElementById('createEventForm').reset();
-                    loadEvents();
-                } else {
-                    alert(data.message || 'Error creating event');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error creating event: ' + error.message);
-            }
-        }
-
-        async function deleteEvent(eventId) {
-            if (confirm('Are you sure you want to delete this event?')) {
-                try {
-                    const response = await fetch(`/admin/api/events/${eventId}`, {
-                        method: 'DELETE'
-                    });
-
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        showAlert('Event deleted successfully!');
-                        loadEvents();
-                    } else {
-                        alert(data.message || 'Error deleting event');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error deleting event');
-                }
-            }
-        }
-
-        // ==================== APPLICATION FUNCTIONS ====================
-
-        async function viewApplication(appId) {
-            try {
-                const response = await fetch(`/api/learn/applications/${appId}`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    const app = data.application;
-                    document.getElementById('applicationDetails').innerHTML = `
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <label>Full Name</label>
-                                <p>${app.fullName}</p>
-                            </div>
-                            <div class="detail-item">
-                                <label>Email</label>
-                                <p>${app.email}</p>
-                            </div>
-                            <div class="detail-item">
-                                <label>Course</label>
-                                <p>${app.course}</p>
-                            </div>
-                            <div class="detail-item">
-                                <label>Twitter Handle</label>
-                                <p>${app.twitterHandle || 'Not provided'}</p>
-                            </div>
-                            <div class="detail-item">
-                                <label>Status</label>
-                                <p><span class="badge badge-${app.status}">${app.status}</span></p>
-                            </div>
-                            <div class="detail-item">
-                                <label>Applied Date</label>
-                                <p>${new Date(app.appliedAt).toLocaleString()}</p>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Motivation</label>
-                            <p style="color: #fff; padding: 1rem; background: rgba(57, 255, 20, 0.05); border-radius: 8px;">${app.motivation}</p>
-                        </div>
-                        ${app.experience ? `
-                        <div class="form-group">
-                            <label>Experience</label>
-                            <p style="color: #fff; padding: 1rem; background: rgba(57, 255, 20, 0.05); border-radius: 8px;">${app.experience}</p>
-                        </div>
-                        ` : ''}
-                    `;
-                    openModal('viewApplicationModal');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error loading application details');
-            }
-        }
-
-        function openApproveModal(appId) {
-            document.getElementById('approveAppId').value = appId;
-            openModal('approveApplicationModal');
-        }
-
-        function openRejectModal(appId) {
-            document.getElementById('rejectAppId').value = appId;
-            openModal('rejectApplicationModal');
-        }
-
-        async function approveApplication(event) {
-            event.preventDefault();
-            
-            const appId = document.getElementById('approveAppId').value;
-            const formData = {
-                courseStartDate: document.getElementById('courseStartDate').value,
-                courseEndDate: document.getElementById('courseEndDate').value,
-                courseLink: document.getElementById('courseLink').value,
-                notes: document.getElementById('approveNotes').value
-            };
-
-            try {
-                const response = await fetch(`/admin/api/applications/${appId}/approve`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    showAlert('Application approved successfully!');
-                    closeModal('approveApplicationModal');
-                    document.getElementById('approveApplicationForm').reset();
-                    loadApplications();
-                } else {
-                    alert(data.message || 'Error approving application');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error approving application');
-            }
-        }
-
-        async function rejectApplication(event) {
-            event.preventDefault();
-            
-            const appId = document.getElementById('rejectAppId').value;
-            const formData = {
-                notes: document.getElementById('rejectNotes').value
-            };
-
-            try {
-                const response = await fetch(`/admin/api/applications/${appId}/reject`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    showAlert('Application rejected');
-                    closeModal('rejectApplicationModal');
-                    document.getElementById('rejectApplicationForm').reset();
-                    loadApplications();
-                } else {
-                    alert(data.message || 'Error rejecting application');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error rejecting application');
-            }
-        }
-
-        // Close modal when clicking outside
-        window.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal')) {
-                e.target.classList.remove('active');
-            }
+        const response = await fetch(`/admin/api/applications/${appId}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
         });
-    </script>
+
+        const data = await response.json();
+        console.log('Approve response:', data);
+        
+        if (data.success) {
+            showAlert('Application approved successfully! Email sent to applicant.');
+            closeModal('approveApplicationModal');
+            document.getElementById('approveApplicationForm').reset();
+            loadApplications();
+        } else {
+            showAlert(data.message || 'Error approving application', 'error');
+        }
+    } catch (error) {
+        console.error('❌ Error approving application:', error);
+        showAlert('Error approving application: ' + error.message, 'error');
+    }
+}
+
+
+async function rejectApplicationSubmit(e) {
+    e.preventDefault();
+    
+    try {
+        const appId = document.getElementById('rejectAppId').value;
+        const notes = document.getElementById('rejectNotes').value.trim();
+
+        if (!appId || appId === 'undefined') {
+            showAlert('Invalid application ID', 'error');
+            return;
+        }
+
+        if (!notes) {
+            showAlert('Rejection reason is required', 'error');
+            return;
+        }
+
+        const formData = { notes };
+
+        console.log('Rejecting application:', appId, formData);
+
+        const response = await fetch(`/admin/api/applications/${appId}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        console.log('Reject response:', data);
+        
+        if (data.success) {
+            showAlert('Application rejected. Email sent to applicant.');
+            closeModal('rejectApplicationModal');
+            document.getElementById('rejectApplicationForm').reset();
+            loadApplications();
+        } else {
+            showAlert(data.message || 'Error rejecting application', 'error');
+        }
+    } catch (error) {
+        console.error('❌ Error rejecting application:', error);
+        showAlert('Error rejecting application: ' + error.message, 'error');
+    }
+}
+
+
+// ==================== QUESTS ====================
+
+async function loadQuests() {
+    try {
+        const response = await fetch('/admin/api/quests');
+        const data = await response.json();
+        
+        if (data.success && data.quests) {
+            const tbody = document.getElementById('questsTableBody');
+            if (data.quests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #888;">No quests found</td></tr>';
+            } else {
+                tbody.innerHTML = data.quests.map(q => `
+                    <tr>
+                        <td>
+                            <strong>${q.title}</strong>
+                            <br>
+                            <small style="color: #888;">
+                                ${q.questType === 'referral_boost' ? '🎁 Referral Boost' : ''}
+                                ${q.questType === 'fcfs' ? '⚡ FCFS' : ''}
+                                ${q.questType === 'competition' ? '🏆 Competition' : ''}
+                                ${q.questType === 'standard' ? '📋 Standard' : ''}
+                            </small>
+                        </td>
+                        <td>${q.category}</td>
+                        <td><span class="badge badge-${q.difficulty}">${q.difficulty}</span></td>
+                        <td>
+                            ${q.baseXpReward || q.xpReward || 0} XP
+                            ${q.usdcReward ? `<br><small>+ ${q.usdcReward} USDC</small>` : ''}
+                        </td>
+                        <td><span class="badge badge-${q.isActive ? 'active' : 'inactive'}">${q.isActive ? 'Active' : 'Inactive'}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary btn-icon btn-sm" onclick="viewQuestLeaderboard('${q._id}')" title="View Leaderboard">
+                                    <i class="fas fa-chart-bar"></i>
+                                </button>
+                                <button class="btn btn-secondary btn-icon btn-sm" onclick="toggleQuestStatus('${q._id}', ${!q.isActive})" title="${q.isActive ? 'Deactivate' : 'Activate'}">
+                                    <i class="fas fa-power-off"></i>
+                                </button>
+                                <button class="btn btn-danger btn-icon btn-sm" onclick="deleteQuest('${q._id}')" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        console.error('Error loading quests:', error);
+        showAlert('Error loading quests', 'error');
+    }
+}
+
+function openCreateQuestModal() {
+    document.getElementById('createQuestForm').reset();
+    document.getElementById('tasksList').innerHTML = '';
+    taskCounter = 0;
+    addTask();
+    openModal('createQuestModal');
+}
+async function createQuest(e) {
+    e.preventDefault();
+    
+    try {
+        const taskElements = document.querySelectorAll('.task-item');
+        const tasks = [];
+
+        taskElements.forEach((task, index) => {
+            const title = task.querySelector('.task-title')?.value.trim();
+            const description = task.querySelector('.task-description')?.value.trim();
+            const xpReward = parseInt(task.querySelector('.task-xpReward')?.value) || 0;
+            
+            if (!title || !description) {
+                throw new Error(`Task ${index + 1} is missing required fields`);
+            }
+            
+            const taskObj = {
+                title: title,
+                description: description,
+                taskType: task.querySelector('.task-type').value,
+                xpReward: xpReward
+            };
+
+            const buttonText = task.querySelector('.task-buttonText')?.value.trim();
+            const buttonLink = task.querySelector('.task-buttonLink')?.value.trim();
+            const inputLabel = task.querySelector('.task-inputLabel')?.value.trim();
+            const inputName = task.querySelector('.task-inputName')?.value.trim();
+            
+            if (buttonText) taskObj.buttonText = buttonText;
+            if (buttonLink) taskObj.buttonLink = buttonLink;
+            if (inputLabel) taskObj.inputLabel = inputLabel;
+            if (inputName) taskObj.inputName = inputName;
+
+            tasks.push(taskObj);
+        });
+
+        if (tasks.length === 0) {
+            alert('Please add at least one task');
+            return;
+        }
+        
+        const formData = {
+            title: document.getElementById('questTitle').value,
+            shortDescription: document.getElementById('questShortDesc').value,
+            description: document.getElementById('questDescription').value,
+            category: document.getElementById('questCategory').value,
+            difficulty: document.getElementById('questDifficulty').value,
+            questType: document.getElementById('questType').value,
+            
+            baseXpReward: parseInt(document.getElementById('baseXpReward').value) || 0,
+            usdcReward: parseFloat(document.getElementById('questUSDC').value) || 0,
+            
+            startDate: document.getElementById('questStartDate').value || null,
+            endDate: document.getElementById('questEndDate').value || null,
+            maxParticipants: parseInt(document.getElementById('maxParticipants').value) || null,
+            
+            referralEnabled: document.getElementById('referralEnabled')?.checked || false,
+            xpPerReferralJoin: parseInt(document.getElementById('xpPerReferralJoin')?.value) || 0,
+            xpPerReferralComplete: parseInt(document.getElementById('xpPerReferralComplete')?.value) || 0,
+            
+            competitionEnabled: document.getElementById('competitionEnabled')?.checked || false,
+            topWinnersCount: parseInt(document.getElementById('topWinnersCount')?.value) || 10,
+            winnerBonusXP: parseInt(document.getElementById('winnerBonusXP')?.value) || 0,
+            
+            tasks: tasks
+        };
+
+        console.log('Creating quest with data:', formData);
+
+        const response = await fetch('/admin/api/quests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert('Quest created successfully!');
+            closeModal('createQuestModal');
+            document.getElementById('createQuestForm').reset();
+            loadQuests();
+        } else {
+            alert(data.message || 'Error creating quest');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error creating quest: ' + error.message);
+    }
+}
+
+function toggleQuestTypeSettings() {
+    const questType = document.getElementById('questType').value;
+    const referralSettings = document.getElementById('referralSettings');
+    const competitionSettings = document.getElementById('competitionSettings');
+    
+    if (questType === 'referral_boost') {
+        referralSettings.style.display = 'block';
+        competitionSettings.style.display = 'none';
+    } else if (questType === 'fcfs' || questType === 'competition') {
+        competitionSettings.style.display = 'block';
+        referralSettings.style.display = questType === 'competition' ? 'block' : 'none';
+    } else {
+        referralSettings.style.display = 'none';
+        competitionSettings.style.display = 'none';
+    }
+}
+
+function toggleReferralFields() {
+    const enabled = document.getElementById('referralEnabled').checked;
+    document.getElementById('referralFields').style.display = enabled ? 'block' : 'none';
+}
+
+function toggleCompetitionFields() {
+    const enabled = document.getElementById('competitionEnabled').checked;
+    document.getElementById('competitionFields').style.display = enabled ? 'block' : 'none';
+}
+
+function addTask() {
+    taskCounter++;
+    const tasksList = document.getElementById('tasksList');
+
+    const taskItem = document.createElement('div');
+    taskItem.className = 'task-item';
+    taskItem.id = `task-${taskCounter}`;
+    taskItem.innerHTML = `
+        <h4 style="color: #39FF14; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(57,255,20,0.2); display: flex; justify-content: space-between; align-items: center;">
+            <span><i class="fas fa-tasks"></i> Task ${taskCounter}</span>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeTask('task-${taskCounter}')" style="padding: 0.3rem 0.8rem;">
+                <i class="fas fa-times"></i> Remove
+            </button>
+        </h4>
+        
+        <div class="form-group">
+            <label>Task Title *</label>
+            <input type="text" class="task-title" placeholder="e.g., Follow us on Twitter" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Task Description *</label>
+            <textarea class="task-description" placeholder="Describe what the user needs to do..." required></textarea>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label>Task Type *</label>
+                <select class="task-type">
+                    <option value="submission">Submission</option>
+                    <option value="social">Social Media</option>
+                    <option value="verification">Verification</option>
+                    <option value="quiz">Quiz</option>
+                    <option value="external">External Link</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>XP Reward for This Task</label>
+                <input type="number" class="task-xpReward" min="0" value="0" placeholder="0">
+                <small style="color: #888; font-size: 0.75rem; display: block; margin-top: 0.3rem;">XP earned when completing this specific task</small>
+            </div>
+        </div>
+
+        <div style="background: rgba(57,255,20,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(57,255,20,0.1); margin-bottom: 1rem;">
+            <h5 style="color: #39FF14; font-size: 0.9rem; margin-bottom: 0.8rem;">
+                <i class="fas fa-link"></i> Action Button (Optional)
+            </h5>
+            
+            <div class="form-group">
+                <label>Button Text</label>
+                <input type="text" class="task-buttonText" placeholder="e.g., Follow on Twitter">
+            </div>
+            
+            <div class="form-group">
+                <label>Button Link (URL)</label>
+                <input type="url" class="task-buttonLink" placeholder="https://twitter.com/...">
+            </div>
+        </div>
+
+        <div style="background: rgba(255,193,7,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,193,7,0.1);">
+            <h5 style="color: #FFC107; font-size: 0.9rem; margin-bottom: 0.8rem;">
+                <i class="fas fa-keyboard"></i> User Input Field (Optional)
+            </h5>
+            
+            <div class="form-group">
+                <label>Input Label</label>
+                <input type="text" class="task-inputLabel" placeholder="e.g., Enter your Twitter username">
+            </div>
+            
+            <div class="form-group">
+                <label>Input Name (Technical ID)</label>
+                <input type="text" class="task-inputName" placeholder="e.g., twitterUsername">
+            </div>
+        </div>
+    `;
+    tasksList.appendChild(taskItem);
+}
+
+function removeTask(taskId) {
+    const task = document.getElementById(taskId);
+    if (task) {
+        task.remove();
+    }
+}
+
+async function createNewQuest(e) {
+    e.preventDefault();
+    
+    try {
+        const taskElements = document.querySelectorAll('.task-item');
+        const tasks = [];
+
+        taskElements.forEach((task, index) => {
+            const title = task.querySelector('.task-title').value.trim();
+            const description = task.querySelector('.task-description').value.trim();
+            const xpReward = parseInt(task.querySelector('.task-xpReward').value) || 0;
+            
+            if (!title || !description) {
+                alert(`Task ${index + 1} is missing required fields`);
+                return;
+            }
+            
+            const taskObj = {
+                title: title,
+                description: description,
+                taskType: task.querySelector('.task-type').value,
+                xpReward: xpReward
+            };
+
+            const buttonText = task.querySelector('.task-buttonText').value.trim();
+            const buttonLink = task.querySelector('.task-buttonLink').value.trim();
+            const inputLabel = task.querySelector('.task-inputLabel').value.trim();
+            const inputName = task.querySelector('.task-inputName').value.trim();
+            
+            if (buttonText) taskObj.buttonText = buttonText;
+            if (buttonLink) taskObj.buttonLink = buttonLink;
+            if (inputLabel) taskObj.inputLabel = inputLabel;
+            if (inputName) taskObj.inputName = inputName;
+
+            tasks.push(taskObj);
+        });
+
+        if (tasks.length === 0) {
+            alert('Please add at least one task');
+            return;
+        }
+        
+        const formData = {
+            title: document.getElementById('questTitle').value,
+            shortDescription: document.getElementById('questShortDesc').value,
+            description: document.getElementById('questDescription').value,
+            category: document.getElementById('questCategory').value,
+            difficulty: document.getElementById('questDifficulty').value,
+            questType: document.getElementById('questType').value,
+            
+            baseXpReward: parseInt(document.getElementById('baseXpReward').value) || 0,
+            usdcReward: parseFloat(document.getElementById('questUSDC').value) || 0,
+            
+            startDate: document.getElementById('questStartDate').value || null,
+            endDate: document.getElementById('questEndDate').value || null,
+            maxParticipants: parseInt(document.getElementById('maxParticipants').value) || null,
+            
+            referralEnabled: document.getElementById('referralEnabled')?.checked || false,
+            xpPerReferralJoin: parseInt(document.getElementById('xpPerReferralJoin')?.value) || 0,
+            xpPerReferralComplete: parseInt(document.getElementById('xpPerReferralComplete')?.value) || 0,
+            
+            competitionEnabled: document.getElementById('competitionEnabled')?.checked || false,
+            topWinnersCount: parseInt(document.getElementById('topWinnersCount')?.value) || 10,
+            winnerBonusXP: parseInt(document.getElementById('winnerBonusXP')?.value) || 0,
+            
+            tasks: tasks
+        };
+
+        console.log('Creating quest with data:', formData);
+
+        const response = await fetch('/admin/api/quests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert('Quest created successfully!');
+            closeModal('createQuestModal');
+            document.getElementById('createQuestForm').reset();
+            loadQuests();
+        } else {
+            alert(data.message || 'Error creating quest');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error creating quest: ' + error.message);
+    }
+}
+
+async function toggleQuestStatus(questId, newStatus) {
+    if (confirm(`Are you sure you want to ${newStatus ? 'activate' : 'deactivate'} this quest?`)) {
+        try {
+            const response = await fetch(`/admin/api/quests/${questId}/toggle`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isActive: newStatus })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                showAlert(`Quest ${newStatus ? 'activated' : 'deactivated'} successfully!`);
+                loadQuests();
+            } else {
+                alert(data.message || 'Error updating quest');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error updating quest');
+        }
+    }
+}
+
+async function deleteQuest(questId) {
+    if (confirm('Are you sure you want to delete this quest? This action cannot be undone.')) {
+        try {
+            const response = await fetch(`/admin/api/quests/${questId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                showAlert('Quest deleted successfully!');
+                loadQuests();
+            } else {
+                alert(data.message || 'Error deleting quest');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error deleting quest');
+        }
+    }
+}
+
+async function viewQuestLeaderboard(questId) {
+    try {
+        const response = await fetch(`/admin/api/quests/${questId}/leaderboard`);
+        const data = await response.json();
+        
+        if (data.success) {
+            showLeaderboardModal(data);
+        } else {
+            alert('Error loading leaderboard');
+        }
+    } catch (error) {
+        console.error('Error loading leaderboard:', error);
+        alert('Error loading leaderboard');
+    }
+}
+
+function showLeaderboardModal(data) {
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.id = 'leaderboardModal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 1200px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <div>
+                    <h3>${data.quest.title} - Leaderboard</h3>
+                    <p style="color: #888; font-size: 0.9rem; margin-top: 0.5rem;">
+                        Type: ${data.quest.questType} | 
+                        Participants: ${data.totalParticipants} | 
+                        Completions: ${data.totalCompletions}
+                    </p>
+                </div>
+                <button class="close-btn" onclick="closeLeaderboardModal()">&times;</button>
+            </div>
+            
+            <div style="margin-bottom: 1rem; display: flex; gap: 1rem;">
+                <button class="btn btn-secondary btn-sm" onclick="exportLeaderboard('${data.quest._id || questId}')">
+                    <i class="fas fa-download"></i> Export CSV
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Username</th>
+                            <th>Total XP</th>
+                            <th>Task XP</th>
+                            <th>Base XP</th>
+                            <th>Referral Join</th>
+                            <th>Referral Complete</th>
+                            <th>Winner Bonus</th>
+                            <th>Referrals (J/C)</th>
+                            <th>Time</th>
+                            <th>Completed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.leaderboard.length === 0 ? 
+                            '<tr><td colspan="11" style="text-align: center; padding: 2rem; color: #888;">No completions yet</td></tr>' :
+                            data.leaderboard.map((entry, idx) => `
+                                <tr style="${entry.isWinner ? 'background: rgba(57,255,20,0.05);' : ''}">
+                                    <td>
+                                        <strong style="color: ${idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : idx === 2 ? '#CD7F32' : '#888'};">
+                                            ${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : entry.rank}
+                                        </strong>
+                                        ${entry.isWinner ? ' <span style="color: #39FF14;">✓</span>' : ''}
+                                    </td>
+                                    <td><strong>${entry.username}</strong></td>
+                                    <td><strong style="color: #39FF14;">${entry.totalXp}</strong></td>
+                                    <td>${entry.taskXp}</td>
+                                    <td>${entry.baseXp}</td>
+                                    <td>${entry.referralJoinBonus}</td>
+                                    <td>${entry.referralCompleteBonus}</td>
+                                    <td>${entry.winnerBonus}</td>
+                                    <td>${entry.referralsJoined}/${entry.referralsCompleted}</td>
+                                    <td>${entry.timeSpent}m</td>
+                                    <td><small style="color: #888;">${new Date(entry.completedAt).toLocaleDateString()}</small></td>
+                                </tr>
+                            `).join('')
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function closeLeaderboardModal() {
+    const modal = document.getElementById('leaderboardModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function exportLeaderboard(questId) {
+    window.open(`/admin/api/quests/${questId}/export`, '_blank');
+}
+
+// ==================== EVENT LISTENERS ====================
+
+window.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('active');
+    }
+});
+
+// ==================== DEBUG HELPER ====================
+
+window.adminDebug = {
+    testUsers: () => fetch('/admin/api/users').then(r => r.json()).then(console.log),
+    testEvents: () => fetch('/admin/api/events').then(r => r.json()).then(console.log),
+    testApplications: () => fetch('/admin/api/applications').then(r => r.json()).then(console.log),
+    testQuests: () => fetch('/admin/api/quests').then(r => r.json()).then(console.log),
+    reload: (section) => loadSectionData(section)
+};
+
+console.log('🔧 Admin Debug Helper loaded. Use window.adminDebug in console.');
+console.log('Example: window.adminDebug.testUsers()');
+document.getElementById('approveApplicationForm').addEventListener('submit', approveApplicationSubmit);
+document.getElementById('rejectApplicationForm').addEventListener('submit', rejectApplicationSubmit);
+</script>
 </body>
 </html>

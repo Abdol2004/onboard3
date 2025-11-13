@@ -1,23 +1,24 @@
+require('dotenv').config();
 const { Resend } = require('resend');
-const resendApi = "re_BMj6DPTn_JhMeVpFKSuDBjhzcWWZ47gzc"
+
 
 // Lazy initialization of Resend
 let resend = null;
 
 function getResend() {
-  if (!resend) {
-    const apiKey = resendApi;
-    if (!apiKey) {
-      throw new Error("❌ RESEND_API_KEY not found in environment variables!");
-    }
-    resend = new Resend(apiKey);
-    console.log("✅ Resend initialized successfully");
-  }
-  return resend;
-}
+     if (!resend) {
+       const apiKey = process.env.RESEND_API_KEY; // Use env variable
+       if (!apiKey) {
+         throw new Error("❌ RESEND_API_KEY not found in environment variables!");
+       }
+       resend = new Resend(apiKey);
+       console.log("✅ Resend initialized successfully");
+     }
+     return resend;
+   }
 
-const baseUrl = process.env.BASE_URL || "http://localhost:3000";
-const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+const baseUrl = process.env.BASE_URL || "https://onboard3.app";
+const fromEmail = process.env.FROM_EMAIL || "hello@onboard3.app";
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const devEmail = "abdulfatahabdol2003@gmail.com"; // Your verified email for testing
 
@@ -147,7 +148,7 @@ exports.sendVerificationEmail = async (email, username, verificationToken) => {
                   <strong>⚠️ DEVELOPMENT MODE:</strong> This email was originally intended for ${email} but redirected to ${devEmail} for testing purposes.
                 </div>
               ` : ''}
-              <h1>Welcome to ONBOARD3, ${username}! 🚀</h1>
+              <h1>Welcome ONBOARD, ${username}! 🚀</h1>
               <p>Thank you for joining the future of Web3 development. We're excited to have you onboard!</p>
               <p>To complete your registration and activate your account, please verify your email address by clicking the button below:</p>
               
@@ -194,7 +195,7 @@ exports.sendWelcomeEmail = async (email, username) => {
     const { data, error } = await resendClient.emails.send({
       from: `ONBOARD3 <${fromEmail}>`,
       to: recipientEmail,
-      subject: "Welcome to ONBOARD3! 🎉",
+      subject: "Welcome ONBOARD! 🎉",
       html: `
         <!DOCTYPE html>
         <html>
@@ -278,7 +279,7 @@ exports.sendWelcomeEmail = async (email, username) => {
                 <a href="${baseUrl}" class="button">Start Building</a>
               </center>
               
-              <p>Welcome aboard! 🚀</p>
+              <p>Welcome onboard! </p>
             </div>
             <div class="footer">
               <p>ONBOARD3 - Onboard. Educate. Build.</p>
@@ -392,7 +393,7 @@ exports.sendCourseApplicationEmail = async (email, fullName, course) => {
             </div>
             <div class="footer">
               <p>ONBOARD3 - Web3 Builder Hub</p>
-              <p>Empowering the next generation of Web3 builders 🚀</p>
+              <p>Empowering the next generation of Web3 builders</p>
             </div>
           </div>
         </body>
@@ -558,6 +559,145 @@ exports.sendCourseApprovalEmail = async (email, fullName, course, courseDetails)
     return { success: true, data };
   } catch (error) {
     console.error("❌ Error sending course approval email:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+exports.sendCourseRejectionEmail = async (email, fullName, course, rejectionReason) => {
+  try {
+    const resendClient = getResend();
+    const recipientEmail = getRecipientEmail(email);
+    
+    const { data, error } = await resendClient.emails.send({
+      from: `ONBOARD3 <${fromEmail}>`,
+      to: recipientEmail,
+      subject: `Course Application Update - ${course}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: 'Arial', sans-serif;
+              background-color: #0a0a0a;
+              color: #ffffff;
+              margin: 0;
+              padding: 0;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              border-radius: 12px;
+              overflow: hidden;
+            }
+            .header {
+              background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+              padding: 40px 30px;
+              text-align: center;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .header h1 {
+              margin: 0;
+              color: #ffffff;
+              font-size: 28px;
+              font-weight: bold;
+            }
+            .content {
+              padding: 40px 30px;
+            }
+            .reason-box {
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 8px;
+              padding: 20px;
+              margin: 20px 0;
+            }
+            .encouragement-box {
+              background: rgba(57, 255, 20, 0.1);
+              border: 1px solid #39FF14;
+              border-radius: 8px;
+              padding: 25px;
+              margin: 25px 0;
+            }
+            .button {
+              display: inline-block;
+              background: #39FF14;
+              color: #0a0a0a;
+              text-decoration: none;
+              padding: 15px 35px;
+              border-radius: 8px;
+              font-weight: bold;
+              margin: 20px 0;
+            }
+            .footer {
+              background: #0a0a0a;
+              padding: 20px;
+              text-align: center;
+              color: #888;
+              font-size: 12px;
+              border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Application Status Update</h1>
+            </div>
+            <div class="content">
+              <h2 style="color: #ffffff;">Dear ${fullName},</h2>
+              <p>Thank you for your interest in our <strong>${course}</strong> course and for taking the time to submit your application.</p>
+              
+              <p>After careful review, we regret to inform you that we are unable to accept your application at this time.</p>
+
+              ${rejectionReason ? `
+              <div class="reason-box">
+                <h3 style="color: #ffffff; margin-top: 0;">Feedback</h3>
+                <p style="color: #ccc;">${rejectionReason}</p>
+              </div>
+              ` : ''}
+
+              <div class="encouragement-box">
+                <h3 style="color: #39FF14; margin-top: 0;">🌟 Don't Give Up!</h3>
+                <p style="color: #ccc;">This decision doesn't reflect your potential. We encourage you to:</p>
+                <ul style="line-height: 1.8; color: #ccc;">
+                  <li>Explore our other available courses and programs</li>
+                  <li>Strengthen your skills through our free resources</li>
+                  <li>Participate in community events and challenges</li>
+                  <li>Reapply in the future when you feel ready</li>
+                </ul>
+              </div>
+
+              <p>We appreciate your understanding and wish you the best in your Web3 journey.</p>
+
+              <div style="text-align:center;">
+                <a href="${baseUrl}/dashboard/courses" class="button">Explore Other Courses 🚀</a>
+              </div>
+
+              <p style="color: #888; font-size: 14px; margin-top: 30px;">
+                If you have any questions, feel free to reach out to our team.
+              </p>
+            </div>
+            <div class="footer">
+              <p>ONBOARD3 - Web3 Builder Hub</p>
+              <p>Keep Building 🚀</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    });
+
+    if (error) {
+      console.error("❌ Error sending course rejection email:", error);
+      return { success: false, error: error.message || JSON.stringify(error) };
+    }
+
+    console.log("✅ Course rejection email sent to:", recipientEmail);
+    return { success: true, data };
+  } catch (error) {
+    console.error("❌ Error sending course rejection email:", error.message);
     return { success: false, error: error.message };
   }
 };

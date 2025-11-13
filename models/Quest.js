@@ -15,8 +15,18 @@ const taskSchema = new mongoose.Schema({
   },
   taskType: {
     type: String,
-    enum: ['social', 'submission', 'verification', 'quiz', 'external'],
+    enum: ['social', 'submission', 'verification', 'quiz', 'external', 'daily'],
     default: 'submission'
+  },
+  // NEW: XP reward per task
+  xpReward: {
+    type: Number,
+    default: 0
+  },
+  // NEW: Is this a daily task?
+  isDaily: {
+    type: Boolean,
+    default: false
   },
   buttonText: {
     type: String,
@@ -36,11 +46,11 @@ const taskSchema = new mongoose.Schema({
   },
   requirements: {
     url: String,
-    platform: String, // 'twitter', 'telegram', 'discord', etc.
-    action: String // 'follow', 'join', 'like', 'retweet', etc.
+    platform: String,
+    action: String
   },
   validationUrl: {
-    type: String // URL for validation/submission
+    type: String
   }
 });
 
@@ -68,13 +78,67 @@ const questSchema = new mongoose.Schema({
     enum: ['beginner', 'intermediate', 'advanced', 'expert'],
     default: 'beginner'
   },
-  questType: {
-    type: String,
-    enum: ['daily', 'weekly', 'monthly', 'permanent', 'special'],
-    default: 'permanent'
+  
+  // ==================== NEW QUEST TYPES ====================
+ questType: {
+  type: String,
+  enum: ['standard', 'referral_boost', 'fcfs', 'competition', 'permanent', 'daily', 'weekly', 'monthly', 'special'],
+  default: 'standard'
+    // standard = old permanent quests
+    // referral_boost = earn bonus XP for referrals who join
+    // fcfs = first come first serve, no referral bonus
+    // competition = leaderboard-based with rankings
   },
-  // Rewards
-  xpReward: {
+  
+  // ==================== QUEST DATES ====================
+  startDate: {
+    type: Date,
+    default: null // null = starts immediately
+  },
+  endDate: {
+    type: Date,
+    default: null // null = no end date
+  },
+  
+  // ==================== REFERRAL SYSTEM ====================
+  referralConfig: {
+    enabled: {
+      type: Boolean,
+      default: false
+    },
+    // XP bonus per referral who JOINS the quest
+    xpPerReferralJoin: {
+      type: Number,
+      default: 0
+    },
+    // XP bonus per referral who COMPLETES the quest
+    xpPerReferralComplete: {
+      type: Number,
+      default: 0
+    }
+  },
+  
+  // ==================== COMPETITION SETTINGS ====================
+  competitionConfig: {
+    enabled: {
+      type: Boolean,
+      default: false
+    },
+    // Number of winners (top 10, top 20, etc.)
+    topWinnersCount: {
+      type: Number,
+      default: 10
+    },
+    // Bonus XP for winners
+    winnerBonusXP: {
+      type: Number,
+      default: 0
+    }
+  },
+  
+  // ==================== REWARDS ====================
+  // Base XP (given when quest is completed)
+  baseXpReward: {
     type: Number,
     default: 0
   },
@@ -86,36 +150,40 @@ const questSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  
   // Quest details
   estimatedDuration: {
-    type: String, // e.g., "2-3 hours"
+    type: String,
     default: "1-2 hours"
   },
   tasks: [taskSchema],
+  
+  // Daily tasks (can be added/removed by admin)
+  dailyTasks: [taskSchema],
+  
   // Resources
   resources: [{
     title: { type: String },
     url: { type: String },
-    type: { type: String } // 'documentation', 'video', 'article', 'code'
+    type: { type: String }
   }],
+  
   // Status and visibility
   isActive: {
     type: Boolean,
     default: true
   },
-  startDate: {
-    type: Date,
-    default: Date.now
-  },
-  endDate: {
-    type: Date,
-    default: null // null means no end date
-  },
-  maxCompletions: {
+  
+  maxParticipants: {
     type: Number,
-    default: null // null means unlimited
+    default: null // null = unlimited
   },
+  
   // Stats
+  totalParticipants: {
+    type: Number,
+    default: 0
+  },
   totalCompletions: {
     type: Number,
     default: 0
@@ -126,8 +194,9 @@ const questSchema = new mongoose.Schema({
   },
   averageCompletionTime: {
     type: Number,
-    default: 0 // in minutes
+    default: 0
   },
+  
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
@@ -147,5 +216,19 @@ questSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
+
+// Check if quest is currently active based on dates
+questSchema.methods.isCurrentlyActive = function() {
+  const now = new Date();
+  
+  if (!this.isActive) return false;
+  
+  if (this.startDate && now < this.startDate) return false;
+  if (this.endDate && now > this.endDate) return false;
+  
+  if (this.maxParticipants && this.totalParticipants >= this.maxParticipants) return false;
+  
+  return true;
+};
 
 module.exports = mongoose.model("Quest", questSchema);

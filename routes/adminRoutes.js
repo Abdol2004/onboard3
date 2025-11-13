@@ -1,4 +1,4 @@
-// routes/adminRoutes.js
+// routes/adminRoutes.js - FIXED VERSION
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/adminController");
@@ -48,76 +48,48 @@ router.get("/api/statistics", isAdmin, adminController.getStatistics);
 
 // ==================== USERS ====================
 
-// Get all users
-router.get("/api/users", isAdmin, adminController.getAllUsers);
-
-// Get user count
+// IMPORTANT: Put /count and /export BEFORE /:userId to avoid route conflicts
 router.get("/api/users/count", isAdmin, adminController.getUserCount);
-
-// Get single user details
-router.get("/api/users/:userId", isAdmin, adminController.getUserDetails);
-
-// Update user
-router.put("/api/users/:userId", isAdmin, adminController.updateUser);
-
-// Delete user
-router.delete("/api/users/:userId", isAdmin, adminController.deleteUser);
-
-// Export users CSV
 router.get("/api/users/export", isAdmin, adminController.exportUsers);
+router.get("/api/users", isAdmin, adminController.getAllUsers);
+router.get("/api/users/:userId", isAdmin, adminController.getUserDetails);
+router.put("/api/users/:userId", isAdmin, adminController.updateUser);
+router.delete("/api/users/:userId", isAdmin, adminController.deleteUser);
 
 // ==================== QUESTS ====================
 
-// Get all quests (admin view)
-router.get("/api/quests", isAdmin, adminController.getAllQuests);
-
-// Get quest statistics
+// IMPORTANT: Put /stats BEFORE /:questId
 router.get("/api/quests/stats", isAdmin, adminController.getQuestStats);
-
-// Create quest
+router.get("/api/quests", isAdmin, adminController.getAllQuests);
 router.post("/api/quests", isAdmin, adminController.createQuest);
 
-// Update quest
-router.put("/api/quests/:questId", isAdmin, adminController.updateQuest);
-
-// Toggle quest status
-router.post("/api/quests/:questId/toggle", isAdmin, adminController.toggleQuestStatus);
-
-// Delete quest
+// Quest-specific routes
+router.post("/api/quests/:questId/daily-task", isAdmin, adminController.addDailyTask);
+router.delete("/api/quests/:questId/daily-task/:taskId", isAdmin, adminController.removeDailyTask);
+router.get("/api/quests/:questId/leaderboard", isAdmin, adminController.getQuestLeaderboardAdmin);
+router.patch("/api/quests/:questId/settings", isAdmin, adminController.updateQuestSettings);
+router.get("/api/quests/:questId/export", isAdmin, adminController.exportQuestLeaderboard);
+router.patch("/api/quests/:questId/toggle", isAdmin, adminController.toggleQuestStatus);
 router.delete("/api/quests/:questId", isAdmin, adminController.deleteQuest);
 
 // ==================== EVENTS ====================
 
-// Get event statistics
+// IMPORTANT: Put /stats BEFORE /:eventId
 router.get("/api/events/stats", isAdmin, adminController.getEventStats);
-
-// Create event
+router.get("/api/events", isAdmin, adminController.getAllEvents);
 router.post("/api/events", isAdmin, adminController.createEvent);
-
-// Update event
 router.put("/api/events/:eventId", isAdmin, adminController.updateEvent);
-
-// Delete event
 router.delete("/api/events/:eventId", isAdmin, adminController.deleteEvent);
-
-// Get event registrations
 router.get("/api/events/:eventId/registrations", isAdmin, adminController.getEventRegistrations);
 
 // ==================== APPLICATIONS ====================
 
-// Get all applications
-router.get("/api/applications", isAdmin, adminController.getAllApplications);
-
-// Get application statistics
+// IMPORTANT: Put /stats and /export BEFORE /:applicationId
 router.get("/api/applications/stats", isAdmin, adminController.getApplicationStats);
-
-// Approve application
-router.post("/api/applications/:applicationId/approve", isAdmin, adminController.approveApplication);
-
-// Reject application
-router.post("/api/applications/:applicationId/reject", isAdmin, adminController.rejectApplication);
-
-// Export applications CSV
 router.get("/api/applications/export", isAdmin, adminController.exportApplications);
+router.get("/api/applications", isAdmin, adminController.getAllApplications);
+router.get("/api/applications/:applicationId", isAdmin, adminController.getApplicationDetails);
+router.post("/api/applications/:applicationId/approve", isAdmin, adminController.approveApplication);
+router.post("/api/applications/:applicationId/reject", isAdmin, adminController.rejectApplication);
 
 module.exports = router;

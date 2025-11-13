@@ -72,7 +72,7 @@ exports.register = async (req, res) => {
     // Add initial welcome activity
     user.recentActivity = [
       {
-        action: "Account created - Welcome to ONBOARD3! 🚀",
+        action: "Account created - Welcome to ONBOARD3! ",
         timestamp: new Date(),
       },
     ];

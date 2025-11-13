@@ -4,6 +4,7 @@ const Quest = require("../models/Quest");
 const Event = require("../models/Event");
 const CourseApplication = require("../models/CourseApplication");
 const UserQuestProgress = require("../models/UserQuestProgress");
+const emailService = require("../utils/emailService");
 
 // ==================== DASHBOARD ====================
 
@@ -385,13 +386,25 @@ exports.createQuest = async (req, res) => {
       shortDescription,
       category,
       difficulty,
-      questType,
-      xpReward,
+      questType, // 'standard', 'referral_boost', 'fcfs', 'competition'
+      baseXpReward,
       usdcReward,
       badgeReward,
       estimatedDuration,
       tasks,
-      resources
+      dailyTasks,
+      resources,
+      startDate,
+      endDate,
+      maxParticipants,
+      // Referral config
+      referralEnabled,
+      xpPerReferralJoin,
+      xpPerReferralComplete,
+      // Competition config
+      competitionEnabled,
+      topWinnersCount,
+      winnerBonusXP
     } = req.body;
 
     console.log('🎯 Creating quest with data:', req.body);
@@ -404,41 +417,55 @@ exports.createQuest = async (req, res) => {
       });
     }
 
-const formattedTasks = Array.isArray(tasks)
-  ? tasks.map((task, index) => {
-      // If task is simple string
-      if (typeof task === "string") {
-        return {
-          title: task,
-          description: task, // ✅ Must be non-empty because schema requires it
-          order: index + 1,
-          taskType: "submission",
-          inputLabel: null,
-          inputName: null,
-          buttonText: null,
-          buttonLink: null,
-          requirements: {},
-          validationUrl: null
-        };
-      }
+    // Format tasks with XP rewards
+    const formattedTasks = Array.isArray(tasks)
+      ? tasks.map((task, index) => {
+          if (typeof task === "string") {
+            return {
+              title: task,
+              description: task,
+              order: index + 1,
+              taskType: "submission",
+              xpReward: 0, // Admin can set this
+              isDaily: false
+            };
+          }
 
-      // If task is object
-      return {
-        title: task.title || task.description || `Task ${index + 1}`,
-        description: task.description || task.title || "",
-        order: index + 1,
-        taskType: task.taskType || "submission",
+          return {
+            title: task.title || task.description || `Task ${index + 1}`,
+            description: task.description || task.title || "",
+            order: index + 1,
+            taskType: task.taskType || "submission",
+            xpReward: task.xpReward || 0, // XP per task
+            isDaily: false,
+            inputLabel: task.inputLabel || null,
+            inputName: task.inputName || null,
+            buttonText: task.buttonText || null,
+            buttonLink: task.buttonLink || null,
+            requirements: task.requirements || {},
+            validationUrl: task.validationUrl || null
+          };
+        })
+      : [];
 
-        inputLabel: task.inputLabel || null,
-        inputName: task.inputName || null,
-        buttonText: task.buttonText || null,
-        buttonLink: task.buttonLink || null,
+    // Format daily tasks (if any)
+    const formattedDailyTasks = Array.isArray(dailyTasks)
+      ? dailyTasks.map((task, index) => ({
+          title: task.title,
+          description: task.description,
+          order: formattedTasks.length + index + 1,
+          taskType: task.taskType || "submission",
+          xpReward: task.xpReward || 0,
+          isDaily: true,
+          inputLabel: task.inputLabel || null,
+          inputName: task.inputName || null,
+          buttonText: task.buttonText || null,
+          buttonLink: task.buttonLink || null
+        }))
+      : [];
 
-        requirements: task.requirements || {},
-        validationUrl: task.validationUrl || null
-      };
-    })
-  : [];console.log('📋 Formatted tasks:', formattedTasks);
+    console.log('📋 Formatted tasks:', formattedTasks);
+    console.log('📅 Formatted daily tasks:', formattedDailyTasks);
 
     const quest = new Quest({
       title,
@@ -446,13 +473,37 @@ const formattedTasks = Array.isArray(tasks)
       shortDescription,
       category: category || 'learning',
       difficulty: difficulty || 'beginner',
-      questType: questType || 'permanent',
-      xpReward: xpReward || 100,
+      questType: questType || 'standard',
+      
+      // Rewards
+      baseXpReward: baseXpReward || 0,
       usdcReward: usdcReward || 0,
       badgeReward: badgeReward || null,
+      
       estimatedDuration: estimatedDuration || "1-2 hours",
       tasks: formattedTasks,
+      dailyTasks: formattedDailyTasks,
       resources: resources || [],
+      
+      // Dates
+      startDate: startDate || null,
+      endDate: endDate || null,
+      maxParticipants: maxParticipants || null,
+      
+      // Referral config
+      referralConfig: {
+        enabled: referralEnabled || false,
+        xpPerReferralJoin: xpPerReferralJoin || 0,
+        xpPerReferralComplete: xpPerReferralComplete || 0
+      },
+      
+      // Competition config
+      competitionConfig: {
+        enabled: competitionEnabled || false,
+        topWinnersCount: topWinnersCount || 10,
+        winnerBonusXP: winnerBonusXP || 0
+      },
+      
       createdBy: req.session.userId,
       isActive: true
     });
@@ -477,18 +528,15 @@ const formattedTasks = Array.isArray(tasks)
   }
 };
 
-// Update Quest
-exports.updateQuest = async (req, res) => {
+// ==================== ADD DAILY TASK TO QUEST ====================
+
+exports.addDailyTask = async (req, res) => {
   try {
     const { questId } = req.params;
-    const updateData = req.body;
+    const { title, description, taskType, xpReward, inputLabel, inputName, buttonText, buttonLink } = req.body;
 
-    const quest = await Quest.findByIdAndUpdate(
-      questId,
-      { ...updateData, updatedAt: Date.now() },
-      { new: true }
-    );
-
+    const quest = await Quest.findById(questId);
+    
     if (!quest) {
       return res.status(404).json({
         success: false,
@@ -496,29 +544,59 @@ exports.updateQuest = async (req, res) => {
       });
     }
 
+    const newTask = {
+      title,
+      description,
+      order: quest.tasks.length + quest.dailyTasks.length + 1,
+      taskType: taskType || 'submission',
+      xpReward: xpReward || 0,
+      isDaily: true,
+      inputLabel: inputLabel || null,
+      inputName: inputName || null,
+      buttonText: buttonText || null,
+      buttonLink: buttonLink || null
+    };
+
+    quest.dailyTasks.push(newTask);
+    await quest.save();
+
+    // Update all active user progress to include this new task
+    await UserQuestProgress.updateMany(
+      { questId: questId, status: { $in: ['not_started', 'in_progress'] } },
+      {
+        $push: {
+          taskProgress: {
+            taskId: newTask._id,
+            isCompleted: false
+          }
+        },
+        $inc: { totalTasks: 1 }
+      }
+    );
+
     res.status(200).json({
       success: true,
-      message: "Quest updated successfully",
-      quest
+      message: "Daily task added successfully",
+      task: newTask
     });
 
   } catch (error) {
-    console.error("Update quest error:", error);
+    console.error("Add daily task error:", error);
     res.status(500).json({
       success: false,
-      message: "Error updating quest"
+      message: "Error adding daily task"
     });
   }
 };
 
-// Toggle Quest Status
-exports.toggleQuestStatus = async (req, res) => {
+// ==================== REMOVE DAILY TASK ====================
+
+exports.removeDailyTask = async (req, res) => {
   try {
-    const { questId } = req.params;
-    const { isActive } = req.body;
+    const { questId, taskId } = req.params;
 
     const quest = await Quest.findById(questId);
-
+    
     if (!quest) {
       return res.status(404).json({
         success: false,
@@ -526,21 +604,198 @@ exports.toggleQuestStatus = async (req, res) => {
       });
     }
 
-    quest.isActive = isActive;
+    // Remove from daily tasks
+    quest.dailyTasks = quest.dailyTasks.filter(t => t._id.toString() !== taskId);
+    await quest.save();
+
+    // Remove from user progress
+    await UserQuestProgress.updateMany(
+      { questId: questId },
+      {
+        $pull: {
+          taskProgress: { taskId: taskId }
+        },
+        $inc: { totalTasks: -1 }
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Daily task removed successfully"
+    });
+
+  } catch (error) {
+    console.error("Remove daily task error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error removing daily task"
+    });
+  }
+};
+
+// ==================== GET QUEST LEADERBOARD (ADMIN VIEW) ====================
+
+exports.getQuestLeaderboardAdmin = async (req, res) => {
+  try {
+    const { questId } = req.params;
+
+    const quest = await Quest.findById(questId);
+    if (!quest) {
+      return res.status(404).json({
+        success: false,
+        message: "Quest not found"
+      });
+    }
+
+    const leaderboard = await UserQuestProgress.find({
+      questId: questId,
+      status: 'completed'
+    })
+    .populate('userId', 'username email')
+    .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 })
+    .limit(100);
+
+    const leaderboardData = leaderboard.map((entry, index) => ({
+      rank: index + 1,
+      username: entry.userId?.username || 'Unknown',
+      email: entry.userId?.email || '',
+      totalXp: entry.xpBreakdown.totalXp,
+      taskXp: entry.xpBreakdown.taskXp,
+      baseXp: entry.xpBreakdown.baseXp,
+      referralJoinBonus: entry.xpBreakdown.referralJoinBonus,
+      referralCompleteBonus: entry.xpBreakdown.referralCompleteBonus,
+      winnerBonus: entry.xpBreakdown.winnerBonus,
+      completedAt: entry.completedAt,
+      timeSpent: entry.timeSpentMinutes,
+      isWinner: entry.isWinner,
+      referralsJoined: entry.referralStats.referralsJoined.length,
+      referralsCompleted: entry.referralStats.referralsCompleted.length
+    }));
+
+    res.status(200).json({
+      success: true,
+      quest: {
+        title: quest.title,
+        questType: quest.questType,
+        startDate: quest.startDate,
+        endDate: quest.endDate
+      },
+      leaderboard: leaderboardData,
+      totalParticipants: quest.totalParticipants,
+      totalCompletions: quest.totalCompletions
+    });
+
+  } catch (error) {
+    console.error("Get quest leaderboard error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching leaderboard"
+    });
+  }
+};
+
+// ==================== UPDATE QUEST SETTINGS ====================
+
+exports.updateQuestSettings = async (req, res) => {
+  try {
+    const { questId } = req.params;
+    const {
+      baseXpReward,
+      usdcReward,
+      referralEnabled,
+      xpPerReferralJoin,
+      xpPerReferralComplete,
+      competitionEnabled,
+      topWinnersCount,
+      winnerBonusXP,
+      startDate,
+      endDate,
+      maxParticipants
+    } = req.body;
+
+    const quest = await Quest.findById(questId);
+    
+    if (!quest) {
+      return res.status(404).json({
+        success: false,
+        message: "Quest not found"
+      });
+    }
+
+    // Update rewards
+    if (baseXpReward !== undefined) quest.baseXpReward = baseXpReward;
+    if (usdcReward !== undefined) quest.usdcReward = usdcReward;
+
+    // Update referral config
+    if (referralEnabled !== undefined) quest.referralConfig.enabled = referralEnabled;
+    if (xpPerReferralJoin !== undefined) quest.referralConfig.xpPerReferralJoin = xpPerReferralJoin;
+    if (xpPerReferralComplete !== undefined) quest.referralConfig.xpPerReferralComplete = xpPerReferralComplete;
+
+    // Update competition config
+    if (competitionEnabled !== undefined) quest.competitionConfig.enabled = competitionEnabled;
+    if (topWinnersCount !== undefined) quest.competitionConfig.topWinnersCount = topWinnersCount;
+    if (winnerBonusXP !== undefined) quest.competitionConfig.winnerBonusXP = winnerBonusXP;
+
+    // Update dates
+    if (startDate !== undefined) quest.startDate = startDate;
+    if (endDate !== undefined) quest.endDate = endDate;
+    if (maxParticipants !== undefined) quest.maxParticipants = maxParticipants;
+
     quest.updatedAt = Date.now();
     await quest.save();
 
     res.status(200).json({
       success: true,
-      message: `Quest ${isActive ? 'activated' : 'deactivated'} successfully`,
+      message: "Quest settings updated successfully",
       quest
     });
 
   } catch (error) {
-    console.error("Toggle quest status error:", error);
+    console.error("Update quest settings error:", error);
     res.status(500).json({
       success: false,
-      message: "Error updating quest status"
+      message: "Error updating quest settings"
+    });
+  }
+};
+
+// ==================== EXPORT QUEST LEADERBOARD CSV ====================
+
+exports.exportQuestLeaderboard = async (req, res) => {
+  try {
+    const { questId } = req.params;
+
+    const quest = await Quest.findById(questId);
+    if (!quest) {
+      return res.status(404).json({
+        success: false,
+        message: "Quest not found"
+      });
+    }
+
+    const leaderboard = await UserQuestProgress.find({
+      questId: questId,
+      status: 'completed'
+    })
+    .populate('userId', 'username email')
+    .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 });
+
+    // Create CSV
+    let csv = 'Rank,Username,Email,Total XP,Task XP,Base XP,Referral Join Bonus,Referral Complete Bonus,Winner Bonus,Referrals Joined,Referrals Completed,Completion Time (min),Completed At\n';
+    
+    leaderboard.forEach((entry, index) => {
+      csv += `${index + 1},${entry.userId?.username || 'Unknown'},${entry.userId?.email || ''},${entry.xpBreakdown.totalXp},${entry.xpBreakdown.taskXp},${entry.xpBreakdown.baseXp},${entry.xpBreakdown.referralJoinBonus},${entry.xpBreakdown.referralCompleteBonus},${entry.xpBreakdown.winnerBonus},${entry.referralStats.referralsJoined.length},${entry.referralStats.referralsCompleted.length},${entry.timeSpentMinutes},${new Date(entry.completedAt).toLocaleString()}\n`;
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=${quest.title.replace(/\s+/g, '_')}_leaderboard.csv`);
+    res.send(csv);
+
+  } catch (error) {
+    console.error("Export leaderboard error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error exporting leaderboard"
     });
   }
 };
@@ -575,9 +830,491 @@ exports.deleteQuest = async (req, res) => {
     });
   }
 };
+// Toggle Quest Status (Active/Inactive)
+exports.toggleQuestStatus = async (req, res) => {
+  try {
+    const { questId } = req.params;
+    const { isActive } = req.body;
 
-// ==================== EVENTS MANAGEMENT ====================
+    const quest = await Quest.findById(questId);
 
+    if (!quest) {
+      return res.status(404).json({
+        success: false,
+        message: "Quest not found"
+      });
+    }
+
+    quest.isActive = isActive;
+    quest.updatedAt = Date.now();
+    await quest.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Quest ${isActive ? 'activated' : 'deactivated'} successfully`,
+      quest
+    });
+
+  } catch (error) {
+    console.error("Toggle quest status error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating quest status"
+    });
+  }
+};
+
+exports.getAllEvents = async (req, res) => {
+  try {
+    console.log('📅 [ADMIN] Fetching all events...');
+    
+    const events = await Event.find({})
+      .sort({ startDate: -1 })
+      .lean(); // Use lean() for better performance
+
+    console.log(`✅ [ADMIN] Found ${events.length} events`);
+
+    res.status(200).json({
+      success: true,
+      events
+    });
+
+  } catch (error) {
+    console.error("❌ [ADMIN] Get all events error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching events: " + error.message,
+      error: error.message
+    });
+  }
+};
+
+// Get Event Statistics  
+exports.getEventStats = async (req, res) => {
+  try {
+    const now = new Date();
+    
+    const upcoming = await Event.countDocuments({
+      startDate: { $gte: now }
+    });
+
+    const completed = await Event.countDocuments({ 
+      endDate: { $lt: now }
+    });
+    
+    const total = await Event.countDocuments();
+
+    console.log(`📅 Event stats - Upcoming: ${upcoming}, Completed: ${completed}`);
+
+    res.status(200).json({
+      success: true,
+      upcoming,
+      completed,
+      total
+    });
+
+  } catch (error) {
+    console.error("❌ Get event stats error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching event statistics",
+      error: error.message
+    });
+  }
+};
+
+// Create Event
+exports.createEvent = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      eventType,
+      category,
+      venue,
+      virtualLink,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+      timezone,
+      prizePool
+    } = req.body;
+
+    console.log('📅 Creating event:', { title, eventType, venue, virtualLink });
+
+    if (!title || !description || !eventType || !startDate || !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Required fields missing"
+      });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid date format"
+      });
+    }
+
+    if (end < start) {
+      return res.status(400).json({
+        success: false,
+        message: "End date must be after start date"
+      });
+    }
+
+    if ((eventType === 'physical' || eventType === 'hybrid') && (!venue || venue.trim().length === 0)) {
+      return res.status(400).json({
+        success: false,
+        message: "Venue is required for physical and hybrid events"
+      });
+    }
+
+    if ((eventType === 'virtual' || eventType === 'hybrid') && (!virtualLink || virtualLink.trim().length === 0)) {
+      return res.status(400).json({
+        success: false,
+        message: "Virtual link is required for virtual and hybrid events"
+      });
+    }
+
+    const eventData = {
+      title: title.trim(),
+      description: description.trim(),
+      eventType,
+      category: category || 'other',
+      startDate: start,
+      endDate: end,
+      startTime: startTime || '10:00',
+      endTime: endTime || '17:00',
+      timezone: timezone || 'WAT',
+      status: 'upcoming',
+      createdBy: req.session.userId
+    };
+
+    if (venue && venue.trim()) eventData.venue = venue.trim();
+    if (virtualLink && virtualLink.trim()) eventData.virtualLink = virtualLink.trim();
+    if (prizePool) eventData.prizePool = prizePool;
+
+    const event = new Event(eventData);
+    await event.save();
+
+    console.log('✅ Event created:', event._id);
+
+    res.status(201).json({
+      success: true,
+      message: "Event created successfully",
+      event
+    });
+
+  } catch (error) {
+    console.error("❌ Create event error:", error);
+    
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', ')
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Error creating event",
+      error: error.message
+    });
+  }
+};
+
+// Delete Event
+exports.deleteEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    const event = await Event.findByIdAndDelete(eventId);
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found"
+      });
+    }
+
+    console.log('✅ Event deleted:', eventId);
+
+    res.status(200).json({
+      success: true,
+      message: "Event deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Delete event error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting event"
+    });
+  }
+};
+
+// Update Event
+exports.updateEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const updateData = req.body;
+
+    const event = await Event.findByIdAndUpdate(
+      eventId,
+      { ...updateData, updatedAt: Date.now() },
+      { new: true }
+    );
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Event updated successfully",
+      event
+    });
+
+  } catch (error) {
+    console.error("Update event error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating event"
+    });
+  }
+};
+
+// Get Event Registrations
+exports.getEventRegistrations = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    const event = await Event.findById(eventId)
+      .populate('registrations.user', 'username email xp');
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      registrations: event.registrations,
+      total: event.totalRegistrations,
+      checkedIn: event.registrations.filter(r => r.checkedIn).length
+    });
+
+  } catch (error) {
+    console.error("Get registrations error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching registrations"
+    });
+  }
+};
+
+// Get Application Details
+exports.getApplicationDetails = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await CourseApplication.findById(applicationId)
+      .populate('user', 'username email xp');
+    
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      application
+    });
+
+  } catch (error) {
+    console.error("Get application details error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching application details",
+      error: error.message
+    });
+  }
+};
+// ==================== REPLACE YOUR EXISTING createEvent METHOD WITH THIS ====================
+
+exports.createEvent = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      eventType,
+      category,
+      venue,
+      virtualLink,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+      timezone,
+      prizePool
+    } = req.body;
+
+    console.log('📅 Creating event with data:', {
+      title,
+      description,
+      eventType,
+      venue: venue || 'not provided',
+      virtualLink: virtualLink || 'not provided'
+    });
+
+    // Validation
+    if (!title || !description || !eventType || !startDate || !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Required fields missing"
+      });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid date format"
+      });
+    }
+
+    if (end < start) {
+      return res.status(400).json({
+        success: false,
+        message: "End date must be after start date"
+      });
+    }
+
+    // Type-specific validation
+    if ((eventType === 'physical' || eventType === 'hybrid')) {
+      if (!venue || venue.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Venue is required for physical and hybrid events"
+        });
+      }
+    }
+
+    if ((eventType === 'virtual' || eventType === 'hybrid')) {
+      if (!virtualLink || virtualLink.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Virtual link is required for virtual and hybrid events"
+        });
+      }
+    }
+
+    // Build event data
+    const eventData = {
+      title: title.trim(),
+      description: description.trim(),
+      eventType,
+      category: category || 'other',
+      startDate: start,
+      endDate: end,
+      startTime: startTime || '10:00',
+      endTime: endTime || '17:00',
+      timezone: timezone || 'WAT',
+      status: 'upcoming',
+      createdBy: req.session.userId
+    };
+
+    if (venue && venue.trim()) {
+      eventData.venue = venue.trim();
+    }
+    
+    if (virtualLink && virtualLink.trim()) {
+      eventData.virtualLink = virtualLink.trim();
+    }
+
+    if (prizePool) {
+      eventData.prizePool = prizePool;
+    }
+
+    console.log('💾 Saving event...');
+
+    const event = new Event(eventData);
+    await event.save();
+
+    console.log('✅ Event created:', event._id);
+
+    res.status(201).json({
+      success: true,
+      message: "Event created successfully",
+      event
+    });
+
+  } catch (error) {
+    console.error("❌ Create event error:", error);
+    
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', ')
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Error creating event",
+      error: error.message
+    });
+  }
+};
+
+
+// ==================== GET APPLICATION DETAILS ====================
+// Add this with your other application functions
+
+exports.getApplicationDetails = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await CourseApplication.findById(applicationId)
+      .populate('user', 'username email xp');
+    
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      application
+    });
+
+  } catch (error) {
+    console.error("Get application details error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching application details",
+      error: error.message
+    });
+  }
+};
 // Get Event Statistics
 exports.getEventStats = async (req, res) => {
   try {
@@ -905,11 +1642,12 @@ exports.getApplicationStats = async (req, res) => {
   }
 };
 
-// Approve Application (Admin)
 exports.approveApplication = async (req, res) => {
   try {
     const { applicationId } = req.params;
     const { courseStartDate, courseEndDate, courseLink, notes } = req.body;
+
+    console.log('📝 Approving application:', applicationId);
 
     const application = await CourseApplication.findById(applicationId);
 
@@ -920,11 +1658,34 @@ exports.approveApplication = async (req, res) => {
       });
     }
 
+    // Approve the application
     await application.approve(req.session.userId, notes, {
       startDate: courseStartDate,
       endDate: courseEndDate,
       link: courseLink
     });
+
+    // Send approval email
+    try {
+      const emailResult = await emailService.sendCourseApprovalEmail(
+        application.email,
+        application.fullName,
+        application.course,
+        {
+          startDate: courseStartDate,
+          endDate: courseEndDate,
+          link: courseLink
+        }
+      );
+
+      if (emailResult.success) {
+        console.log('✅ Approval email sent successfully');
+      } else {
+        console.error('⚠️ Failed to send approval email:', emailResult.error);
+      }
+    } catch (emailError) {
+      console.error('⚠️ Email error (non-blocking):', emailError.message);
+    }
 
     res.status(200).json({
       success: true,
@@ -933,19 +1694,22 @@ exports.approveApplication = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Approve application error:", error);
+    console.error("❌ Approve application error:", error);
     res.status(500).json({
       success: false,
-      message: "Error approving application"
+      message: "Error approving application",
+      error: error.message
     });
   }
 };
 
-// Reject Application (Admin)
+// ==================== FIX: Reject Application with Email ====================
 exports.rejectApplication = async (req, res) => {
   try {
     const { applicationId } = req.params;
     const { notes } = req.body;
+
+    console.log('📝 Rejecting application:', applicationId);
 
     const application = await CourseApplication.findById(applicationId);
 
@@ -956,7 +1720,26 @@ exports.rejectApplication = async (req, res) => {
       });
     }
 
+    // Reject the application
     await application.reject(req.session.userId, notes);
+
+    // Send rejection email
+    try {
+      const emailResult = await emailService.sendCourseRejectionEmail(
+        application.email,
+        application.fullName,
+        application.course,
+        notes
+      );
+
+      if (emailResult.success) {
+        console.log('✅ Rejection email sent successfully');
+      } else {
+        console.error('⚠️ Failed to send rejection email:', emailResult.error);
+      }
+    } catch (emailError) {
+      console.error('⚠️ Email error (non-blocking):', emailError.message);
+    }
 
     res.status(200).json({
       success: true,
@@ -965,10 +1748,66 @@ exports.rejectApplication = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Reject application error:", error);
+    console.error("❌ Reject application error:", error);
     res.status(500).json({
       success: false,
-      message: "Error rejecting application"
+      message: "Error rejecting application",
+      error: error.message
+    });
+  }
+};
+
+
+// Reject Application (Admin)
+exports.rejectApplication = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const { notes } = req.body;
+
+    console.log('📝 Rejecting application:', applicationId);
+
+    const application = await CourseApplication.findById(applicationId);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found"
+      });
+    }
+
+    // Reject the application
+    await application.reject(req.session.userId, notes);
+
+    // Send rejection email
+    try {
+      const emailResult = await emailService.sendCourseRejectionEmail(
+        application.email,
+        application.fullName,
+        application.course,
+        notes
+      );
+
+      if (emailResult.success) {
+        console.log('✅ Rejection email sent successfully');
+      } else {
+        console.error('⚠️ Failed to send rejection email:', emailResult.error);
+      }
+    } catch (emailError) {
+      console.error('⚠️ Email error (non-blocking):', emailError.message);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Application rejected",
+      application
+    });
+
+  } catch (error) {
+    console.error("❌ Reject application error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error rejecting application",
+      error: error.message
     });
   }
 };

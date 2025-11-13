@@ -37,14 +37,6 @@
                     <i class="fas fa-users"></i>
                     <span>Referral</span>
                 </a>
-                <!-- <a href="/dashboard/bounties" class="menu-item">
-                    <i class="fas fa-briefcase"></i>
-                    <span>Bounties</span>
-                </a>
-                <a href="/dashboard/bounty-leaderboard" class="menu-item">
-                    <i class="fas fa-medal"></i>
-                    <span>Bounty Leaderboard</span>
-                </a> -->
                 <a href="/dashboard/events" class="menu-item">
                     <i class="fas fa-calendar"></i>
                     <span>Events</span>
@@ -66,46 +58,181 @@
         </aside>
 
         <main class="main-content">
-            <header class="header">
-                <div class="header-content">
-                    <div class="header-title">
-                        <a href="/dashboard/quests" style="color: #39FF14; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem;">
-                            <i class="fas fa-arrow-left"></i> Back to Quests
-                        </a>
-                        <h2><%= quest.title %></h2>
-                        <p><%= quest.shortDescription %></p>
-                    </div>
-                    <div class="header-stats">
-                        <div class="stat-badge">
-                            <i class="fas fa-star" style="color: #39FF14;"></i>
-                            <span><%= quest.xpReward %> XP</span>
-                        </div>
-                        <% if (quest.usdcReward > 0) { %>
-                        <div class="stat-badge">
-                            <i class="fas fa-coins" style="color: #39FF14;"></i>
-                            <span><%= quest.usdcReward %> USDC</span>
-                        </div>
-                        <% } %>
-                        <div class="stat-badge">
-                            <i class="fas fa-tasks" style="color: #39FF14;"></i>
-                            <span><%= userProgress.tasksCompleted %>/<%= quest.tasks.length %> Tasks</span>
-                        </div>
-                    </div>
+           <header class="header">
+    <div class="header-content">
+        <div class="header-title">
+            <a href="/dashboard/quests" style="color: #39FF14; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                <i class="fas fa-arrow-left"></i> Back to Quests
+            </a>
+            <h2><%= quest.title %></h2>
+            <p><%= quest.shortDescription %></p>
+            
+            <!-- Quest Type Badge -->
+            <% if (quest.questType && quest.questType !== 'standard') { %>
+            <div style="margin-top: 0.8rem;">
+                <% if (quest.questType === 'referral_boost') { %>
+                    <span style="background: rgba(57,255,20,0.1); color: #39FF14; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; border: 1px solid #39FF14;">
+                        🎁 Referral Boost Quest - Earn bonus XP from your referrals!
+                    </span>
+                <% } else if (quest.questType === 'fcfs') { %>
+                    <span style="background: rgba(255,193,7,0.1); color: #FFC107; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; border: 1px solid #FFC107;">
+                        ⚡ First Come First Serve - Be in the top <%= quest.competitionConfig?.topWinnersCount || 10 %>!
+                    </span>
+                <% } else if (quest.questType === 'competition') { %>
+                    <span style="background: rgba(255,82,82,0.1); color: #ff5252; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; border: 1px solid #ff5252;">
+                        🏆 Competition Mode - Top <%= quest.competitionConfig?.topWinnersCount || 10 %> get bonus rewards!
+                    </span>
+                <% } %>
+            </div>
+            <% } %>
+        </div>
+        <div class="header-stats">
+            <!-- Show XP Breakdown if quest is completed -->
+            <% if (userProgress.status === 'completed' && userProgress.xpBreakdown) { %>
+                <div class="stat-badge" style="background: rgba(57,255,20,0.1); border: 1px solid #39FF14;">
+                    <i class="fas fa-trophy" style="color: #39FF14;"></i>
+                    <span style="color: #39FF14;"><%= userProgress.xpBreakdown.totalXp %> Total XP</span>
                 </div>
-            </header>
+            <% } else { %>
+                <div class="stat-badge">
+                    <i class="fas fa-star" style="color: #39FF14;"></i>
+                    <span><%= quest.baseXpReward || quest.xpReward || 0 %> XP</span>
+                </div>
+            <% } %>
+            
+            <% if (quest.usdcReward > 0) { %>
+            <div class="stat-badge">
+                <i class="fas fa-coins" style="color: #39FF14;"></i>
+                <span><%= quest.usdcReward %> USDC</span>
+            </div>
+            <% } %>
+            
+            <div class="stat-badge">
+                <i class="fas fa-tasks" style="color: #39FF14;"></i>
+                <span><%= userProgress.tasksCompleted %>/<%= quest.tasks.length %> Tasks</span>
+            </div>
+            
+            <!-- Show user's rank if quest is completed -->
+            <% if (userProgress.status === 'completed' && userProgress.leaderboardRank) { %>
+            <div class="stat-badge" style="background: rgba(255,193,7,0.1); border: 1px solid #FFC107;">
+                <i class="fas fa-medal" style="color: #FFC107;"></i>
+                <span style="color: #FFC107;">Rank #<%= userProgress.leaderboardRank %></span>
+            </div>
+            <% } %>
+        </div>
+    </div>
+</header>
 
-            <div class="content">
-                <!-- Quest Progress Overview -->
-                <div class="card xp-card">
-                    <div class="xp-info">
-                        <h3>Quest Progress</h3>
-                        <span class="xp-value"><%= userProgress.progress %>% Complete</span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: <%= userProgress.progress %>%"></div>
-                    </div>
-                    <p class="progress-label">Complete all <%= quest.tasks.length %> tasks to earn <%= quest.xpReward %> XP<% if (quest.usdcReward > 0) { %> and <%= quest.usdcReward %> USDC<% } %></p>
-                </div>
+<!-- Add XP Breakdown Card for Completed Quests -->
+<% if (userProgress.status === 'completed' && userProgress.xpBreakdown) { %>
+<div class="card" style="background: linear-gradient(135deg, rgba(57,255,20,0.1) 0%, rgba(0,0,0,0.4) 100%); border: 2px solid #39FF14;">
+    <div class="card-header">
+        <h3><i class="fas fa-trophy"></i> Quest Completed! - XP Breakdown</h3>
+    </div>
+    
+    <div class="grid-3" style="margin-bottom: 1rem;">
+        <div style="text-align: center; padding: 1rem; background: rgba(57,255,20,0.1); border-radius: 12px; border: 1px solid #39FF14;">
+            <div style="font-size: 2rem; color: #39FF14; font-weight: 700;"><%= userProgress.xpBreakdown.totalXp %></div>
+            <div style="color: #888; font-size: 0.85rem;">Total XP Earned</div>
+        </div>
+        
+        <% if (userProgress.leaderboardRank) { %>
+        <div style="text-align: center; padding: 1rem; background: rgba(255,193,7,0.1); border-radius: 12px; border: 1px solid #FFC107;">
+            <div style="font-size: 2rem; color: #FFC107; font-weight: 700;">#<%= userProgress.leaderboardRank %></div>
+            <div style="color: #888; font-size: 0.85rem;">Your Rank</div>
+        </div>
+        <% } %>
+        
+        <div style="text-align: center; padding: 1rem; background: rgba(57,255,20,0.1); border-radius: 12px; border: 1px solid #39FF14;">
+            <div style="font-size: 2rem; color: #39FF14; font-weight: 700;"><%= userProgress.timeSpentMinutes %></div>
+            <div style="color: #888; font-size: 0.85rem;">Minutes</div>
+        </div>
+    </div>
+    
+    <!-- XP Sources Breakdown -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+            <div style="color: #888; font-size: 0.85rem; margin-bottom: 0.3rem;">Task Completion XP</div>
+            <div style="color: #39FF14; font-size: 1.3rem; font-weight: 700;"><%= userProgress.xpBreakdown.taskXp %> XP</div>
+        </div>
+        
+        <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+            <div style="color: #888; font-size: 0.85rem; margin-bottom: 0.3rem;">Quest Completion XP</div>
+            <div style="color: #39FF14; font-size: 1.3rem; font-weight: 700;"><%= userProgress.xpBreakdown.baseXp %> XP</div>
+        </div>
+        
+        <% if (userProgress.xpBreakdown.referralJoinBonus > 0) { %>
+        <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+            <div style="color: #888; font-size: 0.85rem; margin-bottom: 0.3rem;">Referral Join Bonus</div>
+            <div style="color: #39FF14; font-size: 1.3rem; font-weight: 700;"><%= userProgress.xpBreakdown.referralJoinBonus %> XP</div>
+            <small style="color: #666;">(<%= userProgress.referralStats?.referralsJoined?.length || 0 %> joined)</small>
+        </div>
+        <% } %>
+        
+        <% if (userProgress.xpBreakdown.referralCompleteBonus > 0) { %>
+        <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+            <div style="color: #888; font-size: 0.85rem; margin-bottom: 0.3rem;">Referral Complete Bonus</div>
+            <div style="color: #39FF14; font-size: 1.3rem; font-weight: 700;"><%= userProgress.xpBreakdown.referralCompleteBonus %> XP</div>
+            <small style="color: #666;">(<%= userProgress.referralStats?.referralsCompleted?.length || 0 %> completed)</small>
+        </div>
+        <% } %>
+        
+        <% if (userProgress.xpBreakdown.winnerBonus > 0) { %>
+        <div style="padding: 1rem; background: rgba(255,193,7,0.1); border-radius: 8px; border: 1px solid #FFC107;">
+            <div style="color: #FFC107; font-size: 0.85rem; margin-bottom: 0.3rem;">🏆 Winner Bonus</div>
+            <div style="color: #FFC107; font-size: 1.3rem; font-weight: 700;"><%= userProgress.xpBreakdown.winnerBonus %> XP</div>
+        </div>
+        <% } %>
+    </div>
+</div>
+<% } %>
+
+<!-- Update Leaderboard Section to show XP -->
+<% if (leaderboard && leaderboard.length > 0) { %>
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-trophy"></i> Quest Leaderboard</h3>
+        <span style="color: #888; font-size: 0.85rem;">Ranked by Total XP</span>
+    </div>
+
+    <% leaderboard.forEach(function(entry, idx) { 
+        var rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+        var rankEmoji = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : (idx + 1);
+        var timeAgo = Math.floor((Date.now() - new Date(entry.completedAt)) / (1000 * 60 * 60 * 24));
+        var totalXp = entry.xpBreakdown?.totalXp || entry.xpEarned || 0;
+    %>
+    <div class="leaderboard-item <%= rankClass %>" style="<%= entry.isWinner ? 'background: rgba(57,255,20,0.05); border-left: 3px solid #39FF14;' : '' %>">
+        <div class="leaderboard-rank">
+            <span class="rank-number" style="<%= idx > 2 ? 'color: #888;' : '' %>"><%= rankEmoji %></span>
+            <div class="user-info">
+                <h4>
+                    <%= entry.userId?.username || 'Anonymous' %>
+                    <% if (entry.isWinner) { %>
+                        <span style="color: #39FF14; margin-left: 0.5rem;">🏆</span>
+                    <% } %>
+                </h4>
+                <p>
+                    Completed in <%= entry.timeSpentMinutes %> minutes
+                    <% if (entry.xpBreakdown) { %>
+                        <br>
+                        <small style="color: #666;">
+                            Task: <%= entry.xpBreakdown.taskXp %> | Base: <%= entry.xpBreakdown.baseXp %>
+                            <% if (entry.xpBreakdown.referralJoinBonus + entry.xpBreakdown.referralCompleteBonus > 0) { %>
+                                | Referral: <%= entry.xpBreakdown.referralJoinBonus + entry.xpBreakdown.referralCompleteBonus %>
+                            <% } %>
+                        </small>
+                    <% } %>
+                </p>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <div style="color: #39FF14; font-weight: 700; font-size: 1.3rem;"><%= totalXp %> XP</div>
+            <div style="color: #888; font-size: 0.75rem;"><%= timeAgo %> day<%= timeAgo !== 1 ? 's' : '' %> ago</div>
+        </div>
+    </div>
+    <% }); %>
+</div>
+<% } %>
 
                 <!-- Quest Description -->
                 <div class="card">
@@ -132,112 +259,125 @@
                 </div>
 
                 <!-- Quest Tasks -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-tasks"></i> Quest Tasks</h3>
-                    </div>
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-tasks"></i> Quest Tasks</h3>
+    </div>
 
-                    <% quest.tasks.forEach((task, index) => { 
-                        const taskProgress = userProgress.taskProgress.find(tp => tp.taskId.toString() === task._id.toString());
-                        const isCompleted = taskProgress && taskProgress.isCompleted;
-                        const isPreviousCompleted = index === 0 || userProgress.taskProgress[index - 1]?.isCompleted;
-                        const isLocked = !isPreviousCompleted && !isCompleted;
-                    %>
+    <% quest.tasks.forEach(function(task, index) { 
+        var taskProgress = userProgress.taskProgress.find(function(tp) { return tp.taskId.toString() === task._id.toString(); });
+        var isCompleted = taskProgress && taskProgress.isCompleted;
+        var isPreviousCompleted = index === 0 || userProgress.taskProgress[index - 1]?.isCompleted;
+        var isLocked = !isPreviousCompleted && !isCompleted;
+        var taskXp = task.xpReward || 0;
+    %>
 
-                    <% if (isCompleted) { %>
-                    <!-- Completed Task -->
-                    <div class="quest-task completed" style="background: rgba(57,255,20,0.05); padding: 1.2rem; border-radius: 12px; margin-bottom: 1rem; border-left: 3px solid #39FF14;">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.8rem;">
-                            <div style="flex: 1;">
-                                <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
-                                    <span style="color: #39FF14; font-size: 1.2rem;"><i class="fas fa-check-circle"></i></span>
-                                    <h4 style="font-size: 1rem; color: #39FF14;">Task <%= index + 1 %>: <%= task.title %></h4>
-                                </div>
-                                <p style="color: #888; font-size: 0.85rem; line-height: 1.5;"><%= task.description %></p>
-                            </div>
-                            <span class="status-badge status-approved" style="margin-top: 0;">✓ Completed</span>
-                        </div>
-                        <div style="color: #666; font-size: 0.8rem;">
-                            <i class="fas fa-clock"></i> Completed <%= new Date(taskProgress.completedAt).toLocaleString() %>
-                        </div>
-                    </div>
-                    <% } else if (isLocked) { %>
-                    <!-- Locked Task -->
-                    <div class="quest-task locked" style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 12px; margin-bottom: 1rem; border-left: 3px solid #666; opacity: 0.6;">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.8rem;">
-                            <div style="flex: 1;">
-                                <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
-                                    <span style="color: #666; font-size: 1.2rem;"><i class="fas fa-lock"></i></span>
-                                    <h4 style="font-size: 1rem; color: #888;">Task <%= index + 1 %>: <%= task.title %></h4>
-                                </div>
-                                <p style="color: #666; font-size: 0.85rem; line-height: 1.5;"><%= task.description %></p>
-                            </div>
-                            <span class="status-badge" style="background: rgba(100,100,100,0.2); color: #666; margin-top: 0;">🔒 Locked</span>
-                        </div>
-                        <div style="background: rgba(255,193,7,0.1); padding: 0.6rem; border-radius: 8px; margin-top: 0.8rem;">
-                            <p style="color: #FFC107; font-size: 0.8rem;"><i class="fas fa-info-circle"></i> Complete Task <%= index %> to unlock this task</p>
-                        </div>
-                    </div>
-                    <% } else { %>
-                    <!-- Active Task -->
-                    <div class="quest-task active" style="background: rgba(255,255,255,0.05); padding: 1.2rem; border-radius: 12px; margin-bottom: 1rem; border-left: 3px solid #FFC107;">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.8rem;">
-                            <div style="flex: 1;">
-                                <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
-                                    <span style="color: #FFC107; font-size: 1.2rem;"><i class="fas fa-play-circle"></i></span>
-                                    <h4 style="font-size: 1rem;">Task <%= index + 1 %>: <%= task.title %></h4>
-                                </div>
-                                <p style="color: #888; font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem;"><%= task.description %></p>
-                                <% if (task.requirements && task.requirements.url) { %>
-                                <a href="<%= task.requirements.url %>" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                                    <i class="fas fa-external-link-alt"></i> <%= task.requirements.action || 'Visit Link' %>
-                                </a>
-                                <% } %>
-                            </div>
-                            <span class="status-badge status-active" style="margin-top: 0;">In Progress</span>
-                        </div>
-
-                        <!-- Task Action Form -->
-                  <!-- ✅ Dynamic Task Input -->
-<div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
-    <form class="task-submit-form" data-task-id="<%= task._id %>" data-quest-id="<%= quest._id %>">
-
-        <% if (task.buttonText && task.buttonLink) { %>
-            <!-- ✅ OPTIONAL Action Button -->
-            <a href="<%= task.buttonLink %>" 
-               target="_blank" 
-               class="btn btn-secondary"
-               style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                <i class="fas fa-external-link-alt"></i> <%= task.buttonText %>
-            </a>
-        <% } %>
-
-        <% if (task.inputLabel && task.inputName) { %>
-            <!-- ✅ Dynamic Input Field -->
-            <div class="form-group" style="margin-bottom: 1rem;">
-                <label><%= task.inputLabel %></label>
-                <input 
-                    type="text"
-                    name="<%= task.inputName %>"
-                    placeholder="<%= task.inputLabel %>"
-                    required
-                >
-            </div>
-        <% } %>
-
-        <!-- ✅ Submit Button -->
-        <button type="submit" class="btn btn-primary" style="width: 100%;">
-            <i class="fas fa-paper-plane"></i> Submit Task
-        </button>
-
-    </form>
-</div>
-
-                        </div>
-                    </div>
+    <% if (isCompleted) { %>
+    <!-- Completed Task -->
+    <div class="quest-task completed" style="background: rgba(57,255,20,0.05); padding: 1.2rem; border-radius: 12px; margin-bottom: 1rem; border-left: 3px solid #39FF14;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.8rem;">
+            <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                    <span style="color: #39FF14; font-size: 1.2rem;"><i class="fas fa-check-circle"></i></span>
+                    <h4 style="font-size: 1rem; color: #39FF14;">Task <%= index + 1 %>: <%= task.title %></h4>
+                    <% if (taskXp > 0) { %>
+                        <span style="background: rgba(57,255,20,0.2); color: #39FF14; padding: 0.3rem 0.7rem; border-radius: 12px; font-size: 0.75rem; border: 1px solid #39FF14;">
+                            ✓ +<%= taskXp %> XP
+                        </span>
                     <% } %>
-                    <% }); %>
                 </div>
+                <p style="color: #888; font-size: 0.85rem; line-height: 1.5;"><%= task.description %></p>
+            </div>
+            <span class="status-badge status-approved" style="margin-top: 0;">✓ Completed</span>
+        </div>
+        <div style="color: #666; font-size: 0.8rem;">
+            <i class="fas fa-clock"></i> Completed <%= new Date(taskProgress.completedAt).toLocaleString() %>
+            <% if (taskProgress.xpEarned > 0) { %>
+                <span style="margin-left: 1rem;">
+                    <i class="fas fa-star" style="color: #39FF14;"></i> Earned <%= taskProgress.xpEarned %> XP
+                </span>
+            <% } %>
+        </div>
+    </div>
+    
+    <% } else if (isLocked) { %>
+    <!-- Locked Task -->
+    <div class="quest-task locked" style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 12px; margin-bottom: 1rem; border-left: 3px solid #666; opacity: 0.6;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.8rem;">
+            <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                    <span style="color: #666; font-size: 1.2rem;"><i class="fas fa-lock"></i></span>
+                    <h4 style="font-size: 1rem; color: #888;">Task <%= index + 1 %>: <%= task.title %></h4>
+                    <% if (taskXp > 0) { %>
+                        <span style="background: rgba(100,100,100,0.2); color: #666; padding: 0.3rem 0.7rem; border-radius: 12px; font-size: 0.75rem;">
+                            +<%= taskXp %> XP
+                        </span>
+                    <% } %>
+                </div>
+                <p style="color: #666; font-size: 0.85rem; line-height: 1.5;"><%= task.description %></p>
+            </div>
+            <span class="status-badge" style="background: rgba(100,100,100,0.2); color: #666; margin-top: 0;">🔒 Locked</span>
+        </div>
+        <div style="background: rgba(255,193,7,0.1); padding: 0.6rem; border-radius: 8px; margin-top: 0.8rem;">
+            <p style="color: #FFC107; font-size: 0.8rem;"><i class="fas fa-info-circle"></i> Complete Task <%= index %> to unlock this task</p>
+        </div>
+    </div>
+    
+    <% } else { %>
+    <!-- Active Task -->
+    <div class="quest-task active" style="background: rgba(255,255,255,0.05); padding: 1.2rem; border-radius: 12px; margin-bottom: 1rem; border-left: 3px solid #FFC107;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.8rem;">
+            <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                    <span style="color: #FFC107; font-size: 1.2rem;"><i class="fas fa-play-circle"></i></span>
+                    <h4 style="font-size: 1rem;">Task <%= index + 1 %>: <%= task.title %></h4>
+                    <% if (taskXp > 0) { %>
+                        <span style="background: rgba(255,193,7,0.1); color: #FFC107; padding: 0.3rem 0.7rem; border-radius: 12px; font-size: 0.75rem; border: 1px solid #FFC107;">
+                            +<%= taskXp %> XP
+                        </span>
+                    <% } %>
+                </div>
+                <p style="color: #888; font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem;"><%= task.description %></p>
+            </div>
+            <span class="status-badge status-active" style="margin-top: 0;">In Progress</span>
+        </div>
+
+        <!-- Task Action Form -->
+        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+            <form class="task-submit-form" data-task-id="<%= task._id %>" data-quest-id="<%= quest._id %>">
+
+                <% if (task.buttonText && task.buttonLink) { %>
+                    <a href="<%= task.buttonLink %>" 
+                       target="_blank" 
+                       class="btn btn-secondary"
+                       style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; width: 100%;">
+                        <i class="fas fa-external-link-alt"></i> <%= task.buttonText %>
+                    </a>
+                <% } %>
+
+                <% if (task.inputLabel && task.inputName) { %>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="color: #39FF14; margin-bottom: 0.5rem; display: block;"><%= task.inputLabel %></label>
+                        <input 
+                            type="text"
+                            name="<%= task.inputName %>"
+                            placeholder="<%= task.inputLabel %>"
+                            style="width: 100%; padding: 0.75rem; background: rgba(15,15,15,0.95); border: 1px solid rgba(57,255,20,0.2); border-radius: 8px; color: #fff;"
+                            required
+                        >
+                    </div>
+                <% } %>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-paper-plane"></i> Submit Task
+                </button>
+
+            </form>
+        </div>
+    </div>
+    <% } %>
+    <% }); %>
+</div>
 
                 <!-- Learning Resources -->
                 <% if (quest.resources && quest.resources.length > 0) { %>
@@ -246,7 +386,7 @@
                         <h3><i class="fas fa-book"></i> Learning Resources</h3>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-                        <% quest.resources.forEach(resource => { %>
+                        <% quest.resources.forEach(function(resource) { %>
                         <a href="<%= resource.url %>" target="_blank" class="bounty-item" style="text-decoration: none; display: block;">
                             <div style="display: flex; align-items: center; gap: 1rem;">
                                 <i class="fas fa-<%= resource.type === 'video' ? 'video' : resource.type === 'code' ? 'code' : 'file-alt' %>" style="color: #39FF14; font-size: 1.5rem;"></i>
@@ -270,10 +410,10 @@
                         <span style="color: #888; font-size: 0.85rem;">Top builders on this quest</span>
                     </div>
 
-                    <% leaderboard.forEach((entry, idx) => { 
-                        const rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
-                        const rankEmoji = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : (idx + 1);
-                        const timeAgo = Math.floor((Date.now() - new Date(entry.completedAt)) / (1000 * 60 * 60 * 24));
+                    <% leaderboard.forEach(function(entry, idx) { 
+                        var rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+                        var rankEmoji = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : (idx + 1);
+                        var timeAgo = Math.floor((Date.now() - new Date(entry.completedAt)) / (1000 * 60 * 60 * 24));
                     %>
                     <div class="leaderboard-item <%= rankClass %>">
                         <div class="leaderboard-rank">
@@ -356,32 +496,34 @@
 
     <script>
         // Handle task submission
-        document.querySelectorAll('.task-submit-form').forEach(form => {
+        document.querySelectorAll('.task-submit-form').forEach(function(form) {
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
-                const taskId = this.dataset.taskId;
-                const questId = this.dataset.questId;
-                const formData = new FormData(this);
+                var taskId = this.dataset.taskId;
+                var questId = this.dataset.questId;
+                var formData = new FormData(this);
                 
-                // ✅ Detect dynamic input name from the task
-const customFieldName = [...formData.keys()].find(k => k !== "submissionUrl" && k !== "submissionText" );
-let customValue = customFieldName ? formData.get(customFieldName) : null;
+                // Detect dynamic input name from the task
+                var formKeys = [];
+                for (var key of formData.keys()) {
+                    formKeys.push(key);
+                }
+                var customFieldName = formKeys.find(function(k) {
+                    return k !== "submissionUrl" && k !== "submissionText";
+                });
+                var customValue = customFieldName ? formData.get(customFieldName) : null;
 
-const submitData = {
-    questId,
-    taskId,
-
-    // Old fields still supported for backwards compatibility
-    submissionUrl: formData.get('submissionUrl') || '',
-    submissionText: formData.get('submissionText') || '',
-
-    // ✅ New dynamic submission
-    submissionData: customFieldName ? { [customFieldName]: customValue } : null
-};
+                var submitData = {
+                    questId: questId,
+                    taskId: taskId,
+                    submissionUrl: formData.get('submissionUrl') || '',
+                    submissionText: formData.get('submissionText') || '',
+                    submissionData: customFieldName ? { [customFieldName]: customValue } : null
+                };
 
                 try {
-                    const response = await fetch('/dashboard/quests/submit-task', {
+                    var response = await fetch('/dashboard/quests/submit-task', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -389,11 +531,16 @@ const submitData = {
                         body: JSON.stringify(submitData)
                     });
 
-                    const data = await response.json();
+                    var data = await response.json();
 
                     if (data.success) {
                         if (data.isQuestCompleted) {
-                            alert(`🎉 Quest Completed! You earned ${data.rewards.xp} XP${data.rewards.usdc > 0 ? ' and ' + data.rewards.usdc + ' USDC' : ''}!`);
+                            var message = '🎉 Quest Completed! You earned ' + data.rewards.xp + ' XP';
+                            if (data.rewards.usdc > 0) {
+                                message += ' and ' + data.rewards.usdc + ' USDC';
+                            }
+                            message += '!';
+                            alert(message);
                         } else {
                             alert('Task submitted successfully! ✅');
                         }
@@ -416,12 +563,12 @@ const submitData = {
         }
 
         // Animate progress bar on load
-        window.addEventListener('load', () => {
-            const progressBar = document.querySelector('.progress-bar');
+        window.addEventListener('load', function() {
+            var progressBar = document.querySelector('.progress-bar');
             if (progressBar) {
-                const width = progressBar.style.width;
+                var width = progressBar.style.width;
                 progressBar.style.width = '0%';
-                setTimeout(() => {
+                setTimeout(function() {
                     progressBar.style.width = width;
                 }, 100);
             }

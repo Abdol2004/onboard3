@@ -13,6 +13,13 @@ const taskProgressSchema = new mongoose.Schema({
   submissionText: String,
   submissionData: mongoose.Schema.Types.Mixed,
   completedAt: Date,
+  
+  // XP earned from this specific task
+  xpEarned: {
+    type: Number,
+    default: 0
+  },
+  
   verifiedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
@@ -39,7 +46,7 @@ const userQuestProgressSchema = new mongoose.Schema({
   },
   progress: {
     type: Number,
-    default: 0 // percentage 0-100
+    default: 0
   },
   tasksCompleted: {
     type: Number,
@@ -50,7 +57,8 @@ const userQuestProgressSchema = new mongoose.Schema({
     required: true
   },
   taskProgress: [taskProgressSchema],
-  // Timing
+  
+  // ==================== TIMING ====================
   startedAt: {
     type: Date,
     default: null
@@ -63,11 +71,82 @@ const userQuestProgressSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  // Rewards tracking
-  xpEarned: {
-    type: Number,
-    default: 0
+  
+  // ==================== XP BREAKDOWN ====================
+  xpBreakdown: {
+    // XP from completing tasks
+    taskXp: {
+      type: Number,
+      default: 0
+    },
+    // Base XP from completing quest
+    baseXp: {
+      type: Number,
+      default: 0
+    },
+    // Bonus XP from referrals who joined
+    referralJoinBonus: {
+      type: Number,
+      default: 0
+    },
+    // Bonus XP from referrals who completed
+    referralCompleteBonus: {
+      type: Number,
+      default: 0
+    },
+    // Bonus XP for winning/ranking
+    winnerBonus: {
+      type: Number,
+      default: 0
+    },
+    // Total XP earned from this quest
+    totalXp: {
+      type: Number,
+      default: 0
+    }
   },
+  
+  // ==================== REFERRAL TRACKING ====================
+  referralStats: {
+    // Referrals who joined this quest
+    referralsJoined: [{
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      joinedAt: Date,
+      xpEarned: Number
+    }],
+    // Referrals who completed this quest
+    referralsCompleted: [{
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      completedAt: Date,
+      xpEarned: Number
+    }],
+    totalReferralXp: {
+      type: Number,
+      default: 0
+    }
+  },
+  
+  // ==================== COMPETITION/RANKING ====================
+  leaderboardRank: {
+    type: Number,
+    default: null
+  },
+  isWinner: {
+    type: Boolean,
+    default: false
+  },
+  winnerRank: {
+    type: Number,
+    default: null
+  },
+  
+  // ==================== REWARDS ====================
   usdcEarned: {
     type: Number,
     default: 0
@@ -80,15 +159,7 @@ const userQuestProgressSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  // NEW: Track if user won (for FCFS and Competition)
-  isWinner: {
-    type: Boolean,
-    default: false
-  },
-  winnerRank: {
-    type: Number,
-    default: null
-  },
+  
   // Notes and feedback
   userNotes: String,
   feedbackRating: {
@@ -98,6 +169,7 @@ const userQuestProgressSchema = new mongoose.Schema({
     default: null
   },
   feedbackText: String,
+  
   createdAt: {
     type: Date,
     default: Date.now
@@ -111,10 +183,33 @@ const userQuestProgressSchema = new mongoose.Schema({
 // Compound index for unique user-quest combination
 userQuestProgressSchema.index({ userId: 1, questId: 1 }, { unique: true });
 
+// Index for leaderboard queries
+userQuestProgressSchema.index({ questId: 1, 'xpBreakdown.totalXp': -1 });
+userQuestProgressSchema.index({ questId: 1, completedAt: 1 });
+
 // Update timestamp on save
 userQuestProgressSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
+  
+  // Calculate total XP
+  this.xpBreakdown.totalXp = 
+    (this.xpBreakdown.taskXp || 0) +
+    (this.xpBreakdown.baseXp || 0) +
+    (this.xpBreakdown.referralJoinBonus || 0) +
+    (this.xpBreakdown.referralCompleteBonus || 0) +
+    (this.xpBreakdown.winnerBonus || 0);
+  
   next();
 });
+
+// Calculate referral XP total
+userQuestProgressSchema.methods.calculateReferralXp = function() {
+  const joinXp = this.referralStats.referralsJoined.reduce((sum, ref) => sum + (ref.xpEarned || 0), 0);
+  const completeXp = this.referralStats.referralsCompleted.reduce((sum, ref) => sum + (ref.xpEarned || 0), 0);
+  
+  this.referralStats.totalReferralXp = joinXp + completeXp;
+  this.xpBreakdown.referralJoinBonus = joinXp;
+  this.xpBreakdown.referralCompleteBonus = completeXp;
+};
 
 module.exports = mongoose.model("UserQuestProgress", userQuestProgressSchema);
