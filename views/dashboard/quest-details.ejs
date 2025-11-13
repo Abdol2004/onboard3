@@ -1,5 +1,3 @@
-<!-- ========================================== -->
-<!-- views/dashboard/quest-details.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,6 +7,65 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .modal {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .close-btn:hover {
+            background: rgba(255,255,255,0.1) !important;
+            color: #fff !important;
+            transform: rotate(90deg);
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(15,15,15,0.95);
+            border: 1px solid rgba(57,255,20,0.2);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #39FF14;
+            box-shadow: 0 0 0 3px rgba(57,255,20,0.1);
+        }
+        
+        .form-group label {
+            color: #39FF14;
+            margin-bottom: 0.6rem;
+            display: block;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
     <div class="grid-bg"></div>
@@ -44,10 +101,6 @@
                 <a href="/dashboard/settings" class="menu-item">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
-                </a>
-                <a href="#" class="menu-item logout" onclick="handleLogout(event)">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
                 </a>
             </nav>
 
@@ -187,53 +240,6 @@
 </div>
 <% } %>
 
-<!-- Update Leaderboard Section to show XP -->
-<% if (leaderboard && leaderboard.length > 0) { %>
-<div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-trophy"></i> Quest Leaderboard</h3>
-        <span style="color: #888; font-size: 0.85rem;">Ranked by Total XP</span>
-    </div>
-
-    <% leaderboard.forEach(function(entry, idx) { 
-        var rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
-        var rankEmoji = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : (idx + 1);
-        var timeAgo = Math.floor((Date.now() - new Date(entry.completedAt)) / (1000 * 60 * 60 * 24));
-        var totalXp = entry.xpBreakdown?.totalXp || entry.xpEarned || 0;
-    %>
-    <div class="leaderboard-item <%= rankClass %>" style="<%= entry.isWinner ? 'background: rgba(57,255,20,0.05); border-left: 3px solid #39FF14;' : '' %>">
-        <div class="leaderboard-rank">
-            <span class="rank-number" style="<%= idx > 2 ? 'color: #888;' : '' %>"><%= rankEmoji %></span>
-            <div class="user-info">
-                <h4>
-                    <%= entry.userId?.username || 'Anonymous' %>
-                    <% if (entry.isWinner) { %>
-                        <span style="color: #39FF14; margin-left: 0.5rem;">🏆</span>
-                    <% } %>
-                </h4>
-                <p>
-                    Completed in <%= entry.timeSpentMinutes %> minutes
-                    <% if (entry.xpBreakdown) { %>
-                        <br>
-                        <small style="color: #666;">
-                            Task: <%= entry.xpBreakdown.taskXp %> | Base: <%= entry.xpBreakdown.baseXp %>
-                            <% if (entry.xpBreakdown.referralJoinBonus + entry.xpBreakdown.referralCompleteBonus > 0) { %>
-                                | Referral: <%= entry.xpBreakdown.referralJoinBonus + entry.xpBreakdown.referralCompleteBonus %>
-                            <% } %>
-                        </small>
-                    <% } %>
-                </p>
-            </div>
-        </div>
-        <div style="text-align: right;">
-            <div style="color: #39FF14; font-weight: 700; font-size: 1.3rem;"><%= totalXp %> XP</div>
-            <div style="color: #888; font-size: 0.75rem;"><%= timeAgo %> day<%= timeAgo !== 1 ? 's' : '' %> ago</div>
-        </div>
-    </div>
-    <% }); %>
-</div>
-<% } %>
-
                 <!-- Quest Description -->
                 <div class="card">
                     <div class="card-header">
@@ -342,37 +348,23 @@
             <span class="status-badge status-active" style="margin-top: 0;">In Progress</span>
         </div>
 
-        <!-- Task Action Form -->
-        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
-            <form class="task-submit-form" data-task-id="<%= task._id %>" data-quest-id="<%= quest._id %>">
-
-                <% if (task.buttonText && task.buttonLink) { %>
-                    <a href="<%= task.buttonLink %>" 
-                       target="_blank" 
-                       class="btn btn-secondary"
-                       style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; width: 100%;">
-                        <i class="fas fa-external-link-alt"></i> <%= task.buttonText %>
-                    </a>
-                <% } %>
-
-                <% if (task.inputLabel && task.inputName) { %>
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <label style="color: #39FF14; margin-bottom: 0.5rem; display: block;"><%= task.inputLabel %></label>
-                        <input 
-                            type="text"
-                            name="<%= task.inputName %>"
-                            placeholder="<%= task.inputLabel %>"
-                            style="width: 100%; padding: 0.75rem; background: rgba(15,15,15,0.95); border: 1px solid rgba(57,255,20,0.2); border-radius: 8px; color: #fff;"
-                            required
-                        >
-                    </div>
-                <% } %>
-
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <i class="fas fa-paper-plane"></i> Submit Task
-                </button>
-
-            </form>
+        <!-- Task Action Buttons -->
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <% if (task.buttonText && task.buttonLink) { %>
+                <a href="<%= task.buttonLink %>" 
+                   target="_blank" 
+                   class="btn btn-secondary"
+                   style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-external-link-alt"></i> <%= task.buttonText %>
+                </a>
+            <% } %>
+            
+            <button 
+                class="btn btn-primary" 
+                onclick="openTaskModal('<%= task._id %>', '<%= quest._id %>', '<%= task.title.replace(/'/g, "\\'") %>', '<%= task.inputLabel || '' %>', '<%= task.inputName || '' %>')"
+                style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-paper-plane"></i> Submit Task
+            </button>
         </div>
     </div>
     <% } %>
@@ -402,33 +394,50 @@
                 </div>
                 <% } %>
 
-                <!-- Quest Leaderboard -->
+                <!-- Leaderboard -->
                 <% if (leaderboard && leaderboard.length > 0) { %>
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-trophy"></i> Quest Leaderboard</h3>
-                        <span style="color: #888; font-size: 0.85rem;">Top builders on this quest</span>
-                    </div>
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-trophy"></i> Quest Leaderboard</h3>
+        <span style="color: #888; font-size: 0.85rem;">Ranked by Total XP</span>
+    </div>
 
-                    <% leaderboard.forEach(function(entry, idx) { 
-                        var rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
-                        var rankEmoji = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : (idx + 1);
-                        var timeAgo = Math.floor((Date.now() - new Date(entry.completedAt)) / (1000 * 60 * 60 * 24));
-                    %>
-                    <div class="leaderboard-item <%= rankClass %>">
-                        <div class="leaderboard-rank">
-                            <span class="rank-number" style="<%= idx > 2 ? 'color: #888;' : '' %>"><%= rankEmoji %></span>
-                            <div class="user-info">
-                                <h4><%= entry.userId?.username || 'Anonymous' %></h4>
-                                <p>Completed in <%= entry.timeSpentMinutes %> minutes</p>
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="color: #39FF14; font-weight: 700; font-size: 1.1rem;"><%= entry.tasksCompleted %>/<%= entry.totalTasks %> ✓</div>
-                            <div style="color: #888; font-size: 0.75rem;"><%= timeAgo %> day<%= timeAgo !== 1 ? 's' : '' %> ago</div>
-                        </div>
-                    </div>
-                    <% }); %>
+    <% leaderboard.forEach(function(entry, idx) { 
+        var rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+        var rankEmoji = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : (idx + 1);
+        var timeAgo = Math.floor((Date.now() - new Date(entry.completedAt)) / (1000 * 60 * 60 * 24));
+        var totalXp = entry.xpBreakdown?.totalXp || entry.xpEarned || 0;
+    %>
+    <div class="leaderboard-item <%= rankClass %>" style="<%= entry.isWinner ? 'background: rgba(57,255,20,0.05); border-left: 3px solid #39FF14;' : '' %>">
+        <div class="leaderboard-rank">
+            <span class="rank-number" style="<%= idx > 2 ? 'color: #888;' : '' %>"><%= rankEmoji %></span>
+            <div class="user-info">
+                <h4>
+                    <%= entry.userId?.username || 'Anonymous' %>
+                    <% if (entry.isWinner) { %>
+                        <span style="color: #39FF14; margin-left: 0.5rem;">🏆</span>
+                    <% } %>
+                </h4>
+                <p>
+                    Completed in <%= entry.timeSpentMinutes %> minutes
+                    <% if (entry.xpBreakdown) { %>
+                        <br>
+                        <small style="color: #666;">
+                            Task: <%= entry.xpBreakdown.taskXp %> | Base: <%= entry.xpBreakdown.baseXp %>
+                            <% if (entry.xpBreakdown.referralJoinBonus + entry.xpBreakdown.referralCompleteBonus > 0) { %>
+                                | Referral: <%= entry.xpBreakdown.referralJoinBonus + entry.xpBreakdown.referralCompleteBonus %>
+                            <% } %>
+                        </small>
+                    <% } %>
+                </p>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <div style="color: #39FF14; font-weight: 700; font-size: 1.3rem;"><%= totalXp %> XP</div>
+            <div style="color: #888; font-size: 0.75rem;"><%= timeAgo %> day<%= timeAgo !== 1 ? 's' : '' %> ago</div>
+        </div>
+    </div>
+    <% }); %>
 
                     <!-- Current User Progress -->
                     <% if (userProgress.status !== 'completed') { %>
@@ -453,7 +462,7 @@
                 </div>
                 <% } %>
 
-                <!-- Quest Statistics -->
+                
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-chart-bar"></i> Quest Statistics</h3>
@@ -494,65 +503,173 @@
         </main>
     </div>
 
+    <!-- Task Submission Modal -->
+    <div id="taskModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+        <div class="modal-content" style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); border-radius: 20px; padding: 2.5rem; max-width: 550px; width: 90%; border: 2px solid rgba(57,255,20,0.3); box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(57,255,20,0.2);">
+                <div>
+                    <h3 id="taskModalTitle" style="margin: 0; color: #39FF14; font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-paper-plane"></i> Submit Task
+                    </h3>
+                    <p style="color: #888; font-size: 0.85rem; margin: 0.5rem 0 0 0;">Complete the form below to submit your task</p>
+                </div>
+                <button class="close-btn" onclick="closeTaskModal()" style="background: rgba(255,255,255,0.05); border: none; color: #888; font-size: 1.8rem; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s;">&times;</button>
+            </div>
+            
+            <form id="taskSubmitForm" class="modal-body">
+                <div id="taskInputContainer" style="margin-bottom: 1.5rem;">
+                    <!-- Dynamic input will be inserted here -->
+                </div>
+                
+                <div class="modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(57,255,20,0.1);">
+                    <button type="button" class="btn btn-secondary" onclick="closeTaskModal()" style="padding: 0.8rem 1.5rem;">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.8rem 1.5rem; background: linear-gradient(135deg, #39FF14 0%, #2ecc11 100%);">
+                        <i class="fas fa-check"></i> Submit Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        let currentTaskId = null;
+        let currentQuestId = null;
+
+        function openTaskModal(taskId, questId, taskTitle, inputLabel, inputName) {
+            currentTaskId = taskId;
+            currentQuestId = questId;
+            
+            document.getElementById('taskModalTitle').innerHTML = `<i class="fas fa-paper-plane"></i> Submit: ${taskTitle}`;
+            
+            const inputContainer = document.getElementById('taskInputContainer');
+            
+            if (inputLabel && inputName) {
+                inputContainer.innerHTML = `
+                    <div class="form-group">
+                        <label for="taskInput">
+                            <i class="fas fa-edit"></i> ${inputLabel}
+                        </label>
+                        <input 
+                            type="text"
+                            id="taskInput"
+                            name="${inputName}"
+                            placeholder="Enter ${inputLabel.toLowerCase()}"
+                            required
+                        >
+                        <small style="color: #666; font-size: 0.8rem; display: block; margin-top: 0.5rem;">
+                            <i class="fas fa-info-circle"></i> Make sure to provide accurate information
+                        </small>
+                    </div>
+                `;
+            } else {
+                inputContainer.innerHTML = `
+                    <div style="background: rgba(57,255,20,0.05); padding: 1rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2); text-align: center;">
+                        <i class="fas fa-check-circle" style="color: #39FF14; font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                        <p style="color: #ccc; margin: 0;">Click submit to complete this task</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('taskModal').style.display = 'flex';
+            
+            // Focus on input if exists
+            setTimeout(() => {
+                const input = document.getElementById('taskInput');
+                if (input) input.focus();
+            }, 100);
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').style.display = 'none';
+            document.getElementById('taskSubmitForm').reset();
+            currentTaskId = null;
+            currentQuestId = null;
+        }
+
         // Handle task submission
-        document.querySelectorAll('.task-submit-form').forEach(function(form) {
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                var taskId = this.dataset.taskId;
-                var questId = this.dataset.questId;
-                var formData = new FormData(this);
-                
-                // Detect dynamic input name from the task
-                var formKeys = [];
-                for (var key of formData.keys()) {
-                    formKeys.push(key);
+        document.getElementById('taskSubmitForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!currentTaskId || !currentQuestId) {
+                alert('Error: Task information missing');
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const submitData = {
+                questId: currentQuestId,
+                taskId: currentTaskId,
+                submissionUrl: formData.get('submissionUrl') || '',
+                submissionText: formData.get('submissionText') || '',
+                submissionData: {}
+            };
+            
+            // Collect all form data
+            for (let [key, value] of formData.entries()) {
+                if (key !== 'submissionUrl' && key !== 'submissionText') {
+                    submitData.submissionData[key] = value;
                 }
-                var customFieldName = formKeys.find(function(k) {
-                    return k !== "submissionUrl" && k !== "submissionText";
+            }
+
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/dashboard/quests/submit-task', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(submitData)
                 });
-                var customValue = customFieldName ? formData.get(customFieldName) : null;
 
-                var submitData = {
-                    questId: questId,
-                    taskId: taskId,
-                    submissionUrl: formData.get('submissionUrl') || '',
-                    submissionText: formData.get('submissionText') || '',
-                    submissionData: customFieldName ? { [customFieldName]: customValue } : null
-                };
+                const data = await response.json();
 
-                try {
-                    var response = await fetch('/dashboard/quests/submit-task', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(submitData)
-                    });
-
-                    var data = await response.json();
-
-                    if (data.success) {
-                        if (data.isQuestCompleted) {
-                            var message = '🎉 Quest Completed! You earned ' + data.rewards.xp + ' XP';
-                            if (data.rewards.usdc > 0) {
-                                message += ' and ' + data.rewards.usdc + ' USDC';
-                            }
-                            message += '!';
-                            alert(message);
-                        } else {
-                            alert('Task submitted successfully! ✅');
+                if (data.success) {
+                    closeTaskModal();
+                    
+                    if (data.isQuestCompleted) {
+                        let message = '🎉 Quest Completed! You earned ' + data.rewards.xp + ' XP';
+                        if (data.rewards.usdc > 0) {
+                            message += ' and ' + data.rewards.usdc + ' USDC';
                         }
-                        window.location.reload();
+                        message += '!';
+                        alert(message);
                     } else {
-                        alert(data.message || 'Failed to submit task');
+                        alert('✅ Task submitted successfully!');
                     }
-                } catch (error) {
-                    console.error('Error submitting task:', error);
-                    alert('Error submitting task. Please try again.');
+                    
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to submit task');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
                 }
-            });
+            } catch (error) {
+                console.error('Error submitting task:', error);
+                alert('Error submitting task. Please try again.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Close modal on background click
+        document.getElementById('taskModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTaskModal();
+            }
+        });
+
+        // Close modal on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('taskModal').style.display === 'flex') {
+                closeTaskModal();
+            }
         });
 
         function handleLogout(event) {
