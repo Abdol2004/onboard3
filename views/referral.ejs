@@ -404,10 +404,10 @@
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </a>
-                <a href="#" class="menu-item logout" onclick="handleLogout(event)">
+                <!-- <a href="#" class="menu-item logout" onclick="handleLogout(event)">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
-                </a>
+                </a> -->
             </nav>
 
             <div class="sidebar-footer">
@@ -420,13 +420,13 @@
             <header class="header">
                 <div class="header-content">
                     <div class="header-title">
-                        <h2>Referral Program 🎁</h2>
-                        <p>Invite builders and earn rewards together</p>
+                        <h2>Onboarding Program 🎁</h2>
+                        <p>Invite builders and earn rewards</p>
                     </div>
                     <div class="header-stats">
                         <div class="stat-badge">
                             <i class="fas fa-users" style="color: #39FF14;"></i>
-                            <span><%= user.referralStats.totalReferrals || 0 %> Referrals</span>
+                            <span><%= user.referralStats.totalReferrals || 0 %> Onboarded</span>
                         </div>
                         <div class="stat-badge">
                             <i class="fas fa-coins" style="color: #39FF14;"></i>
@@ -440,13 +440,13 @@
                 <!-- Referral Link Card -->
                 <div class="card xp-card">
                     <div class="card-header">
-                        <h3><i class="fas fa-link"></i> Your Referral Link</h3>
+                        <h3><i class="fas fa-link"></i> Your Onboard Link</h3>
                     </div>
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">Share your unique link with friends and earn rewards when they sign up!</p>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">Share your unique link with friends and earn rewards when they get onboard!</p>
                     
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
                         <div class="referral-link-container">
-                            <label>Referral Link</label>
+                            <label>Onboard Link</label>
                             <div class="referral-input-group">
                                 <input type="text" id="referralLink" value="<%= referralLink %>" readonly>
                                 <button onclick="copyReferralLink()" class="btn btn-primary" style="padding: 0.5rem 1.5rem; white-space: nowrap;">
@@ -456,7 +456,7 @@
                         </div>
                         
                         <div class="referral-link-container">
-                            <label>Your Referral Code</label>
+                            <label>Your Onboard Code</label>
                             <div class="referral-input-group">
                                 <input type="text" id="referralCode" value="<%= user.referralCode %>" readonly class="referral-code-input">
                                 <button onclick="copyReferralCode()" class="btn btn-secondary" style="padding: 0.5rem 1rem;">
@@ -486,7 +486,7 @@
                         <div class="stat-card">
                             <i class="fas fa-users"></i>
                             <div class="stat-value"><%= user.referralStats.totalReferrals || 0 %></div>
-                            <p class="stat-label">Total Referrals</p>
+                            <p class="stat-label">Total Onboarded</p>
                         </div>
                     </div>
 
@@ -494,7 +494,7 @@
                         <div class="stat-card">
                             <i class="fas fa-user-check"></i>
                             <div class="stat-value"><%= user.referralStats.activeReferrals || 0 %></div>
-                            <p class="stat-label">Active Referrals</p>
+                            <p class="stat-label">Active Onboarders</p>
                         </div>
                     </div>
 
@@ -510,7 +510,7 @@
                 <!-- Referral Rewards -->
                 <div class="card">
                     <div class="card-header">
-                        <h3><i class="fas fa-gift"></i> Referral Rewards</h3>
+                        <h3><i class="fas fa-gift"></i> Onboard Rewards</h3>
                     </div>
                     <div class="grid-2">
                         <div class="reward-card">
@@ -543,7 +543,7 @@
                             </span>
                         </div>
 
-                        <div class="reward-card">
+                        <!-- <div class="reward-card">
                             <div class="reward-header">
                                 <div class="reward-icon">
                                     <i class="fas fa-graduation-cap"></i>
@@ -556,9 +556,9 @@
                             <span class="reward-badge">
                                 <i class="fas fa-star"></i> +200 XP
                             </span>
-                        </div>
+                        </div> -->
 
-                        <div class="reward-card">
+                        <!-- <div class="reward-card">
                             <div class="reward-header">
                                 <div class="reward-icon">
                                     <i class="fas fa-infinity"></i>
@@ -571,14 +571,14 @@
                             <span class="reward-badge">
                                 10% of their earnings
                             </span>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
 
                 <!-- Your Referrals List -->
                 <div class="card">
                     <div class="card-header">
-                        <h3><i class="fas fa-list"></i> Your Referrals</h3>
+                        <h3><i class="fas fa-list"></i> Your Onboarded Users</h3>
                         <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;"><%= referrals.length %> total</span>
                     </div>
                     
@@ -605,8 +605,8 @@
                     <% } else { %>
                         <div class="empty-state">
                             <i class="fas fa-users"></i>
-                            <p>No referrals yet</p>
-                            <p>Share your referral link to start earning rewards!</p>
+                            <p>Nobody is onboard yet</p>
+                            <p>Share your onboard link to start earning rewards!</p>
                         </div>
                     <% } %>
                 </div>
@@ -614,7 +614,7 @@
                 <!-- Referral Leaderboard -->
                 <div class="card">
                     <div class="card-header">
-                        <h3><i class="fas fa-trophy"></i> Top Referrers</h3>
+                        <h3><i class="fas fa-trophy"></i> Top Onboarders</h3>
                         <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;">
                             <% if (topReferrers && topReferrers.length > 0) { %>
                                 Showing <%= topReferrers.length %> referrers
@@ -645,7 +645,7 @@
                         <div class="empty-state">
                             <i class="fas fa-trophy"></i>
                             <p>No leaderboard data yet</p>
-                            <p>Start referring to appear on the leaderboard!</p>
+                            <p>Start onboarding to appear on the leaderboard!</p>
                         </div>
                     <% } %>
                 </div>
