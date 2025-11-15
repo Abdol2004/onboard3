@@ -1,0 +1,673 @@
+<!-- views/dashboard/x-follow.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .x-follow-banner {
+            background: linear-gradient(135deg, #1DA1F2 0%, #0D8BD9 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            color: white;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 16px rgba(29, 161, 242, 0.2);
+        }
+
+        .x-follow-banner h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .x-follow-banner p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 0.95rem;
+        }
+
+        .x-follow-handle-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .x-handle-display {
+            font-size: 1.25rem;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn-x {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-x:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .citizen-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .citizen-card:hover {
+            border-color: #39FF14;
+            box-shadow: 0 4px 16px rgba(57, 255, 20, 0.1);
+        }
+
+        .citizen-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .citizen-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .citizen-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #39FF14 0%, #2ecc11 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #000;
+        }
+
+        .citizen-details {
+            flex: 1;
+        }
+
+        .citizen-name {
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .citizen-x-handle {
+            color: #1DA1F2;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .citizen-x-handle:hover {
+            text-decoration: underline;
+        }
+
+        .citizen-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .citizen-meta span {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .status-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .status-mutual {
+            background: rgba(57, 255, 20, 0.15);
+            color: #39FF14;
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.15);
+            color: #FFC107;
+        }
+
+        .status-follows-you {
+            background: rgba(29, 161, 242, 0.15);
+            color: #1DA1F2;
+        }
+
+        .btn-follow {
+            background: linear-gradient(135deg, #39FF14 0%, #2ecc11 100%);
+            color: #000;
+            border: none;
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        .btn-follow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(57, 255, 20, 0.3);
+        }
+
+        .btn-followed {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-followed:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        /* Modal Styles */
+        .custom-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .custom-modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .custom-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+        }
+
+        .modal-header p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .modal-input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .input-with-prefix {
+            display: flex;
+            align-items: center;
+        }
+
+        .input-prefix {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-right: none;
+            padding: 0.75rem 1rem;
+            border-radius: 8px 0 0 8px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .modal-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            border-radius: 0 8px 8px 0;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: #39FF14;
+            box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.1);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .modal-btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .modal-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #39FF14 0%, #2ecc11 100%);
+            color: #000;
+        }
+
+        .modal-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(57, 255, 20, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>ONBOARD3</h1>
+                <p>Web3 Builder Hub</p>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="/dashboard" class="menu-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/dashboard/quests" class="menu-item">
+                    <i class="fas fa-trophy"></i>
+                    <span>Quests</span>
+                </a>
+                <a href="/dashboard/learn" class="menu-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Learn</span>
+                </a>
+                <a href="/dashboard/referral" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Referral</span>
+                </a>
+                <a href="/dashboard/events" class="menu-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>Events</span>
+                </a>
+                <!-- <a href="/dashboard/x-follow" class="menu-item active">
+                    <i class="fab fa-x-twitter"></i>
+                    <span>X Network</span>
+                </a> -->
+                <a href="/dashboard/settings" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>v1.0 — Powered by</p>
+                <p class="version">ONBOARD3</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2><i class="fab fa-x-twitter"></i> X Follow Network</h2>
+                        <p>Connect with Onboard3 citizens on X (Twitter)</p>
+                    </div>
+                    <div class="header-stats">
+                        <div class="stat-badge">
+                            <i class="fas fa-users" style="color: #39FF14;"></i>
+                            <span><%= stats.totalUsers %> Citizens</span>
+                        </div>
+                        <div class="stat-badge">
+                            <i class="fas fa-user-friends" style="color: #39FF14;"></i>
+                            <span><%= stats.mutualFollows %> Mutual</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Your X Handle Banner -->
+                <div class="x-follow-banner">
+                    <h3><i class="fab fa-x-twitter"></i> Your X Handle</h3>
+                    <% if (user.twitter) { %>
+                        <p>Connected as <strong>@<%= user.twitter %></strong></p>
+                        <div class="x-follow-handle-section">
+                            <a href="https://x.com/<%= user.twitter %>" target="_blank" class="x-handle-display">
+                                @<%= user.twitter %> <i class="fas fa-external-link-alt" style="font-size: 0.8rem;"></i>
+                            </a>
+                            <button class="btn-x" onclick="openEditModal()">
+                                <i class="fas fa-edit"></i> Edit Handle
+                            </button>
+                        </div>
+                    <% } else { %>
+                        <p>Add your X handle to start connecting with the Onboard3 community</p>
+                        <div class="x-follow-handle-section">
+                            <span class="x-handle-display" style="opacity: 0.7;">No handle yet</span>
+                            <button class="btn-x" onclick="openEditModal()">
+                                <i class="fas fa-plus"></i> Add X Handle
+                            </button>
+                        </div>
+                    <% } %>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-line"></i> Network Stats</h3>
+                    </div>
+                    <div class="grid-3">
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(57,255,20,0.05); border-radius: 12px; border: 1px solid var(--border);">
+                            <div style="font-size: 2rem; color: #39FF14; font-weight: 700;"><%= stats.mutualFollows %></div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Mutual Follows</div>
+                        </div>
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(255,193,7,0.05); border-radius: 12px; border: 1px solid rgba(255,193,7,0.15);">
+                            <div style="font-size: 2rem; color: #FFC107; font-weight: 700;"><%= stats.pendingFollows %></div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Pending Follow Backs</div>
+                        </div>
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(29,161,242,0.05); border-radius: 12px; border: 1px solid rgba(29,161,242,0.15);">
+                            <div style="font-size: 2rem; color: #1DA1F2; font-weight: 700;"><%= stats.totalUsers %></div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Available to Follow</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How It Works -->
+                <div class="card" style="background: rgba(29,161,242,0.05); border-color: rgba(29,161,242,0.2);">
+                    <div class="card-header">
+                        <h3><i class="fas fa-info-circle"></i> How It Works</h3>
+                    </div>
+                    <ol style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.5rem;">
+                        <li>Follow a citizen on X using the link in their card</li>
+                        <li>Click <strong>"I Followed"</strong> to mark that you followed them</li>
+                        <li>When they follow you back, it becomes a <span style="color: #39FF14; font-weight: 600;">mutual connection</span> 🎉</li>
+                    </ol>
+                </div>
+
+                <!-- Citizens List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-users"></i> Onboard3 Citizens</h3>
+                        <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;">
+                            <%= users.length %> citizens on X
+                        </span>
+                    </div>
+
+                    <% if (users.length === 0) { %>
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <h3>No Citizens Yet</h3>
+                            <p>Be the first to add your X handle!</p>
+                        </div>
+                    <% } else { %>
+                        <% users.forEach(citizen => { 
+                            const followStatus = followMap[citizen._id.toString()] || { iFollowed: false, theyFollowed: false, theyFollowedMe: false };
+                            const isMutual = followStatus.iFollowed && followStatus.theyFollowed;
+                        %>
+                            <div class="citizen-card">
+                                <div class="citizen-header">
+                                    <div class="citizen-info">
+                                        <div class="citizen-avatar">
+                                            <%= citizen.username.charAt(0).toUpperCase() %>
+                                        </div>
+                                        <div class="citizen-details">
+                                            <div class="citizen-name">
+                                                <%= citizen.username %>
+                                                <% if (isMutual) { %>
+                                                    <span class="status-badge status-mutual">
+                                                        <i class="fas fa-check-double"></i> Mutual
+                                                    </span>
+                                                <% } else if (followStatus.theyFollowedMe) { %>
+                                                    <span class="status-badge status-follows-you">
+                                                        <i class="fas fa-arrow-left"></i> Follows You
+                                                    </span>
+                                                <% } else if (followStatus.iFollowed) { %>
+                                                    <span class="status-badge status-pending">
+                                                        <i class="fas fa-clock"></i> Pending
+                                                    </span>
+                                                <% } %>
+                                            </div>
+                                            <a href="https://x.com/<%= citizen.twitter %>" target="_blank" class="citizen-x-handle">
+                                                @<%= citizen.twitter %>
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                            <div class="citizen-meta">
+                                                <span>
+                                                    <i class="fas fa-star"></i> <%= citizen.xp %> XP
+                                                </span>
+                                                <% if (citizen.profession) { %>
+                                                    <span>
+                                                        <i class="fas fa-briefcase"></i> <%= citizen.profession %>
+                                                    </span>
+                                                <% } %>
+                                                <span>
+                                                    <i class="fas fa-calendar"></i> 
+                                                    Joined <%= new Date(citizen.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) %>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <% if (followStatus.iFollowed) { %>
+                                            <button class="btn-follow btn-followed" onclick="unfollowUser('<%= citizen._id %>')">
+                                                <i class="fas fa-check"></i> Followed
+                                            </button>
+                                        <% } else { %>
+                                            <button class="btn-follow" onclick="followUser('<%= citizen._id %>')">
+                                                <i class="fas fa-user-plus"></i> I Followed
+                                            </button>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Handle Modal -->
+    <div id="editHandleModal" class="custom-modal-overlay">
+        <div class="custom-modal">
+            <div class="modal-header">
+                <h3>Update Your X Handle</h3>
+                <p>Enter your X (Twitter) username</p>
+            </div>
+            <div class="modal-input-group">
+                <label>X Username</label>
+                <div class="input-with-prefix">
+                    <span class="input-prefix">@</span>
+                    <input type="text" 
+                           id="xHandleInput" 
+                           class="modal-input"
+                           value="<%= user.twitter || '' %>"
+                           placeholder="username">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeEditModal()">
+                    Cancel
+                </button>
+                <button class="modal-btn modal-btn-primary" onclick="saveHandle()">
+                    <i class="fas fa-save"></i> Save Handle
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal() {
+            document.getElementById('editHandleModal').classList.add('show');
+            document.getElementById('xHandleInput').focus();
+        }
+
+        function closeEditModal() {
+            document.getElementById('editHandleModal').classList.remove('show');
+        }
+
+        async function saveHandle() {
+            const handle = document.getElementById('xHandleInput').value.trim();
+            
+            if (!handle) {
+                alert('Please enter a valid X handle');
+                return;
+            }
+
+            try {
+                const response = await fetch('/dashboard/x-follow/update-handle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ xHandle: handle })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to update X handle');
+            }
+        }
+
+        async function followUser(targetUserId) {
+            try {
+                const response = await fetch('/dashboard/x-follow/mark-followed', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetUserId })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to update follow status');
+            }
+        }
+
+        async function unfollowUser(targetUserId) {
+            if (!confirm('Are you sure you want to unmark this follow?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/dashboard/x-follow/unmark-followed', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetUserId })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to update follow status');
+            }
+        }
+
+        // Close modal on background click
+        document.getElementById('editHandleModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeEditModal();
+            }
+        });
+    </script>
+</body>
+</html>
