@@ -3,767 +3,976 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onboard3 — Learn. Earn. Build.</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Understanding Web3 & Cryptocurrency - Complete Beginner's Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-green: #39FF14;
-            --dark-green: #00A86B;
-            --bg-dark: #0a0a0a;
-            --bg-darker: #050505;
-            --white: #ffffff;
-            --grey: #888888;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        
         body {
-            font-family: 'Space Grotesk', sans-serif;
-            background: var(--bg-dark);
-            color: var(--white);
-            overflow-x: hidden;
-            line-height: 1.6;
+            font-family: 'Inter', sans-serif;
         }
-
-        /* Smooth Scroll */
-        html {
-            scroll-behavior: smooth;
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-
-        /* Navigation */
-        nav {
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .progress-indicator {
             position: fixed;
             top: 0;
-            width: 100%;
-            background: rgba(10, 10, 10, 0.9);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            padding: 1.5rem 5%;
-            border-bottom: 1px solid rgba(57, 255, 20, 0.1);
-        }
-
-        nav .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: var(--white);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: var(--primary-green);
-        }
-
-        /* Hero Section */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 2rem 5%;
-            margin-top: 80px;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(57, 255, 20, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 50%, rgba(0, 168, 107, 0.15) 0%, transparent 50%);
-            z-index: -1;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.1s ease;
         }
-
-        .hero-content {
-            max-width: 1400px;
-            text-align: center;
-            z-index: 1;
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
         }
-
-        .hero h1 {
-            font-size: clamp(3rem, 8vw, 6rem);
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, var(--primary-green), var(--white), var(--dark-green));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: fadeInUp 1s ease;
-        }
-
-        .hero p {
-            font-size: clamp(1.2rem, 3vw, 1.8rem);
-            color: var(--grey);
-            margin-bottom: 3rem;
-            animation: fadeInUp 1s ease 0.2s backwards;
-        }
-
-        .cta-buttons {
-            display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            animation: fadeInUp 1s ease 0.4s backwards;
-        }
-
-        .btn {
-            padding: 1rem 2.5rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
-            color: var(--bg-dark);
-            border: none;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(57, 255, 20, 0.3);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--white);
-            border: 2px solid var(--primary-green);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(57, 255, 20, 0.1);
-        }
-
-        /* Section Styles */
-        section {
-            padding: 6rem 5%;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            font-size: clamp(2.5rem, 5vw, 3.5rem);
-            font-weight: 800;
-            margin-bottom: 3rem;
-            text-align: center;
-            background: linear-gradient(135deg, var(--primary-green), var(--white));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Mission Section */
-        .mission-content {
-            max-width: 900px;
-            margin: 0 auto;
-            text-align: center;
-            font-size: 1.5rem;
-            line-height: 2;
-            color: var(--grey);
-        }
-
-        /* Problem & Solution */
-        .problem-solution {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 3rem;
-            margin-top: 3rem;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 2.5rem;
-            border: 1px solid rgba(57, 255, 20, 0.1);
-            transition: all 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-10px);
-            border-color: rgba(57, 255, 20, 0.3);
-            box-shadow: 0 20px 40px rgba(57, 255, 20, 0.1);
-        }
-
-        .card h3 {
-            font-size: 1.8rem;
-            margin-bottom: 1.5rem;
-            color: var(--primary-green);
-        }
-
-        .card ul {
-            list-style: none;
-            color: var(--grey);
-        }
-
-        .card li {
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
-            position: relative;
-        }
-
-        .card li::before {
-            content: '→';
-            position: absolute;
-            left: 0;
-            color: var(--primary-green);
-        }
-
-        /* Roadmap */
-        .roadmap-timeline {
-            position: relative;
-            padding: 2rem 0;
-        }
-
-        .roadmap-item {
-            display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 3rem;
-            margin-bottom: 3rem;
-            opacity: 0;
-            transform: translateX(-50px);
-            animation: slideIn 0.8s forwards;
-        }
-
-        .roadmap-item:nth-child(1) { animation-delay: 0.1s; }
-        .roadmap-item:nth-child(2) { animation-delay: 0.2s; }
-        .roadmap-item:nth-child(3) { animation-delay: 0.3s; }
-        .roadmap-item:nth-child(4) { animation-delay: 0.4s; }
-        .roadmap-item:nth-child(5) { animation-delay: 0.5s; }
-        .roadmap-item:nth-child(6) { animation-delay: 0.6s; }
-
-        .roadmap-date {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-green);
-        }
-
-        .roadmap-content {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 1.5rem;
-            border-radius: 15px;
-            border-left: 3px solid var(--primary-green);
-        }
-
-        .roadmap-content h4 {
-            margin-bottom: 0.5rem;
-            font-size: 1.3rem;
-        }
-
-        /* Traction */
-        .traction-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .stat-card {
-            text-align: center;
-            padding: 2rem;
-            background: rgba(57, 255, 20, 0.05);
-            border-radius: 20px;
-            border: 1px solid rgba(57, 255, 20, 0.2);
-            transition: all 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: scale(1.05);
-            background: rgba(57, 255, 20, 0.1);
-        }
-
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--primary-green);
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: var(--grey);
-            font-size: 1.1rem;
-        }
-
-        /* Revenue */
-        .revenue-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .revenue-card {
-            background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), rgba(0, 168, 107, 0.05));
-            padding: 2rem;
-            border-radius: 20px;
-            border: 1px solid rgba(57, 255, 20, 0.2);
-        }
-
-        .revenue-card h4 {
-            font-size: 1.4rem;
-            margin-bottom: 1rem;
-            color: var(--primary-green);
-        }
-
-        /* Funding */
-        .funding-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-            margin-top: 3rem;
-        }
-
-        .funding-info h3 {
-            font-size: 2.5rem;
-            color: var(--primary-green);
-            margin-bottom: 2rem;
-        }
-
-        .allocation-list {
-            list-style: none;
-        }
-
-        .allocation-list li {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 10px;
-            border-left: 3px solid var(--primary-green);
-        }
-
-        .allocation-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .percentage {
-            font-weight: 700;
-            color: var(--primary-green);
-            font-size: 1.3rem;
-        }
-
-        /* Team */
-        .team-content {
-            max-width: 800px;
-            margin: 3rem auto;
-            text-align: center;
-        }
-
-        .founder-card {
-            background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), rgba(0, 168, 107, 0.05));
-            padding: 3rem;
-            border-radius: 20px;
-            border: 2px solid rgba(57, 255, 20, 0.3);
-            margin-bottom: 2rem;
-        }
-
-        .founder-name {
-            font-size: 2rem;
-            color: var(--primary-green);
-            margin-bottom: 0.5rem;
-        }
-
-        .founder-title {
-            font-size: 1.2rem;
-            color: var(--grey);
-            margin-bottom: 1rem;
-        }
-
-        /* Footer CTA */
-        .footer-cta {
-            text-align: center;
-            padding: 6rem 5%;
-            background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), rgba(0, 168, 107, 0.05));
-        }
-
-        .footer-cta h2 {
-            font-size: clamp(2rem, 4vw, 3rem);
-            margin-bottom: 2rem;
-            line-height: 1.4;
-        }
-
-        .social-links {
-            display: flex;
-            gap: 2rem;
-            justify-content: center;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .social-links a {
-            color: var(--primary-green);
-            text-decoration: none;
-            font-size: 1.2rem;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .social-links a:hover {
-            transform: translateY(-3px);
-            color: var(--white);
-        }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideIn {
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .roadmap-item {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .funding-content {
-                grid-template-columns: 1fr;
-            }
-
-            section {
-                padding: 4rem 5%;
-            }
-        }
-
-        /* Scroll Animation Observer */
-        .fade-in {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease;
-        }
-
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
+        
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
         }
     </style>
 </head>
-<body>
-   
-
+<body class="bg-gray-50">
+    <!-- Progress Bar -->
+    <div class="progress-indicator" id="progressBar"></div>
+    
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Learn. Earn. Build.</h1>
-            <p>Onboarding the next 100,000 Africans into Web3</p>
-            <div class="cta-buttons">
-                <a href="#" class="btn btn-secondary">View Pitch Deck</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Mission Section -->
-    <section id="mission" class="fade-in">
-        <h2 class="section-title">Our Mission</h2>
-        <div class="mission-content">
-            <p>Empowering Africans with <strong style="color: var(--primary-green);">real skills</strong>, <strong style="color: var(--primary-green);">community</strong>, and <strong style="color: var(--primary-green);">opportunities</strong> in Web3.</p>
-        </div>
-    </section>
-
-    <!-- Problem & Solution -->
-    <section id="problem-solution" class="fade-in">
-        <h2 class="section-title">The Challenge & Our Solution</h2>
-        <div class="problem-solution">
-            <div class="card">
-                <h3>The Problem</h3>
-                <ul>
-                    <li>High unemployment in Nigeria (5.3% but 42.5% youth)</li>
-                    <li>Lack of accessible tech education</li>
-                    <li>Web3 seen as intimidating or scams</li>
-                    <li>No clear pathways to earning</li>
-                    <li>Brain drain & limited opportunities</li>
-                </ul>
-            </div>
-            <div class="card">
-                <h3>Our Solution</h3>
-                <ul>
-                    <li>Free, structured Web3 learning paths</li>
-                    <li>Earn-while-you-learn model (quests, bounties)</li>
-                    <li>Local community & mentorship</li>
-                    <li>IRL events & networking</li>
-                    <li>Job board & partnerships</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <!-- Roadmap -->
-    <section id="roadmap" class="fade-in">
-        <h2 class="section-title">Our Roadmap</h2>
-        <div class="roadmap-timeline">
-            <div class="roadmap-item">
-                <div class="roadmap-date">Nov 2025</div>
-                <div class="roadmap-content">
-                    <h4>Launch Virtual Onboarding</h4>
-                    <p>100 participants, structured learning modules</p>
-                </div>
-            </div>
-            <div class="roadmap-item">
-                <div class="roadmap-date">Dec 2025</div>
-                <div class="roadmap-content">
-                    <h4>Quest & Bounty Platform</h4>
-                    <p>Live platform, sponsored tasks, earning opportunities</p>
-                </div>
-            </div>
-            <div class="roadmap-item">
-                <div class="roadmap-date">Dec 2026</div>
-                <div class="roadmap-content">
-                    <h4>First IRL Event</h4>
-                    <p>Kwara meetup, networking, workshops</p>
-                </div>
-            </div>
-            <div class="roadmap-item">
-                <div class="roadmap-date">Feb 2026</div>
-                <div class="roadmap-content">
-                    <h4>Partnership Expansion</h4>
-                    <p>Web3 projects, sponsors, mentors</p>
-                </div>
-            </div>
-            <div class="roadmap-item">
-                <div class="roadmap-date">Mar 2026</div>
-                <div class="roadmap-content">
-                    <h4>Job Board Launch</h4>
-                    <p>Connect builders with opportunities</p>
-                </div>
-            </div>
-            <div class="roadmap-item">
-                <div class="roadmap-date">Apr 2026</div>
-                <div class="roadmap-content">
-                    <h4>Scale to 10,000 Users</h4>
-                    <p>Multiple cities, regional expansion</p>
+    <div class="gradient-bg text-white">
+        <div class="container mx-auto px-6 py-20">
+            <div class="max-w-4xl mx-auto text-center">
+                <h1 class="text-5xl md:text-6xl font-bold mb-6">
+                    🌐 Understanding Web3 & Cryptocurrency
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 opacity-90">
+                    Your complete guide to the future of the internet and digital money
+                </p>
+                <div class="flex flex-wrap justify-center gap-4 text-sm">
+                    <div class="bg-white/20 backdrop-blur-sm rounded-full px-6 py-3">
+                        ⏱️ 10 min read
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-sm rounded-full px-6 py-3">
+                        📚 Complete Guide
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-sm rounded-full px-6 py-3">
+                        ✅ Beginner Friendly
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Traction -->
-    <section id="traction" class="fade-in">
-        <h2 class="section-title">Early Traction</h2>
-        <div class="traction-grid">
-            <div class="stat-card">
-                <span class="stat-number">300+</span>
-                <div class="stat-label">X (Twitter) Followers</div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-number">120+</span>
-                <div class="stat-label">Telegram Members</div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-number">50%</span>
-                <div class="stat-label">Website Ready</div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-number">Nov 2025</span>
-                <div class="stat-label">Virtual Onboarding Launch</div>
+    <!-- Table of Contents -->
+    <div class="container mx-auto px-6 py-12 max-w-6xl">
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-12">
+            <h2 class="text-2xl font-bold mb-6 gradient-text">📑 Table of Contents</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <a href="#web1-web2" class="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">🌍</span>
+                    <span class="font-semibold">Web1, Web2, and Web3</span>
+                </a>
+                <a href="#blockchain" class="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">⛓️</span>
+                    <span class="font-semibold">What is Blockchain?</span>
+                </a>
+                <a href="#cryptocurrency" class="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">💰</span>
+                    <span class="font-semibold">Understanding Cryptocurrency</span>
+                </a>
+                <a href="#wallets" class="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">👛</span>
+                    <span class="font-semibold">Crypto Wallets Explained</span>
+                </a>
+                <a href="#defi" class="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">🏦</span>
+                    <span class="font-semibold">Decentralized Finance (DeFi)</span>
+                </a>
+                <a href="#nfts" class="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">🎨</span>
+                    <span class="font-semibold">NFTs & Digital Ownership</span>
+                </a>
+                <a href="#smart-contracts" class="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">📝</span>
+                    <span class="font-semibold">Smart Contracts</span>
+                </a>
+                <a href="#getting-started" class="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">🚀</span>
+                    <span class="font-semibold">Getting Started</span>
+                </a>
             </div>
         </div>
-    </section>
 
-    <!-- Market Opportunity -->
-    <section id="market" class="fade-in">
-        <h2 class="section-title">Market Opportunity</h2>
-        <div class="problem-solution">
-            <div class="card">
-                <h3>🌍 Africa's Web3 Growth</h3>
-                <ul>
-                    <li>Nigeria leads Africa in crypto adoption</li>
-                    <li>220M population, 70% under 30</li>
-                    <li>Growing internet penetration</li>
-                    <li>High demand for alternative income</li>
-                    <li>Untapped talent pool</li>
-                </ul>
-            </div>
-            <div class="card">
-                <h3>📈 Our Target</h3>
-                <ul>
-                    <li>100,000 users in 3 years</li>
-                    <li>Focus: Nigeria, Ghana, Kenya</li>
-                    <li>Ages 18-35, tech-curious</li>
-                    <li>Students, freelancers, builders</li>
-                    <li>Underserved communities</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <!-- Revenue -->
-    <section id="revenue" class="fade-in">
-        <h2 class="section-title">Revenue Streams</h2>
-        <div class="revenue-grid">
-            <div class="revenue-card">
-                <h4>💰 Sponsored Onboarding</h4>
-                <p>Web3 projects pay to sponsor cohorts and reach our community</p>
-            </div>
-            <div class="revenue-card">
-                <h4>🎯 Branded Quests</h4>
-                <p>Companies sponsor tasks and bounties for user engagement</p>
-            </div>
-            <div class="revenue-card">
-                <h4>🎟️ IRL Events</h4>
-                <p>Ticketed workshops, hackathons, and networking events</p>
-            </div>
-            <div class="revenue-card">
-                <h4>🤝 Affiliate Programs</h4>
-                <p>Partnerships with Web3 platforms and tools</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Funding -->
-    <section id="funding" class="fade-in">
-        <h2 class="section-title">Pre-Seed Funding</h2>
-        <div class="funding-content">
-            <div class="funding-info">
-                <h3>$20K – $25K</h3>
-                <p style="color: var(--grey); margin-bottom: 2rem;">Capital to scale operations, launch platform, and host events</p>
-                <ul class="allocation-list">
-                    <li>
-                        <div class="allocation-item">
-                            <span>Platform Development</span>
-                            <span class="percentage">40%</span>
+        <!-- Main Content -->
+        <div class="space-y-12">
+            
+            <!-- Section 1: Web Evolution -->
+            <section id="web1-web2" class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+                <h2 class="text-4xl font-bold mb-8 gradient-text">🌍 The Evolution: Web1, Web2, and Web3</h2>
+                
+                <div class="space-y-8">
+                    <!-- Web 1.0 -->
+                    <div class="border-l-4 border-gray-300 pl-6">
+                        <h3 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                            <span class="bg-gray-100 w-12 h-12 rounded-full flex items-center justify-center text-2xl">📖</span>
+                            Web 1.0 (1990-2004): The Read-Only Web
+                        </h3>
+                        <p class="text-lg text-gray-700 mb-4">
+                            Remember the early internet? Static websites, basic HTML pages, and no interaction. You could only <strong>read</strong> content - like a digital encyclopedia.
+                        </p>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <strong class="block mb-2">Examples:</strong>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                <li>Personal homepages with visitor counters</li>
+                                <li>Company websites with basic information</li>
+                                <li>No social media, no commenting, no user interaction</li>
+                            </ul>
                         </div>
-                    </li>
-                    <li>
-                        <div class="allocation-item">
-                            <span>Marketing & Growth</span>
-                            <span class="percentage">25%</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="allocation-item">
-                            <span>IRL Events</span>
-                            <span class="percentage">20%</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="allocation-item">
-                            <span>Operations</span>
-                            <span class="percentage">15%</span>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-            <div class="card">
-                <h3>Why Now?</h3>
-                <ul>
-                    <li>Community momentum is building</li>
-                    <li>Platform 50% complete</li>
-                    <li>First cohort starting November</li>
-                    <li>Early partnerships in discussion</li>
-                    <li>Perfect timing for pre-seed</li>
-                </ul>
-            </div>
-        </div>
-    </section>
+                    </div>
 
-    <!-- Team -->
-    <section id="team" class="fade-in">
-        <h2 class="section-title">The Team</h2>
-        <div class="team-content">
-            <div class="founder-card">
-                <div class="founder-name">Beebrain</div>
-                <div class="founder-title">Founder & CEO</div>
-                <p style="color: var(--grey);">Developer, Product Manager & Community Lead driving Onboard3's vision to onboard 100,000 Africans into Web3</p>
-            </div>
-            <div class="card">
-                <h3>Growing Team</h3>
-                <p style="color: var(--grey); margin-bottom: 1rem;">Core volunteers supporting operations</p>
-                <p style="color: var(--primary-green); font-weight: 600;">Open Roles: Community Managers, Content Creators, Developers</p>
-            </div>
-        </div>
-    </section>
+                    <!-- Web 2.0 -->
+                    <div class="border-l-4 border-blue-500 pl-6">
+                        <h3 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                            <span class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center text-2xl">✍️</span>
+                            Web 2.0 (2004-Now): The Read-Write Web
+                        </h3>
+                        <p class="text-lg text-gray-700 mb-4">
+                            This is the internet you know today! Social media, YouTube, blogs - you can <strong>create</strong> and <strong>share</strong> content. But there's a catch...
+                        </p>
+                        <div class="bg-blue-50 p-6 rounded-lg mb-4">
+                            <strong class="block mb-3 text-lg">The Problem with Web2:</strong>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3">
+                                    <span class="text-2xl">🏢</span>
+                                    <div>
+                                        <strong>Big Tech Controls Everything</strong>
+                                        <p class="text-gray-700">Facebook, Google, Amazon own your data and can ban you anytime</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <span class="text-2xl">💰</span>
+                                    <div>
+                                        <strong>You Create, They Profit</strong>
+                                        <p class="text-gray-700">You make content, but platforms keep most of the money</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <span class="text-2xl">🔒</span>
+                                    <div>
+                                        <strong>No True Ownership</strong>
+                                        <p class="text-gray-700">Your photos, videos, posts can disappear if the platform shuts down</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-    <!-- Footer CTA -->
-    <section class="footer-cta">
-        <h2>"We're not just onboarding users — we're building the next generation of African Web3 builders."</h2>
-        <div class="cta-buttons">
-            <a href="#" class="btn btn-primary">Join Onboard3</a>
+                    <!-- Web 3.0 -->
+                    <div class="border-l-4 border-purple-500 pl-6">
+                        <h3 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                            <span class="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center text-2xl">🌐</span>
+                            Web 3.0 (Now-Future): The Read-Write-Own Web
+                        </h3>
+                        <p class="text-lg text-gray-700 mb-4">
+                            Web3 is the next evolution - where <strong>YOU</strong> control your data, digital identity, and can truly <strong>own</strong> digital assets!
+                        </p>
+                        <div class="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg">
+                            <strong class="block mb-3 text-lg">What Makes Web3 Different:</strong>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="text-2xl mb-2">🔓</div>
+                                    <strong>Decentralized</strong>
+                                    <p class="text-sm text-gray-700">No single company controls the network</p>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="text-2xl mb-2">🎯</div>
+                                    <strong>You Own Your Data</strong>
+                                    <p class="text-sm text-gray-700">Take your data anywhere, anytime</p>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="text-2xl mb-2">💎</div>
+                                    <strong>True Digital Ownership</strong>
+                                    <p class="text-sm text-gray-700">Own digital items like you own physical items</p>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <div class="text-2xl mb-2">🤝</div>
+                                    <strong>Direct Peer-to-Peer</strong>
+                                    <p class="text-sm text-gray-700">No middlemen taking cuts</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Blockchain -->
+            <section id="blockchain" class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+                <h2 class="text-4xl font-bold mb-8 gradient-text">⛓️ What is Blockchain?</h2>
+                
+                <p class="text-xl text-gray-700 mb-6">
+                    Think of blockchain as a <strong>digital ledger</strong> that everyone can see, but no one can cheat!
+                </p>
+
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-xl mb-8">
+                    <h3 class="text-2xl font-bold mb-4">📚 Simple Analogy: The Classroom Notebook</h3>
+                    <p class="text-lg text-gray-700 mb-4">
+                        Imagine a classroom where everyone has a copy of the same notebook. Every time someone makes a transaction:
+                    </p>
+                    <ol class="list-decimal list-inside space-y-3 text-gray-700">
+                        <li><strong>Everyone writes it down</strong> - All students record the transaction in their notebook</li>
+                        <li><strong>Everyone checks</strong> - They compare notebooks to make sure it's correct</li>
+                        <li><strong>Can't erase</strong> - Once written, it's permanent. No one can change past pages</li>
+                        <li><strong>No cheating</strong> - If someone tries to cheat, everyone else's notebook proves them wrong</li>
+                    </ol>
+                    <p class="text-lg text-gray-700 mt-4 font-semibold">
+                        That's blockchain! A shared, unchangeable record that everyone verifies together.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="card-hover bg-white border-2 border-gray-200 p-6 rounded-xl">
+                        <div class="text-4xl mb-3">🔗</div>
+                        <h4 class="font-bold text-xl mb-3">Blocks</h4>
+                        <p class="text-gray-700">Each "block" contains a batch of transactions, like pages in a book</p>
+                    </div>
+                    <div class="card-hover bg-white border-2 border-gray-200 p-6 rounded-xl">
+                        <div class="text-4xl mb-3">⛓️</div>
+                        <h4 class="font-bold text-xl mb-3">Chain</h4>
+                        <p class="text-gray-700">Blocks are linked together in chronological order, forming a chain</p>
+                    </div>
+                    <div class="card-hover bg-white border-2 border-gray-200 p-6 rounded-xl">
+                        <div class="text-4xl mb-3">🔐</div>
+                        <h4 class="font-bold text-xl mb-3">Encrypted</h4>
+                        <p class="text-gray-700">Each block is secured with complex cryptography</p>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg">
+                    <h4 class="font-bold text-xl mb-3">💡 Key Benefits of Blockchain:</h4>
+                    <ul class="space-y-2 text-gray-700">
+                        <li>✅ <strong>Transparent:</strong> Anyone can verify transactions</li>
+                        <li>✅ <strong>Immutable:</strong> Can't change or delete past records</li>
+                        <li>✅ <strong>Secure:</strong> Encrypted and protected by thousands of computers</li>
+                        <li>✅ <strong>No middleman:</strong> Direct peer-to-peer transactions</li>
+                        <li>✅ <strong>Always available:</strong> No single point of failure</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 3: Cryptocurrency -->
+            <section id="cryptocurrency" class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+                <h2 class="text-4xl font-bold mb-8 gradient-text">💰 Understanding Cryptocurrency</h2>
+                
+                <p class="text-xl text-gray-700 mb-6">
+                    Cryptocurrency is <strong>digital money</strong> that runs on blockchain technology. No banks, no government control - just pure digital currency!
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-gradient-to-br from-orange-50 to-yellow-50 p-6 rounded-xl">
+                        <h3 class="text-2xl font-bold mb-4">🏦 Traditional Money (Fiat)</h3>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>❌ Controlled by governments and banks</li>
+                            <li>❌ Can be printed infinitely (inflation)</li>
+                            <li>❌ Banks can freeze your account</li>
+                            <li>❌ International transfers take days and cost fees</li>
+                            <li>❌ Requires middlemen for transactions</li>
+                            <li>❌ Not accessible to 1.7 billion unbanked people</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-xl">
+                        <h3 class="text-2xl font-bold mb-4">💎 Cryptocurrency</h3>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>✅ Decentralized - no one controls it</li>
+                            <li>✅ Limited supply (most cryptos)</li>
+                            <li>✅ You are your own bank</li>
+                            <li>✅ Send money anywhere in minutes</li>
+                            <li>✅ Direct peer-to-peer transactions</li>
+                            <li>✅ Anyone with internet can access</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="text-3xl font-bold mb-6">🪙 Popular Cryptocurrencies Explained</h3>
+                
+                <div class="space-y-6">
+                    <!-- Bitcoin -->
+                    <div class="card-hover border-2 border-orange-200 bg-orange-50 p-6 rounded-xl">
+                        <div class="flex items-start gap-4">
+                            <div class="text-5xl">₿</div>
+                            <div class="flex-1">
+                                <h4 class="text-2xl font-bold mb-2">Bitcoin (BTC)</h4>
+                                <p class="text-gray-700 mb-3">
+                                    <strong>The Original Cryptocurrency</strong> - Created in 2009 by the mysterious "Satoshi Nakamoto"
+                                </p>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <ul class="space-y-2 text-gray-700">
+                                        <li>🎯 <strong>Purpose:</strong> Digital gold, store of value</li>
+                                        <li>💰 <strong>Supply:</strong> Only 21 million will ever exist</li>
+                                        <li>⚡ <strong>Use Case:</strong> Long-term investment, hedge against inflation</li>
+                                        <li>🌍 <strong>Fun Fact:</strong> First real-world Bitcoin transaction was 10,000 BTC for 2 pizzas (worth $700M today!)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ethereum -->
+                    <div class="card-hover border-2 border-purple-200 bg-purple-50 p-6 rounded-xl">
+                        <div class="flex items-start gap-4">
+                            <div class="text-5xl">◆</div>
+                            <div class="flex-1">
+                                <h4 class="text-2xl font-bold mb-2">Ethereum (ETH)</h4>
+                                <p class="text-gray-700 mb-3">
+                                    <strong>The Smart Contract Platform</strong> - Not just money, but programmable money!
+                                </p>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <ul class="space-y-2 text-gray-700">
+                                        <li>🎯 <strong>Purpose:</strong> Platform for decentralized applications (dApps)</li>
+                                        <li>🤖 <strong>Special Feature:</strong> Smart contracts (self-executing code)</li>
+                                        <li>⚡ <strong>Use Case:</strong> DeFi, NFTs, gaming, and more</li>
+                                        <li>🌍 <strong>Fun Fact:</strong> Most NFTs and DeFi apps run on Ethereum</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- USDC Stablecoin -->
+                    <div class="card-hover border-2 border-green-200 bg-green-50 p-6 rounded-xl">
+                        <div class="flex items-start gap-4">
+                            <div class="text-5xl">💵</div>
+                            <div class="flex-1">
+                                <h4 class="text-2xl font-bold mb-2">USDC (USD Coin)</h4>
+                                <p class="text-gray-700 mb-3">
+                                    <strong>A Stablecoin</strong> - Cryptocurrency that stays at $1.00 (stable!)
+                                </p>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <ul class="space-y-2 text-gray-700">
+                                        <li>🎯 <strong>Purpose:</strong> Stable digital dollar for everyday transactions</li>
+                                        <li>🏦 <strong>Backed by:</strong> Real US dollars held in reserves</li>
+                                        <li>⚡ <strong>Use Case:</strong> Send money globally, earn interest, avoid volatility</li>
+                                        <li>🌍 <strong>Why it matters:</strong> Get crypto benefits without the price swings</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg">
+                    <h4 class="font-bold text-xl mb-3">🤔 How Do Cryptocurrencies Have Value?</h4>
+                    <p class="text-gray-700 mb-4">
+                        Just like traditional money, crypto has value because:
+                    </p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li>✅ <strong>People agree it has value</strong> (same as fiat money!)</li>
+                        <li>✅ <strong>Limited supply</strong> (scarcity creates value)</li>
+                        <li>✅ <strong>Useful for transactions</strong> (medium of exchange)</li>
+                        <li>✅ <strong>Secure and verifiable</strong> (blockchain technology)</li>
+                        <li>✅ <strong>Growing adoption</strong> (more people = more value)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 4: Wallets -->
+            <section id="wallets" class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+                <h2 class="text-4xl font-bold mb-8 gradient-text">👛 Crypto Wallets Explained</h2>
+                
+                <p class="text-xl text-gray-700 mb-6">
+                    A crypto wallet is like your <strong>digital bank account</strong> - but YOU control it completely, not a bank!
+                </p>
+
+                <div class="bg-gradient-to-r from-purple-50 to-blue-50 p-8 rounded-xl mb-8">
+                    <h3 class="text-2xl font-bold mb-4">🔑 Understanding Keys</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg">
+                            <div class="text-3xl mb-3">🔓</div>
+                            <h4 class="font-bold text-xl mb-2">Public Key (Address)</h4>
+                            <p class="text-gray-700">
+                                Like your email address - you can share it with anyone to receive crypto.
+                            </p>
+                            <div class="bg-gray-100 p-3 rounded mt-3 text-sm font-mono break-all">
+                                0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg">
+                            <div class="text-3xl mb-3">🔐</div>
+                            <h4 class="font-bold text-xl mb-2">Private Key (Password)</h4>
+                            <p class="text-gray-700">
+                                Like your email password - NEVER share this! It controls your funds.
+                            </p>
+                            <div class="bg-red-100 p-3 rounded mt-3 text-sm">
+                                ⚠️ If someone gets this, they can steal all your crypto!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-3xl font-bold mb-6">📱 Types of Wallets</h3>
+                
+                <div class="space-y-6">
+                    <!-- Hot Wallets -->
+                    <div class="card-hover border-2 border-orange-200 p-6 rounded-xl">
+                        <h4 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                            <span class="text-3xl">🔥</span>
+                            Hot Wallets (Connected to Internet)
+                        </h4>
+                        <div class="grid md:grid-cols-3 gap-4 mb-4">
+                            <div class="bg-orange-50 p-4 rounded-lg">
+                                <div class="text-2xl mb-2">📱</div>
+                                <strong>Mobile Wallets</strong>
+                                <p class="text-sm text-gray-700 mt-2">Trust Wallet, Coinbase Wallet</p>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg">
+                                <div class="text-2xl mb-2">💻</div>
+                                <strong>Desktop Wallets</strong>
+                                <p class="text-sm text-gray-700 mt-2">Exodus, Electrum</p>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg">
+                                <div class="text-2xl mb-2">🌐</div>
+                                <strong>Browser Extensions</strong>
+                                <p class="text-sm text-gray-700 mt-2">MetaMask, Phantom</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <p class="text-gray-700 mb-3">
+                                <strong>Best for:</strong> Daily transactions, small amounts, convenience
+                            </p>
+                            <div class="flex gap-4">
+                                <span class="text-green-600">✅ Easy to use</span>
+                                <span class="text-green-600">✅ Quick access</span>
+                                <span class="text-red-600">❌ Less secure (online)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cold Wallets -->
+                    <div class="card-hover border-2 border-blue-200 p-6 rounded-xl">
+                        <h4 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                            <span class="text-3xl">❄️</span>
+                            Cold Wallets (Offline Storage)
+                        </h4>
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <div class="text-2xl mb-2">🔒</div>
+                                <strong>Hardware Wallets</strong>
+                                <p class="text-sm text-gray-700 mt-2">Physical devices like Ledger, Trezor</p>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <div class="text-2xl mb-2">📄</div>
+                                <strong>Paper Wallets</strong>
+                                <p class="text-sm text-gray-700 mt-2">Your keys printed on paper</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <p class="text-gray-700 mb-3">
+                                <strong>Best for:</strong> Long-term storage, large amounts, maximum security
+                            </p>
+                            <div class="flex gap-4">
+                                <span class="text-green-600">✅ Very secure</span>
+                                <span class="text-green-600">✅ Offline protection</span>
+                                <span class="text-red-600">❌ Less convenient</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
+                    <h4 class="font-bold text-xl mb-3 text-red-800">⚠️ CRITICAL WALLET SECURITY RULES</h4>
+                    <ul class="space-y-2 text-gray-700">
+                        <li>🚫 <strong>NEVER share your private key or seed phrase with ANYONE</strong></li>
+                        <li>🚫 <strong>NEVER enter your seed phrase on websites</strong> (it's a scam!)</li>
+                        <li>✅ <strong>Write down your seed phrase on paper and store it safely</strong></li>
+                        <li>✅ <strong>Use hardware wallets for large amounts</strong></li>
+                        <li>✅ <strong>Double-check addresses before sending</strong> (transactions can't be reversed!)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 5: DeFi -->
+            <section id="defi" class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+                <h2 class="text-4xl font-bold mb-8 gradient-text">🏦 Decentralized Finance (DeFi)</h2>
+                
+                <p class="text-xl text-gray-700 mb-6">
+                    DeFi is <strong>banking without banks</strong> - all the financial services you need, but decentralized and controlled by code, not corporations!
+                </p>
+
+                <div class="bg-gradient-to-r from-green-50 to-blue-50 p-8 rounded-xl mb-8">
+                    <h3 class="text-2xl font-bold mb-4">🏦 Traditional Finance vs DeFi</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg">
+                            <h4 class="font-bold text-lg mb-3 text-red-600">❌ Traditional Banking</h4>
+                            <ul class="space-y-2 text-gray-700">
+                                <li>• Need permission to open account</li>
+                                <li>• Can freeze/close your account</li>
+                                <li>• Slow transactions (3-5 business days)</li>
+                                <li>• High fees for international transfers</li>
+                                <li>• Banks earn interest on your money, you get ~0.5%</li>
+                                <li>• Only open during business hours</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg">
+                            <h4 class="font-bold text-lg mb-3 text-green-600">✅ DeFi</h4>
+                            <ul class="space-y-2 text-gray-700">
+                                <li>• Open to anyone with internet</li>
+                                <li>• You control your funds 100%</li>
+                                <li>• Transactions in minutes</li>
+                                <li>• Minimal fees</li>
+                                <li>• Earn 3-20% APY on your crypto</li>
+                                <li>• Available 24/7/365</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-3xl font-bold mb-6">💎 Popular DeFi Services</h3>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="card-hover bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-xl">
+                        <div class="text-4xl mb-3">💰</div>
+                        <h4 class="text-xl font-bold mb-3">Lending & Borrowing</h4>
+                        <p class="text-gray-700 mb-3">
+                            Lend your crypto and earn interest, or borrow against your holdings without selling.
+                        </p>
+                        <div class="bg-white p-3 rounded text-sm">
+                            <strong>Examples:</strong> Aave, Compound, MakerDAO
+                        </div>
+                    </div>
+
+                    <div class="card-hover bg-gradient-to-br from-green-50 to-teal-50 p-6 rounded-xl">
+                        <div class="text-4xl mb-3">🔄</div>
+                        <h4 class="text-xl font-bold mb-3">Decentralized Exchanges (DEX)</h4>
+                        <p class="text-gray-700 mb-3">
+                            Trade crypto directly with others without a centralized exchange.
+                        </p>
+                        <div class="bg-white p-3 rounded text-sm">
+                            <strong>Examples:</strong> Uniswap, PancakeSwap, SushiSwap
+                        </div>
+                    </div>
+
+                    <div class="card-hover bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-xl">
+                        <div class="text-4xl mb-3">🌾</div>
+                        <h4 class="text-xl font-bold mb-3">Yield Farming</h4>
+                        <p class="text-gray-700 mb-3">
+                            Provide liquidity to DeFi protocols and earn rewards - like earning interest on steroids!
+                        </p>
+                        <div class="bg-white p-3 rounded text-sm">
+                            <strong>Earn:</strong> 5-50%+ APY depending on risk
+                        </div>
+                    </div>
+
+                    <div class="card-hover bg-gradient-to-br from-pink-50 to-red-50 p-6 rounded-xl">
+                        <div class="text-4xl mb-3">🎰</div>
+                        <h4 class="text-xl font-bold mb-3">Staking</h4>
+                        <p class="text-gray-700 mb-3">
+                            Lock up your crypto to support a blockchain network and earn passive income.
+                        </p>
+                        <div class="bg-white p-3 rounded text-sm">
+                            <strong>Earn:</strong> 3-15% APY on major coins
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 6: NFTs -->
+            <section id="nfts" class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+                <h2 class="text-4xl font-bold mb-8 gradient-text">🎨 NFTs & Digital Ownership</h2>
+                
+                <p class="text-xl text-gray-700 mb-6">
+                    NFT = <strong>Non-Fungible Token</strong>. Think of it as a <strong>digital certificate of ownership</strong> for unique items!
+                </p>
+
+                <div class="bg-gradient-to-r from-pink-50 to-purple-50 p-8 rounded-xl mb-8">
+                    <h3 class="text-2xl font-bold mb-4">🤔 What Makes Something "Non-Fungible"?</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg">
+                            <h4 class="font-bold text-lg mb-3">🪙 Fungible (Replaceable)</h4>
+                            <p class="text-gray-700 mb-3">
+                                A $10 bill is fungible - any $10 bill has the same value. You can swap them and it doesn't matter.
+                            </p>
+                            <div class="bg-gray-100 p-3 rounded text-sm">
+                                <strong>Examples:</strong> Money, Bitcoin, Gold
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg">
+                            <h4 class="font-bold text-lg mb-3">🎨 Non-Fungible (Unique)</h4>
+                            <p class="text-gray-700 mb-3">
+                                The Mona Lisa is non-fungible - there's only ONE original. Copies exist, but the original is unique.
+                            </p>
+                            <div class="bg-gray-100 p-3 rounded text-sm">
+                                <strong>Examples:</strong> Art, Real estate, Concert tickets
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-3xl font-bold mb-6">🎯 What Can Be an NFT?</h3>
+                
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="card-hover bg-purple-50 p-6 rounded-xl text-center">
+                        <div class="text-5xl mb-3">🖼️</div>
+                        <h4 class="font-bold mb-2">Digital Art</h4>
+                        <p class="text-sm text-gray-700">Artwork, illustrations, generative art</p>
+                    </div>
+                    <div class="card-hover bg-blue-50 p-6 rounded-xl text-center">
+                        <div class="text-5xl mb-3">🎮</div>
+                        <h4 class="font-bold mb-2">Gaming Items</h4>
+                        <p class="text-sm text-gray-700">Weapons, skins, characters you truly own</p>
+                    </div>
+                    <div class="card-hover bg-green-50 p-6 rounded-xl text-center">
+                        <div class="text-5xl mb-3">🎵</div>
+                        <h4 class="font-bold mb-2">Music & Media</h4>
+                        <p class="text-sm text-gray-700">Songs, videos, exclusive content</p>
+                    </div>
+                    <div class="card-hover bg-yellow-50 p-6 rounded-xl text-center">
+                        <div class="text-5xl mb-3">🏠</div>
+                        <h4 class="font-bold mb-2">Virtual Real Estate</h4>
+                        <p class="text-sm text-gray-700">Land in metaverse worlds like Decentraland</p>
+                    </div>
+                    <div class="card-hover bg-pink-50 p-6 rounded-xl text-center">
+                        <div class="text-5xl mb-3">🎫</div>
+                        <h4 class="font-bold mb-2">Event Tickets</h4>
+                        <p class="text-sm text-gray-700">Concert tickets that can't be counterfeited</p>
+                    </div>
+                    <div class="card-hover bg-red-50 p-6 rounded-xl text-center">
+                        <div class="text-5xl mb-3">📜</div>
+                        <h4 class="font-bold mb-2">Certificates</h4>
+                        <p class="text-sm text-gray-700">Diplomas, memberships, achievements</p>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg">
+                    <h4 class="font-bold text-xl mb-3">💡 Why NFTs Matter</h4>
+                    <ul class="space-y-2 text-gray-700">
+                        <li>✅ <strong>Proof of Ownership:</strong> Blockchain proves you own the original</li>
+                        <li>✅ <strong>Creator Royalties:</strong> Artists earn % on every resale forever</li>
+                        <li>✅ <strong>True Digital Ownership:</strong> You own it, not the platform</li>
+                        <li>✅ <strong>Interoperability:</strong> Use your NFTs across different apps/games</li>
+                        <li>✅ <strong>Community Access:</strong> NFTs can unlock exclusive communities and perks</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 7: Smart Contracts -->
+            <section id="smart-contracts" class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+                <h2 class="text-4xl font-bold mb-8 gradient-text">📝 Smart Contracts</h2>
+                
+                <p class="text-xl text-gray-700 mb-6">
+                    Smart contracts are <strong>self-executing agreements written in code</strong> - like a vending machine for any type of transaction!
+                </p>
+
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-xl mb-8">
+                    <h3 class="text-2xl font-bold mb-4">🏪 The Vending Machine Analogy</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold mb-3 text-lg">Traditional Contract:</h4>
+                            <ol class="space-y-2 text-gray-700">
+                                <li>1️⃣ Sign agreement with lawyers</li>
+                                <li>2️⃣ Pay deposit to escrow</li>
+                                <li>3️⃣ Wait for conditions to be met</li>
+                                <li>4️⃣ Verify with third party</li>
+                                <li>5️⃣ Release payment (maybe disputes?)</li>
+                            </ol>
+                            <p class="mt-3 text-sm text-red-600">Takes days/weeks, costs $$, needs lawyers</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold mb-3 text-lg">Smart Contract:</h4>
+                            <ol class="space-y-2 text-gray-700">
+                                <li>1️⃣ Code defines the rules</li>
+                                <li>2️⃣ You trigger the contract</li>
+                                <li>3️⃣ Contract automatically checks conditions</li>
+                                <li>4️⃣ If conditions met → executes instantly</li>
+                                <li>5️⃣ No middleman needed!</li>
+                            </ol>
+                            <p class="mt-3 text-sm text-green-600">Takes minutes, costs cents, no lawyers needed</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-3xl font-bold mb-6">🎯 Real-World Smart Contract Uses</h3>
+                
+                <div class="space-y-4">
+                    <div class="card-hover bg-gradient-to-r from-green-50 to-teal-50 p-6 rounded-xl">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">🏠</div>
+                            <div>
+                                <h4 class="font-bold text-xl mb-2">Real Estate</h4>
+                                <p class="text-gray-700">
+                                    Buy a house: When payment is received, ownership automatically transfers. No escrow company, no waiting weeks.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-hover bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">💼</div>
+                            <div>
+                                <h4 class="font-bold text-xl mb-2">Freelance Work</h4>
+                                <p class="text-gray-700">
+                                    Client deposits payment in smart contract. When you deliver work and client approves, payment releases automatically.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-hover bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">🎫</div>
+                            <div>
+                                <h4 class="font-bold text-xl mb-2">Event Tickets</h4>
+                                <p class="text-gray-700">
+                                    No more scalpers! Smart contract limits resale price and gives artists a cut of secondary sales.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-hover bg-gradient-to-r from-pink-50 to-red-50 p-6 rounded-xl">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">🎮</div>
+                            <div>
+                                <h4 class="font-bold text-xl mb-2">Gaming</h4>
+                                <p class="text-gray-700">
+                                    Earn items in-game that you truly own. Trade them on marketplaces or use across different games.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-green-50 border-l-4 border-green-500 p-6 rounded-lg">
+                    <h4 class="font-bold text-xl mb-3">✨ Benefits of Smart Contracts</h4>
+                    <ul class="grid md:grid-cols-2 gap-3 text-gray-700">
+                        <li>✅ <strong>Trustless:</strong> Don't need to trust the other party</li>
+                        <li>✅ <strong>Automatic:</strong> Executes when conditions are met</li>
+                        <li>✅ <strong>Transparent:</strong> Code is visible to everyone</li>
+                        <li>✅ <strong>Immutable:</strong> Can't be changed after deployment</li>
+                        <li>✅ <strong>Fast:</strong> Executes in seconds/minutes</li>
+                        <li>✅ <strong>Cheap:</strong> No middlemen taking huge fees</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 8: Getting Started -->
+            <section id="getting-started" class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl shadow-lg p-8 md:p-12">
+                <h2 class="text-4xl font-bold mb-8 gradient-text">🚀 Getting Started with Web3</h2>
+                
+                <p class="text-xl text-gray-700 mb-8">
+                    Ready to dive in? Here's your step-by-step roadmap to entering the Web3 world!
+                </p>
+
+                <div class="space-y-6">
+                    <!-- Step 1 -->
+                    <div class="bg-white p-6 rounded-xl card-hover">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-purple-100 text-purple-600 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0">1</div>
+                            <div>
+                                <h3 class="text-2xl font-bold mb-3">📱 Get a Crypto Wallet</h3>
+                                <p class="text-gray-700 mb-3">
+                                    Start with a beginner-friendly wallet like:
+                                </p>
+                                <div class="grid md:grid-cols-3 gap-3">
+                                    <div class="bg-orange-50 p-3 rounded-lg text-center">
+                                        <div class="font-bold">MetaMask</div>
+                                        <div class="text-sm text-gray-600">Browser extension</div>
+                                    </div>
+                                    <div class="bg-blue-50 p-3 rounded-lg text-center">
+                                        <div class="font-bold">Trust Wallet</div>
+                                        <div class="text-sm text-gray-600">Mobile app</div>
+                                    </div>
+                                    <div class="bg-green-50 p-3 rounded-lg text-center">
+                                        <div class="font-bold">Coinbase Wallet</div>
+                                        <div class="text-sm text-gray-600">Easy for beginners</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-white p-6 rounded-xl card-hover">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-blue-100 text-blue-600 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0">2</div>
+                            <div>
+                                <h3 class="text-2xl font-bold mb-3">💰 Buy Your First Crypto</h3>
+                                <p class="text-gray-700 mb-3">
+                                    Start small! Buy $20-50 of crypto to experiment:
+                                </p>
+                                <ul class="space-y-2 text-gray-700">
+                                    <li>• <strong>Coinbase, Binance, Kraken</strong> - Easy to buy with credit card</li>
+                                    <li>• Start with <strong>USDC</strong> (stable) or <strong>ETH</strong> (for trying dApps)</li>
+                                    <li>• Transfer to your personal wallet (not the exchange!)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-white p-6 rounded-xl card-hover">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-green-100 text-green-600 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0">3</div>
+                            <div>
+                                <h3 class="text-2xl font-bold mb-3">🎮 Explore Web3 Apps (dApps)</h3>
+                                <p class="text-gray-700 mb-3">
+                                    Try these beginner-friendly dApps:
+                                </p>
+                                <div class="grid md:grid-cols-2 gap-3">
+                                    <div class="bg-purple-50 p-4 rounded-lg">
+                                        <strong>🔄 Uniswap</strong>
+                                        <p class="text-sm text-gray-600 mt-1">Swap tokens easily</p>
+                                    </div>
+                                    <div class="bg-blue-50 p-4 rounded-lg">
+                                        <strong>🌊 OpenSea</strong>
+                                        <p class="text-sm text-gray-600 mt-1">Browse and buy NFTs</p>
+                                    </div>
+                                    <div class="bg-green-50 p-4 rounded-lg">
+                                        <strong>📊 Aave</strong>
+                                        <p class="text-sm text-gray-600 mt-1">Lend crypto, earn interest</p>
+                                    </div>
+                                    <div class="bg-yellow-50 p-4 rounded-lg">
+                                        <strong>🌐 ENS</strong>
+                                        <p class="text-sm text-gray-600 mt-1">Get your .eth username</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="bg-white p-6 rounded-xl card-hover">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-yellow-100 text-yellow-600 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0">4</div>
+                            <div>
+                                <h3 class="text-2xl font-bold mb-3">📚 Keep Learning</h3>
+                                <p class="text-gray-700 mb-3">
+                                    Web3 is evolving fast! Stay updated:
+                                </p>
+                                <ul class="space-y-2 text-gray-700">
+                                    <li>• Join crypto Twitter and Discord communities</li>
+                                    <li>• Complete quests on platforms like Onboard3 🎯</li>
+                                    <li>• Watch YouTube channels: Finematics, Whiteboard Crypto</li>
+                                    <li>• Read newsletters: The Defiant, Bankless</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="bg-white p-6 rounded-xl card-hover">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-red-100 text-red-600 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0">5</div>
+                            <div>
+                                <h3 class="text-2xl font-bold mb-3">⚠️ Stay Safe!</h3>
+                                <div class="bg-red-50 p-4 rounded-lg">
+                                    <ul class="space-y-2 text-gray-700">
+                                        <li>🚫 <strong>Never share your seed phrase</strong></li>
+                                        <li>🚫 <strong>Double-check URLs</strong> (scam sites look real!)</li>
+                                        <li>🚫 <strong>Don't trust "too good to be true" offers</strong></li>
+                                        <li>✅ <strong>Start with small amounts</strong></li>
+                                        <li>✅ <strong>Research before investing</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Final CTA -->
+            <section class="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl shadow-2xl p-8 md:p-12 text-center">
+                <h2 class="text-4xl md:text-5xl font-bold mb-6">
+                    🎉 Welcome to Web3!
+                </h2>
+                <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
+                    You now understand the fundamentals of Web3, cryptocurrency, blockchain, and the decentralized future of the internet. The journey is just beginning!
+                </p>
+                <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
+                    <div class="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                        <div class="text-4xl mb-3">🌐</div>
+                        <div class="font-bold text-xl mb-2">Decentralized</div>
+                        <p class="text-sm opacity-90">No single point of control</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                        <div class="text-4xl mb-3">💎</div>
+                        <div class="font-bold text-xl mb-2">Ownership</div>
+                        <p class="text-sm opacity-90">You truly own your digital assets</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                        <div class="text-4xl mb-3">🚀</div>
+                        <div class="font-bold text-xl mb-2">Future</div>
+                        <p class="text-sm opacity-90">The internet of value and ownership</p>
+                    </div>
+                </div>
+                <p class="text-lg opacity-90">
+                    Ready to start your Web3 journey? Complete quests, earn rewards, and become part of the decentralized revolution!
+                </p>
+            </section>
+
         </div>
-        <div class="social-links">
-            <a href="https://twitter.com/Onboard3__" target="_blank">@Onboard3__ (X)</a>
-            <a href="mailto:hello@onboard3.xyz">hello@onboard3.xyz</a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 mt-20">
+        <div class="container mx-auto px-6 text-center">
+            <div class="max-w-2xl mx-auto">
+                <h3 class="text-2xl font-bold mb-4">🌐 Onboard3</h3>
+                <p class="text-gray-400 mb-6">
+                    Your gateway to Web3 - Learn, Quest, Earn
+                </p>
+                <div class="flex justify-center gap-6">
+                    <a href="#" class="hover:text-purple-400 transition">Twitter</a>
+                    <a href="#" class="hover:text-purple-400 transition">Discord</a>
+                    <a href="#" class="hover:text-purple-400 transition">Documentation</a>
+                </div>
+                <p class="text-gray-500 text-sm mt-8">
+                    © 2025 Onboard3. Empowering the next generation of Web3 users.
+                </p>
+            </div>
         </div>
-        <p style="margin-top: 3rem; color: var(--grey);">© 2025 Onboard3. Building Africa's Web3 Future.</p>
-    </section>
+    </footer>
 
     <script>
-        // Intersection Observer for scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -100px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-
-        // Smooth scroll for nav links
+        // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 }
             });
+        });
+
+        // Progress bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
         });
     </script>
 </body>
