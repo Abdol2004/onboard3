@@ -57,7 +57,7 @@ exports.validateEmailDomain = (email) => {
     domain: domain,
     message: isAllowed 
       ? 'Email domain is allowed' 
-      : `Registration is only allowed with these email providers: ${ALLOWED_DOMAINS.join(', ')}`
+      : `Incorrect email`
   };
 };
 

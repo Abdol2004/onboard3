@@ -15,7 +15,7 @@ exports.register = async (req, res) => {
       });
     }
 
-     // ✅ EMAIL DOMAIN VALIDATION
+    // ✅ EMAIL DOMAIN VALIDATION
     const emailValidation = validateEmailDomain(email);
     if (!emailValidation.valid) {
       return res.status(400).json({
@@ -25,7 +25,6 @@ exports.register = async (req, res) => {
         domain: emailValidation.domain
       });
     }
-
 
     if (password !== confirmPassword) {
       return res.status(400).json({
@@ -70,7 +69,7 @@ exports.register = async (req, res) => {
     
     console.log(`📍 Registration IP: ${ipAddress}`);
     
-    // ✅ IP-BASED RATE LIMITING
+    // ✅ IP-BASED RATE LIMITING (Prevent multiple accounts)
     const recentAccountsFromIP = await User.countDocuments({
       registrationIP: ipAddress,
       createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
@@ -78,8 +77,8 @@ exports.register = async (req, res) => {
 
     console.log(`📊 Accounts from IP ${ipAddress} in last 24h: ${recentAccountsFromIP}`);
 
-    // Limit: Max 1 accounts per IP per 24 hours
-    if (recentAccountsFromIP >= 1) {
+    // Limit: Max 2 accounts per IP per 24 hours
+    if (recentAccountsFromIP >= 2) {
       console.log(`🚫 RATE LIMIT BLOCKED: IP ${ipAddress} tried to create account #${recentAccountsFromIP + 1}`);
       return res.status(429).json({
         success: false,
@@ -100,23 +99,9 @@ exports.register = async (req, res) => {
       }
     }
 
-    // ✅ CHECK IF EMAIL VERIFICATION IS SKIPPED
-    const skipVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
-    
-    let verificationToken = null;
-    let verificationTokenExpires = null;
-    let isVerified = false;
-
-    if (!skipVerification) {
-      // Normal flow: Generate verification token
-      verificationToken = crypto.randomBytes(32).toString("hex");
-      verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
-      isVerified = false;
-    } else {
-      // ⚠️ TEMPORARY: Auto-verify new users
-      isVerified = true;
-      console.log(`⚠️  SKIP_EMAIL_VERIFICATION enabled - auto-verifying ${email}`);
-    }
+    // ✅ EMAIL VERIFICATION RE-ENABLED
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000;
 
     // Create new user
     const user = new User({
@@ -125,12 +110,12 @@ exports.register = async (req, res) => {
       password,
       verificationToken,
       verificationTokenExpires,
-      isVerified,
+      isVerified: false, // ✅ Require verification again
       referredBy: referralCode ? referralCode.toUpperCase() : null,
       referralRewardGiven: false,
       isAdmin: false,
       role: 'user',
-      registrationIP: ipAddress, // ✅ Save IP
+      registrationIP: ipAddress, // ✅ Save IP for rate limiting
       lastLoginIP: ipAddress,
       lastLogin: new Date()
     });
@@ -144,75 +129,29 @@ exports.register = async (req, res) => {
     ];
 
     await user.save();
-    console.log(`✅ User created: ${username} | IP: ${ipAddress}`);
+    console.log(`✅ User created: ${username} | IP: ${ipAddress} | Email: ${email}`);
 
-    // ✅ If auto-verified, process referral reward immediately
-    if (skipVerification && referralCode && referrer) {
-      try {
-        // Initialize referralStats if not exists
-        if (!referrer.referralStats) {
-          referrer.referralStats = {
-            totalReferrals: 0,
-            activeReferrals: 0,
-            pendingReferrals: 0,
-            totalEarned: 0
-          };
-        }
-
-        const signupBonus = 50;
-        referrer.referralStats.totalReferrals += 1;
-        referrer.referralStats.activeReferrals += 1;
-        referrer.xp += signupBonus;
-        referrer.referralStats.totalEarned += signupBonus;
-
-        // Add activity
-        referrer.recentActivity = referrer.recentActivity || [];
-        referrer.recentActivity.unshift({
-          action: `New referral: ${user.username} joined! Earned ${signupBonus} XP 🎉`,
-          timestamp: new Date(),
-        });
-
-        if (referrer.recentActivity.length > 10) {
-          referrer.recentActivity = referrer.recentActivity.slice(0, 10);
-        }
-
-        await referrer.save();
-        
-        user.referralRewardGiven = true;
-        await user.save();
-
-        console.log(`💰 Instant referral reward: ${referrer.username} +${signupBonus} XP from ${user.username}`);
-      } catch (refError) {
-        console.error("❌ Referral processing error:", refError);
+    // ✅ SEND VERIFICATION EMAIL
+    try {
+      console.log("📧 Sending verification email to:", email);
+      const emailResult = await sendVerificationEmail(email, username, verificationToken);
+      
+      if (emailResult.success) {
+        console.log("✅ Verification email sent successfully!");
+      } else {
+        console.error("❌ Failed to send verification email:", emailResult.error);
+        // Still allow registration even if email fails
       }
-    }
-
-    // Send verification email only if NOT skipping
-    if (!skipVerification) {
-      try {
-        console.log("📧 Attempting to send verification email to:", email);
-        const emailResult = await sendVerificationEmail(email, username, verificationToken);
-        
-        if (emailResult.success) {
-          console.log("✅ Verification email sent successfully!");
-        } else {
-          console.error("❌ Failed to send verification email:", emailResult.error);
-        }
-      } catch (emailError) {
-        console.error("❌ Error sending verification email:", emailError);
-      }
-    } else {
-      console.log("⚠️  Verification email skipped (auto-verified mode active)");
+    } catch (emailError) {
+      console.error("❌ Error sending verification email:", emailError);
+      // Still allow registration even if email fails
     }
 
     // Response
     res.status(201).json({
       success: true,
-      message: skipVerification 
-        ? "Registration successful! You can now login immediately." 
-        : "Registration successful! Please check your email to verify your account.",
-      requiresVerification: !skipVerification,
-      autoVerified: skipVerification,
+      message: "Registration successful! Please check your email to verify your account.",
+      requiresVerification: true,
     });
   } catch (error) {
     console.error("Registration error:", error);
@@ -254,7 +193,7 @@ exports.verifyEmail = async (req, res) => {
     user.verificationTokenExpires = undefined;
     await user.save();
 
-    // ✅ Process referral reward
+    // ✅ Process referral reward AFTER verification
     if (user.referredBy && !user.referralRewardGiven) {
       try {
         const referrer = await User.findOne({ referralCode: user.referredBy });
@@ -413,10 +352,8 @@ exports.login = async (req, res) => {
       });
     }
 
-    // ✅ Allow login even if not verified (when skip mode is on)
-    const skipVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
-    
-    if (!user.isVerified && !skipVerification) {
+    // ✅ REQUIRE EMAIL VERIFICATION
+    if (!user.isVerified) {
       return res.status(401).json({
         success: false,
         message: "Please verify your email before logging in",
