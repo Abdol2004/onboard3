@@ -176,7 +176,15 @@ const userSchema = new mongoose.Schema({
     totalEarned: {
       type: Number,
       default: 0
-    }
+    },
+  emailSent: {
+  type: Boolean,
+  default: false
+},
+welcomeEmailSent: {
+  type: Boolean,
+  default: false
+},
   },
   createdAt: {
     type: Date,

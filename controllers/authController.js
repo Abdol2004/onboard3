@@ -65,8 +65,8 @@ exports.register = async (req, res) => {
 
     console.log(`📊 Accounts from IP ${ipAddress} in last 24h: ${recentAccountsFromIP}`);
 
-    // Limit: Max 2 accounts per IP per 24 hours
-    if (recentAccountsFromIP >= 2) {
+    // Limit: Max 1 accounts per IP per 24 hours
+    if (recentAccountsFromIP >= 1) {
       console.log(`🚫 RATE LIMIT BLOCKED: IP ${ipAddress} tried to create account #${recentAccountsFromIP + 1}`);
       return res.status(429).json({
         success: false,

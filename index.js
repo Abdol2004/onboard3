@@ -12,6 +12,7 @@ const settingsRoutes = require("./routes/settingsRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const xFollowRoutes = require("./routes/xFollowRoutes");
+const { startEmailService, IS_LOCALHOST } = require('./smtp');
 const cors = require('cors');
 dotenv.config();
 const app = express();
@@ -46,6 +47,14 @@ const isAuthenticated = (req, res, next) => {
   }
   res.redirect('/auth');
 };
+if (IS_LOCALHOST) {
+  console.log('🌍 Localhost detected - Starting Gmail SMTP Service...');
+  startEmailService();
+  console.log('📧 Email service will process emails every 3 seconds');
+} else {
+  console.log('🌍 Production mode - Gmail SMTP Service disabled');
+  console.log('📧 Use your production email service instead');
+}
 
 app.use("/api/events", eventRoutes);
 
