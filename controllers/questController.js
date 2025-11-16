@@ -151,7 +151,7 @@ exports.getQuestDetails = async (req, res) => {
     })
     .populate('userId', 'username')
     .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 })
-    .limit(20);
+    .limit(100);
 
     // Find user's rank
     const userRank = leaderboard.findIndex(

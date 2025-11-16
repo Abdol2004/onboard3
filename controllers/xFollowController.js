@@ -7,8 +7,12 @@ exports.getXFollowPage = async (req, res) => {
   try {
     const currentUser = await User.findById(req.session.userId);
     
+    if (!currentUser) {
+      return res.redirect('/auth');
+    }
+    
     // Get all users with X handles, excluding current user
-    const usersWithX = await User.find({
+    const allUsers = await User.find({
       twitter: { $exists: true, $ne: '' },
       _id: { $ne: req.session.userId }
     }).select('username twitter xp profession createdAt').sort({ createdAt: -1 });
@@ -28,7 +32,8 @@ exports.getXFollowPage = async (req, res) => {
     myFollows.forEach(follow => {
       followMap[follow.targetUserId.toString()] = {
         iFollowed: follow.iFollowed,
-        theyFollowed: follow.theyFollowed
+        theyFollowed: follow.theyFollowed,
+        followedAt: follow.followedAt
       };
     });
 
@@ -40,20 +45,65 @@ exports.getXFollowPage = async (req, res) => {
       followMap[userId].theyFollowedMe = follow.iFollowed;
     });
 
+    // Categorize users
+    const newUsers = [];
+    const pendingFollowBacks = [];
+    const mutualFollows = [];
+    const followingYou = [];
+
+    allUsers.forEach(citizen => {
+      const citizenId = citizen._id.toString();
+      const status = followMap[citizenId] || { iFollowed: false, theyFollowed: false, theyFollowedMe: false };
+      
+      const citizenWithStatus = {
+        ...citizen.toObject(),
+        followStatus: status
+      };
+
+      if (status.iFollowed && status.theyFollowed) {
+        // Mutual follows
+        mutualFollows.push(citizenWithStatus);
+      } else if (status.theyFollowedMe && !status.iFollowed) {
+        // They follow you but you haven't followed back
+        followingYou.push(citizenWithStatus);
+      } else if (status.iFollowed && !status.theyFollowed) {
+        // You followed but they haven't followed back
+        pendingFollowBacks.push(citizenWithStatus);
+      } else {
+        // New users to follow
+        newUsers.push(citizenWithStatus);
+      }
+    });
+
+    // Sort by most recent activity
+    pendingFollowBacks.sort((a, b) => {
+      const dateA = a.followStatus.followedAt || new Date(0);
+      const dateB = b.followStatus.followedAt || new Date(0);
+      return dateB - dateA;
+    });
+
     // Get stats
-    const totalUsers = usersWithX.length;
-    const mutualFollows = myFollows.filter(f => f.iFollowed && f.theyFollowed).length;
-    const pendingFollows = myFollows.filter(f => f.iFollowed && !f.theyFollowed).length;
+    const stats = {
+      totalUsers: allUsers.length,
+      mutualFollows: mutualFollows.length,
+      pendingFollows: pendingFollowBacks.length,
+      followingYou: followingYou.length,
+      newUsers: newUsers.length
+    };
 
     res.render("dashboard/x-follow", {
       title: "X Follow Network",
       user: currentUser,
-      users: usersWithX,
-      followMap,
-      stats: {
-        totalUsers,
-        mutualFollows,
-        pendingFollows
+      newUsers: newUsers || [],
+      pendingFollowBacks: pendingFollowBacks || [],
+      mutualFollows: mutualFollows || [],
+      followingYou: followingYou || [],
+      stats: stats || {
+        totalUsers: 0,
+        mutualFollows: 0,
+        pendingFollows: 0,
+        followingYou: 0,
+        newUsers: 0
       }
     });
   } catch (error) {

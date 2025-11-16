@@ -16,18 +16,35 @@
             color: white;
             margin-bottom: 1.5rem;
             box-shadow: 0 4px 16px rgba(29, 161, 242, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .x-follow-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
         }
 
         .x-follow-banner h3 {
             margin: 0 0 0.5rem 0;
             font-size: 1.5rem;
             font-weight: 700;
+            position: relative;
+            z-index: 1;
         }
 
         .x-follow-banner p {
             margin: 0;
             opacity: 0.95;
             font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
         }
 
         .x-follow-handle-section {
@@ -37,6 +54,8 @@
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
         }
 
         .x-handle-display {
@@ -58,6 +77,79 @@
 
         .btn-x:hover {
             background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .section-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            background: var(--bg-card);
+            padding: 0.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 0.75rem 1rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #39FF14 0%, #2ecc11 100%);
+            color: #000;
+            box-shadow: 0 2px 8px rgba(57, 255, 20, 0.3);
+        }
+
+        .tab-badge {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.15rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .tab-btn.active .tab-badge {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .citizen-card {
@@ -72,13 +164,31 @@
         .citizen-card:hover {
             border-color: #39FF14;
             box-shadow: 0 4px 16px rgba(57, 255, 20, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .citizen-card.new-user {
+            border-left: 3px solid #1DA1F2;
+        }
+
+        .citizen-card.pending {
+            border-left: 3px solid #FFC107;
+        }
+
+        .citizen-card.mutual {
+            border-left: 3px solid #39FF14;
+            background: rgba(57, 255, 20, 0.02);
+        }
+
+        .citizen-card.following-you {
+            border-left: 3px solid #9C27B0;
         }
 
         .citizen-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 0.75rem;
+            gap: 1rem;
         }
 
         .citizen-info {
@@ -99,10 +209,12 @@
             font-weight: 700;
             font-size: 1.25rem;
             color: #000;
+            flex-shrink: 0;
         }
 
         .citizen-details {
             flex: 1;
+            min-width: 0;
         }
 
         .citizen-name {
@@ -110,6 +222,10 @@
             font-size: 1.05rem;
             color: var(--text-primary);
             margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
         }
 
         .citizen-x-handle {
@@ -162,6 +278,11 @@
         }
 
         .status-follows-you {
+            background: rgba(156, 39, 176, 0.15);
+            color: #9C27B0;
+        }
+
+        .status-new {
             background: rgba(29, 161, 242, 0.15);
             color: #1DA1F2;
         }
@@ -176,6 +297,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             font-size: 0.875rem;
+            white-space: nowrap;
         }
 
         .btn-follow:hover {
@@ -194,6 +316,15 @@
             transform: translateY(-1px);
         }
 
+        .btn-follow-back {
+            background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+            color: white;
+        }
+
+        .btn-follow-back:hover {
+            box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+        }
+
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
@@ -204,6 +335,11 @@
             font-size: 4rem;
             margin-bottom: 1rem;
             opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            margin: 0.5rem 0;
+            color: var(--text-primary);
         }
 
         /* Modal Styles */
@@ -332,6 +468,19 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(57, 255, 20, 0.3);
         }
+
+        @media (max-width: 768px) {
+            .citizen-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .tab-btn {
+                font-size: 0.75rem;
+                padding: 0.6rem 0.75rem;
+                min-width: auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -365,10 +514,10 @@
                     <i class="fas fa-calendar"></i>
                     <span>Events</span>
                 </a>
-                <!-- <a href="/dashboard/x-follow" class="menu-item active">
+                <a href="/dashboard/x-follow" class="menu-item active">
                     <i class="fab fa-x-twitter"></i>
                     <span>X Network</span>
-                </a> -->
+                </a>
                 <a href="/dashboard/settings" class="menu-item">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
@@ -438,105 +587,278 @@
                         </div>
                         <div style="text-align: center; padding: 1.5rem; background: rgba(255,193,7,0.05); border-radius: 12px; border: 1px solid rgba(255,193,7,0.15);">
                             <div style="font-size: 2rem; color: #FFC107; font-weight: 700;"><%= stats.pendingFollows %></div>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Pending Follow Backs</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Waiting Response</div>
                         </div>
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(29,161,242,0.05); border-radius: 12px; border: 1px solid rgba(29,161,242,0.15);">
-                            <div style="font-size: 2rem; color: #1DA1F2; font-weight: 700;"><%= stats.totalUsers %></div>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Available to Follow</div>
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(156,39,176,0.05); border-radius: 12px; border: 1px solid rgba(156,39,176,0.15);">
+                            <div style="font-size: 2rem; color: #9C27B0; font-weight: 700;"><%= stats.followingYou %></div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Following You</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- How It Works -->
-                <div class="card" style="background: rgba(29,161,242,0.05); border-color: rgba(29,161,242,0.2);">
-                    <div class="card-header">
-                        <h3><i class="fas fa-info-circle"></i> How It Works</h3>
-                    </div>
-                    <ol style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.5rem;">
-                        <li>Follow a citizen on X using the link in their card</li>
-                        <li>Click <strong>"I Followed"</strong> to mark that you followed them</li>
-                        <li>When they follow you back, it becomes a <span style="color: #39FF14; font-weight: 600;">mutual connection</span> 🎉</li>
-                    </ol>
+                <!-- Section Tabs -->
+                <div class="section-tabs">
+                    <button class="tab-btn active" onclick="switchTab('following-you')">
+                        <i class="fas fa-star"></i>
+                        Following You
+                        <span class="tab-badge"><%= stats.followingYou %></span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('new-users')">
+                        <i class="fas fa-user-plus"></i>
+                        New Users
+                        <span class="tab-badge"><%= stats.newUsers %></span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('pending')">
+                        <i class="fas fa-clock"></i>
+                        Pending
+                        <span class="tab-badge"><%= stats.pendingFollows %></span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('mutual')">
+                        <i class="fas fa-check-double"></i>
+                        Mutual
+                        <span class="tab-badge"><%= stats.mutualFollows %></span>
+                    </button>
                 </div>
 
-                <!-- Citizens List -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-users"></i> Onboard3 Citizens</h3>
-                        <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;">
-                            <%= users.length %> citizens on X
-                        </span>
-                    </div>
-
-                    <% if (users.length === 0) { %>
-                        <div class="empty-state">
-                            <i class="fas fa-users"></i>
-                            <h3>No Citizens Yet</h3>
-                            <p>Be the first to add your X handle!</p>
+                <!-- Following You Section (Priority) -->
+                <div id="following-you-tab" class="tab-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-star" style="color: #9C27B0;"></i> Citizens Following You</h3>
+                            <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;">
+                                <%= followingYou.length %> waiting for you to follow back
+                            </span>
                         </div>
-                    <% } else { %>
-                        <% users.forEach(citizen => { 
-                            const followStatus = followMap[citizen._id.toString()] || { iFollowed: false, theyFollowed: false, theyFollowedMe: false };
-                            const isMutual = followStatus.iFollowed && followStatus.theyFollowed;
-                        %>
-                            <div class="citizen-card">
-                                <div class="citizen-header">
-                                    <div class="citizen-info">
-                                        <div class="citizen-avatar">
-                                            <%= citizen.username.charAt(0).toUpperCase() %>
-                                        </div>
-                                        <div class="citizen-details">
-                                            <div class="citizen-name">
-                                                <%= citizen.username %>
-                                                <% if (isMutual) { %>
-                                                    <span class="status-badge status-mutual">
-                                                        <i class="fas fa-check-double"></i> Mutual
-                                                    </span>
-                                                <% } else if (followStatus.theyFollowedMe) { %>
+
+                        <% if (followingYou.length === 0) { %>
+                            <div class="empty-state">
+                                <i class="fas fa-user-friends"></i>
+                                <h3>No One Following You Yet</h3>
+                                <p>Start following others to build your network!</p>
+                            </div>
+                        <% } else { %>
+                            <% followingYou.forEach(citizen => { %>
+                                <div class="citizen-card following-you">
+                                    <div class="citizen-header">
+                                        <div class="citizen-info">
+                                            <div class="citizen-avatar">
+                                                <%= citizen.username.charAt(0).toUpperCase() %>
+                                            </div>
+                                            <div class="citizen-details">
+                                                <div class="citizen-name">
+                                                    <%= citizen.username %>
                                                     <span class="status-badge status-follows-you">
                                                         <i class="fas fa-arrow-left"></i> Follows You
                                                     </span>
-                                                <% } else if (followStatus.iFollowed) { %>
+                                                </div>
+                                                <a href="https://x.com/<%= citizen.twitter %>" target="_blank" class="citizen-x-handle">
+                                                    @<%= citizen.twitter %>
+                                                    <i class="fas fa-external-link-alt"></i>
+                                                </a>
+                                                <div class="citizen-meta">
+                                                    <span>
+                                                        <i class="fas fa-star"></i> <%= citizen.xp %> XP
+                                                    </span>
+                                                    <% if (citizen.profession) { %>
+                                                        <span>
+                                                            <i class="fas fa-briefcase"></i> <%= citizen.profession %>
+                                                        </span>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn-follow btn-follow-back" onclick="followUser('<%= citizen._id %>')">
+                                            <i class="fas fa-user-plus"></i> Follow Back
+                                        </button>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- New Users Section -->
+                <div id="new-users-tab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-user-plus" style="color: #1DA1F2;"></i> New Citizens to Follow</h3>
+                            <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;">
+                                <%= newUsers.length %> fresh connections available
+                            </span>
+                        </div>
+
+                        <% if (newUsers.length === 0) { %>
+                            <div class="empty-state">
+                                <i class="fas fa-check-circle"></i>
+                                <h3>You're All Caught Up!</h3>
+                                <p>You've connected with all available citizens.</p>
+                            </div>
+                        <% } else { %>
+                            <% newUsers.forEach(citizen => { %>
+                                <div class="citizen-card new-user">
+                                    <div class="citizen-header">
+                                        <div class="citizen-info">
+                                            <div class="citizen-avatar">
+                                                <%= citizen.username.charAt(0).toUpperCase() %>
+                                            </div>
+                                            <div class="citizen-details">
+                                                <div class="citizen-name">
+                                                    <%= citizen.username %>
+                                                    <span class="status-badge status-new">
+                                                        <i class="fas fa-sparkles"></i> New
+                                                    </span>
+                                                </div>
+                                                <a href="https://x.com/<%= citizen.twitter %>" target="_blank" class="citizen-x-handle">
+                                                    @<%= citizen.twitter %>
+                                                    <i class="fas fa-external-link-alt"></i>
+                                                </a>
+                                                <div class="citizen-meta">
+                                                    <span>
+                                                        <i class="fas fa-star"></i> <%= citizen.xp %> XP
+                                                    </span>
+                                                    <% if (citizen.profession) { %>
+                                                        <span>
+                                                            <i class="fas fa-briefcase"></i> <%= citizen.profession %>
+                                                        </span>
+                                                    <% } %>
+                                                    <span>
+                                                        <i class="fas fa-calendar"></i> 
+                                                        Joined <%= new Date(citizen.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) %>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn-follow" onclick="followUser('<%= citizen._id %>')">
+                                            <i class="fas fa-user-plus"></i> Follow
+                                        </button>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Pending Follow Backs Section -->
+                <div id="pending-tab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-clock" style="color: #FFC107;"></i> Waiting for Follow Back</h3>
+                            <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;">
+                                <%= pendingFollowBacks.length %> pending responses
+                            </span>
+                        </div>
+
+                        <% if (pendingFollowBacks.length === 0) { %>
+                            <div class="empty-state">
+                                <i class="fas fa-check-double"></i>
+                                <h3>No Pending Follows</h3>
+                                <p>Everyone you followed has followed you back!</p>
+                            </div>
+                        <% } else { %>
+                            <% pendingFollowBacks.forEach(citizen => { %>
+                                <div class="citizen-card pending">
+                                    <div class="citizen-header">
+                                        <div class="citizen-info">
+                                            <div class="citizen-avatar">
+                                                <%= citizen.username.charAt(0).toUpperCase() %>
+                                            </div>
+                                            <div class="citizen-details">
+                                                <div class="citizen-name">
+                                                    <%= citizen.username %>
                                                     <span class="status-badge status-pending">
                                                         <i class="fas fa-clock"></i> Pending
                                                     </span>
-                                                <% } %>
-                                            </div>
-                                            <a href="https://x.com/<%= citizen.twitter %>" target="_blank" class="citizen-x-handle">
-                                                @<%= citizen.twitter %>
-                                                <i class="fas fa-external-link-alt"></i>
-                                            </a>
-                                            <div class="citizen-meta">
-                                                <span>
-                                                    <i class="fas fa-star"></i> <%= citizen.xp %> XP
-                                                </span>
-                                                <% if (citizen.profession) { %>
+                                                </div>
+                                                <a href="https://x.com/<%= citizen.twitter %>" target="_blank" class="citizen-x-handle">
+                                                    @<%= citizen.twitter %>
+                                                    <i class="fas fa-external-link-alt"></i>
+                                                </a>
+                                                <div class="citizen-meta">
                                                     <span>
-                                                        <i class="fas fa-briefcase"></i> <%= citizen.profession %>
+                                                        <i class="fas fa-star"></i> <%= citizen.xp %> XP
                                                     </span>
-                                                <% } %>
-                                                <span>
-                                                    <i class="fas fa-calendar"></i> 
-                                                    Joined <%= new Date(citizen.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) %>
-                                                </span>
+                                                    <% if (citizen.profession) { %>
+                                                        <span>
+                                                            <i class="fas fa-briefcase"></i> <%= citizen.profession %>
+                                                        </span>
+                                                    <% } %>
+                                                    <% if (citizen.followStatus.followedAt) { %>
+                                                        <span>
+                                                            <i class="fas fa-clock"></i> 
+                                                            Followed <%= new Date(citizen.followStatus.followedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %>
+                                                        </span>
+                                                    <% } %>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <% if (followStatus.iFollowed) { %>
-                                            <button class="btn-follow btn-followed" onclick="unfollowUser('<%= citizen._id %>')">
-                                                <i class="fas fa-check"></i> Followed
-                                            </button>
-                                        <% } else { %>
-                                            <button class="btn-follow" onclick="followUser('<%= citizen._id %>')">
-                                                <i class="fas fa-user-plus"></i> I Followed
-                                            </button>
-                                        <% } %>
+                                        <button class="btn-follow btn-followed" onclick="unfollowUser('<%= citizen._id %>')">
+                                            <i class="fas fa-check"></i> Followed
+                                        </button>
                                     </div>
                                 </div>
+                            <% }); %>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Mutual Follows Section -->
+                <div id="mutual-tab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-check-double" style="color: #39FF14;"></i> Mutual Connections</h3>
+                            <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;">
+                                <%= mutualFollows.length %> mutual followers
+                            </span>
+                        </div>
+
+                        <% if (mutualFollows.length === 0) { %>
+                            <div class="empty-state">
+                                <i class="fas fa-handshake"></i>
+                                <h3>No Mutual Connections Yet</h3>
+                                <p>Start following others to build mutual connections!</p>
                             </div>
-                        <% }); %>
-                    <% } %>
+                        <% } else { %>
+                            <% mutualFollows.forEach(citizen => { %>
+                                <div class="citizen-card mutual">
+                                    <div class="citizen-header">
+                                        <div class="citizen-info">
+                                            <div class="citizen-avatar">
+                                                <%= citizen.username.charAt(0).toUpperCase() %>
+                                            </div>
+                                            <div class="citizen-details">
+                                                <div class="citizen-name">
+                                                    <%= citizen.username %>
+                                                    <span class="status-badge status-mutual">
+                                                        <i class="fas fa-check-double"></i> Mutual
+                                                    </span>
+                                                </div>
+                                                <a href="https://x.com/<%= citizen.twitter %>" target="_blank" class="citizen-x-handle">
+                                                    @<%= citizen.twitter %>
+                                                    <i class="fas fa-external-link-alt"></i>
+                                                </a>
+                                                <div class="citizen-meta">
+                                                    <span>
+                                                        <i class="fas fa-star"></i> <%= citizen.xp %> XP
+                                                    </span>
+                                                    <% if (citizen.profession) { %>
+                                                        <span>
+                                                            <i class="fas fa-briefcase"></i> <%= citizen.profession %>
+                                                        </span>
+                                                    <% } %>
+                                                    <span style="color: #39FF14;">
+                                                        <i class="fas fa-handshake"></i> Connected
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn-follow btn-followed" onclick="unfollowUser('<%= citizen._id %>')">
+                                            <i class="fas fa-check"></i> Followed
+                                        </button>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } %>
+                    </div>
                 </div>
             </div>
         </main>
@@ -572,6 +894,16 @@
     </div>
 
     <script>
+        function switchTab(tabName) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            event.target.closest('.tab-btn').classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
         function openEditModal() {
             document.getElementById('editHandleModal').classList.add('show');
             document.getElementById('xHandleInput').focus();
