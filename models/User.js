@@ -2,6 +2,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
+// models/User.js - Add these fields to your existing schema
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -22,7 +24,6 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6
   },
-  // ✅ ADMIN FIELDS - Default to FALSE for security
   isAdmin: {
     type: Boolean,
     default: false
@@ -42,7 +43,22 @@ const userSchema = new mongoose.Schema({
   verificationTokenExpires: {
     type: Date
   },
-  // Dashboard data
+  
+  // ✅ ADD THESE NEW FIELDS FOR IP TRACKING
+  registrationIP: {
+    type: String,
+    default: null
+  },
+  lastLoginIP: {
+    type: String,
+    default: null
+  },
+  lastLogin: {
+    type: Date,
+    default: null
+  },
+  
+  // ... rest of your existing fields ...
   profession: {
     type: String,
     default: null
@@ -67,7 +83,6 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: null
   },
-  // Profile data
   bio: {
     type: String,
     default: ''
@@ -84,7 +99,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
-  // Notification preferences
   notifications: {
     newQuests: {
       type: Boolean,
@@ -107,7 +121,6 @@ const userSchema = new mongoose.Schema({
       default: true
     }
   },
-  // Privacy settings
   privacy: {
     showOnLeaderboard: {
       type: Boolean,
@@ -134,7 +147,6 @@ const userSchema = new mongoose.Schema({
     type: Array,
     default: []
   },
-  // Referral system
   referralCode: {
     type: String,
     unique: true,
@@ -144,7 +156,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
-  // ✅ ADD THIS NEW FIELD
   referralRewardGiven: {
     type: Boolean,
     default: false
@@ -158,7 +169,6 @@ const userSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
-    // ✅ ADD THIS NEW FIELD
     pendingReferrals: {
       type: Number,
       default: 0

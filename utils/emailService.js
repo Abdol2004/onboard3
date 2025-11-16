@@ -47,7 +47,6 @@ function getRecipientEmail(email) {
   return email;
 }
 
-// Send verification email
 exports.sendVerificationEmail = async (email, username, verificationToken) => {
   try {
     const resendClient = getResend();
@@ -55,137 +54,122 @@ exports.sendVerificationEmail = async (email, username, verificationToken) => {
     const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
 
     const { data, error } = await resendClient.emails.send({
-      from: `ONBOARD3 <${fromEmail}>`,
+      from: `Onboard3 <${fromEmail}>`,
       to: recipientEmail,
-      subject: "Verify Your Email - ONBOARD3",
+      
+      // ✅ CRITICAL: Gmail-friendly subject (no special chars, short, clear)
+      subject: "Verify your Onboard3 account",
+      
+      // ✅ CRITICAL: Gmail requires plain text version
+      text: `
+Hi ${username},
+
+Thank you for signing up for Onboard3.
+
+Please verify your email address by clicking this link:
+${verificationUrl}
+
+This verification link will expire in 24 hours.
+
+If you did not sign up for Onboard3, you can safely ignore this email.
+
+Best regards,
+Onboard3 Team
+
+${baseUrl}
+      `.trim(),
+      
+      // ✅ CRITICAL: Simplified HTML (Gmail hates complex CSS)
       html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body {
-              font-family: 'Arial', sans-serif;
-              background-color: #0a0a0a;
-              color: #ffffff;
-              margin: 0;
-              padding: 0;
-            }
-            .container {
-              max-width: 600px;
-              margin: 0 auto;
-              padding: 40px 20px;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 30px;
-            }
-            .logo {
-              font-size: 32px;
-              font-weight: bold;
-              color: #39FF14;
-              margin-bottom: 10px;
-            }
-            .content {
-              background: rgba(20, 20, 20, 0.9);
-              border: 1px solid rgba(57, 255, 20, 0.2);
-              border-radius: 15px;
-              padding: 30px;
-            }
-            h1 {
-              color: #39FF14;
-              font-size: 24px;
-              margin-bottom: 20px;
-            }
-            p {
-              line-height: 1.6;
-              color: rgba(255, 255, 255, 0.9);
-              margin-bottom: 20px;
-            }
-            .button {
-              display: inline-block;
-              padding: 15px 40px;
-              background: #39FF14;
-              color: #0a0a0a;
-              text-decoration: none;
-              border-radius: 10px;
-              font-weight: bold;
-              font-size: 16px;
-              margin: 20px 0;
-            }
-            .footer {
-              text-align: center;
-              margin-top: 30px;
-              color: rgba(255, 255, 255, 0.6);
-              font-size: 14px;
-            }
-            .token {
-              background: rgba(57, 255, 20, 0.1);
-              padding: 15px;
-              border-radius: 8px;
-              font-family: monospace;
-              word-break: break-all;
-              margin: 20px 0;
-            }
-            .dev-notice {
-              background: rgba(255, 193, 7, 0.1);
-              border: 1px solid rgba(255, 193, 7, 0.5);
-              padding: 10px;
-              border-radius: 5px;
-              margin: 20px 0;
-              color: #ffc107;
-              font-size: 12px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <div class="logo">ONBOARD3</div>
-            </div>
-            <div class="content">
-              ${isDevelopment && email !== devEmail ? `
-                <div class="dev-notice">
-                  <strong>⚠️ DEVELOPMENT MODE:</strong> This email was originally intended for ${email} but redirected to ${devEmail} for testing purposes.
-                </div>
-              ` : ''}
-              <h1>Welcome ONBOARD, ${username}! 🚀</h1>
-              <p>Thank you for joining the future of Web3 development. We're excited to have you onboard!</p>
-              <p>To complete your registration and activate your account, please verify your email address by clicking the button below:</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Email</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td align="center" style="padding: 40px 40px 30px 40px; background-color: #39FF14; border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; font-size: 28px; font-weight: bold; color: #000000;">Onboard3</h1>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="margin: 0 0 20px 0; font-size: 22px; color: #333333;">Hi ${username},</h2>
               
-              <center>
-                <a href="${verificationUrl}" class="button">Verify Email Address</a>
-              </center>
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5; color: #555555;">
+                Thank you for signing up for Onboard3. To complete your registration, please verify your email address.
+              </p>
               
-              <p>Or copy and paste this link into your browser:</p>
-              <div class="token">${verificationUrl}</div>
+              <!-- Button -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td style="padding: 20px 0;">
+                    <a href="${verificationUrl}" style="display: inline-block; padding: 14px 30px; background-color: #39FF14; color: #000000; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Verify Email Address</a>
+                  </td>
+                </tr>
+              </table>
               
-              <p><strong>This verification link will expire in 24 hours.</strong></p>
+              <p style="margin: 20px 0 0 0; font-size: 14px; line-height: 1.5; color: #777777;">
+                Or copy and paste this link into your browser:
+              </p>
               
-              <p>If you didn't create an account with ONBOARD3, please ignore this email.</p>
-            </div>
-            <div class="footer">
-              <p>ONBOARD3 - Onboard. Educate. Build.</p>
-              <p>Building the Future of Web3</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `
+              <p style="margin: 10px 0 0 0; padding: 12px; background-color: #f8f8f8; border-radius: 4px; word-break: break-all; font-size: 13px; color: #555555;">
+                ${verificationUrl}
+              </p>
+              
+              <p style="margin: 30px 0 0 0; font-size: 13px; color: #999999;">
+                This link will expire in 24 hours. If you did not create an account, please ignore this email.
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 30px; background-color: #f8f8f8; border-radius: 0 0 8px 8px;">
+              <p style="margin: 0; font-size: 14px; color: #888888;">Onboard3 - Web3 Builder Platform</p>
+              <p style="margin: 5px 0 0 0; font-size: 12px; color: #aaaaaa;">
+                <a href="${baseUrl}" style="color: #39FF14; text-decoration: none;">${baseUrl}</a>
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `.trim(),
+      
+      // ✅ CRITICAL: Add email headers for better deliverability
+      headers: {
+        'X-Entity-Ref-ID': `${Date.now()}-${verificationToken.substring(0, 8)}`,
+      }
     });
 
     if (error) {
-      console.error("❌ Error sending verification email:", error);
+      console.error("❌ Resend error:", error);
       return { success: false, error: error.message || JSON.stringify(error) };
     }
 
-    console.log("✅ Verification email sent to:", recipientEmail);
+    console.log(`✅ Email sent to: ${recipientEmail} | ID: ${data?.id}`);
     return { success: true, data };
+    
   } catch (error) {
-    console.error("❌ Error sending verification email:", error.message);
+    console.error("❌ Email exception:", error);
     return { success: false, error: error.message };
   }
 };
-
 // Send welcome email after verification
 exports.sendWelcomeEmail = async (email, username) => {
   try {
