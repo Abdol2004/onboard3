@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const crypto = require("crypto");
 const { sendVerificationEmail, sendWelcomeEmail } = require("../utils/emailService");
+const { validateEmailDomain } = require("../utils/emailValidator");
 
 exports.register = async (req, res) => {
   try {
@@ -13,6 +14,18 @@ exports.register = async (req, res) => {
         message: "All fields are required",
       });
     }
+
+     // ✅ EMAIL DOMAIN VALIDATION
+    const emailValidation = validateEmailDomain(email);
+    if (!emailValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: emailValidation.message,
+        invalidDomain: true,
+        domain: emailValidation.domain
+      });
+    }
+
 
     if (password !== confirmPassword) {
       return res.status(400).json({
