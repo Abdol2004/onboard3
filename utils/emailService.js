@@ -717,8 +717,8 @@ exports.testEmailConnection = testEmailConnection;
 // Send Quest Reward Email
 exports.sendQuestRewardEmail = async (email, username, amount, questTitle) => {
   try {
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'ONBOARD3 <noreply@yourdomain.com>',
       to: email,
       subject: '🎉 You received a quest reward!',
       html: `
@@ -782,14 +782,22 @@ exports.sendQuestRewardEmail = async (email, username, amount, questTitle) => {
         </body>
         </html>
       `
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ Quest reward email sent to ${email}`);
+    if (error) {
+      console.error('❌ Resend error:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+
+    console.log(`✅ Quest reward email sent to ${email}`, data);
     
     return { 
       success: true, 
-      message: 'Email sent successfully' 
+      message: 'Email sent successfully',
+      data 
     };
 
   } catch (error) {

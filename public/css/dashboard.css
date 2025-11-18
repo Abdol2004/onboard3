@@ -110,6 +110,20 @@ body {
     position: relative;
     font-weight: 500;
 }
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(57, 255, 20, 0.3);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(57, 255, 20, 0.1);
+    border-color: #39FF14;
+}
 
 .menu-item::before {
     content: '';

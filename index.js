@@ -13,6 +13,7 @@ const courseRoutes = require("./routes/courseRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const xFollowRoutes = require("./routes/xFollowRoutes");
 const withdrawalRoutes = require("./routes/withdrawal");
+const campusAmbassadorRoutes = require('./routes/campusAmbassador');
 const { startEmailService, IS_LOCALHOST } = require('./smtp');
 const cors = require('cors');
 dotenv.config();
@@ -70,6 +71,7 @@ app.use("/api/learn", courseRoutes);
 app.use("/dashboard/x-follow", xFollowRoutes);
 app.use("/admin", adminRoutes);
 app.use("/dashboard/withdrawal", withdrawalRoutes);
+app.use('/api/campus-ambassador', campusAmbassadorRoutes);
 
 
 app.get("/", (req, res) => {
@@ -141,6 +143,13 @@ app.get("/dashboard/events/:eventId", isAuthenticated, (req, res) => {
   res.render("dashboard/event-details", { 
     title: "Event Details",
     eventId: req.params.eventId,
+    user: req.session.userId ? { username: req.session.username } : null
+  });
+});
+
+app.get("/dashboard/campus-ambassador", isAuthenticated, (req, res) => {
+  res.render("dashboard/campus-ambassador", { 
+    title: "Campus Ambassador",
     user: req.session.userId ? { username: req.session.username } : null
   });
 });

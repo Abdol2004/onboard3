@@ -189,12 +189,39 @@ isFakeUser: {
   type: Boolean,
   default: false
 },
+ // Campus Ambassador Fields
+    isCampusAmbassador: {
+        type: Boolean,
+        default: false
+    },
+    campusAmbassadorSince: {
+        type: Date,
+        default: null
+    },
+    campusAmbassadorData: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'CampusAmbassador'
+    },
   },
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
+
+userSchema.virtual('ambassadorProfile', {
+    ref: 'CampusAmbassador',
+    localField: '_id',
+    foreignField: 'userId',
+    justOne: true
+});
+
+
+// Ensure virtuals are included when converting to JSON
+userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toObject', { virtuals: true });
+
+
 
 // Hash password before saving
 userSchema.pre("save", async function(next) {

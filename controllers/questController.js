@@ -15,27 +15,17 @@ exports.getAllQuests = async (req, res) => {
       return res.redirect('/auth');
     }
     
-    // Get ALL active quests (simplified query)
+    const now = new Date();
+    
+    // Get ALL active quests
     const allQuests = await Quest.find({ 
       isActive: true
     }).sort({ createdAt: -1 });
-    
-    console.log('📋 Total active quests found:', allQuests.length);
-    
-    // Debug each quest
-    allQuests.forEach(quest => {
-      console.log(`\n🔍 Quest: "${quest.title}"`);
-      console.log(`   - Start Date: ${quest.startDate}`);
-      console.log(`   - End Date: ${quest.endDate}`);
-      console.log(`   - Is Active: ${quest.isActive}`);
-    });
     
     // Get user's progress for all quests
     const userProgress = await UserQuestProgress.find({ 
       userId: req.session.userId 
     });
-
-    console.log('📊 User progress records:', userProgress.length);
 
     // Create a map of quest progress
     const progressMap = {};
@@ -47,49 +37,39 @@ exports.getAllQuests = async (req, res) => {
     const activeQuests = [];
     const availableQuests = [];
     const completedQuests = [];
+    const pastQuests = []; // 👈 NEW: Past quests
 
     allQuests.forEach(quest => {
-      const now = new Date();
-      
-      console.log(`\n⏰ Checking quest: "${quest.title}"`);
-      console.log(`   Current time: ${now}`);
-      console.log(`   Start Date check: ${!quest.startDate} || ${quest.startDate} <= ${now} = ${!quest.startDate || quest.startDate <= now}`);
-      console.log(`   End Date check: ${!quest.endDate} || ${quest.endDate} >= ${now} = ${!quest.endDate || quest.endDate >= now}`);
-      
-      // Check if quest is currently active based on dates
-      const isAvailableNow = (!quest.startDate || quest.startDate <= now) && 
-                             (!quest.endDate || quest.endDate >= now);
-      
-      console.log(`   ✓ Is Available Now: ${isAvailableNow}`);
-      
-      if (!isAvailableNow) {
-        console.log(`   ❌ Quest skipped - not available`);
-        return; // Skip this quest
-      }
-
       const progress = progressMap[quest._id.toString()];
       
       const questData = {
         ...quest.toObject(),
         userProgress: progress ? progress.toObject() : null
       };
-
-      if (progress && progress.status === 'completed') {
-        completedQuests.push(questData);
-        console.log(`   ✅ Added to COMPLETED`);
-      } else if (progress && progress.status === 'in_progress') {
-        activeQuests.push(questData);
-        console.log(`   🔥 Added to ACTIVE`);
-      } else {
-        availableQuests.push(questData);
-        console.log(`   ✨ Added to AVAILABLE`);
+      
+      // Check if quest is currently active based on dates
+      const isAvailableNow = (!quest.startDate || quest.startDate <= now) && 
+                             (!quest.endDate || quest.endDate >= now);
+      
+      // 👇 NEW: Check if quest has ended
+      const hasEnded = quest.endDate && quest.endDate < now;
+      
+      if (hasEnded) {
+        // Quest has ended - add to past quests
+        pastQuests.push(questData);
+      } else if (isAvailableNow) {
+        // Quest is currently available
+        if (progress && progress.status === 'completed') {
+          completedQuests.push(questData);
+        } else if (progress && progress.status === 'in_progress') {
+          activeQuests.push(questData);
+        } else {
+          availableQuests.push(questData);
+        }
       }
     });
 
-    console.log('\n📊 FINAL COUNTS:');
-    console.log('✅ Available:', availableQuests.length);
-    console.log('🔥 Active:', activeQuests.length);
-    console.log('✔️ Completed:', completedQuests.length);
+    console.log('📊 Quest counts - Available:', availableQuests.length, 'Active:', activeQuests.length, 'Completed:', completedQuests.length, 'Past:', pastQuests.length);
 
     res.render('dashboard/quest', { 
       title: 'Quests',
@@ -97,6 +77,7 @@ exports.getAllQuests = async (req, res) => {
       activeQuests: activeQuests || [],
       availableQuests: availableQuests || [],
       completedQuests: completedQuests || [],
+      pastQuests: pastQuests || [], // 👈 NEW: Pass past quests
       completedCount: completedQuests.length
     });
 
@@ -105,7 +86,6 @@ exports.getAllQuests = async (req, res) => {
     res.status(500).send("Error loading quests");
   }
 };
-
 // ==================== QUEST DETAILS ====================
 exports.getQuestDetails = async (req, res) => {
   try {

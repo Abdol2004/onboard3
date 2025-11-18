@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Ambassador - ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>ONBOARD3</h1>
+                <p>Web3 Builder Hub</p>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="/dashboard" class="menu-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/dashboard/quests" class="menu-item">
+                    <i class="fas fa-trophy"></i>
+                    <span>Quests</span>
+                </a>
+                <a href="/dashboard/learn" class="menu-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Learn</span>
+                </a>
+                <a href="/dashboard/referral" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Referral</span>
+                </a>
+                <a href="/dashboard/campus-ambassador" class="menu-item active">
+                    <i class="fas fa-school"></i>
+                    <span>Campus Ambassador</span>
+                </a>
+                <!-- <a href="/dashboard/events" class="menu-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>Events</span>
+                </a> -->
+                <a href="/dashboard/settings" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>v1.0 — Powered by</p>
+                <p class="version">ONBOARD3</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+         <header class="header">
+    <div class="header-content">
+        <div class="header-title">
+            <h2>Campus Ambassador Program</h2>
+            <p>Represent ONBOARD3 in your institution and earn rewards</p>
+        </div>
+        <div class="header-user">
+            <span style="color: #888;">Welcome,</span>
+            <span style="color: #39FF14; font-weight: 600;"><%= user ? user.username : 'Guest' %></span>
+        </div>
+    </div>
+</header>
+
+            <div class="content">
+                <!-- My Ambassador Application -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-clipboard-check"></i> My Ambassador Application</h3>
+                    </div>
+                    <div id="myAmbassadorApplication">
+                        <p style="color: #888; text-align: center; padding: 2rem;">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Program Benefits -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-gift"></i> Program Benefits</h3>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-coins"></i> Earn Rewards</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Get USDC and exclusive NFTs for your contributions</p>
+                        </div>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-certificate"></i> Certificate</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Receive official certification as a campus ambassador</p>
+                        </div>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-network-wired"></i> Network</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Connect with Web3 leaders and fellow ambassadors</p>
+                        </div>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-rocket"></i> Early Access</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Get early access to new features and opportunities</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-file-alt"></i> Apply to Become a Campus Ambassador</h3>
+                    </div>
+                    <p style="color: #888; margin-bottom: 2rem;">Join our network of student leaders representing ONBOARD3 across Nigerian institutions.</p>
+
+                    <form id="ambassadorApplicationForm">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" id="fullName" placeholder="John Doe" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email Address *</label>
+                            <input type="email" id="email" placeholder="john@example.com" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Phone Number *</label>
+                            <input type="tel" id="phone" placeholder="+234 XXX XXX XXXX" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>State *</label>
+                            <select id="stateSelect" required>
+                                <option value="">-- Select your state --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Institution Type *</label>
+                            <select id="institutionType" required>
+                                <option value="">-- Select institution type --</option>
+                                <option value="">First select a state</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Institution Name *</label>
+                            <select id="institutionName" required>
+                                <option value="">-- Select your institution --</option>
+                                <option value="">First select institution type</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Course of Study *</label>
+                            <input type="text" id="courseOfStudy" placeholder="e.g., Computer Science" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Current Level *</label>
+                            <select id="currentLevel" required>
+                                <option value="">-- Select level --</option>
+                                <option value="100">100 Level</option>
+                                <option value="200">200 Level</option>
+                                <option value="300">300 Level</option>
+                                <option value="400">400 Level</option>
+                                <option value="500">500 Level</option>
+                                <option value="600">600 Level</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Twitter/X Handle *</label>
+                            <input type="text" id="twitter" placeholder="@yourusername" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Telegram Username</label>
+                            <input type="text" id="telegram" placeholder="@yourusername">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Why do you want to be a Campus Ambassador? *</label>
+                            <textarea id="motivation" placeholder="Tell us about your passion for Web3 and how you plan to represent ONBOARD3 in your campus..." required rows="4"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Previous Leadership Experience</label>
+                            <textarea id="experience" placeholder="Share any leadership roles, community management, or relevant experience..." rows="4"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>How will you promote ONBOARD3 on your campus? *</label>
+                            <textarea id="promotionPlan" placeholder="Describe your strategy and ideas for promoting ONBOARD3..." required rows="4"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-paper-plane"></i> Submit Application
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Responsibilities -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-tasks"></i> Ambassador Responsibilities</h3>
+                    </div>
+                    
+                    <div style="color: #ccc; line-height: 1.8;">
+                        <p><i class="fas fa-check" style="color: #39FF14; margin-right: 10px;"></i> Organize and host Web3 events and workshops on campus</p>
+                        <p><i class="fas fa-check" style="color: #39FF14; margin-right: 10px;"></i> Promote ONBOARD3 programs and opportunities to students</p>
+                        <p><i class="fas fa-check" style="color: #39FF14; margin-right: 10px;"></i> Create engaging content about Web3 and ONBOARD3 activities</p>
+                        <p><i class="fas fa-check" style="color: #39FF14; margin-right: 10px;"></i> Build and manage a community of Web3 enthusiasts on campus</p>
+                        <p><i class="fas fa-check" style="color: #39FF14; margin-right: 10px;"></i> Provide feedback and insights from your campus community</p>
+                        <p><i class="fas fa-check" style="color: #39FF14; margin-right: 10px;"></i> Participate in monthly ambassador meetings and training sessions</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/campus-ambassador.js"></script>
+</body>
+</html>

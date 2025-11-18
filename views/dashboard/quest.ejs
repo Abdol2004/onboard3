@@ -373,9 +373,13 @@
                     <i class="fas fa-users"></i>
                     <span>Referral</span>
                 </a>
-                <a href="/dashboard/events" class="menu-item">
+                <!-- <a href="/dashboard/events" class="menu-item">
                     <i class="fas fa-calendar"></i>
                     <span>Events</span>
+                </a> -->
+                  <a href="/dashboard/campus-ambassador" class="menu-item active">
+                    <i class="fas fa-school"></i>
+                    <span>Campus Ambassador</span>
                 </a>
                 <a href="/dashboard/settings" class="menu-item">
                     <i class="fas fa-cog"></i>
@@ -542,31 +546,74 @@
                     <% }); %>
                 </div>
                 <% } %>
-
-                <!-- Quest Stats -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-chart-line"></i> Your Quest Stats</h3>
-                    </div>
-                    <div class="grid-3">
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(57,255,20,0.05); border-radius: 12px; border: 1px solid var(--border);">
-                            <div style="font-size: 2rem; color: #39FF14; font-weight: 700;"><%= completedCount %></div>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Completed</div>
-                        </div>
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(255,193,7,0.05); border-radius: 12px; border: 1px solid rgba(255,193,7,0.15);">
-                            <div style="font-size: 2rem; color: #FFC107; font-weight: 700;"><%= activeQuests.length %></div>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">In Progress</div>
-                        </div>
-                        <div style="text-align: center; padding: 1.5rem; background: rgba(57,255,20,0.05); border-radius: 12px; border: 1px solid var(--border);">
-                            <div style="font-size: 2rem; color: #39FF14; font-weight: 700;"><%= user.xp %></div>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Total XP</div>
-                        </div>
-                    </div>
+<!-- Past Quests -->
+<% if (pastQuests && pastQuests.length > 0) { %>
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-history"></i> Past Quests</h3>
+        <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;"><%= pastQuests.length %> ended</span>
+    </div>
+    
+    <% pastQuests.forEach(quest => { %>
+    <div class="quest-item" style="background: rgba(255,255,255,0.03); border-left: 3px solid #666; opacity: 0.8;">
+        <div class="quest-header">
+            <div>
+                <div class="quest-title">
+                    <%= quest.title %>
+                    <span style="background: rgba(255,82,82,0.2); padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.7rem; color: #ff5252; margin-left: 0.5rem;">
+                        ENDED
+                    </span>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0.5rem 0;">
+                    <%= quest.shortDescription %>
+                </p>
+                <div style="display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; align-items: center;">
+                    <span style="color: #666; font-size: 0.75rem;">
+                        <i class="fas fa-calendar-times"></i> Ended <%= new Date(quest.endDate).toLocaleDateString() %>
+                    </span>
+                    <% if (quest.userProgress && quest.userProgress.status === 'completed') { %>
+                    <span style="color: #39FF14; font-size: 0.75rem;">
+                        <i class="fas fa-check-circle"></i> You completed this quest
+                    </span>
+                    <% } else if (quest.userProgress && quest.userProgress.status === 'in_progress') { %>
+                    <span style="color: #FFC107; font-size: 0.75rem;">
+                        <i class="fas fa-exclamation-circle"></i> Incomplete (<%= quest.userProgress.progress %>% done)
+                    </span>
+                    <% } else { %>
+                    <span style="color: #888; font-size: 0.75rem;">
+                        <i class="fas fa-minus-circle"></i> Not participated
+                    </span>
+                    <% } %>
                 </div>
             </div>
-        </main>
+            <button class="btn btn-secondary" style="padding: 0.6rem 1.2rem;" onclick="window.location.href='/dashboard/quests/<%= quest._id %>'">
+                <i class="fas fa-trophy"></i> View Leaderboard
+            </button>
+        </div>
     </div>
-
+    <% }); %>
+</div>
+<% } %>
+               <!-- Quest Stats -->
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-chart-line"></i> Your Quest Stats</h3>
+    </div>
+    <div class="grid-3">
+        <div style="text-align: center; padding: 1.5rem; background: rgba(57,255,20,0.05); border-radius: 12px; border: 1px solid var(--border);">
+            <div style="font-size: 2rem; color: #39FF14; font-weight: 700;"><%= completedCount %></div>
+            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Completed</div>
+        </div>
+        <div style="text-align: center; padding: 1.5rem; background: rgba(255,193,7,0.05); border-radius: 12px; border: 1px solid rgba(255,193,7,0.15);">
+            <div style="font-size: 2rem; color: #FFC107; font-weight: 700;"><%= activeQuests.length %></div>
+            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">In Progress</div>
+        </div>
+        <div style="text-align: center; padding: 1.5rem; background: rgba(57,255,20,0.05); border-radius: 12px; border: 1px solid var(--border);">
+            <div style="font-size: 2rem; color: #39FF14; font-weight: 700;"><%= user.xp %></div>
+            <div style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;">Total XP</div>
+        </div>
+    </div>
+</div>
     <!-- Quest Preview Modal -->
     <div id="questModal" class="custom-modal-overlay">
         <div class="preview-modal">
