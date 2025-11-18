@@ -6,6 +6,9 @@ const CourseApplication = require("../models/CourseApplication");
 const UserQuestProgress = require("../models/UserQuestProgress");
 const emailService = require("../utils/emailService");
 
+const Transaction = require("../models/Transaction");
+
+
 // ==================== DASHBOARD ====================
 
 // Get Admin Dashboard Page
@@ -864,6 +867,89 @@ exports.toggleQuestStatus = async (req, res) => {
   }
 };
 
+// ==================== ADD THESE TO YOUR adminController.js ====================
+
+// Get Quest Winners for Reward Distribution
+exports.getQuestWinners = async (req, res) => {
+  try {
+    const { questId, topCount } = req.query;
+
+    if (!questId) {
+      return res.status(400).json({
+        success: false,
+        message: "Quest ID is required"
+      });
+    }
+
+    const quest = await Quest.findById(questId);
+    if (!quest) {
+      return res.status(404).json({
+        success: false,
+        message: "Quest not found"
+      });
+    }
+
+    const count = parseInt(topCount) || 10;
+
+    // Get top performers
+    const winners = await UserQuestProgress.find({
+      questId: questId,
+      status: 'completed'
+    })
+    .populate('userId', 'username email walletAddress usdcBalance')
+    .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 })
+    .limit(count);
+
+    const winnersData = winners.map((entry, index) => ({
+      rank: index + 1,
+      userId: entry.userId._id,
+      username: entry.userId.username,
+      email: entry.userId.email,
+      walletAddress: entry.userId.walletAddress,
+      currentBalance: entry.userId.usdcBalance,
+      totalXp: entry.xpBreakdown.totalXp,
+      completedAt: entry.completedAt,
+      suggestedReward: calculateReward(index + 1, count)
+    }));
+
+    res.status(200).json({
+      success: true,
+      quest: {
+        id: quest._id,
+        title: quest.title
+      },
+      winners: winnersData
+    });
+
+  } catch (error) {
+    console.error("Get quest winners error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching quest winners"
+    });
+  }
+};
+
+// Helper function to calculate suggested rewards
+function calculateReward(rank, totalWinners) {
+  if (totalWinners <= 10) {
+    const rewards = [100, 75, 50, 40, 30, 25, 20, 15, 10, 5];
+    return rewards[rank - 1] || 5;
+  } else if (totalWinners <= 50) {
+    if (rank === 1) return 100;
+    if (rank <= 3) return 50;
+    if (rank <= 10) return 25;
+    if (rank <= 25) return 10;
+    return 5;
+  } else {
+    if (rank === 1) return 200;
+    if (rank <= 5) return 100;
+    if (rank <= 20) return 50;
+    if (rank <= 50) return 20;
+    return 10;
+  }
+}
+
 exports.getAllEvents = async (req, res) => {
   try {
     console.log('📅 [ADMIN] Fetching all events...');
@@ -1282,6 +1368,7 @@ exports.createEvent = async (req, res) => {
     });
   }
 };
+
 
 
 // ==================== GET APPLICATION DETAILS ====================
@@ -1833,6 +1920,440 @@ exports.exportApplications = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error exporting applications"
+    });
+  }
+};
+
+
+// ==================== QUEST REWARD DISTRIBUTION ====================
+
+// Get Quest Winners for Reward Distribution
+exports.getQuestWinners = async (req, res) => {
+  try {
+      const { questId } = req.params;  // <-- Make sure this is extracting from params, not query
+      const { topCount } = req.query;
+       console.log('📊 getQuestWinners called');
+    console.log('Request params:', req.params);
+    console.log('Quest ID:', questId);
+
+    if (!questId) {
+      return res.status(400).json({
+        success: false,
+        message: "Quest ID is required"
+      });
+    }
+
+    const quest = await Quest.findById(questId);
+    if (!quest) {
+      return res.status(404).json({
+        success: false,
+        message: "Quest not found"
+      });
+    }
+
+    const count = parseInt(topCount) || 10;
+
+    // Get top performers
+    const winners = await UserQuestProgress.find({
+      questId: questId,
+      status: 'completed'
+    })
+    .populate('userId', 'username email walletAddress usdcBalance')
+    .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 })
+    .limit(count);
+
+    const winnersData = winners.map((entry, index) => ({
+      rank: index + 1,
+      userId: entry.userId._id,
+      username: entry.userId.username,
+      email: entry.userId.email,
+      walletAddress: entry.userId.walletAddress,
+      currentBalance: entry.userId.usdcBalance,
+      totalXp: entry.xpBreakdown.totalXp,
+      completedAt: entry.completedAt,
+      // Default reward amount (can be edited by admin)
+      suggestedReward: calculateReward(index + 1, count)
+    }));
+
+    res.status(200).json({
+      success: true,
+      quest: {
+        id: quest._id,
+        title: quest.title
+      },
+      winners: winnersData
+    });
+
+  } catch (error) {
+    console.error("Get quest winners error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching quest winners"
+    });
+  }
+};
+
+// Helper function to calculate suggested rewards
+function calculateReward(rank, totalWinners) {
+  // Example reward structure - customize as needed
+  if (totalWinners <= 10) {
+    const rewards = [100, 75, 50, 40, 30, 25, 20, 15, 10, 5];
+    return rewards[rank - 1] || 5;
+  } else if (totalWinners <= 50) {
+    if (rank === 1) return 100;
+    if (rank <= 3) return 50;
+    if (rank <= 10) return 25;
+    if (rank <= 25) return 10;
+    return 5;
+  } else {
+    if (rank === 1) return 200;
+    if (rank <= 5) return 100;
+    if (rank <= 20) return 50;
+    if (rank <= 50) return 20;
+    return 10;
+  }
+}
+
+function openRewardDistributionFromLeaderboard() {
+    const modal = document.getElementById('leaderboardModal');
+    const questId = modal.getAttribute('data-quest-id');
+    closeLeaderboardModal();
+    openRewardDistribution(questId);
+}
+
+
+
+// Distribute Rewards to Quest Winners
+exports.distributeQuestRewards = async (req, res) => {
+  try {
+    const { questId, rewards } = req.body;
+
+    if (!questId || !rewards || !Array.isArray(rewards)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid request data"
+      });
+    }
+
+    const quest = await Quest.findById(questId);
+    if (!quest) {
+      return res.status(404).json({
+        success: false,
+        message: "Quest not found"
+      });
+    }
+
+    const results = [];
+    let totalDistributed = 0;
+
+    // Process each reward
+    for (const reward of rewards) {
+      try {
+        const { userId, amount } = reward;
+        
+        if (!userId || !amount || amount <= 0) {
+          results.push({
+            userId,
+            success: false,
+            message: "Invalid amount"
+          });
+          continue;
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+          results.push({
+            userId,
+            success: false,
+            message: "User not found"
+          });
+          continue;
+        }
+
+        // Add USDC to user balance
+        user.usdcBalance += parseFloat(amount);
+
+        // Create transaction record
+        const transaction = new Transaction({
+          user: user._id,
+          type: 'quest_reward',
+          amount: parseFloat(amount),
+          status: 'completed',
+          questId: quest._id,
+          questTitle: quest.title,
+          description: `Quest reward for completing: ${quest.title}`,
+          processedBy: req.session.userId,
+          processedAt: new Date(),
+          createdAt: new Date()
+        });
+
+        await transaction.save();
+
+        // Add activity to user
+        user.recentActivity.unshift({
+          action: `Received $${amount} USDC reward from quest: ${quest.title}`,
+          timestamp: new Date()
+        });
+
+        if (user.recentActivity.length > 10) {
+          user.recentActivity = user.recentActivity.slice(0, 10);
+        }
+
+        await user.save();
+
+        // 👇 SEND EMAIL NOTIFICATION
+        try {
+          await emailService.sendQuestRewardEmail(
+            user.email,
+            user.username,
+            amount,
+            quest.title
+          );
+          console.log(`📧 Reward email sent to ${user.email}`);
+        } catch (emailError) {
+          console.error(`⚠️ Failed to send email to ${user.email}:`, emailError.message);
+          // Don't fail the whole process if email fails
+        }
+
+        totalDistributed += parseFloat(amount);
+
+        results.push({
+          userId,
+          username: user.username,
+          success: true,
+          amount: parseFloat(amount),
+          transactionId: transaction._id,
+          emailSent: true
+        });
+
+        console.log(`✅ Distributed $${amount} to ${user.username}`);
+
+      } catch (error) {
+        console.error(`Error processing reward for user ${reward.userId}:`, error);
+        results.push({
+          userId: reward.userId,
+          success: false,
+          message: error.message
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Distributed $${totalDistributed.toFixed(2)} to ${results.filter(r => r.success).length} users. Emails sent!`,
+      totalDistributed,
+      results
+    });
+
+  } catch (error) {
+    console.error("Distribute quest rewards error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error distributing rewards: " + error.message
+    });
+  }
+};
+
+// ==================== WITHDRAWAL MANAGEMENT ====================
+
+// Get All Withdrawal Requests
+exports.getAllWithdrawals = async (req, res) => {
+  try {
+    const { status = 'pending' } = req.query;
+
+    let query = { type: 'withdrawal' };
+    if (status !== 'all') {
+      query.status = status;
+    }
+
+    const withdrawals = await Transaction.find(query)
+      .populate('user', 'username email walletAddress')
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    res.status(200).json({
+      success: true,
+      withdrawals
+    });
+
+  } catch (error) {
+    console.error("Get withdrawals error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching withdrawals"
+    });
+  }
+};
+
+// Get Withdrawal Statistics
+exports.getWithdrawalStats = async (req, res) => {
+  try {
+    const pending = await Transaction.countDocuments({
+      type: 'withdrawal',
+      status: 'pending'
+    });
+
+    const completed = await Transaction.countDocuments({
+      type: 'withdrawal',
+      status: 'completed'
+    });
+
+    const rejected = await Transaction.countDocuments({
+      type: 'withdrawal',
+      status: 'rejected'
+    });
+
+    // Total amounts
+    const stats = await Transaction.aggregate([
+      { $match: { type: 'withdrawal' } },
+      {
+        $group: {
+          _id: '$status',
+          totalAmount: { $sum: '$amount' },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      pending,
+      completed,
+      rejected,
+      stats
+    });
+
+  } catch (error) {
+    console.error("Get withdrawal stats error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching withdrawal statistics"
+    });
+  }
+};
+
+// Approve Withdrawal
+exports.approveWithdrawal = async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const { txHash, notes } = req.body;
+
+    const transaction = await Transaction.findOne({
+      _id: transactionId,
+      type: 'withdrawal',
+      status: 'pending'
+    });
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: "Pending withdrawal not found"
+      });
+    }
+
+    const user = await User.findById(transaction.user);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Update transaction
+    transaction.status = 'completed';
+    transaction.processedBy = req.session.userId;
+    transaction.processedAt = new Date();
+    transaction.txHash = txHash || null;
+    transaction.notes = notes || null;
+
+    await transaction.save();
+
+    // Add activity to user
+    user.recentActivity.unshift({
+      action: `Withdrawal of $${transaction.amount} approved and processed`,
+      timestamp: new Date()
+    });
+
+    if (user.recentActivity.length > 10) {
+      user.recentActivity = user.recentActivity.slice(0, 10);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Withdrawal approved successfully"
+    });
+
+  } catch (error) {
+    console.error("Approve withdrawal error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error approving withdrawal"
+    });
+  }
+};
+
+// Reject Withdrawal
+exports.rejectWithdrawal = async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const { notes } = req.body;
+
+    const transaction = await Transaction.findOne({
+      _id: transactionId,
+      type: 'withdrawal',
+      status: 'pending'
+    });
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: "Pending withdrawal not found"
+      });
+    }
+
+    const user = await User.findById(transaction.user);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Restore balance to user
+    user.usdcBalance += transaction.amount;
+
+    // Update transaction
+    transaction.status = 'rejected';
+    transaction.processedBy = req.session.userId;
+    transaction.processedAt = new Date();
+    transaction.notes = notes || 'Withdrawal rejected by admin';
+
+    await transaction.save();
+
+    // Add activity to user
+    user.recentActivity.unshift({
+      action: `Withdrawal of $${transaction.amount} was rejected. Balance restored.`,
+      timestamp: new Date()
+    });
+
+    if (user.recentActivity.length > 10) {
+      user.recentActivity = user.recentActivity.slice(0, 10);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Withdrawal rejected and balance restored"
+    });
+
+  } catch (error) {
+    console.error("Reject withdrawal error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error rejecting withdrawal"
     });
   }
 };

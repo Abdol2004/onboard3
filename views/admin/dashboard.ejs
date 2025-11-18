@@ -519,28 +519,34 @@
                 <p>Admin Dashboard</p>
             </div>
 
-            <nav class="sidebar-menu">
-                <a class="menu-item active" data-tab="overview">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Overview</span>
-                </a>
-                <a class="menu-item" data-tab="quests">
-                    <i class="fas fa-trophy"></i>
-                    <span>Quests</span>
-                </a>
-                <a class="menu-item" data-tab="events">
-                    <i class="fas fa-calendar"></i>
-                    <span>Events</span>
-                </a>
-                <a class="menu-item" data-tab="applications">
-                    <i class="fas fa-graduation-cap"></i>
-                    <span>Applications</span>
-                </a>
-                <a class="menu-item" data-tab="users">
-                    <i class="fas fa-users"></i>
-                    <span>Users</span>
-                </a>
-            </nav>
+           <!-- Replace your sidebar menu in admin dashboard with this -->
+
+<nav class="sidebar-menu">
+    <a class="menu-item active" data-tab="overview">
+        <i class="fas fa-chart-line"></i>
+        <span>Overview</span>
+    </a>
+    <a class="menu-item" data-tab="quests">
+        <i class="fas fa-trophy"></i>
+        <span>Quests</span>
+    </a>
+    <a class="menu-item" data-tab="events">
+        <i class="fas fa-calendar"></i>
+        <span>Events</span>
+    </a>
+    <a class="menu-item" data-tab="applications">
+        <i class="fas fa-graduation-cap"></i>
+        <span>Applications</span>
+    </a>
+    <a class="menu-item" data-tab="users">
+        <i class="fas fa-users"></i>
+        <span>Users</span>
+    </a>
+    <a class="menu-item" data-tab="withdrawals">
+        <i class="fas fa-money-bill-wave"></i>
+        <span>Withdrawals</span>
+    </a>
+</nav>
         </aside>
 
         <main class="main-content">
@@ -744,7 +750,76 @@
             </div>
         </main>
     </div>
+<!-- Add this AFTER the Users Section in your admin dashboard -->
 
+<!-- Withdrawals Section -->
+<div class="content-section" id="withdrawals">
+    <div class="header">
+        <div>
+            <h2>Withdrawal Management</h2>
+            <p>Review and process withdrawal requests</p>
+        </div>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <h3>Pending Withdrawals</h3>
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="pendingWithdrawals">0</div>
+            <div class="stat-change">Needs approval</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <h3>Completed</h3>
+                <div class="stat-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="completedWithdrawals">0</div>
+            <div class="stat-change">All time</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h3>Withdrawal Requests</h3>
+            </div>
+            <select id="withdrawalStatusFilter" onchange="loadWithdrawals()" style="padding: 0.5rem; background: rgba(15,15,15,0.95); border: 1px solid rgba(57,255,20,0.2); color: #fff; border-radius: 8px;">
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="rejected">Rejected</option>
+                <option value="all">All</option>
+            </select>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Wallet</th>
+                        <th>Requested</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="withdrawalsTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: #888;">
+                            Loading withdrawals...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
    <!-- Create Quest Modal - UPDATED WITH ALL NEW FEATURES -->
 <div class="modal" id="createQuestModal">
     <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
@@ -1104,6 +1179,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSectionData('overview');
 });
 
+// Update your loadSectionData function to include withdrawals
 function loadSectionData(section) {
     console.log('Loading section:', section);
     
@@ -1122,6 +1198,10 @@ function loadSectionData(section) {
             break;
         case 'users':
             loadUsers();
+            break;
+        case 'withdrawals':
+            loadWithdrawals();
+            loadWithdrawalStats();
             break;
     }
 }
@@ -2055,24 +2135,63 @@ async function deleteQuest(questId) {
 
 async function viewQuestLeaderboard(questId) {
     try {
-        const response = await fetch(`/admin/api/quests/${questId}/leaderboard`);
+        // Clean the questId - remove any whitespace or undefined
+        questId = String(questId).trim();
+        
+        console.log('🏆 Loading leaderboard for quest:', questId);
+        console.log('Quest ID type:', typeof questId);
+        console.log('Quest ID length:', questId.length);
+        
+        if (!questId || questId === 'undefined' || questId === 'null' || questId.length === 0) {
+            showAlert('Invalid quest ID', 'error');
+            console.error('Invalid questId received:', questId);
+            return;
+        }
+        
+        const url = `/admin/api/quests/${questId}/leaderboard`;
+        console.log('Fetching from URL:', url);
+        
+        const response = await fetch(url);
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
         const data = await response.json();
+        console.log('Leaderboard response:', data);
         
         if (data.success) {
-            showLeaderboardModal(data);
+            // Ensure quest ID is in the data
+            if (!data.quest.id && !data.quest._id) {
+                data.quest.id = questId;
+                data.quest._id = questId;
+            }
+            console.log('✅ Opening leaderboard modal with questId:', questId);
+            showLeaderboardModal(data, questId);
         } else {
-            alert('Error loading leaderboard');
+            showAlert(data.message || 'Error loading leaderboard', 'error');
         }
     } catch (error) {
-        console.error('Error loading leaderboard:', error);
-        alert('Error loading leaderboard');
+        console.error('❌ Error loading leaderboard:', error);
+        showAlert('Error loading leaderboard: ' + error.message, 'error');
     }
 }
 
-function showLeaderboardModal(data) {
+function showLeaderboardModal(data, questId) {
     const modal = document.createElement('div');
     modal.className = 'modal active';
     modal.id = 'leaderboardModal';
+    
+    // Ensure we have a valid questId
+    const finalQuestId = questId || data.quest.id || data.quest._id;
+    console.log('🔍 Storing quest ID in leaderboard modal:', finalQuestId);
+    
+    // Store questId in the modal for later use
+    modal.setAttribute('data-quest-id', finalQuestId);
+    
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 1200px; max-height: 90vh; overflow-y: auto;">
             <div class="modal-header">
@@ -2088,7 +2207,10 @@ function showLeaderboardModal(data) {
             </div>
             
             <div style="margin-bottom: 1rem; display: flex; gap: 1rem;">
-                <button class="btn btn-secondary btn-sm" onclick="exportLeaderboard('${data.quest._id || questId}')">
+                <button class="btn btn-primary btn-sm" onclick="openRewardDistributionFromLeaderboard()">
+                    <i class="fas fa-gift"></i> Distribute Rewards
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="exportLeaderboard('${finalQuestId}')">
                     <i class="fas fa-download"></i> Export CSV
                 </button>
             </div>
@@ -2143,6 +2265,7 @@ function showLeaderboardModal(data) {
     document.body.appendChild(modal);
 }
 
+
 function closeLeaderboardModal() {
     const modal = document.getElementById('leaderboardModal');
     if (modal) {
@@ -2154,6 +2277,472 @@ function exportLeaderboard(questId) {
     window.open(`/admin/api/quests/${questId}/export`, '_blank');
 }
 
+async function openRewardDistribution(questId) {
+    try {
+        // Clean and validate questId
+        questId = String(questId).trim();
+        
+        console.log('🎁 Opening reward distribution');
+        console.log('Quest ID received:', questId);
+        console.log('Quest ID type:', typeof questId);
+        console.log('Quest ID length:', questId.length);
+        
+        if (!questId || questId === 'undefined' || questId === 'null' || questId.length === 0) {
+            showAlert('Invalid quest ID', 'error');
+            console.error('Invalid questId:', questId);
+            return;
+        }
+        
+        // Prompt for number of winners
+        const topCount = prompt('How many top performers to reward? (e.g., 10, 50, 100)', '10');
+        
+        if (!topCount) {
+            console.log('User cancelled the prompt');
+            return;
+        }
+        
+        const count = parseInt(topCount);
+        if (isNaN(count) || count < 1) {
+            showAlert('Please enter a valid number', 'error');
+            return;
+        }
+
+        console.log(`📊 Fetching top ${count} winners for quest ${questId}...`);
+
+        // Show modal with loading state
+        openModal('rewardDistributionModal');
+        document.getElementById('rewardDistributionContent').innerHTML = `
+            <div style="text-align: center; padding: 3rem; color: #888;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #39FF14;"></i>
+                <p style="margin-top: 1rem; font-size: 1.1rem;">Loading top ${count} performers...</p>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #555;">Quest ID: ${questId}</p>
+            </div>
+        `;
+
+        const url = `/admin/api/quests/${questId}/winners?topCount=${count}`;
+        console.log('Fetching from URL:', url);
+        
+        const response = await fetch(url);
+        
+        console.log('Response status:', response.status);
+        console.log('Response OK:', response.ok);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Winners data received:', data);
+
+        if (data.success) {
+            if (!data.winners || data.winners.length === 0) {
+                document.getElementById('rewardDistributionContent').innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: #888;">
+                        <i class="fas fa-user-slash" style="font-size: 3rem; color: #888;"></i>
+                        <p style="margin-top: 1rem; font-size: 1.1rem;">No completed participants found for this quest.</p>
+                        <button class="btn btn-secondary" onclick="closeModal('rewardDistributionModal')" style="margin-top: 1rem;">Close</button>
+                    </div>
+                `;
+            } else {
+                console.log(`🎉 Rendering ${data.winners.length} winners`);
+                renderRewardDistribution(data, questId);
+            }
+        } else {
+            throw new Error(data.message || 'Failed to load winners');
+        }
+    } catch (error) {
+        console.error('❌ Error opening reward distribution:', error);
+        
+        // Show error in modal
+        document.getElementById('rewardDistributionContent').innerHTML = `
+            <div style="text-align: center; padding: 3rem;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff5252;"></i>
+                <p style="margin-top: 1rem; font-size: 1.1rem; color: #ff5252;">Error loading winners</p>
+                <p style="color: #888; margin-top: 0.5rem;">${error.message}</p>
+                <button class="btn btn-secondary" onclick="closeModal('rewardDistributionModal')" style="margin-top: 1rem;">Close</button>
+            </div>
+        `;
+        
+        showAlert('Error loading winners: ' + error.message, 'error');
+    }
+}
+function openRewardDistributionFromLeaderboard() {
+    const modal = document.getElementById('leaderboardModal');
+    const questId = modal.getAttribute('data-quest-id');
+    
+    console.log('📊 Opening reward distribution from leaderboard');
+    console.log('Quest ID from modal:', questId);
+    console.log('Quest ID type:', typeof questId);
+    
+    if (!questId || questId === 'undefined' || questId === 'null') {
+        showAlert('Quest ID not found. Please close and reopen the leaderboard.', 'error');
+        console.error('No questId in modal. Modal attributes:', modal.getAttributeNames());
+        return;
+    }
+    
+    closeLeaderboardModal();
+    setTimeout(() => {
+        openRewardDistribution(questId);
+    }, 300);
+}
+
+
+function renderRewardDistribution(data, questId) {
+    console.log('🎨 Rendering reward distribution UI...');
+    console.log('Quest ID:', questId);
+    console.log('Winners count:', data.winners.length);
+    
+    const content = document.getElementById('rewardDistributionContent');
+    
+    if (!content) {
+        console.error('❌ rewardDistributionContent element not found!');
+        showAlert('Error: Modal content element not found', 'error');
+        return;
+    }
+    
+    // Store questId in the modal
+    const modal = document.getElementById('rewardDistributionModal');
+    modal.setAttribute('data-quest-id', questId);
+    
+    let html = `
+        <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid rgba(57,255,20,0.2);">
+            <h4 style="color: #39FF14; margin-bottom: 0.5rem;">${data.quest.title}</h4>
+            <p style="color: #888;">Top ${data.winners.length} performers - Edit reward amounts before distributing</p>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <button class="btn btn-secondary btn-sm" onclick="autoFillRewards()">
+                <i class="fas fa-magic"></i> Auto-fill Suggested Rewards
+            </button>
+        </div>
+
+        <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+            <table>
+                <thead style="position: sticky; top: 0; background: rgba(15,15,15,0.95);">
+                    <tr>
+                        <th>Rank</th>
+                        <th>Username</th>
+                        <th>Total XP</th>
+                        <th>Current Balance</th>
+                        <th>Reward Amount ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.winners.map((winner, idx) => `
+                        <tr>
+                            <td>
+                                <strong style="color: ${idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : idx === 2 ? '#CD7F32' : '#888'};">
+                                    ${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : winner.rank}
+                                </strong>
+                            </td>
+                            <td><strong>${winner.username}</strong></td>
+                            <td>${winner.totalXp}</td>
+                            <td>$${winner.currentBalance}</td>
+                            <td>
+                                <input 
+                                    type="number" 
+                                    class="reward-input" 
+                                    data-user-id="${winner.userId}"
+                                    data-suggested="${winner.suggestedReward}"
+                                    value="${winner.suggestedReward}"
+                                    min="0" 
+                                    step="0.01"
+                                    style="width: 100px; padding: 0.5rem; background: rgba(15,15,15,0.95); border: 1px solid rgba(57,255,20,0.2); color: #fff; border-radius: 8px;"
+                                >
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid rgba(57,255,20,0.2); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong style="color: #39FF14; font-size: 1.2rem;">Total: $<span id="totalRewardAmount">0.00</span></strong>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-secondary" onclick="closeModal('rewardDistributionModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="distributeRewardsFromModal()">
+                    <i class="fas fa-paper-plane"></i> Distribute Rewards
+                </button>
+            </div>
+        </div>
+    `;
+    
+    content.innerHTML = html;
+    
+    // Add event listeners to calculate total
+    document.querySelectorAll('.reward-input').forEach(input => {
+        input.addEventListener('input', calculateTotalReward);
+    });
+    
+    calculateTotalReward();
+}
+
+function autoFillRewards() {
+    document.querySelectorAll('.reward-input').forEach(input => {
+        input.value = input.getAttribute('data-suggested');
+    });
+    calculateTotalReward();
+}
+
+function calculateTotalReward() {
+    let total = 0;
+    document.querySelectorAll('.reward-input').forEach(input => {
+        total += parseFloat(input.value) || 0;
+    });
+    document.getElementById('totalRewardAmount').textContent = total.toFixed(2);
+}
+
+function distributeRewardsFromModal() {
+    const modal = document.getElementById('rewardDistributionModal');
+    const questId = modal.getAttribute('data-quest-id');
+    distributeRewards(questId);
+}
+
+async function distributeRewards(questId) {
+    if (!questId) {
+        showAlert('Quest ID is missing', 'error');
+        return;
+    }
+
+    const inputs = document.querySelectorAll('.reward-input');
+    const rewards = [];
+    
+    inputs.forEach(input => {
+        const amount = parseFloat(input.value);
+        if (amount > 0) {
+            rewards.push({
+                userId: input.getAttribute('data-user-id'),
+                amount: amount
+            });
+        }
+    });
+    
+    if (rewards.length === 0) {
+        showAlert('Please set reward amounts for at least one user', 'error');
+        return;
+    }
+    
+    const total = rewards.reduce((sum, r) => sum + r.amount, 0);
+    
+    if (!confirm(`Distribute total of $${total.toFixed(2)} to ${rewards.length} users?\n\nThis will add USDC to their balances immediately.`)) {
+        return;
+    }
+    
+    try {
+        console.log('Distributing rewards:', { questId, rewards });
+        
+        const response = await fetch('/admin/api/quests/distribute-rewards', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ questId, rewards })
+        });
+        
+        const data = await response.json();
+        console.log('Distribution response:', data);
+        
+        if (data.success) {
+            showAlert(`✅ Successfully distributed $${data.totalDistributed.toFixed(2)} to ${data.results.filter(r => r.success).length} users!`);
+            closeModal('rewardDistributionModal');
+            
+            // Show detailed results
+            const failed = data.results.filter(r => !r.success);
+            if (failed.length > 0) {
+                console.warn('Failed distributions:', failed);
+                showAlert(`⚠️ ${failed.length} distributions failed. Check console for details.`, 'error');
+            }
+        } else {
+            showAlert(data.message || 'Error distributing rewards', 'error');
+        }
+    } catch (error) {
+        console.error('Error distributing rewards:', error);
+        showAlert('Error distributing rewards: ' + error.message, 'error');
+    }
+}
+
+// ==================== WITHDRAWAL MANAGEMENT ====================
+
+async function loadWithdrawals() {
+    try {
+        const status = document.getElementById('withdrawalStatusFilter')?.value || 'pending';
+        console.log('💰 Loading withdrawals with status:', status);
+        
+        const response = await fetch(`/admin/api/withdrawals?status=${status}`);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Response error:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Withdrawals data:', data);
+        
+        if (data.success && data.withdrawals) {
+            const tbody = document.getElementById('withdrawalsTableBody');
+            
+            if (!tbody) {
+                console.error('Withdrawals table body not found!');
+                return;
+            }
+            
+            if (data.withdrawals.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #888;">No ${status} withdrawal requests found</td></tr>`;
+            } else {
+                tbody.innerHTML = data.withdrawals.map(w => `
+                    <tr>
+                        <td>
+                            <strong>${w.user?.username || 'Unknown'}</strong>
+                            <br>
+                            <small style="color: #888;">${w.user?.email || ''}</small>
+                        </td>
+                        <td><strong style="color: #39FF14;">$${parseFloat(w.amount).toFixed(2)}</strong></td>
+                        <td>
+                            <small style="color: #888; font-family: monospace; word-break: break-all;">
+                                ${w.walletAddress ? w.walletAddress.substring(0, 10) + '...' + w.walletAddress.substring(w.walletAddress.length - 6) : 'N/A'}
+                            </small>
+                        </td>
+                        <td><small style="color: #888;">${new Date(w.createdAt).toLocaleString()}</small></td>
+                        <td><span class="badge badge-${w.status}">${w.status}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                ${w.status === 'pending' ? `
+                                    <button class="btn btn-secondary btn-icon btn-sm" onclick="openApproveWithdrawal('${w._id}', '${w.user?.username || 'Unknown'}', ${w.amount}, '${w.walletAddress || ''}')" title="Approve" style="color: #39FF14;">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-icon btn-sm" onclick="openRejectWithdrawal('${w._id}', '${w.user?.username || 'Unknown'}', ${w.amount})" title="Reject">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                ` : `
+                                    <small style="color: #888;">
+                                        ${w.processedAt ? 'Processed ' + new Date(w.processedAt).toLocaleDateString() : 'Completed'}
+                                        ${w.txHash ? '<br>TX: ' + w.txHash.substring(0, 10) + '...' : ''}
+                                    </small>
+                                `}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } else {
+            throw new Error(data.message || 'Failed to load withdrawals');
+        }
+    } catch (error) {
+        console.error('❌ Error loading withdrawals:', error);
+        const tbody = document.getElementById('withdrawalsTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #ff5252;">Error loading withdrawals: ${error.message}</td></tr>`;
+        }
+        showAlert('Error loading withdrawals: ' + error.message, 'error');
+    }
+}
+
+async function loadWithdrawalStats() {
+    try {
+        const response = await fetch('/admin/api/withdrawals/stats');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('pendingWithdrawals').textContent = data.pending || 0;
+            document.getElementById('completedWithdrawals').textContent = data.completed || 0;
+        }
+    } catch (error) {
+        console.error('Error loading withdrawal stats:', error);
+    }
+}
+
+function openApproveWithdrawal(txId, username, amount, wallet) {
+    document.getElementById('approveWithdrawalId').value = txId;
+    document.getElementById('withdrawalApproveDetails').innerHTML = `
+        <div style="background: rgba(57,255,20,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(57,255,20,0.1); margin-bottom: 1rem;">
+            <p style="margin-bottom: 0.5rem;"><strong>User:</strong> ${username}</p>
+            <p style="margin-bottom: 0.5rem;"><strong>Amount:</strong> $${amount}</p>
+            <p style="margin-bottom: 0;"><strong>Wallet:</strong> <small style="font-family: monospace;">${wallet}</small></p>
+        </div>
+        <div style="background: rgba(255,193,7,0.1); padding: 1rem; border-radius: 8px; border: 1px solid #ffc107; margin-bottom: 1rem;">
+            <p style="color: #ffc107; margin: 0;">
+                <i class="fas fa-exclamation-triangle"></i> Make sure you've sent the payment on-chain before approving!
+            </p>
+        </div>
+    `;
+    openModal('approveWithdrawalModal');
+}
+
+function openRejectWithdrawal(txId, username, amount) {
+    document.getElementById('rejectWithdrawalId').value = txId;
+    document.getElementById('withdrawalRejectDetails').innerHTML = `
+        <div style="background: rgba(255,82,82,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,82,82,0.2); margin-bottom: 1rem;">
+            <p style="margin-bottom: 0.5rem;"><strong>User:</strong> ${username}</p>
+            <p style="margin-bottom: 0;"><strong>Amount:</strong> $${amount}</p>
+        </div>
+        <p style="color: #888; font-size: 0.9rem; margin-bottom: 1rem;">The amount will be restored to the user's balance.</p>
+    `;
+    openModal('rejectWithdrawalModal');
+}
+
+async function approveWithdrawalSubmit(e) {
+    e.preventDefault();
+    
+    try {
+        const txId = document.getElementById('approveWithdrawalId').value;
+        const txHash = document.getElementById('txHash').value;
+        const notes = document.getElementById('approveWithdrawalNotes').value;
+
+        const response = await fetch(`/admin/api/withdrawals/${txId}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ txHash, notes })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert('Withdrawal approved successfully!');
+            closeModal('approveWithdrawalModal');
+            document.getElementById('approveWithdrawalForm').reset();
+            loadWithdrawals();
+            loadWithdrawalStats();
+        } else {
+            showAlert(data.message || 'Error approving withdrawal', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error approving withdrawal', 'error');
+    }
+}
+
+async function rejectWithdrawalSubmit(e) {
+    e.preventDefault();
+    
+    try {
+        const txId = document.getElementById('rejectWithdrawalId').value;
+        const notes = document.getElementById('rejectWithdrawalNotes').value;
+
+        const response = await fetch(`/admin/api/withdrawals/${txId}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notes })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert('Withdrawal rejected and balance restored');
+            closeModal('rejectWithdrawalModal');
+            document.getElementById('rejectWithdrawalForm').reset();
+            loadWithdrawals();
+            loadWithdrawalStats();
+        } else {
+            showAlert(data.message || 'Error rejecting withdrawal', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error rejecting withdrawal', 'error');
+    }
+}
 // ==================== EVENT LISTENERS ====================
 
 window.addEventListener('click', function(e) {
@@ -2161,7 +2750,38 @@ window.addEventListener('click', function(e) {
         e.target.classList.remove('active');
     }
 });
+// Test the reward distribution flow
+window.testRewardFlow = async function(questId) {
+    console.log('🧪 Testing reward flow with questId:', questId);
+    
+    try {
+        // Test 1: Can we fetch leaderboard?
+        console.log('Test 1: Fetching leaderboard...');
+        const lbResponse = await fetch(`/admin/api/quests/${questId}/leaderboard`);
+        const lbData = await lbResponse.json();
+        console.log('✅ Leaderboard data:', lbData);
+        
+        // Test 2: Can we fetch winners?
+        console.log('Test 2: Fetching winners...');
+        const winnersResponse = await fetch(`/admin/api/quests/${questId}/winners?topCount=10`);
+        const winnersData = await winnersResponse.json();
+        console.log('✅ Winners data:', winnersData);
+        
+        // Test 3: Open distribution modal
+        console.log('Test 3: Opening distribution modal...');
+        await openRewardDistribution(questId);
+        console.log('✅ Modal opened');
+        
+        console.log('🎉 All tests passed! Reward flow is working.');
+        
+    } catch (error) {
+        console.error('❌ Test failed:', error);
+    }
+};
 
+console.log('💡 Debug helper loaded. To test reward distribution:');
+console.log('   window.testRewardFlow("YOUR_QUEST_ID_HERE")');
+console.log('   You can get quest IDs from the quests table or console logs.');n
 // ==================== DEBUG HELPER ====================
 
 window.adminDebug = {
@@ -2172,10 +2792,85 @@ window.adminDebug = {
     reload: (section) => loadSectionData(section)
 };
 
+
 console.log('🔧 Admin Debug Helper loaded. Use window.adminDebug in console.');
 console.log('Example: window.adminDebug.testUsers()');
 document.getElementById('approveApplicationForm').addEventListener('submit', approveApplicationSubmit);
 document.getElementById('rejectApplicationForm').addEventListener('submit', rejectApplicationSubmit);
+
+console.log('🔧 Admin Debug Helper loaded. Use window.adminDebug in console.');
+console.log('Example: window.adminDebug.testUsers()');
+
+// Application form listeners
+document.getElementById('approveApplicationForm').addEventListener('submit', approveApplicationSubmit);
+document.getElementById('rejectApplicationForm').addEventListener('submit', rejectApplicationSubmit);
+
+// Withdrawal form listeners
+document.getElementById('approveWithdrawalForm').addEventListener('submit', approveWithdrawalSubmit);
+document.getElementById('rejectWithdrawalForm').addEventListener('submit', rejectWithdrawalSubmit);
 </script>
+<!-- Quest Reward Distribution Modal -->
+<div class="modal" id="rewardDistributionModal">
+    <div class="modal-content" style="max-width: 1000px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header">
+            <h3>Distribute Quest Rewards</h3>
+            <button class="close-btn" onclick="closeModal('rewardDistributionModal')">&times;</button>
+        </div>
+        <div id="rewardDistributionContent">
+            <div style="text-align: center; padding: 2rem; color: #888;">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Withdrawal Modal -->
+<div class="modal" id="approveWithdrawalModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Approve Withdrawal</h3>
+            <button class="close-btn" onclick="closeModal('approveWithdrawalModal')">&times;</button>
+        </div>
+        <form id="approveWithdrawalForm" onsubmit="approveWithdrawalSubmit(event)">
+            <input type="hidden" id="approveWithdrawalId">
+            <div id="withdrawalApproveDetails"></div>
+            <div class="form-group">
+                <label>Transaction Hash (Optional)</label>
+                <input type="text" id="txHash" placeholder="0x...">
+                <small style="color: #888; display: block; margin-top: 0.5rem;">On-chain transaction hash after payment</small>
+            </div>
+            <div class="form-group">
+                <label>Notes (Optional)</label>
+                <textarea id="approveWithdrawalNotes" placeholder="Any additional notes..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('approveWithdrawalModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Confirm Payment & Approve</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reject Withdrawal Modal -->
+<div class="modal" id="rejectWithdrawalModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Reject Withdrawal</h3>
+            <button class="close-btn" onclick="closeModal('rejectWithdrawalModal')">&times;</button>
+        </div>
+        <form id="rejectWithdrawalForm" onsubmit="rejectWithdrawalSubmit(event)">
+            <input type="hidden" id="rejectWithdrawalId">
+            <div id="withdrawalRejectDetails"></div>
+            <div class="form-group">
+                <label>Rejection Reason *</label>
+                <textarea id="rejectWithdrawalNotes" placeholder="Explain why this withdrawal is being rejected..." required></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('rejectWithdrawalModal')">Cancel</button>
+                <button type="submit" class="btn btn-danger">Reject & Restore Balance</button>
+            </div>
+        </form>
+    </div>
+</div>
 </body>
 </html>

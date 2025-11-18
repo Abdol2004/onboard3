@@ -185,6 +185,10 @@ welcomeEmailSent: {
   type: Boolean,
   default: false
 },
+isFakeUser: {
+  type: Boolean,
+  default: false
+},
   },
   createdAt: {
     type: Date,

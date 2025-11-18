@@ -253,10 +253,10 @@ exports.updatePrivacy = async (req, res) => {
   }
 };
 
-// Update Wallet
+// Update Wallet - NOW ONLY ALLOWS SETTING ONCE
 exports.updateWallet = async (req, res) => {
   try {
-    const { walletAddress, action } = req.body;
+    const { walletAddress } = req.body;
 
     const user = await User.findById(req.session.userId);
     
@@ -267,68 +267,57 @@ exports.updateWallet = async (req, res) => {
       });
     }
 
-    if (action === 'connect') {
-      // Validate wallet address (basic validation)
-      if (!walletAddress || walletAddress.length < 40) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Invalid wallet address" 
-        });
-      }
-
-      user.walletAddress = walletAddress;
-
-      // Add activity
-      if (!user.recentActivity) {
-        user.recentActivity = [];
-      }
-
-      user.recentActivity.unshift({
-        action: 'Connected wallet address 💰',
-        timestamp: new Date()
-      });
-
-      if (user.recentActivity.length > 10) {
-        user.recentActivity = user.recentActivity.slice(0, 10);
-      }
-
-      await user.save();
-
-      res.status(200).json({ 
-        success: true, 
-        message: "Wallet connected successfully!" 
-      });
-
-    } else if (action === 'disconnect') {
-      user.walletAddress = null;
-
-      // Add activity
-      if (!user.recentActivity) {
-        user.recentActivity = [];
-      }
-
-      user.recentActivity.unshift({
-        action: 'Disconnected wallet address',
-        timestamp: new Date()
-      });
-
-      if (user.recentActivity.length > 10) {
-        user.recentActivity = user.recentActivity.slice(0, 10);
-      }
-
-      await user.save();
-
-      res.status(200).json({ 
-        success: true, 
-        message: "Wallet disconnected successfully!" 
-      });
-
-    } else {
+    // Check if wallet is already set
+    if (user.walletAddress) {
       return res.status(400).json({ 
         success: false, 
-        message: "Invalid action" 
+        message: "Wallet address already set and cannot be changed" 
       });
     }
+
+    // Validate wallet address (basic validation)
+    if (!walletAddress || walletAddress.trim().length < 26) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Please enter a valid wallet address (minimum 26 characters)" 
+      });
+    }
+
+    // Check if wallet address is already used by another user
+    const existingWallet = await User.findOne({ 
+      walletAddress: walletAddress.trim(),
+      _id: { $ne: user._id }
+    });
+
+    if (existingWallet) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "This wallet address is already registered to another account" 
+      });
+    }
+
+    user.walletAddress = walletAddress.trim();
+
+    // Add activity
+    if (!user.recentActivity) {
+      user.recentActivity = [];
+    }
+
+    user.recentActivity.unshift({
+      action: 'Connected wallet address 💰',
+      timestamp: new Date()
+    });
+
+    if (user.recentActivity.length > 10) {
+      user.recentActivity = user.recentActivity.slice(0, 10);
+    }
+
+    await user.save();
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Wallet connected successfully! This address is now locked and cannot be changed." 
+    });
 
   } catch (error) {
     console.error("Update wallet error:", error);

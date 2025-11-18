@@ -93,3 +93,15 @@ router.post("/api/applications/:applicationId/approve", isAdmin, adminController
 router.post("/api/applications/:applicationId/reject", isAdmin, adminController.rejectApplication);
 
 module.exports = router;
+
+// Add to your admin routes file
+router.get('/api/quests/:questId/winners', adminController.getQuestWinners);
+router.post('/api/quests/distribute-rewards', adminController.distributeQuestRewards);
+router.get('/api/withdrawals', adminController.getAllWithdrawals);
+router.get('/api/withdrawals/stats', adminController.getWithdrawalStats);
+router.post('/api/withdrawals/:transactionId/approve', adminController.approveWithdrawal);
+router.post('/api/withdrawals/:transactionId/reject', adminController.rejectWithdrawal);
+
+// Add these routes if they don't exist
+router.get('/api/quests/:questId/leaderboard', adminController.getQuestLeaderboardAdmin);
+router.get('/api/quests/:questId/export', adminController.exportQuestLeaderboard);

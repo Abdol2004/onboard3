@@ -713,3 +713,90 @@ exports.testEmailConnection = testEmailConnection;
     console.error("❌ Failed to initialize email service:", error.message);
   }
 })();
+
+// Send Quest Reward Email
+exports.sendQuestRewardEmail = async (email, username, amount, questTitle) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: '🎉 You received a quest reward!',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: 'Arial', sans-serif; background-color: #0a0a0a; color: #fff; margin: 0; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background: #1a1a1a; border: 2px solid #39FF14; border-radius: 12px; padding: 40px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo { color: #39FF14; font-size: 32px; font-weight: bold; margin-bottom: 10px; }
+            .amount { font-size: 48px; color: #39FF14; font-weight: bold; text-align: center; margin: 30px 0; }
+            .quest-title { background: rgba(57, 255, 20, 0.1); border-left: 3px solid #39FF14; padding: 15px; margin: 20px 0; border-radius: 4px; }
+            .message { line-height: 1.6; color: #ccc; margin: 20px 0; }
+            .button { display: inline-block; background: #39FF14; color: #0a0a0a; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #333; color: #888; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">ONBOARD3</div>
+              <h2 style="color: #39FF14; margin: 0;">Quest Reward Received! 🎉</h2>
+            </div>
+            
+            <p class="message">Hey <strong>${username}</strong>,</p>
+            
+            <p class="message">Congratulations! You've been awarded for your outstanding performance in a quest.</p>
+            
+            <div class="amount">$${amount} USDC</div>
+            
+            <div class="quest-title">
+              <strong style="color: #39FF14;">Quest:</strong> ${questTitle}
+            </div>
+            
+            <p class="message">
+              The reward has been added to your dashboard balance. You can now:
+            </p>
+            
+            <ul style="color: #ccc; line-height: 1.8;">
+              <li>Use it to participate in more quests</li>
+              <li>Withdraw it to your wallet</li>
+              <li>Keep building and earning more!</li>
+            </ul>
+            
+            <div style="text-align: center;">
+              <a href="${process.env.BASE_URL || 'http://localhost:3000'}/dashboard" class="button">
+                View Dashboard
+              </a>
+            </div>
+            
+            <p class="message">
+              Keep up the great work! 🚀
+            </p>
+            
+            <div class="footer">
+              <p>This is an automated message from ONBOARD3</p>
+              <p>Questions? Contact us at ${process.env.SUPPORT_EMAIL || 'support@onboard3.com'}</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Quest reward email sent to ${email}`);
+    
+    return { 
+      success: true, 
+      message: 'Email sent successfully' 
+    };
+
+  } catch (error) {
+    console.error('❌ Error sending quest reward email:', error);
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
+};

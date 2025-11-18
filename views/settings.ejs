@@ -31,22 +31,21 @@
                     <i class="fas fa-graduation-cap"></i>
                     <span>Learn</span>
                 </a>
-                <a href="/dashboard/events" class="menu-item">
-                   <i class="fas fa-calendar"></i>
-                    <span>Events</span>
-                </a>
-                 <a href="/dashboard/referral" class="menu-item">
+                <a href="/dashboard/referral" class="menu-item">
                     <i class="fas fa-users"></i>
                     <span>Referral</span>
                 </a>
-                 
+                <a href="/dashboard/events" class="menu-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>Events</span>
+                </a>
+                <a href="/dashboard/withdrawal" class="menu-item">
+                    <i class="fas fa-wallet"></i>
+                    <span>Withdrawals</span>
+                </a>
                 <a href="/dashboard/settings" class="menu-item active">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
-                </a>
-                <a href="#" class="menu-item logout" onclick="handleLogout(event)">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
                 </a>
             </nav>
 
@@ -110,42 +109,90 @@
                     </form>
                 </div>
 
-                <!-- Wallet Settings
+                <!-- Wallet Settings -->
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-wallet"></i> Wallet Settings</h3>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                         <% if (user.walletAddress) { %>
+                            <!-- Wallet Already Connected - READ ONLY -->
                             <div class="form-group">
                                 <label>Connected Wallet Address</label>
-                                <input type="text" value="<%= user.walletAddress %>" readonly style="font-family: monospace; color: #39FF14; background: rgba(57,255,20,0.1);">
+                                <input 
+                                    type="text" 
+                                    value="<%= user.walletAddress %>" 
+                                    readonly 
+                                    style="font-family: monospace; color: #39FF14; background: rgba(57,255,20,0.1); cursor: not-allowed; border: 2px solid #39FF14;"
+                                >
+                                <small style="color: #888; font-size: 0.85rem; margin-top: 0.5rem; display: block;">
+                                    <i class="fas fa-lock"></i> Wallet address is locked and cannot be changed for security
+                                </small>
                             </div>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                                <button onclick="disconnectWallet()" class="btn btn-secondary">
-                                    <i class="fas fa-unlink"></i> Disconnect Wallet
-                                </button>
-                                <button onclick="withdrawUSDC()" class="btn btn-primary">
-                                    <i class="fas fa-money-bill-wave"></i> Withdraw USDC
-                                </button>
+                            <div style="background: rgba(57,255,20,0.1); padding: 1rem; border-radius: 12px; border-left: 3px solid #39FF14;">
+                                <p style="font-size: 0.9rem; color: #888; margin-bottom: 0.5rem;">
+                                    <i class="fas fa-info-circle" style="color: #39FF14;"></i> 
+                                    Your current balance: <strong style="color: #39FF14;">$<%= user.usdcBalance || 0 %> USDC</strong>
+                                </p>
+                                <a href="/dashboard/withdrawal" class="btn btn-primary" style="margin-top: 0.5rem; text-decoration: none; display: inline-block;">
+                                    <i class="fas fa-money-bill-wave"></i> Manage Withdrawals
+                                </a>
                             </div>
                         <% } else { %>
-                            <div style="text-align: center; padding: 2rem; background: rgba(255,255,255,0.05); border-radius: 12px;">
-                                <i class="fas fa-wallet" style="font-size: 3rem; color: #666; margin-bottom: 1rem;"></i>
-                                <p style="color: #888; margin-bottom: 1rem;">No wallet connected</p>
-                                <button onclick="connectWallet()" class="btn btn-primary">
-                                    <i class="fas fa-link"></i> Connect Wallet
+                            <!-- No Wallet Connected - Input Form -->
+                            <div style="background: rgba(255,193,7,0.1); padding: 1rem; border-radius: 12px; border-left: 3px solid #ffc107; margin-bottom: 1rem;">
+                                <p style="font-size: 0.9rem; color: #ffc107; margin: 0;">
+                                    <i class="fas fa-exclamation-triangle"></i> 
+                                    <strong>Important:</strong> Once you set your wallet address, it cannot be changed for security reasons.
+                                </p>
+                            </div>
+
+                            <form id="walletForm" onsubmit="connectWallet(event)">
+                                <div class="form-group">
+                                    <label>Wallet Address *</label>
+                                    <input 
+                                        type="text" 
+                                        id="walletAddress" 
+                                        placeholder="Enter your USDC wallet address (e.g., 0x... or Base address)" 
+                                        required
+                                        minlength="26"
+                                        style="font-family: monospace;"
+                                    >
+                                    <small style="color: #888; font-size: 0.85rem; margin-top: 0.5rem; display: block;">
+                                        Enter your Base/Ethereum address for receiving USDC withdrawals
+                                    </small>
+                                </div>
+
+                                <div style="background: rgba(57,255,20,0.05); padding: 1rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2); margin-bottom: 1rem;">
+                                    <h4 style="color: #39FF14; font-size: 1rem; margin-bottom: 0.5rem;">
+                                        <i class="fas fa-shield-alt"></i> Security Notes:
+                                    </h4>
+                                    <ul style="color: #888; font-size: 0.9rem; margin-left: 1.5rem;">
+                                        <li>Wallet address will be <strong style="color: #39FF14;">permanently locked</strong> after saving</li>
+                                        <li>Cannot be changed later for security</li>
+                                        <li>Double-check your address before submitting</li>
+                                        <li>This address will be used for all USDC withdrawals</li>
+                                    </ul>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-link"></i> Connect Wallet (Permanent)
                                 </button>
+                            </form>
+                        <% } %>
+
+                        <% if (!user.walletAddress) { %>
+                            <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; text-align: center;">
+                                <p style="color: #888; font-size: 0.9rem; margin: 0;">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Current balance: <strong style="color: #39FF14;">$<%= user.usdcBalance || 0 %> USDC</strong>
+                                    <br>
+                                    <small>(Connect wallet to enable withdrawals)</small>
+                                </p>
                             </div>
                         <% } %>
-                        <div style="background: rgba(57,255,20,0.1); padding: 1rem; border-radius: 12px; border-left: 3px solid #39FF14;">
-                            <p style="font-size: 0.9rem; color: #888;">
-                                <i class="fas fa-info-circle" style="color: #39FF14;"></i> 
-                                Your current balance: <strong style="color: #39FF14;">$<%= user.usdcBalance || 0 %> USDC</strong>
-                            </p>
-                        </div>
                     </div>
-                </div> -->
+                </div>
 
                 <!-- Password Change -->
                 <div class="card">
@@ -392,16 +439,38 @@
             }
         });
 
-        // Wallet Functions
-        async function connectWallet() {
-            const walletAddress = prompt('Enter your wallet address:');
-            if (!walletAddress) return;
+        // Wallet Connection - UPDATED
+        async function connectWallet(event) {
+            event.preventDefault();
+            
+            const walletAddress = document.getElementById('walletAddress').value.trim();
+            
+            if (!walletAddress) {
+                showAlert('Please enter a wallet address', 'error');
+                return;
+            }
+
+            if (walletAddress.length < 26) {
+                showAlert('Please enter a valid wallet address (minimum 26 characters)', 'error');
+                return;
+            }
+
+            // Confirm before connecting (since it's permanent)
+            const confirmed = confirm(
+                '⚠️ IMPORTANT: Once you connect this wallet address, it CANNOT be changed.\n\n' +
+                'Wallet: ' + walletAddress + '\n\n' +
+                'Are you sure this is correct?'
+            );
+
+            if (!confirmed) {
+                return;
+            }
 
             try {
                 const response = await fetch('/dashboard/settings/wallet', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ walletAddress, action: 'connect' })
+                    body: JSON.stringify({ walletAddress })
                 });
 
                 const data = await response.json();
@@ -411,33 +480,9 @@
                     setTimeout(() => location.reload(), 2000);
                 }
             } catch (error) {
-                showAlert('Error connecting wallet', 'error');
+                console.error('Error:', error);
+                showAlert('Error connecting wallet. Please try again.', 'error');
             }
-        }
-
-        async function disconnectWallet() {
-            if (!confirm('Are you sure you want to disconnect your wallet?')) return;
-
-            try {
-                const response = await fetch('/dashboard/settings/wallet', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'disconnect' })
-                });
-
-                const data = await response.json();
-                showAlert(data.message, data.success ? 'success' : 'error');
-                
-                if (data.success) {
-                    setTimeout(() => location.reload(), 2000);
-                }
-            } catch (error) {
-                showAlert('Error disconnecting wallet', 'error');
-            }
-        }
-
-        function withdrawUSDC() {
-            alert('Withdrawal feature coming soon! You will be able to withdraw your USDC to your connected wallet.');
         }
 
         // Logout Function

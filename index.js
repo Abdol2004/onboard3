@@ -12,6 +12,7 @@ const settingsRoutes = require("./routes/settingsRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const xFollowRoutes = require("./routes/xFollowRoutes");
+const withdrawalRoutes = require("./routes/withdrawal");
 const { startEmailService, IS_LOCALHOST } = require('./smtp');
 const cors = require('cors');
 dotenv.config();
@@ -68,6 +69,7 @@ app.use("/dashboard/settings", settingsRoutes);
 app.use("/api/learn", courseRoutes);
 app.use("/dashboard/x-follow", xFollowRoutes);
 app.use("/admin", adminRoutes);
+app.use("/dashboard/withdrawal", withdrawalRoutes);
 
 
 app.get("/", (req, res) => {

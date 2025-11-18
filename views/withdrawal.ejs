@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdrawals - ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert.active {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(57, 255, 20, 0.1);
+            border: 1px solid #39FF14;
+            color: #39FF14;
+        }
+
+        .alert-error {
+            background: rgba(255, 82, 82, 0.1);
+            border: 1px solid #ff5252;
+            color: #ff5252;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(15, 15, 15, 0.98);
+            border: 1px solid rgba(57, 255, 20, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(57, 255, 20, 0.2);
+        }
+
+        .modal-header h3 {
+            color: #39FF14;
+            font-size: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #39FF14;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #39FF14;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(15, 15, 15, 0.95);
+            border: 1px solid rgba(57, 255, 20, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #39FF14;
+        }
+
+        .form-group input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(57, 255, 20, 0.05);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            color: #39FF14;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(57, 255, 20, 0.2);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(57, 255, 20, 0.1);
+            color: #fff;
+        }
+
+        tr:hover {
+            background: rgba(57, 255, 20, 0.05);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .badge-pending {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+
+        .badge-completed {
+            background: rgba(57, 255, 20, 0.1);
+            color: #39FF14;
+            border: 1px solid #39FF14;
+        }
+
+        .badge-rejected {
+            background: rgba(255, 82, 82, 0.1);
+            color: #ff5252;
+            border: 1px solid #ff5252;
+        }
+
+        .badge-cancelled {
+            background: rgba(136, 136, 136, 0.1);
+            color: #888;
+            border: 1px solid #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>ONBOARD3</h1>
+                <p>Web3 Builder Hub</p>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="/dashboard" class="menu-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/dashboard/quests" class="menu-item">
+                    <i class="fas fa-trophy"></i>
+                    <span>Quests</span>
+                </a>
+                <a href="/dashboard/learn" class="menu-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Learn</span>
+                </a>
+                <a href="/dashboard/referral" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Referral</span>
+                </a>
+                <a href="/dashboard/events" class="menu-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>Events</span>
+                </a>
+                <a href="/dashboard/withdrawal" class="menu-item active">
+                    <i class="fas fa-wallet"></i>
+                    <span>Withdrawals</span>
+                </a>
+                <a href="/dashboard/settings" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>v1.0 — Powered by</p>
+                <p class="version">ONBOARD3</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2><i class="fas fa-wallet"></i> Withdrawals</h2>
+                        <p>Request and manage your USDC withdrawals</p>
+                    </div>
+                    <div class="header-stats">
+                        <div class="stat-badge">
+                            <i class="fas fa-coins" style="color: #39FF14;"></i>
+                            <span>$<%= user.usdcBalance || 0 %> Available</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Alert Messages -->
+                <div id="alertBox" class="alert"></div>
+
+                <!-- Balance Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-money-bill-wave"></i> Your Balance</h3>
+                    </div>
+                    <div style="text-align: center; padding: 2rem;">
+                        <div style="font-size: 3rem; color: #39FF14; font-weight: 700; margin-bottom: 1rem;">
+                            $<%= user.usdcBalance || 0 %>
+                        </div>
+                        <% if (!user.walletAddress) { %>
+                            <p style="color: #ff5252; margin-bottom: 1rem;">
+                                <i class="fas fa-exclamation-triangle"></i> Please set up your wallet address in Settings to withdraw
+                            </p>
+                            <a href="/dashboard/settings" class="btn btn-secondary">
+                                <i class="fas fa-cog"></i> Go to Settings
+                            </a>
+                        <% } else { %>
+                            <p style="color: #888; margin-bottom: 1rem;">
+                                Wallet: <%= user.walletAddress.substring(0, 10) %>...
+                            </p>
+                            <% if (pendingWithdrawal) { %>
+                                <div style="background: rgba(255,193,7,0.1); border: 1px solid #ffc107; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                                    <p style="color: #ffc107; margin-bottom: 0.5rem;">
+                                        <i class="fas fa-clock"></i> Pending Withdrawal: $<%= pendingWithdrawal.amount %>
+                                    </p>
+                                    <button class="btn btn-danger btn-sm" onclick="cancelWithdrawal('<%= pendingWithdrawal._id %>')">
+                                        Cancel Request
+                                    </button>
+                                </div>
+                            <% } else if (user.usdcBalance >= 5) { %>
+                                <button class="btn btn-primary" onclick="openWithdrawModal()">
+                                    <i class="fas fa-paper-plane"></i> Request Withdrawal
+                                </button>
+                            <% } else { %>
+                                <p style="color: #888;">Minimum withdrawal amount is $5</p>
+                            <% } %>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Transaction History -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-history"></i> Transaction History</h3>
+                    </div>
+                    
+                    <% if (transactions && transactions.length > 0) { %>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% transactions.forEach(tx => { %>
+                                        <tr>
+                                            <td><%= new Date(tx.createdAt).toLocaleString() %></td>
+                                            <td>
+                                                <span style="text-transform: capitalize;">
+                                                    <%= tx.type.replace(/_/g, ' ') %>
+                                                </span>
+                                            </td>
+                                            <td style="color: <%= tx.type === 'withdrawal' ? '#ff5252' : '#39FF14' %>;">
+                                                <%= tx.type === 'withdrawal' ? '-' : '+' %>$<%= tx.amount %>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-<%= tx.status %>">
+                                                    <%= tx.status %>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <% if (tx.questTitle) { %>
+                                                    <small style="color: #888;"><%= tx.questTitle %></small>
+                                                <% } else if (tx.notes) { %>
+                                                    <small style="color: #888;"><%= tx.notes %></small>
+                                                <% } else { %>
+                                                    <small style="color: #888;">-</small>
+                                                <% } %>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <p style="color: #888; padding: 2rem; text-align: center;">No transactions yet</p>
+                    <% } %>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Withdrawal Request Modal -->
+    <div class="modal" id="withdrawModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Request Withdrawal</h3>
+                <button class="close-btn" onclick="closeModal('withdrawModal')">&times;</button>
+            </div>
+            <form id="withdrawForm" onsubmit="submitWithdrawal(event)">
+                <div class="form-group">
+                    <label>Withdrawal Amount (USDC) *</label>
+                    <input type="number" id="withdrawAmount" min="5" max="<%= user.usdcBalance %>" step="0.01" required>
+                    <small style="color: #888; display: block; margin-top: 0.5rem;">
+                        Available: $<%= user.usdcBalance %> | Minimum: $5
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>Wallet Address</label>
+                    <input type="text" value="<%= user.walletAddress %>" disabled style="background: rgba(57,255,20,0.05);">
+                    <small style="color: #888; display: block; margin-top: 0.5rem;">
+                        To change wallet address, go to Settings
+                    </small>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('withdrawModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function openWithdrawModal() {
+            document.getElementById('withdrawForm').reset();
+            openModal('withdrawModal');
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type} active`;
+            setTimeout(() => {
+                alertBox.classList.remove('active');
+            }, 5000);
+        }
+
+        async function submitWithdrawal(e) {
+            e.preventDefault();
+            
+            const amount = document.getElementById('withdrawAmount').value;
+            
+            try {
+                const response = await fetch('/dashboard/withdrawal/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: parseFloat(amount) })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    closeModal('withdrawModal');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showAlert(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error submitting withdrawal request', 'error');
+            }
+        }
+
+        async function cancelWithdrawal(transactionId) {
+            if (!confirm('Are you sure you want to cancel this withdrawal request?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/dashboard/withdrawal/cancel/${transactionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showAlert(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error cancelling withdrawal', 'error');
+            }
+        }
+
+        // Set active menu item
+        window.addEventListener('load', () => {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.menu-item').forEach(item => {
+                if (item.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
