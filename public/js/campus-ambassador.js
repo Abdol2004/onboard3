@@ -398,7 +398,7 @@ async function loadMyApplication() {
                     <p style="font-size: 0.9rem;">Fill out the form below to become a Campus Ambassador!</p>
                     
                     <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(57,255,20,0.2);">
-                        <h4 style="color: #39FF14; margin: 0 0 1rem 0;">Stay Updated - Follow Us</h4>
+                        <h4 style="color: #39FF14; margin: 0 0 1rem 0;">Stay Updated - Follow Us</h4><p>Make sure you retweet our pinned post</p>
                         <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
                             <a href="https://x.com/Onboard3___" target="_blank" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
                                 <i class="fab fa-twitter"></i> Follow ONBOARD3
