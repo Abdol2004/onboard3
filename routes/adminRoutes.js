@@ -105,3 +105,11 @@ router.post('/api/withdrawals/:transactionId/reject', adminController.rejectWith
 // Add these routes if they don't exist
 router.get('/api/quests/:questId/leaderboard', adminController.getQuestLeaderboardAdmin);
 router.get('/api/quests/:questId/export', adminController.exportQuestLeaderboard);
+// IMPORTANT: Put /stats and /export BEFORE /:applicationId
+router.get("/api/ambassadors/stats", isAdmin, adminController.getAmbassadorStats);
+router.get("/api/ambassadors/export", isAdmin, adminController.exportAmbassadorApplications);
+router.get("/api/ambassadors", isAdmin, adminController.getAllAmbassadorApplications);
+router.get("/api/ambassadors/:applicationId", isAdmin, adminController.getAmbassadorDetails);
+router.post("/api/ambassadors/:applicationId/approve", isAdmin, adminController.approveAmbassadorApplication);
+router.post("/api/ambassadors/:applicationId/reject", isAdmin, adminController.rejectAmbassadorApplication);
+router.put("/api/ambassadors/:applicationId/metrics", isAdmin, adminController.updateAmbassadorMetrics);

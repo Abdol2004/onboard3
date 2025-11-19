@@ -538,6 +538,11 @@
         <i class="fas fa-graduation-cap"></i>
         <span>Applications</span>
     </a>
+    <a class="menu-item" data-tab="ambassadors">
+    <i class="fas fa-school"></i>
+    <span>Campus Ambassadors</span>
+</a>
+
     <a class="menu-item" data-tab="users">
         <i class="fas fa-users"></i>
         <span>Users</span>
@@ -573,7 +578,16 @@
                         <div class="stat-value" id="totalUsers">0</div>
                         <div class="stat-change">All time</div>
                     </div>
-
+                    <div class="stat-card">
+    <div class="stat-card-header">
+        <h3>Ambassador Applications</h3>
+        <div class="stat-icon">
+            <i class="fas fa-school"></i>
+        </div>
+    </div>
+    <div class="stat-value" id="totalAmbassadors">0</div>
+    <div class="stat-change">Total applied</div>
+</div>
                     <div class="stat-card">
                         <div class="stat-card-header">
                             <h3>Active Quests</h3>
@@ -749,6 +763,98 @@
                     </div>
                 </div>
             </div>
+            <div class="content-section" id="ambassadors">
+    <div class="header">
+        <div>
+            <h2>Campus Ambassador Management</h2>
+            <p>Review and manage campus ambassador applications</p>
+        </div>
+        <button class="btn btn-secondary" onclick="exportAmbassadorApplications()">
+            <i class="fas fa-download"></i> Export CSV
+        </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <h3>Pending Reviews</h3>
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="pendingAmbassadors">0</div>
+            <div class="stat-change">Needs review</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <h3>Approved</h3>
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="approvedAmbassadors">0</div>
+            <div class="stat-change">Active ambassadors</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <h3>Total Applications</h3>
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="totalAmbassadorApps">0</div>
+            <div class="stat-change">All time</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="margin-bottom: 1rem;">
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="color: #888; font-size: 0.85rem; margin-bottom: 0.5rem; display: block;">Status Filter</label>
+                <select id="ambassadorStatusFilter" onchange="loadAmbassadorApplications()" style="width: 100%; padding: 0.5rem; background: rgba(15,15,15,0.95); border: 1px solid rgba(57,255,20,0.2); color: #fff; border-radius: 8px;">
+                    <option value="all">All Status</option>
+                    <option value="pending" selected>Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <label style="color: #888; font-size: 0.85rem; margin-bottom: 0.5rem; display: block;">Search</label>
+                <input type="text" id="ambassadorSearch" placeholder="Search by name, email, or institution..." onkeyup="loadAmbassadorApplications()" style="width: 100%; padding: 0.5rem; background: rgba(15,15,15,0.95); border: 1px solid rgba(57,255,20,0.2); color: #fff; border-radius: 8px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Applications Table -->
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Institution</th>
+                        <th>State</th>
+                        <th>Level</th>
+                        <th>Applied</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ambassadorsTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2rem; color: #888;">
+                            Loading ambassador applications...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
         </main>
     </div>
 <!-- Add this AFTER the Users Section in your admin dashboard -->
@@ -1204,6 +1310,11 @@ function loadSectionData(section) {
             loadWithdrawals();
             loadWithdrawalStats();
             break;
+          
+case 'ambassadors':
+    loadAmbassadorApplications();
+    loadAmbassadorStats();
+    break;
     }
 }
 
@@ -2809,6 +2920,389 @@ document.getElementById('rejectApplicationForm').addEventListener('submit', reje
 // Withdrawal form listeners
 document.getElementById('approveWithdrawalForm').addEventListener('submit', approveWithdrawalSubmit);
 document.getElementById('rejectWithdrawalForm').addEventListener('submit', rejectWithdrawalSubmit);
+async function loadAmbassadorApplications() {
+    try {
+        const status = document.getElementById('ambassadorStatusFilter')?.value || 'all';
+        const search = document.getElementById('ambassadorSearch')?.value || '';
+        
+        console.log('🎓 Loading ambassador applications...', { status, search });
+        
+        let url = `/admin/api/ambassadors?status=${status}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Ambassador applications data:', data);
+        
+        if (data.success && data.applications) {
+            const tbody = document.getElementById('ambassadorsTableBody');
+            
+            if (data.applications.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #888;">No applications found</td></tr>`;
+            } else {
+                tbody.innerHTML = data.applications.map(app => `
+                    <tr>
+                        <td>
+                            <strong>${app.fullName}</strong>
+                            <br>
+                            <small style="color: #888;">${app.email}</small>
+                        </td>
+                        <td>
+                            <strong>${app.institutionName}</strong>
+                            <br>
+                            <small style="color: #888;">${app.institutionType}</small>
+                        </td>
+                        <td>${app.state}</td>
+                        <td>${app.currentLevel} Level</td>
+                        <td><small style="color: #888;">${new Date(app.createdAt).toLocaleDateString()}</small></td>
+                        <td><span class="badge badge-${app.status}">${app.status}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary btn-icon btn-sm" onclick="viewAmbassadorApplication('${app._id}')" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${app.status === 'pending' ? `
+                                    <button class="btn btn-secondary btn-icon btn-sm" onclick="openApproveAmbassadorModal('${app._id}')" title="Approve" style="color: #39FF14;">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-icon btn-sm" onclick="openRejectAmbassadorModal('${app._id}')" title="Reject">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } else {
+            throw new Error(data.message || 'Failed to load applications');
+        }
+    } catch (error) {
+        console.error('❌ Error loading ambassador applications:', error);
+        const tbody = document.getElementById('ambassadorsTableBody');
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #ff5252;">Error: ${error.message}</td></tr>`;
+        showAlert('Error loading ambassador applications: ' + error.message, 'error');
+    }
+}
+
+async function loadAmbassadorStats() {
+    try {
+        const response = await fetch('/admin/api/ambassadors/stats');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('pendingAmbassadors').textContent = data.pending || 0;
+            document.getElementById('approvedAmbassadors').textContent = data.approved || 0;
+            document.getElementById('totalAmbassadorApps').textContent = data.total || 0;
+            
+            // Update overview card if it exists
+            const overviewCard = document.getElementById('totalAmbassadors');
+            if (overviewCard) {
+                overviewCard.textContent = data.total || 0;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading ambassador stats:', error);
+    }
+}
+
+async function viewAmbassadorApplication(appId) {
+    try {
+        if (!appId || appId === 'undefined') {
+            showAlert('Invalid application ID', 'error');
+            return;
+        }
+
+        console.log('Viewing ambassador application:', appId);
+        
+        const response = await fetch(`/admin/api/ambassadors/${appId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const app = data.application;
+            document.getElementById('ambassadorDetails').innerHTML = `
+                <!-- Personal Information -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #39FF14; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(57,255,20,0.2);">
+                        <i class="fas fa-user"></i> Personal Information
+                    </h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Full Name</label>
+                            <p>${app.fullName}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Email</label>
+                            <p>${app.email}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Phone</label>
+                            <p>${app.phone}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Status</label>
+                            <p><span class="badge badge-${app.status}">${app.status}</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Institution Information -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #39FF14; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(57,255,20,0.2);">
+                        <i class="fas fa-school"></i> Institution Details
+                    </h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>State</label>
+                            <p>${app.state}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Institution Type</label>
+                            <p>${app.institutionType}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Institution Name</label>
+                            <p>${app.institutionName}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Course of Study</label>
+                            <p>${app.courseOfStudy}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Current Level</label>
+                            <p>${app.currentLevel} Level</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Applied Date</label>
+                            <p>${new Date(app.createdAt).toLocaleString()}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Media -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #39FF14; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(57,255,20,0.2);">
+                        <i class="fas fa-hashtag"></i> Social Media
+                    </h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Twitter/X</label>
+                            <p>${app.twitter}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Telegram</label>
+                            <p>${app.telegram || 'Not provided'}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Motivation & Plans -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #39FF14; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(57,255,20,0.2);">
+                        <i class="fas fa-lightbulb"></i> Application Details
+                    </h4>
+                    
+                    <div class="form-group">
+                        <label>Why do they want to be a Campus Ambassador?</label>
+                        <p style="color: #fff; padding: 1rem; background: rgba(57, 255, 20, 0.05); border-radius: 8px; white-space: pre-wrap;">${app.motivation}</p>
+                    </div>
+
+                    ${app.experience ? `
+                    <div class="form-group">
+                        <label>Previous Leadership Experience</label>
+                        <p style="color: #fff; padding: 1rem; background: rgba(57, 255, 20, 0.05); border-radius: 8px; white-space: pre-wrap;">${app.experience}</p>
+                    </div>
+                    ` : ''}
+
+                    <div class="form-group">
+                        <label>How they plan to promote ONBOARD3</label>
+                        <p style="color: #fff; padding: 1rem; background: rgba(57, 255, 20, 0.05); border-radius: 8px; white-space: pre-wrap;">${app.promotionPlan}</p>
+                    </div>
+                </div>
+
+                ${app.status === 'approved' ? `
+                <!-- Performance Metrics -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #39FF14; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(57,255,20,0.2);">
+                        <i class="fas fa-chart-line"></i> Performance Metrics
+                    </h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Events Organized</label>
+                            <p>${app.eventsOrganized || 0}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Students Referred</label>
+                            <p>${app.studentsReferred || 0}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Content Created</label>
+                            <p>${app.contentCreated || 0}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Approved Date</label>
+                            <p>${app.approvedAt ? new Date(app.approvedAt).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                ${app.adminNotes ? `
+                <div style="background: rgba(255,193,7,0.1); padding: 1rem; border-radius: 8px; border: 1px solid #ffc107;">
+                    <label style="color: #ffc107; font-weight: 600; margin-bottom: 0.5rem; display: block;">
+                        <i class="fas fa-sticky-note"></i> Admin Notes
+                    </label>
+                    <p style="color: #fff; margin: 0; white-space: pre-wrap;">${app.adminNotes}</p>
+                </div>
+                ` : ''}
+            `;
+            openModal('viewAmbassadorModal');
+        } else {
+            showAlert(data.message || 'Error loading application', 'error');
+        }
+    } catch (error) {
+        console.error('❌ Error viewing ambassador application:', error);
+        showAlert('Error loading application: ' + error.message, 'error');
+    }
+}
+
+function openApproveAmbassadorModal(appId) {
+    document.getElementById('approveAmbassadorId').value = appId;
+    
+    // Optionally fetch and display basic info
+    fetch(`/admin/api/ambassadors/${appId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const app = data.application;
+                document.getElementById('ambassadorApproveDetails').innerHTML = `
+                    <div style="background: rgba(57,255,20,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(57,255,20,0.1); margin-bottom: 1rem;">
+                        <p style="margin-bottom: 0.5rem;"><strong>Name:</strong> ${app.fullName}</p>
+                        <p style="margin-bottom: 0.5rem;"><strong>Institution:</strong> ${app.institutionName}</p>
+                        <p style="margin-bottom: 0;"><strong>State:</strong> ${app.state}</p>
+                    </div>
+                `;
+            }
+        });
+    
+    openModal('approveAmbassadorModal');
+}
+
+function openRejectAmbassadorModal(appId) {
+    document.getElementById('rejectAmbassadorId').value = appId;
+    
+    // Optionally fetch and display basic info
+    fetch(`/admin/api/ambassadors/${appId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const app = data.application;
+                document.getElementById('ambassadorRejectDetails').innerHTML = `
+                    <div style="background: rgba(255,82,82,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,82,82,0.2); margin-bottom: 1rem;">
+                        <p style="margin-bottom: 0.5rem;"><strong>Name:</strong> ${app.fullName}</p>
+                        <p style="margin-bottom: 0.5rem;"><strong>Institution:</strong> ${app.institutionName}</p>
+                        <p style="margin-bottom: 0;"><strong>Email:</strong> ${app.email}</p>
+                    </div>
+                `;
+            }
+        });
+    
+    openModal('rejectAmbassadorModal');
+}
+
+async function approveAmbassadorApplication(e) {
+    e.preventDefault();
+    
+    try {
+        const appId = document.getElementById('approveAmbassadorId').value;
+        const adminNotes = document.getElementById('approveAmbassadorNotes').value;
+
+        if (!appId || appId === 'undefined') {
+            showAlert('Invalid application ID', 'error');
+            return;
+        }
+
+        const formData = { adminNotes };
+
+        console.log('Approving ambassador application:', appId, formData);
+
+        const response = await fetch(`/admin/api/ambassadors/${appId}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        console.log('Approve response:', data);
+        
+        if (data.success) {
+            showAlert('✅ Ambassador application approved successfully!');
+            closeModal('approveAmbassadorModal');
+            document.getElementById('approveAmbassadorForm').reset();
+            loadAmbassadorApplications();
+            loadAmbassadorStats();
+        } else {
+            showAlert(data.message || 'Error approving application', 'error');
+        }
+    } catch (error) {
+        console.error('❌ Error approving ambassador application:', error);
+        showAlert('Error approving application: ' + error.message, 'error');
+    }
+}
+
+async function rejectAmbassadorApplication(e) {
+    e.preventDefault();
+    
+    try {
+        const appId = document.getElementById('rejectAmbassadorId').value;
+        const adminNotes = document.getElementById('rejectAmbassadorNotes').value.trim();
+
+        if (!appId || appId === 'undefined') {
+            showAlert('Invalid application ID', 'error');
+            return;
+        }
+
+        if (!adminNotes) {
+            showAlert('Rejection reason is required', 'error');
+            return;
+        }
+
+        const formData = { adminNotes };
+
+        console.log('Rejecting ambassador application:', appId, formData);
+
+        const response = await fetch(`/admin/api/ambassadors/${appId}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        console.log('Reject response:', data);
+        
+        if (data.success) {
+            showAlert('Ambassador application rejected.');
+            closeModal('rejectAmbassadorModal');
+            document.getElementById('rejectAmbassadorForm').reset();
+            loadAmbassadorApplications();
+            loadAmbassadorStats();
+        } else {
+            showAlert(data.message || 'Error rejecting application', 'error');
+        }
+    } catch (error) {
+        console.error('❌ Error rejecting ambassador application:', error);
+        showAlert('Error rejecting application: ' + error.message, 'error');
+    }
+}
+
+function exportAmbassadorApplications() {
+    window.open('/admin/api/ambassadors/export', '_blank');
+}
 </script>
 <!-- Quest Reward Distribution Modal -->
 <div class="modal" id="rewardDistributionModal">
@@ -2869,6 +3363,73 @@ document.getElementById('rejectWithdrawalForm').addEventListener('submit', rejec
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('rejectWithdrawalModal')">Cancel</button>
                 <button type="submit" class="btn btn-danger">Reject & Restore Balance</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- View Ambassador Application Modal -->
+<div class="modal" id="viewAmbassadorModal">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3>Ambassador Application Details</h3>
+            <button class="close-btn" onclick="closeModal('viewAmbassadorModal')">&times;</button>
+        </div>
+        <div id="ambassadorDetails"></div>
+        <div class="form-actions">
+            <button class="btn btn-secondary" onclick="closeModal('viewAmbassadorModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Ambassador Modal -->
+<div class="modal" id="approveAmbassadorModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Approve Ambassador Application</h3>
+            <button class="close-btn" onclick="closeModal('approveAmbassadorModal')">&times;</button>
+        </div>
+        <form id="approveAmbassadorForm" onsubmit="approveAmbassadorApplication(event)">
+            <input type="hidden" id="approveAmbassadorId">
+            <div id="ambassadorApproveDetails"></div>
+            <div class="form-group">
+                <label>Admin Notes (Optional)</label>
+                <textarea id="approveAmbassadorNotes" placeholder="Any notes for the ambassador..."></textarea>
+            </div>
+            <div style="background: rgba(57,255,20,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(57,255,20,0.1); margin-bottom: 1rem;">
+                <p style="color: #39FF14; margin: 0;">
+                    <i class="fas fa-info-circle"></i> The ambassador will be notified via email and can access exclusive features.
+                </p>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('approveAmbassadorModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Approve Ambassador</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reject Ambassador Modal -->
+<div class="modal" id="rejectAmbassadorModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Reject Ambassador Application</h3>
+            <button class="close-btn" onclick="closeModal('rejectAmbassadorModal')">&times;</button>
+        </div>
+        <form id="rejectAmbassadorForm" onsubmit="rejectAmbassadorApplication(event)">
+            <input type="hidden" id="rejectAmbassadorId">
+            <div id="ambassadorRejectDetails"></div>
+            <div class="form-group">
+                <label>Rejection Reason *</label>
+                <textarea id="rejectAmbassadorNotes" placeholder="Please provide a reason for rejection..." required></textarea>
+            </div>
+            <div style="background: rgba(255,82,82,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,82,82,0.2); margin-bottom: 1rem;">
+                <p style="color: #ff5252; margin: 0;">
+                    <i class="fas fa-exclamation-triangle"></i> The applicant will be notified via email with your reason.
+                </p>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('rejectAmbassadorModal')">Cancel</button>
+                <button type="submit" class="btn btn-danger">Reject Application</button>
             </div>
         </form>
     </div>

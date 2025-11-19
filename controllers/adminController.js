@@ -1924,6 +1924,287 @@ exports.exportApplications = async (req, res) => {
   }
 };
 
+// ==================== ADD TO adminController.js ====================
+
+const CampusAmbassador = require('../models/CampusAmbassador');
+
+// Get All Campus Ambassador Applications
+exports.getAllAmbassadorApplications = async (req, res) => {
+  try {
+    console.log('🎓 Fetching campus ambassador applications...');
+    
+    const { status, state, search } = req.query;
+
+    let query = {};
+
+    // Status filter
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    // State filter
+    if (state) {
+      query.state = state;
+    }
+
+    // Search filter
+    if (search) {
+      query.$or = [
+        { fullName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { institutionName: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const applications = await CampusAmbassador.find(query)
+      .populate('userId', 'username email')
+      .sort({ createdAt: -1 });
+
+    console.log(`✅ Found ${applications.length} ambassador applications`);
+
+    res.status(200).json({
+      success: true,
+      applications
+    });
+
+  } catch (error) {
+    console.error("❌ Get ambassador applications error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching ambassador applications",
+      error: error.message
+    });
+  }
+};
+
+// Get Ambassador Application Statistics
+exports.getAmbassadorStats = async (req, res) => {
+  try {
+    const pending = await CampusAmbassador.countDocuments({ status: 'pending' });
+    const approved = await CampusAmbassador.countDocuments({ status: 'approved' });
+    const rejected = await CampusAmbassador.countDocuments({ status: 'rejected' });
+    const total = await CampusAmbassador.countDocuments();
+
+    // Get stats by state
+    const byState = await CampusAmbassador.aggregate([
+      { $group: { _id: '$state', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // Get stats by institution type
+    const byType = await CampusAmbassador.aggregate([
+      { $group: { _id: '$institutionType', count: { $sum: 1 } } }
+    ]);
+
+    console.log(`🎓 Ambassador stats - Pending: ${pending}, Approved: ${approved}, Rejected: ${rejected}`);
+
+    res.status(200).json({
+      success: true,
+      pending,
+      approved,
+      rejected,
+      total,
+      byState,
+      byType
+    });
+
+  } catch (error) {
+    console.error("❌ Get ambassador stats error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching ambassador statistics",
+      error: error.message
+    });
+  }
+};
+
+// Get Ambassador Application Details
+exports.getAmbassadorDetails = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await CampusAmbassador.findById(applicationId)
+      .populate('userId', 'username email xp');
+    
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      application
+    });
+
+  } catch (error) {
+    console.error("Get ambassador details error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching application details",
+      error: error.message
+    });
+  }
+};
+
+// Approve Ambassador Application
+exports.approveAmbassadorApplication = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const { adminNotes } = req.body;
+
+    console.log('🎓 Approving ambassador application:', applicationId);
+
+    const application = await CampusAmbassador.findById(applicationId);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found"
+      });
+    }
+
+    if (application.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: "Application has already been processed"
+      });
+    }
+
+    await application.approve(adminNotes);
+
+    // Optional: Send approval email
+    // await emailService.sendAmbassadorApprovalEmail(application.email, application.fullName);
+
+    res.status(200).json({
+      success: true,
+      message: "Ambassador application approved successfully",
+      application
+    });
+
+  } catch (error) {
+    console.error("❌ Approve ambassador error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error approving application",
+      error: error.message
+    });
+  }
+};
+
+// Reject Ambassador Application
+exports.rejectAmbassadorApplication = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const { adminNotes } = req.body;
+
+    console.log('🎓 Rejecting ambassador application:', applicationId);
+
+    const application = await CampusAmbassador.findById(applicationId);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found"
+      });
+    }
+
+    if (application.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: "Application has already been processed"
+      });
+    }
+
+    if (!adminNotes) {
+      return res.status(400).json({
+        success: false,
+        message: "Rejection reason is required"
+      });
+    }
+
+    await application.reject(adminNotes);
+
+    // Optional: Send rejection email
+    // await emailService.sendAmbassadorRejectionEmail(application.email, application.fullName, adminNotes);
+
+    res.status(200).json({
+      success: true,
+      message: "Ambassador application rejected",
+      application
+    });
+
+  } catch (error) {
+    console.error("❌ Reject ambassador error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error rejecting application",
+      error: error.message
+    });
+  }
+};
+
+// Update Ambassador Metrics
+exports.updateAmbassadorMetrics = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const { eventsOrganized, studentsReferred, contentCreated } = req.body;
+
+    const application = await CampusAmbassador.findByIdAndUpdate(
+      applicationId,
+      { eventsOrganized, studentsReferred, contentCreated },
+      { new: true }
+    );
+    
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Ambassador not found"
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: "Metrics updated successfully",
+      application
+    });
+
+  } catch (error) {
+    console.error("Update ambassador metrics error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating metrics",
+      error: error.message
+    });
+  }
+};
+
+// Export Ambassador Applications CSV
+exports.exportAmbassadorApplications = async (req, res) => {
+  try {
+    const applications = await CampusAmbassador.find()
+      .sort({ createdAt: -1 });
+
+    // Create CSV
+    let csv = 'Name,Email,Phone,State,Institution Type,Institution Name,Course,Level,Twitter,Telegram,Status,Applied Date,Approved Date\n';
+    applications.forEach(app => {
+      csv += `"${app.fullName}","${app.email}","${app.phone}","${app.state}","${app.institutionType}","${app.institutionName}","${app.courseOfStudy}","${app.currentLevel}","${app.twitter}","${app.telegram || 'N/A'}","${app.status}","${new Date(app.createdAt).toLocaleDateString()}","${app.approvedAt ? new Date(app.approvedAt).toLocaleDateString() : 'N/A'}"\n`;
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=campus_ambassadors.csv');
+    res.send(csv);
+
+  } catch (error) {
+    console.error("Export ambassador applications error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error exporting applications"
+    });
+  }
+};
 
 // ==================== QUEST REWARD DISTRIBUTION ====================
 
