@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 const User = require('./models/User'); // Adjust path to your User model
 
 // MongoDB Connection
-const MONGODB_URI = 'mongodb+srv://abdulfatahabdol2003_db_user:Abdol2020@cluster0.gzq1b1p.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = 'e=Cluster0';
 const baseUrl = process.env.BASE_URL || "https://onboard3.app";
 
 // Gmail SMTP Configuration
