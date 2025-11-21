@@ -2337,9 +2337,7 @@ function showLeaderboardModal(data, questId) {
                             <th>Task XP</th>
                             <th>Base XP</th>
                             <th>Referral Join</th>
-                            <th>Referral Complete</th>
                             <th>Winner Bonus</th>
-                            <th>Referrals (J/C)</th>
                             <th>Time</th>
                             <th>Completed</th>
                         </tr>
@@ -2360,9 +2358,7 @@ function showLeaderboardModal(data, questId) {
                                     <td>${entry.taskXp}</td>
                                     <td>${entry.baseXp}</td>
                                     <td>${entry.referralJoinBonus}</td>
-                                    <td>${entry.referralCompleteBonus}</td>
                                     <td>${entry.winnerBonus}</td>
-                                    <td>${entry.referralsJoined}/${entry.referralsCompleted}</td>
                                     <td>${entry.timeSpent}m</td>
                                     <td><small style="color: #888;">${new Date(entry.completedAt).toLocaleDateString()}</small></td>
                                 </tr>
