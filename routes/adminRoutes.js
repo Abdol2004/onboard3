@@ -2481,6 +2481,47 @@ router.post('/bulkmail/test', isAdminPage, async (req, res) => {
   }
 });
 
+// ── Fix base XP being added on top of task XP ───────────────────────────────
+// Zeros quest.baseXpReward and removes the extra baseXp from all progress records
+router.post('/api/apex/fix-base-xp', isAdminPage, async (req, res) => {
+  try {
+    const Quest             = require('../models/Quest');
+    const UserQuestProgress = require('../models/UserQuestProgress');
+    const { questId } = req.body;
+    const quest = questId ? await Quest.findById(questId) : await Quest.findOne({ slug: 'apex-raiders' });
+    if (!quest) return res.json({ success: false, message: 'Quest not found' });
+
+    const oldBase = quest.baseXpReward || 0;
+    quest.baseXpReward = 0;
+    await quest.save();
+
+    if (oldBase === 0) return res.json({ success: true, fixed: 0, message: 'baseXpReward was already 0 — nothing to fix' });
+
+    // Find all progress records that have baseXp > 0
+    const records = await UserQuestProgress.find({ questId: quest._id, 'xpBreakdown.baseXp': { $gt: 0 } });
+    for (const rec of records) {
+      const base = rec.xpBreakdown.baseXp || 0;
+      await User.findByIdAndUpdate(rec.userId, { $inc: { xp: -base } });
+      await UserQuestProgress.updateOne(
+        { _id: rec._id },
+        { $set: {
+          'xpBreakdown.baseXp':  0,
+          'xpBreakdown.totalXp': Math.max(0,
+            (rec.xpBreakdown.taskXp || 0) +
+            (rec.xpBreakdown.referralJoinBonus || 0) +
+            (rec.xpBreakdown.referralCompleteBonus || 0) +
+            (rec.xpBreakdown.winnerBonus || 0)
+          )
+        }}
+      );
+    }
+    res.json({ success: true, fixed: records.length, message: `Removed ${oldBase} base XP from ${records.length} users and set baseXpReward to 0` });
+  } catch (err) {
+    console.error('[fix-base-xp]', err);
+    res.json({ success: false, message: err.message });
+  }
+});
+
 // ── Strip winner bonus from a competition quest ──────────────────────────────
 router.post('/api/apex/fix-winner-bonus', isAdminPage, async (req, res) => {
   try {

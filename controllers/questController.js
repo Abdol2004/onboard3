@@ -707,7 +707,8 @@ exports.submitTask = async (req, res) => {
     });
 
     // ==================== CHECK IF QUEST COMPLETED ====================
-    if (userProgress.tasksCompleted === userProgress.totalTasks) {
+    const alreadyCompleted = userProgress.status === 'completed';
+    if (userProgress.tasksCompleted === userProgress.totalTasks && !alreadyCompleted) {
       userProgress.status = 'completed';
       userProgress.completedAt = new Date();
       

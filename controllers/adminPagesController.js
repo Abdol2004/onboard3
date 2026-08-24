@@ -415,7 +415,7 @@ exports.addQuestTask = async (req, res) => {
 exports.getQuestEntries = async (req, res) => {
     try {
         const quest = await Quest.findById(req.params.id)
-            .select('questType tasks title rewardPlan baseXpReward usdcReward');
+            .select('questType tasks dailyTasks title rewardPlan baseXpReward usdcReward');
         if (!quest) return res.json({ success: false, message: 'Quest not found' });
 
         const entries = await UserQuestProgress.find({ questId: req.params.id })
