@@ -7,6 +7,45 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/portal.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    @media (max-width: 600px) {
+      /* Modal: full-height sheet from bottom */
+      .p-modal-overlay { padding: 0 !important; align-items: flex-end !important; }
+      .p-modal { border-radius: 1rem 1rem 0 0 !important; max-height: 92vh !important; }
+      .p-modal-body { padding: 1rem !important; }
+      .p-modal-head { padding: 1rem !important; }
+
+      /* Quest manager tab bar: scroll horizontally */
+      #questManagerModal .p-modal [style*="display:flex"][style*="border-bottom"],
+      .qm-tabbar { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+
+      /* Stats strip: 2x2 grid */
+      #qmStats { grid-template-columns: 1fr 1fr !important; gap: .5rem !important; }
+      #qmStats > div { padding: .625rem !important; }
+      #qmStats > div > div:first-child { font-size: 1.2rem !important; }
+
+      /* Award XP form: stack */
+      #questManagerModal [style*="grid-template-columns:1fr 120px"] {
+        grid-template-columns: 1fr !important;
+      }
+
+      /* Add task form grids: stack */
+      #qmAddTaskSection [style*="grid-template-columns:1fr 1fr 1fr"],
+      #qmAddTaskSection [style*="grid-template-columns:1fr 1fr"],
+      #qmAddTaskSection [style*="grid-template-columns:1fr 120px"] {
+        grid-template-columns: 1fr !important;
+      }
+
+      /* Entries max-height: more space on phone */
+      #qmEntriesWrap { max-height: none !important; }
+      #qmLeaderboard { max-height: 200px; }
+
+      /* Disburse section */
+      #questManagerModal [style*="grid-template-columns:1fr 120px auto"] {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
 </head>
 <body>
 <div class="p-overlay" id="pOverlay" onclick="closeSidebar()"></div>
@@ -797,7 +836,7 @@
     </div>
 
     <!-- Tab bar -->
-    <div style="display:flex;border-bottom:1px solid var(--border);padding:0 1.5rem;flex-shrink:0">
+    <div class="qm-tabbar" style="display:flex;border-bottom:1px solid var(--border);padding:0 1rem;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch">
       <button id="qmTab-leaderboard" onclick="switchQMTab('leaderboard')" style="padding:.625rem 1rem;font-size:.82rem;font-weight:700;background:transparent;border:none;cursor:pointer;color:var(--green);border-bottom:2px solid var(--green);margin-bottom:-1px;font-family:'Outfit',sans-serif"><i class="fas fa-ranking-star"></i> Leaderboard & Entries</button>
       <button id="qmTab-tasks" onclick="switchQMTab('tasks')" style="padding:.625rem 1rem;font-size:.82rem;font-weight:700;background:transparent;border:none;cursor:pointer;color:var(--text-3);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Outfit',sans-serif"><i class="fas fa-tasks"></i> Manage Tasks</button>
       <button id="qmTab-applications" onclick="switchQMTab('applications')" style="padding:.625rem 1rem;font-size:.82rem;font-weight:700;background:transparent;border:none;cursor:pointer;color:var(--text-3);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Outfit',sans-serif"><i class="fas fa-user-check"></i> Applications</button>
@@ -1625,14 +1664,14 @@ function loadQuestStats(questId) {
           '</tr>';
       }).join('');
       document.getElementById('qmLeaderboard').innerHTML =
-        '<table style="width:100%;border-collapse:collapse">' +
+        '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:320px">' +
         '<thead><tr style="background:var(--surface-2,#111)">' +
         '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">Rank</th>' +
         '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">User</th>' +
         '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">XP</th>' +
         '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">Status</th>' +
         '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">USDC</th>' +
-        '</tr></thead><tbody>' + rows + '</tbody></table>';
+        '</tr></thead><tbody>' + rows + '</tbody></table></div>';
     })
     .catch(function() {
       document.getElementById('qmLeaderboard').innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--red);font-size:.8rem">Failed to load data.</div>';
@@ -1651,58 +1690,56 @@ function loadQuestEntries(questId) {
         wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">No entries yet.</div>';
         return;
       }
-      var rows = entries.map(function(e, i) {
+      var cards = entries.map(function(e, i) {
         var tasks = e.taskProgress || [];
         var pendingTasks = tasks.filter(function(t) { return t.approvalStatus === 'pending'; });
-        var taskBadges = pendingTasks.map(function(t) {
-          return '<span style="display:inline-flex;align-items:center;gap:.25rem;font-size:.68rem;background:rgba(245,158,11,.1);color:#f59e0b;border:1px solid rgba(245,158,11,.25);border-radius:20px;padding:.1rem .5rem;margin:.1rem">' +
-            'Task pending' +
-            ' <button onclick="bizReviewTask(\'' + questId + '\',\'' + e._id + '\',\'' + t.taskId + '\',\'approve\')" style="background:none;border:none;color:#5ec213;cursor:pointer;font-size:.65rem;padding:0" title="Approve"><i class="fas fa-check"></i></button>' +
-            ' <button onclick="bizReviewTask(\'' + questId + '\',\'' + e._id + '\',\'' + t.taskId + '\',\'reject\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.65rem;padding:0" title="Reject"><i class="fas fa-times"></i></button>' +
-            '</span>';
+        var reviewBtns = pendingTasks.map(function(t) {
+          return '<div style="display:flex;align-items:center;gap:.5rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:.375rem .625rem;margin:.25rem 0">' +
+            '<span style="font-size:.72rem;color:#f59e0b;font-weight:700;flex:1"><i class="fas fa-clock"></i> Pending review</span>' +
+            '<button onclick="bizReviewTask(\'' + questId + '\',\'' + e._id + '\',\'' + t.taskId + '\',\'approve\')" style="background:rgba(94,194,19,.15);border:1px solid rgba(94,194,19,.3);color:#5ec213;border-radius:6px;padding:.2rem .5rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-check"></i> Approve</button>' +
+            '<button onclick="bizReviewTask(\'' + questId + '\',\'' + e._id + '\',\'' + t.taskId + '\',\'reject\')" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#ef4444;border-radius:6px;padding:.2rem .5rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-times"></i> Reject</button>' +
+            '</div>';
         }).join('');
-        var subLinks = tasks.filter(function(t) {
+        var subItems = tasks.filter(function(t) {
           return t.submissionUrl || t.submissionText || (t.submissionData && Object.keys(t.submissionData).length);
         }).map(function(t) {
           if (t.submissionUrl) {
-            return '<a href="' + t.submissionUrl + '" target="_blank" style="color:#60a5fa;font-size:.72rem">' + t.submissionUrl.slice(0,40) + '…</a>';
+            return '<a href="' + t.submissionUrl + '" target="_blank" style="display:block;color:#60a5fa;font-size:.75rem;word-break:break-all;margin:.1rem 0">' + t.submissionUrl + '</a>';
           }
           if (t.submissionText) {
-            return '<span style="font-size:.72rem;color:var(--text-2)">' + String(t.submissionText).substring(0,40) + '</span>';
+            return '<span style="display:block;font-size:.75rem;color:var(--text-2);word-break:break-all;margin:.1rem 0">' + String(t.submissionText) + '</span>';
           }
           if (t.submissionData && typeof t.submissionData === 'object') {
             return Object.values(t.submissionData).filter(function(v){ return v; }).map(function(v) {
               var sv = String(v).trim();
-              if (/^https?:\/\//.test(sv)) return '<a href="' + sv + '" target="_blank" style="color:#60a5fa;font-size:.72rem">' + sv.slice(0,40) + '…</a>';
-              return '<span style="font-size:.72rem;color:var(--text-2)">' + sv.substring(0,40) + '</span>';
-            }).join(' ');
+              if (/^https?:\/\//.test(sv)) return '<a href="' + sv + '" target="_blank" style="display:block;color:#60a5fa;font-size:.75rem;word-break:break-all;margin:.1rem 0">' + sv + '</a>';
+              return '<span style="display:block;font-size:.75rem;color:var(--text-2);word-break:break-all;margin:.1rem 0">' + sv + '</span>';
+            }).join('');
           }
           return '';
-        }).join(', ');
+        }).join('');
         var username = (e.userId && e.userId.username) ? '@' + e.userId.username : 'Unknown';
         var xp = (e.xpBreakdown && e.xpBreakdown.totalXp) ? e.xpBreakdown.totalXp : 0;
-        return '<tr>' +
-          '<td style="padding:.5rem .75rem;font-size:.8rem;color:var(--text-3)">#' + (i+1) + '</td>' +
-          '<td style="padding:.5rem .375rem;font-weight:600;font-size:.875rem">' + username + '</td>' +
-          '<td style="padding:.5rem .375rem;color:var(--green);font-weight:700;font-size:.8rem">' + xp + ' XP</td>' +
-          '<td style="padding:.5rem .375rem;font-size:.75rem;text-transform:capitalize;color:var(--text-3)">' + (e.status||'—') + '</td>' +
-          '<td style="padding:.5rem .375rem;font-size:.75rem">' + (subLinks || '—') + '</td>' +
-          '<td style="padding:.5rem .375rem">' + (taskBadges || '') + '</td>' +
-          '<td style="padding:.5rem .75rem">' +
-            '<button onclick="bizFlagEntry(\'' + questId + '\',\'' + e._id + '\')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444;border-radius:20px;padding:.2rem .6rem;font-size:.68rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-flag"></i> Flag -50XP</button>' +
-          '</td>' +
-          '</tr>';
+        var statusColor = e.status === 'completed' ? 'var(--green)' : e.status === 'not_started' ? 'var(--text-3)' : '#f59e0b';
+        return '<div style="padding:.75rem 1rem;border-bottom:1px solid var(--border)">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.375rem">' +
+            '<div style="display:flex;align-items:center;gap:.5rem">' +
+              '<span style="font-size:.72rem;color:var(--text-3);min-width:1.5rem">#' + (i+1) + '</span>' +
+              '<span style="font-weight:700;font-size:.875rem">' + username + '</span>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:.5rem">' +
+              '<span style="color:var(--green);font-weight:800;font-size:.8rem">' + xp + ' XP</span>' +
+              '<span style="font-size:.68rem;color:' + statusColor + ';text-transform:capitalize;background:rgba(255,255,255,.05);border-radius:20px;padding:.1rem .45rem">' + (e.status||'—') + '</span>' +
+            '</div>' +
+          '</div>' +
+          (subItems ? '<div style="margin:.375rem 0;padding:.375rem .5rem;background:var(--surface);border-radius:6px;border-left:2px solid rgba(96,165,250,.4)">' + subItems + '</div>' : '') +
+          (reviewBtns ? '<div style="margin-top:.375rem">' + reviewBtns + '</div>' : '') +
+          '<div style="margin-top:.5rem">' +
+            '<button onclick="bizFlagEntry(\'' + questId + '\',\'' + e._id + '\')" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;border-radius:20px;padding:.25rem .75rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-flag"></i> Flag -50XP</button>' +
+          '</div>' +
+        '</div>';
       }).join('');
-      wrap.innerHTML = '<table style="width:100%;border-collapse:collapse;min-width:500px">' +
-        '<thead><tr style="background:var(--surface)">' +
-        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">#</th>' +
-        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">User</th>' +
-        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">XP</th>' +
-        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">Status</th>' +
-        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">Submissions</th>' +
-        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">Pending Tasks</th>' +
-        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">Actions</th>' +
-        '</tr></thead><tbody>' + rows + '</tbody></table>';
+      wrap.innerHTML = '<div>' + cards + '</div>';
     })
     .catch(function() {
       wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--red);font-size:.8rem">Failed to load entries.</div>';
