@@ -1425,15 +1425,12 @@
             for (let [key, value] of formData.entries()) {
                 if (!['submissionUrl','submissionText','verification','imgBase64'].includes(key)) submitData.submissionData[key] = value;
             }
-
-            // Validate custom input field — read from FormData (reliable on Android keyboards)
-            const taskInputEl = document.getElementById('taskInput');
-            if (taskInputEl) {
-                var inputFieldName = taskInputEl.getAttribute('name');
-                var inputVal = inputFieldName ? (formData.get(inputFieldName) || '').trim() : (taskInputEl.value || '').trim();
-                if (!inputVal) {
-                    showSubmitError('Please fill in the required field before submitting.');
-                    return;
+            // Fallback: capture custom input value directly from DOM in case FormData missed it
+            var taskInputEl = document.getElementById('taskInput');
+            if (taskInputEl && taskInputEl.name) {
+                var directVal = taskInputEl.value || '';
+                if (directVal && !submitData.submissionData[taskInputEl.name]) {
+                    submitData.submissionData[taskInputEl.name] = directVal;
                 }
             }
 
