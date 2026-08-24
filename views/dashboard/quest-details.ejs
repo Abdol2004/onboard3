@@ -1044,7 +1044,7 @@
                 </div>
                 <button class="modal-close-btn" onclick="closeTaskModal()"><i class="fas fa-times"></i></button>
             </div>
-            <form id="taskSubmitForm">
+            <form id="taskSubmitForm" novalidate>
                 <div id="taskInputContainer"></div>
                 <div id="taskSubmitError" style="display:none;margin-top:.875rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);border-radius:12px;padding:.875rem 1rem;color:#f87171;font-size:.84rem;line-height:1.5"></div>
                 <div class="modal-footer">
@@ -1247,7 +1247,7 @@
                     inputContainer.innerHTML =
                         '<div class="form-group">' +
                         '<label><i class="fas fa-edit"></i> ' + inputLabel + '</label>' +
-                        '<input type="text" id="taskInput" name="' + inputName + '" placeholder="Enter ' + inputLabel.toLowerCase() + '" required minlength="3">' +
+                        '<input type="text" id="taskInput" name="' + inputName + '" placeholder="Enter ' + inputLabel.toLowerCase() + '" autocomplete="off">' +
                         '<small><i class="fas fa-info-circle"></i> Provide accurate information</small>' +
                         '</div>' +
                         '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
@@ -1294,6 +1294,7 @@
                         submitBtn.textContent = "I've Done It — Submit";
                         submitBtn.onclick = function(e) {
                             e.preventDefault();
+                            trackTaskClick(taskId);
                             closeTaskModal();
                             openTaskModal(taskId, questId, taskTitle, inputLabel, inputName, false, twitterFollowTarget, taskType, pollOptions, discordGuildId, discordGuildName, telegramChatId, telegramChatName);
                         };
@@ -1425,6 +1426,16 @@
             if (imgB64) submitData.submissionData.image = imgB64;
             for (let [key, value] of formData.entries()) {
                 if (!['submissionUrl','submissionText','verification','imgBase64'].includes(key)) submitData.submissionData[key] = value;
+            }
+
+            // Validate custom input field (replaced browser-native required/minlength)
+            const taskInputEl = document.getElementById('taskInput');
+            if (taskInputEl && !taskInputEl.closest('[style*="display:none"]')) {
+                const inputVal = (taskInputEl.value || '').trim();
+                if (!inputVal) {
+                    showSubmitError('Please fill in the ' + (taskInputEl.placeholder || 'required field') + '.');
+                    return;
+                }
             }
 
             const submitBtn = this.querySelector('button[type="submit"]');
