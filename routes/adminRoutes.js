@@ -1756,6 +1756,7 @@ router.post('/quest-applications/:id/approve', isAdminPage, async (req, res) => 
   try {
     const Quest             = require('../models/Quest');
     const UserQuestProgress = require('../models/UserQuestProgress');
+    const { notify }        = require('../utils/notificationService');
 
     const application = await QuestApplication.findById(req.params.id);
     if (!application) return res.json({ success: false, message: 'Not found' });
@@ -1770,17 +1771,25 @@ router.post('/quest-applications/:id/approve', isAdminPage, async (req, res) => 
     if (quest) {
       const existing = await UserQuestProgress.findOne({ questId: quest._id, userId: application.userId });
       if (!existing) {
+        const allTasks = [...(quest.tasks || []), ...(quest.dailyTasks || [])];
         await UserQuestProgress.create({
           questId:    quest._id,
           userId:     application.userId,
           status:     'not_started',
           startedAt:  new Date(),
-          totalTasks: quest.tasks ? quest.tasks.length : 0,
+          totalTasks: allTasks.length,
           taskProgress: []
         });
-        // Increment participant count
         await Quest.findByIdAndUpdate(quest._id, { $inc: { totalParticipants: 1 } });
       }
+
+      // Notify the user they've been approved
+      notify(application.userId, {
+        type:    'system',
+        title:   `You're approved for ${quest.title}!`,
+        message: `Your application to join "${quest.title}" has been approved. Head to Quests to start completing tasks and earning XP.`,
+        link:    '/dashboard/quests'
+      }).catch(() => {});
     }
 
     res.json({ success: true });
@@ -2346,6 +2355,35 @@ router.post('/bulkmail/test', isAdminPage, async (req, res) => {
     });
     res.json({ success: true });
   } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+});
+
+// ── Add Discord daily task to Apex Raiders (one-time setup) ─────────────────
+router.post('/api/apex/add-discord-task', isAdminPage, async (req, res) => {
+  try {
+    const Quest = require('../models/Quest');
+    const { discordLink, taskTitle } = req.body;
+    const quest = await Quest.findOne({ slug: 'apex-raiders' });
+    if (!quest) return res.json({ success: false, message: 'Apex Raiders quest not found' });
+
+    const title = (taskTitle || 'Join Discord Community').trim();
+    const link  = (discordLink || 'https://discord.gg/onboard3').trim();
+
+    const alreadyExists = (quest.dailyTasks || []).some(t => t.title === title);
+    if (alreadyExists) return res.json({ success: false, message: 'Discord daily task already exists' });
+
+    quest.dailyTasks = quest.dailyTasks || [];
+    quest.dailyTasks.push({
+      title, description: 'Join the community Discord server and engage daily.',
+      taskType: 'external', xpReward: 50, isDaily: true,
+      buttonText: 'Join Discord', buttonLink: link, inputType: 'none', order: 0
+    });
+    quest.markModified('dailyTasks');
+    await quest.save();
+    res.json({ success: true, message: 'Discord daily task added to Apex Raiders' });
+  } catch (err) {
+    console.error('[add-discord-task]', err);
     res.json({ success: false, message: err.message });
   }
 });
