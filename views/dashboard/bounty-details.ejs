@@ -64,23 +64,29 @@
 
     @media (max-width:600px) {
       .bd-hero-content { padding:1.25rem 1rem; gap:1rem; min-height:160px; }
-      .bd-title { font-size:1.3rem; letter-spacing:-.5px; }
+      .bd-title { font-size:1.25rem; letter-spacing:-.5px; }
       .bd-layout { margin-top:.875rem; gap:.875rem; }
       .reward-strip { gap:.5rem; margin-top:.875rem; }
-      .reward-pill { font-size:.78rem; padding:.4rem .75rem; }
-      .submit-card { padding:1.125rem; border-radius:14px; }
+      .reward-pill { font-size:.75rem; padding:.35rem .65rem; }
+      .submit-card { padding:1rem; border-radius:14px; }
       .countdown-box { padding:.875rem; }
       .countdown-val { font-size:1.25rem; }
-      .split-table { font-size:.8rem; display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-      .winner-card { flex-wrap:wrap; gap:.625rem; }
+      .split-table { font-size:.8rem; display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; width:100%; }
+      .winner-card { flex-wrap:wrap; gap:.625rem; padding:.875rem; }
       .winner-card > div:last-child { width:100%; text-align:left; }
-      .sub-card { gap:.625rem; }
-      .sub-pfp { width:34px; height:34px; font-size:.85rem; }
+      .sub-card { gap:.625rem; padding:.875rem; }
+      .sub-pfp { width:34px; height:34px; font-size:.85rem; flex-shrink:0; }
+      .sub-desc { -webkit-line-clamp:4; }
       .card { border-radius:14px; }
-      .card > div[style*="padding:0 1.5rem"] { padding:0 1rem 1rem !important; }
       .card-header { padding:.875rem 1rem !important; }
+      .bd-section-body { padding:0 1rem 1rem !important; }
+      .bd-desc { white-space:pre-line; }
       .form-group input, .form-group textarea { font-size:.9rem; padding:.65rem .875rem; }
+      .bd-badge { font-size:.62rem; padding:.25rem .6rem; }
+      .sub-winner-badge { font-size:.6rem; }
     }
+    .bd-desc { word-break:break-word; overflow-wrap:break-word; white-space:pre-wrap; max-width:100%; }
+    .bd-section-body { padding:0 1.5rem 1.5rem; }
   </style>
 </head>
 <body>
@@ -125,14 +131,14 @@
         <!-- Description -->
         <div class="card" style="margin-bottom:1.25rem">
           <div class="card-header"><h3><i class="fas fa-info-circle"></i> About This Bounty</h3></div>
-          <div style="padding:0 1.5rem 1.5rem;color:var(--text-2);line-height:1.75;font-size:.9rem;white-space:pre-wrap"><%= bounty.description %></div>
+          <div class="bd-section-body bd-desc" style="color:var(--text-2);line-height:1.75;font-size:.9rem"><%= bounty.description %></div>
         </div>
 
         <!-- Reward split -->
         <% if (bounty.rewardSplit && bounty.rewardSplit.length > 0) { %>
         <div class="card" style="margin-bottom:1.25rem">
           <div class="card-header"><h3><i class="fas fa-chart-pie"></i> Reward Split</h3></div>
-          <div style="padding:0 1.5rem 1.5rem">
+          <div class="bd-section-body">
             <table class="split-table">
               <thead><tr><th>Rank</th><th>%</th><th>Amount</th></tr></thead>
               <tbody>
@@ -153,7 +159,7 @@
         <% if (bounty.status === 'winners_announced' && bounty.winners && bounty.winners.length > 0) { %>
         <div class="card" style="margin-bottom:1.25rem">
           <div class="card-header"><h3><i class="fas fa-trophy" style="color:#fbbf24"></i> Winners</h3></div>
-          <div style="padding:0 1.5rem 1.5rem;display:flex;flex-direction:column;gap:.75rem">
+          <div class="bd-section-body" style="display:flex;flex-direction:column;gap:.75rem">
             <% bounty.winners.forEach(function(w) {
               const winSub = submissions.find(s => s._id.toString() === (w.submissionId||'').toString());
             %>
@@ -182,7 +188,7 @@
           <div class="card-header" style="flex-wrap:wrap;gap:.5rem">
             <h3><i class="fas fa-file-alt"></i> Submissions (<%= submissions.length %>)</h3>
           </div>
-          <div style="padding:0 1.5rem 1.5rem;display:flex;flex-direction:column;gap:.75rem">
+          <div class="bd-section-body" style="display:flex;flex-direction:column;gap:.75rem">
             <% if (submissions.length === 0) { %>
             <div style="text-align:center;padding:2rem;color:var(--text-3);font-size:.875rem"><i class="fas fa-inbox" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No submissions yet. Be the first!</div>
             <% } %>
@@ -282,6 +288,25 @@
 </div><!-- /.dashboard-container -->
 
 <script>
+function showToast(msg, type) {
+  var existing = document.getElementById('globalToast');
+  if (existing) existing.remove();
+  var t = document.createElement('div');
+  t.id = 'globalToast';
+  var bg = type === 'error' ? 'rgba(239,68,68,.95)' : type === 'warning' ? 'rgba(245,158,11,.95)' : 'rgba(94,194,19,.95)';
+  var icon = type === 'error' ? 'fa-times-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+  t.style.cssText = 'position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-120%);background:' + bg + ';color:#fff;padding:.85rem 1.5rem;border-radius:14px;font-size:.9rem;font-weight:700;font-family:Outfit,sans-serif;z-index:99999;display:flex;align-items:center;gap:.6rem;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:transform .35s cubic-bezier(.34,1.56,.64,1);max-width:90vw;text-align:center';
+  t.innerHTML = '<i class="fas ' + icon + '"></i><span>' + msg + '</span>';
+  document.body.appendChild(t);
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { t.style.transform = 'translateX(-50%) translateY(0)'; });
+  });
+  setTimeout(function() {
+    t.style.transform = 'translateX(-50%) translateY(-120%)';
+    setTimeout(function() { if (t.parentNode) t.remove(); }, 400);
+  }, type === 'error' ? 5000 : 3500);
+}
+
 // Countdown
 <% if (bounty.endDate && new Date() < new Date(bounty.endDate)) { %>
 const endMs = <%= new Date(bounty.endDate).getTime() %>;
