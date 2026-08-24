@@ -207,6 +207,20 @@ router.post('/projects/:id/approve',       isAdminPage, requireSection('projects
 router.post('/projects/:id/reject',        isAdminPage, requireSection('projects'),           pages.rejectProject);
 router.post('/settings/pathways',                    isAdminPage, requireSection('settings'),             pages.savePathways);
 router.post('/settings/pathway-approval-mode',       isAdminPage, requireSection('settings'),             pages.savePathwayApprovalMode);
+router.post('/api/reset-pathways',                   isAdminPage, requireSection('settings'),             async (req, res) => {
+  try {
+    const result = await User.updateMany({}, {
+      $set: {
+        pathway: null, pathwayStatus: null,
+        pathwayApplication: { reason: '', experience: '', appliedAt: null, reviewedAt: null, reviewNote: '' }
+      }
+    });
+    res.json({ success: true, count: result.modifiedCount });
+  } catch (err) {
+    console.error('[reset-pathways]', err);
+    res.json({ success: false, message: 'DB error' });
+  }
+});
 router.post('/pathway-applications/:id/approve',     isAdminPage, requireSection('pathway-applications'), pages.approvePathwayApplication);
 router.post('/pathway-applications/:id/reject',      isAdminPage, requireSection('pathway-applications'), pages.rejectPathwayApplication);
 

@@ -33,6 +33,16 @@
                 </div>
                 <button type="submit" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-save"></i> Save Mode</button>
             </form>
+
+            <hr style="border:none;border-top:1px solid var(--border);margin:1.5rem 0">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+                <div>
+                    <div style="font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:.25rem">Reset All User Pathways</div>
+                    <div style="font-size:.78rem;color:var(--text-3)">Clears every user's pathway so they must pick again during onboarding. Use this before launch day.</div>
+                </div>
+                <button id="resetPathwaysBtn" class="a-btn a-btn-sm" style="background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.3);white-space:nowrap" onclick="resetAllPathways()"><i class="fas fa-rotate-left"></i> Reset All Pathways</button>
+            </div>
+            <div id="resetPathwaysResult" style="margin-top:.75rem;font-size:.82rem;display:none"></div>
         </div>
 
         <!-- Pathway Community Links -->
@@ -82,5 +92,35 @@
         </div>
     </div>
 </div>
+<script>
+async function resetAllPathways() {
+    if (!confirm('This will clear the pathway for ALL users so they must pick again. Are you sure?')) return;
+    const btn = document.getElementById('resetPathwaysBtn');
+    const result = document.getElementById('resetPathwaysResult');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Resetting...';
+    try {
+        const r = await fetch('/admin/api/reset-pathways', { method: 'POST' });
+        const data = await r.json();
+        result.style.display = '';
+        if (data.success) {
+            result.style.color = '#10b981';
+            result.textContent = `Done — reset pathway for ${data.count} users.`;
+            btn.innerHTML = '<i class="fas fa-check"></i> Done';
+        } else {
+            result.style.color = '#ef4444';
+            result.textContent = data.message || 'Error resetting pathways.';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-rotate-left"></i> Reset All Pathways';
+        }
+    } catch (e) {
+        result.style.display = '';
+        result.style.color = '#ef4444';
+        result.textContent = 'Network error.';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-rotate-left"></i> Reset All Pathways';
+    }
+}
+</script>
 </body>
 </html>
