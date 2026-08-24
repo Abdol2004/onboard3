@@ -4148,8 +4148,7 @@ function showLeaderboardModal(data, questId) {
     }
 
     var questTitle = (data.quest && data.quest.title) || 'Quest';
-    var questSlug  = (data.quest && data.quest.slug)  || '';
-    var questType = (data.quest && data.quest.questType) || '';
+    var questType  = (data.quest && data.quest.questType) || '';
 
     // Build task management rows
     _adminTaskCache = {};
@@ -4178,9 +4177,9 @@ function showLeaderboardModal(data, questId) {
         + '<button class="btn btn-primary btn-sm" onclick="openRewardDistributionFromLeaderboard()"><i class="fas fa-gift"></i> Distribute Rewards</button>'
         + '<button class="btn btn-secondary btn-sm" onclick="exportLeaderboard(\'' + finalQuestId + '\')"><i class="fas fa-download"></i> Export CSV</button>'
         + '<button class="btn btn-secondary btn-sm" style="background: rgba(29,161,242,0.1); border-color: #1DA1F2; color: #1DA1F2;" onclick="openTaskExportModal(\'' + finalQuestId + '\')"><i class="fas fa-tasks"></i> Export with Tasks</button>'
-        + (questSlug === 'apex-raiders'
-            ? '<button class="btn btn-sm" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#ef4444" onclick="apexFixWinnerBonus()"><i class="fas fa-eraser"></i> Fix Winner Bonus</button>'
-            + '<button class="btn btn-sm" style="background:rgba(88,101,242,.15);border:1px solid rgba(88,101,242,.4);color:#7289da" onclick="apexAddDiscordTask()"><i class="fab fa-discord"></i> Add Discord Task</button>'
+        + (questType === 'competition'
+            ? '<button class="btn btn-sm" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#ef4444" onclick="apexFixWinnerBonus(\'' + finalQuestId + '\')"><i class="fas fa-eraser"></i> Fix Winner Bonus</button>'
+            + '<button class="btn btn-sm" style="background:rgba(88,101,242,.15);border:1px solid rgba(88,101,242,.4);color:#7289da" onclick="apexAddDiscordTask(\'' + finalQuestId + '\')"><i class="fab fa-discord"></i> Add Discord Task</button>'
             : '')
         + '</div>'
         + taskSection
@@ -4200,20 +4199,22 @@ function closeLeaderboardModal() {
     }
 }
 
-async function apexFixWinnerBonus() {
-    if (!confirm('This will strip the 500 XP winner bonus from all Apex Raiders participants and deduct it from their global XP. Continue?')) return;
+async function apexFixWinnerBonus(questId) {
+    if (!confirm('This will strip the winner bonus XP from all participants in this quest and deduct it from their global XP. Continue?')) return;
     try {
-        var r = await fetch('/admin/api/apex/fix-winner-bonus', { method: 'POST', headers: { 'Accept': 'application/json' } });
+        var r = await fetch('/admin/api/apex/fix-winner-bonus', { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ questId: questId }) });
         var d = await r.json();
         alert(d.success ? (d.message || 'Done!') : ('Error: ' + (d.message || 'Unknown error')));
         if (d.success) closeLeaderboardModal();
     } catch(e) { alert('Network error'); }
 }
 
-async function apexAddDiscordTask() {
-    if (!confirm('Add a 50 XP daily Discord task to Apex Raiders? This only runs once — if it already exists nothing changes.')) return;
+async function apexAddDiscordTask(questId) {
+    var link = prompt('Enter Discord invite link:', 'https://discord.gg/onboard3');
+    if (link === null) return;
+    if (!confirm('Add a 50 XP daily Discord task? This only runs once — safe to re-click if it already exists.')) return;
     try {
-        var r = await fetch('/admin/api/apex/add-discord-task', { method: 'POST', headers: { 'Accept': 'application/json' } });
+        var r = await fetch('/admin/api/apex/add-discord-task', { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ questId: questId, discordLink: link }) });
         var d = await r.json();
         alert(d.success ? (d.message || 'Done!') : ('Error: ' + (d.message || 'Unknown error')));
     } catch(e) { alert('Network error'); }

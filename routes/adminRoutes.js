@@ -1093,13 +1093,53 @@ router.post('/api/launch-rewards/retry-failed', isAdmin, async (req, res) => {
 router.patch('/api/launch-rewards/:rewardId', isAdmin, async (req, res) => {
   try {
     const { amount, tier } = req.body;
+    if (amount === undefined && tier === undefined) return res.status(400).json({ ok: false, error: 'Nothing to update' });
+    const existing = await LaunchReward.findById(req.params.rewardId);
+    if (!existing) return res.status(404).json({ ok: false, error: 'Reward not found' });
+
     const update = {};
-    if (amount !== undefined) update.amount = parseFloat(amount);
     if (tier !== undefined) update.tier = tier;
-    if (!Object.keys(update).length) return res.status(400).json({ ok: false, error: 'Nothing to update' });
-    const reward = await LaunchReward.findByIdAndUpdate(req.params.rewardId, { $set: update }, { new: true });
-    if (!reward) return res.status(404).json({ ok: false, error: 'Reward not found' });
-    res.json({ ok: true, reward });
+    if (amount !== undefined) update.amount = parseFloat(amount);
+
+    // If already sent, credit/debit the difference to the user's in-app balance
+    let diff = 0;
+    if (existing.status === 'sent' && amount !== undefined) {
+      diff = parseFloat(amount) - existing.amount;
+      if (diff !== 0) {
+        const User = require('../models/User');
+        await User.collection.updateOne({ _id: existing.userId }, { $inc: { usdcBalance: diff } });
+      }
+    }
+
+    await LaunchReward.updateOne({ _id: existing._id }, { $set: update });
+    res.json({ ok: true, diff });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Reset a user's launch reward so they can redo the welcome task and collect the corrected amount
+router.post('/api/launch-rewards/:rewardId/reset', isAdmin, async (req, res) => {
+  try {
+    const { amount, tier } = req.body;
+    if (amount === undefined) return res.status(400).json({ ok: false, error: 'amount required' });
+    const existing = await LaunchReward.findById(req.params.rewardId);
+    if (!existing) return res.status(404).json({ ok: false, error: 'Reward not found' });
+
+    const User = require('../models/User');
+    // Reset the reward record to pending with the corrected amount
+    await LaunchReward.updateOne({ _id: existing._id }, {
+      $set: {
+        amount: parseFloat(amount),
+        tier: tier || existing.tier,
+        status: 'pending',
+        sentAt: null,
+        failReason: null
+      }
+    });
+    // Clear launchDayCompleted so the user re-enters the launch onboarding flow
+    await User.collection.updateOne({ _id: existing.userId }, { $set: { launchDayCompleted: false } });
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -2374,13 +2414,16 @@ router.post('/bulkmail/test', isAdminPage, async (req, res) => {
   }
 });
 
-// ── Strip winner bonus from Apex Raiders (one-time fix) ─────────────────────
+// ── Strip winner bonus from a competition quest ──────────────────────────────
 router.post('/api/apex/fix-winner-bonus', isAdminPage, async (req, res) => {
   try {
     const Quest             = require('../models/Quest');
     const UserQuestProgress = require('../models/UserQuestProgress');
-    const quest = await Quest.findOne({ slug: 'apex-raiders' });
-    if (!quest) return res.json({ success: false, message: 'Apex Raiders quest not found' });
+    const { questId } = req.body;
+    const quest = questId
+      ? await Quest.findById(questId)
+      : await Quest.findOne({ slug: 'apex-raiders' });
+    if (!quest) return res.json({ success: false, message: 'Quest not found' });
 
     quest.competitionConfig.winnerBonusXP = 0;
     quest.markModified('competitionConfig');
@@ -2405,13 +2448,15 @@ router.post('/api/apex/fix-winner-bonus', isAdminPage, async (req, res) => {
   }
 });
 
-// ── Add Discord daily task to Apex Raiders (one-time setup) ─────────────────
+// ── Add Discord daily task to a quest (one-time setup) ──────────────────────
 router.post('/api/apex/add-discord-task', isAdminPage, async (req, res) => {
   try {
     const Quest = require('../models/Quest');
-    const { discordLink, taskTitle } = req.body;
-    const quest = await Quest.findOne({ slug: 'apex-raiders' });
-    if (!quest) return res.json({ success: false, message: 'Apex Raiders quest not found' });
+    const { discordLink, taskTitle, questId } = req.body;
+    const quest = questId
+      ? await Quest.findById(questId)
+      : await Quest.findOne({ slug: 'apex-raiders' });
+    if (!quest) return res.json({ success: false, message: 'Quest not found' });
 
     const title = (taskTitle || 'Join Discord Community').trim();
     const link  = (discordLink || 'https://discord.gg/onboard3').trim();
