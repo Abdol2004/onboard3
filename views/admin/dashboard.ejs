@@ -4177,6 +4177,7 @@ function showLeaderboardModal(data, questId) {
         + '<button class="btn btn-primary btn-sm" onclick="openRewardDistributionFromLeaderboard()"><i class="fas fa-gift"></i> Distribute Rewards</button>'
         + '<button class="btn btn-secondary btn-sm" onclick="exportLeaderboard(\'' + finalQuestId + '\')"><i class="fas fa-download"></i> Export CSV</button>'
         + '<button class="btn btn-secondary btn-sm" style="background: rgba(29,161,242,0.1); border-color: #1DA1F2; color: #1DA1F2;" onclick="openTaskExportModal(\'' + finalQuestId + '\')"><i class="fas fa-tasks"></i> Export with Tasks</button>'
+        + '<button class="btn btn-sm" style="background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.5);color:#ef4444;font-weight:800" onclick="questResetProgress(\'' + finalQuestId + '\')"><i class="fas fa-redo"></i> Reset All Progress</button>'
         + '<button class="btn btn-sm" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#ef4444" onclick="apexFixWinnerBonus(\'' + finalQuestId + '\')"><i class="fas fa-eraser"></i> Fix Winner Bonus</button>'
         + '<button class="btn btn-sm" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#f59e0b" onclick="apexFixBaseXp(\'' + finalQuestId + '\')"><i class="fas fa-bolt"></i> Fix Base XP</button>'
         + '<button class="btn btn-sm" style="background:rgba(88,101,242,.15);border:1px solid rgba(88,101,242,.4);color:#7289da" onclick="apexAddDiscordTask(\'' + finalQuestId + '\')"><i class="fab fa-discord"></i> Add Discord Task</button>'
@@ -4196,6 +4197,17 @@ function closeLeaderboardModal() {
     if (modal) {
         modal.remove();
     }
+}
+
+async function questResetProgress(questId) {
+    if (!confirm('⚠️ RESET ALL PROGRESS\n\nThis will:\n• Set every participant back to 0 XP\n• Clear all task completions and submissions\n• Deduct the XP from their global profile\n• Zero out the quest completion bonus\n• NOT touch approvals — everyone stays approved\n\nAre you sure?')) return;
+    if (!confirm('Last chance — this cannot be undone. Reset all participants to 0 XP?')) return;
+    try {
+        var r = await fetch('/admin/api/quest/reset-progress', { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ questId: questId }) });
+        var d = await r.json();
+        alert(d.success ? (d.message || 'Done!') : ('Error: ' + (d.message || 'Unknown error')));
+        if (d.success) closeLeaderboardModal();
+    } catch(e) { alert('Network error'); }
 }
 
 async function apexFixWinnerBonus(questId) {

@@ -2481,6 +2481,72 @@ router.post('/bulkmail/test', isAdminPage, async (req, res) => {
   }
 });
 
+// ── Full quest progress reset (keeps approvals, wipes XP + task progress) ───
+router.post('/api/quest/reset-progress', isAdminPage, async (req, res) => {
+  try {
+    const Quest             = require('../models/Quest');
+    const UserQuestProgress = require('../models/UserQuestProgress');
+    const { questId } = req.body;
+    if (!questId) return res.json({ success: false, message: 'questId required' });
+
+    const quest = await Quest.findById(questId);
+    if (!quest) return res.json({ success: false, message: 'Quest not found' });
+
+    // Zero out quest completion bonus so only per-task XP counts
+    quest.baseXpReward = 0;
+    if (quest.competitionConfig) {
+      quest.competitionConfig.winnerBonusXP = 0;
+      quest.markModified('competitionConfig');
+    }
+    await quest.save();
+
+    // Get all progress records
+    const records = await UserQuestProgress.find({ questId: quest._id });
+
+    for (const rec of records) {
+      const totalXpToRemove = rec.xpBreakdown?.totalXp || 0;
+      // Deduct from global user XP
+      if (totalXpToRemove > 0) {
+        await User.findByIdAndUpdate(rec.userId, { $inc: { xp: -totalXpToRemove } });
+      }
+      // Reset progress — keep taskProgress array structure but clear completion state
+      const resetTasks = (rec.taskProgress || []).map(tp => ({
+        taskId:         tp.taskId,
+        isCompleted:    false,
+        xpEarned:       0,
+        approvalStatus: undefined,
+        submissionUrl:  undefined,
+        submissionText: undefined,
+        submissionData: undefined,
+        completedAt:    undefined
+      }));
+
+      await UserQuestProgress.updateOne({ _id: rec._id }, {
+        $set: {
+          status:         'not_started',
+          progress:       0,
+          tasksCompleted: 0,
+          completedAt:    null,
+          taskProgress:   resetTasks,
+          'xpBreakdown.taskXp':              0,
+          'xpBreakdown.baseXp':              0,
+          'xpBreakdown.totalXp':             0,
+          'xpBreakdown.referralJoinBonus':    0,
+          'xpBreakdown.referralCompleteBonus':0,
+          'xpBreakdown.winnerBonus':          0,
+          isWinner:   false,
+          winnerRank: null
+        }
+      });
+    }
+
+    res.json({ success: true, reset: records.length, message: `Reset ${records.length} participants to 0 XP. Quest completion bonus zeroed. Approvals untouched.` });
+  } catch (err) {
+    console.error('[reset-progress]', err);
+    res.json({ success: false, message: err.message });
+  }
+});
+
 // ── Fix base XP being added on top of task XP ───────────────────────────────
 // Zeros quest.baseXpReward and removes the extra baseXp from all progress records
 router.post('/api/apex/fix-base-xp', isAdminPage, async (req, res) => {
