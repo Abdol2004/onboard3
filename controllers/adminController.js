@@ -834,6 +834,7 @@ exports.getQuestLeaderboardAdmin = async (req, res) => {
       success: true,
       quest: {
         title: quest.title,
+        slug: quest.slug,
         questType: quest.questType,
         startDate: quest.startDate,
         endDate: quest.endDate,
