@@ -67,7 +67,7 @@
 
     <!-- Add/Edit User Modal -->
     <div id="userModal" class="a-modal-overlay">
-        <div class="a-modal">
+        <div class="a-modal" style="max-width:460px">
             <div class="a-modal-header">
                 <h2 style="font-size:1.0625rem;font-weight:800;color:var(--text)" id="modalTitle">Add User</h2>
                 <button class="a-modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
@@ -75,26 +75,54 @@
             <form id="userForm">
                 <input type="hidden" id="userId" name="userId">
                 <input type="hidden" id="leaderboardType" name="leaderboardType">
+                <input type="hidden" id="modalAction" value="set">
 
                 <div class="form-group">
                     <label class="form-label">Username</label>
                     <input type="text" class="form-input" id="username" name="username" required>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Points/XP</label>
-                    <input type="number" class="form-input" id="points" name="points" min="0" required>
+                <!-- Edit mode: current XP + add/deduct controls -->
+                <div id="editControls" style="display:none">
+                    <div style="background:rgba(94,194,19,.06);border:1px solid rgba(94,194,19,.2);border-radius:10px;padding:.875rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between">
+                        <span style="font-size:.75rem;font-weight:700;color:#8aaf85;text-transform:uppercase;letter-spacing:.05em">Current XP</span>
+                        <span id="currentXpDisplay" style="font-size:1.25rem;font-weight:900;color:#5ec213">0</span>
+                    </div>
+
+                    <!-- Mode tabs -->
+                    <div style="display:flex;gap:.375rem;margin-bottom:.875rem">
+                        <button type="button" id="modeAdd"    onclick="setMode('add')"    style="flex:1;padding:.5rem;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .15s;border:1px solid rgba(94,194,19,.4);background:rgba(94,194,19,.12);color:#5ec213;font-family:Outfit,sans-serif"><i class="fas fa-plus"></i> Add</button>
+                        <button type="button" id="modeDeduct" onclick="setMode('deduct')" style="flex:1;padding:.5rem;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .15s;border:1px solid rgba(255,255,255,.1);background:transparent;color:#8aaf85;font-family:Outfit,sans-serif"><i class="fas fa-minus"></i> Deduct</button>
+                        <button type="button" id="modeSet"    onclick="setMode('set')"    style="flex:1;padding:.5rem;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .15s;border:1px solid rgba(255,255,255,.1);background:transparent;color:#8aaf85;font-family:Outfit,sans-serif"><i class="fas fa-equals"></i> Set to</button>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:.5rem">
+                        <label class="form-label" id="amountLabel">Amount to Add</label>
+                        <input type="number" class="form-input" id="points" name="points" min="0" required placeholder="Enter amount" style="font-size:1.1rem;font-weight:700;text-align:center">
+                    </div>
+
+                    <div id="previewRow" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.625rem 1rem;margin-bottom:.875rem;text-align:center;font-size:.875rem;color:#8aaf85">
+                        New total: <strong id="previewTotal" style="color:#e8f5e2;font-size:1rem"></strong>
+                    </div>
+                </div>
+
+                <!-- Add mode: just a plain XP field -->
+                <div id="addControls">
+                    <div class="form-group">
+                        <label class="form-label">Starting XP</label>
+                        <input type="number" class="form-input" id="pointsAdd" min="0" value="0">
+                    </div>
                 </div>
 
                 <div class="form-group" id="fakeUserCheckbox">
-                    <label class="checkbox-label">
+                    <label class="checkbox-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
                         <input type="checkbox" id="isFakeUser" name="isFakeUser">
-                        <span>Mark as Fake User</span>
+                        <span style="font-size:.85rem">Mark as Fake User</span>
                     </label>
                 </div>
 
                 <button type="submit" class="a-btn a-btn-primary" style="width:100%" id="submitBtn">
-                    <i class="fas fa-save"></i> Save User
+                    <i class="fas fa-save"></i> Save
                 </button>
             </form>
         </div>
@@ -231,26 +259,72 @@
             });
         }
 
+        var _editCurrentXp = 0;
+
+        function setMode(mode) {
+            document.getElementById('modalAction').value = mode;
+            var labels = { add: 'Amount to Add', deduct: 'Amount to Deduct', set: 'Set XP to' };
+            document.getElementById('amountLabel').textContent = labels[mode];
+            ['add','deduct','set'].forEach(function(m) {
+                var btn = document.getElementById('mode' + m.charAt(0).toUpperCase() + m.slice(1));
+                var active = m === mode;
+                btn.style.background = active ? (m === 'deduct' ? 'rgba(239,68,68,.15)' : 'rgba(94,194,19,.12)') : 'transparent';
+                btn.style.borderColor = active ? (m === 'deduct' ? 'rgba(239,68,68,.4)' : 'rgba(94,194,19,.4)') : 'rgba(255,255,255,.1)';
+                btn.style.color = active ? (m === 'deduct' ? '#ef4444' : '#5ec213') : '#8aaf85';
+            });
+            updatePreview();
+        }
+
+        function updatePreview() {
+            var mode = document.getElementById('modalAction').value;
+            var amt  = parseInt(document.getElementById('points').value) || 0;
+            var cur  = _editCurrentXp;
+            var newVal;
+            if (mode === 'add')    newVal = cur + amt;
+            else if (mode === 'deduct') newVal = Math.max(0, cur - amt);
+            else newVal = amt;
+            var preview = document.getElementById('previewRow');
+            var total   = document.getElementById('previewTotal');
+            if (amt > 0 || mode === 'set') {
+                preview.style.display = 'block';
+                total.textContent = newVal.toLocaleString() + ' XP';
+                total.style.color = newVal < cur ? '#ef4444' : '#5ec213';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
         function openAddModal() {
-            document.getElementById('modalTitle').textContent = 'Add User';
+            document.getElementById('modalTitle').textContent = 'Add User to Leaderboard';
             document.getElementById('userForm').reset();
             document.getElementById('userId').value = '';
             document.getElementById('leaderboardType').value = currentLeaderboard;
             document.getElementById('fakeUserCheckbox').style.display = 'block';
+            document.getElementById('editControls').style.display = 'none';
+            document.getElementById('addControls').style.display = 'block';
             document.getElementById('userModal').classList.add('open');
         }
 
         function openEditModal(userId, username, points, isFakeUser) {
-            document.getElementById('modalTitle').textContent = 'Edit User Points';
+            _editCurrentXp = points || 0;
+            document.getElementById('modalTitle').textContent = 'Adjust XP — @' + username;
             document.getElementById('userId').value = userId;
             document.getElementById('username').value = username;
             document.getElementById('username').disabled = true;
-            document.getElementById('points').value = points;
+            document.getElementById('points').value = '';
             document.getElementById('isFakeUser').checked = isFakeUser;
             document.getElementById('leaderboardType').value = currentLeaderboard;
             document.getElementById('fakeUserCheckbox').style.display = 'none';
+            document.getElementById('editControls').style.display = 'block';
+            document.getElementById('addControls').style.display = 'none';
+            document.getElementById('currentXpDisplay').textContent = (points || 0).toLocaleString();
+            document.getElementById('previewRow').style.display = 'none';
+            setMode('add');
             document.getElementById('userModal').classList.add('open');
+            setTimeout(function(){ document.getElementById('points').focus(); }, 100);
         }
+
+        document.getElementById('points').addEventListener('input', updatePreview);
 
         function closeModal() {
             document.getElementById('userModal').classList.remove('open');
@@ -260,13 +334,23 @@
         document.getElementById('userForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const userId = document.getElementById('userId').value;
+            const userId   = document.getElementById('userId').value;
+            const action   = document.getElementById('modalAction').value;
+            const isEdit   = !!userId;
+            const amtField = isEdit ? document.getElementById('points') : document.getElementById('pointsAdd');
+            const amt      = parseInt(amtField ? amtField.value : 0) || 0;
+
             const data = {
-                username: document.getElementById('username').value,
-                points: parseInt(document.getElementById('points').value),
-                isFakeUser: document.getElementById('isFakeUser').checked,
-                leaderboardType: currentLeaderboard
+                username:        document.getElementById('username').value,
+                isFakeUser:      document.getElementById('isFakeUser').checked,
+                leaderboardType: currentLeaderboard,
+                action:          isEdit ? action : 'set',
+                [isEdit && action !== 'set' ? 'delta' : 'points']: amt
             };
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
 
             try {
                 const url = userId
@@ -290,6 +374,9 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert('Network error. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save';
             }
         });
 

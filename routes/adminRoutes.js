@@ -1542,39 +1542,43 @@ router.post('/api/leaderboard/add', isAdmin, async (req, res) => {
 
 router.post('/api/leaderboard/update/:userId', isAdmin, async (req, res) => {
   try {
-    const { username, points, isFakeUser, leaderboardType } = req.body;
+    const { username, points, delta, action, isFakeUser, leaderboardType } = req.body;
     const User = require('../models/User');
 
     if (leaderboardType === 'global' || !leaderboardType) {
-      // Update global XP
       const user = await User.findById(req.params.userId);
       if (!user) return res.json({ success: false, message: 'User not found' });
       if (username) user.username = username;
-      if (points !== undefined) user.xp = points;
       if (isFakeUser !== undefined) user.isFakeUser = isFakeUser;
+      if (action === 'add')    user.xp = Math.max(0, (user.xp || 0) + (delta || 0));
+      else if (action === 'deduct') user.xp = Math.max(0, (user.xp || 0) - (delta || 0));
+      else if (points !== undefined) user.xp = Math.max(0, points);
       await user.save();
-      res.json({ success: true, message: 'User updated successfully' });
+      res.json({ success: true, message: 'User updated successfully', newTotal: user.xp });
     } else {
-      // Update quest progress XP — use updateOne to bypass the pre-save hook
-      // (hook recalculates totalXp from parts, so .save() would give wrong total)
       const UserQuestProgress = require('../models/UserQuestProgress');
       const progress = await UserQuestProgress.findOne({ userId: req.params.userId, questId: leaderboardType });
       if (!progress) return res.json({ success: false, message: 'Quest progress not found' });
 
-      if (points !== undefined) {
-        await UserQuestProgress.updateOne(
-          { _id: progress._id },
-          { $set: {
-            'xpBreakdown.totalXp': points,
-            'xpBreakdown.taskXp': 0,
-            'xpBreakdown.baseXp': points,
-            'xpBreakdown.referralJoinBonus': 0,
-            'xpBreakdown.referralCompleteBonus': 0,
-            'xpBreakdown.winnerBonus': 0
-          }}
-        );
-      }
-      res.json({ success: true, message: 'Quest progress updated successfully' });
+      const current = progress.xpBreakdown?.totalXp || 0;
+      let newTotal;
+      if (action === 'add')         newTotal = Math.max(0, current + (delta || 0));
+      else if (action === 'deduct') newTotal = Math.max(0, current - (delta || 0));
+      else                          newTotal = Math.max(0, points !== undefined ? points : current);
+
+      // Use updateOne to bypass pre-save hook that would re-sum breakdown fields
+      await UserQuestProgress.updateOne(
+        { _id: progress._id },
+        { $set: {
+          'xpBreakdown.totalXp': newTotal,
+          'xpBreakdown.taskXp': 0,
+          'xpBreakdown.baseXp': newTotal,
+          'xpBreakdown.referralJoinBonus': 0,
+          'xpBreakdown.referralCompleteBonus': 0,
+          'xpBreakdown.winnerBonus': 0
+        }}
+      );
+      res.json({ success: true, message: 'Quest progress updated successfully', newTotal });
     }
   } catch (error) {
     console.error('Error updating user:', error);
