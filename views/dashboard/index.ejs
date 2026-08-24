@@ -98,7 +98,7 @@
                         <p style="font-size:1rem;font-weight:800;color:<%=pm.text%>"><%= pm.name %></p>
                     </div>
                     <% if (isApproved) { %>
-                    <button onclick="joinCommunity('<%=user.pathway%>')" class="btn btn-outline" style="font-size:.8rem;padding:.5rem 1rem;border-color:<%=pm.border%>;color:<%=pm.text%>;cursor:pointer;background:none">
+                    <button type="button" onclick="joinCommunity('<%=user.pathway%>')" class="btn btn-outline" style="font-size:.8rem;padding:.5rem 1rem;border-color:<%=pm.border%>;color:<%=pm.text%>;cursor:pointer;background:none">
                         <i class="fas fa-users"></i> Join Community
                     </button>
                     <% } else if (ps === 'pending') { %>
@@ -762,17 +762,16 @@
 
         /* ── Join Community (pathway-specific group link from admin) ── */
         async function joinCommunity(pathway) {
-            if (!pathway) return;
+            var fallback = 'https://t.me/onboard_3';
+            if (!pathway || pathway === 'undefined' || pathway === 'null') {
+                window.open(fallback, '_blank');
+                return;
+            }
             try {
-                const r = await fetch('/onboarding/pathway-config/' + pathway);
+                const r = await fetch('/onboarding/pathway-config/' + encodeURIComponent(pathway));
                 const d = await r.json();
-                const link = d.config?.groupLink || null;
-                if (link) {
-                    window.open(link, '_blank');
-                } else {
-                    window.open('https://t.me/onboard_3', '_blank');
-                }
-            } catch { window.open('https://t.me/onboard_3', '_blank'); }
+                window.open((d.config && d.config.groupLink) ? d.config.groupLink : fallback, '_blank');
+            } catch { window.open(fallback, '_blank'); }
         }
     </script>
 
