@@ -1085,8 +1085,11 @@ async function processReferralCompleteBonus(referralCode, referredUserId, questI
 
 async function updateQuestLeaderboard(questId, quest) {
   try {
-    const topWinners = quest.competitionConfig?.topWinnersCount || 10;
-    const winnerBonusXp = quest.competitionConfig?.winnerBonusXP || 0;
+    // Only assign winners after the quest has ended (if an end date is set)
+    const questEnded = !quest.endDate || new Date() >= new Date(quest.endDate);
+
+    const topWinners    = quest.competitionConfig?.topWinnersCount || 10;
+    const winnerBonusXp = questEnded ? (quest.competitionConfig?.winnerBonusXP || 0) : 0;
 
     const allCompleted = await UserQuestProgress.find({
       questId: questId,
@@ -1097,25 +1100,20 @@ async function updateQuestLeaderboard(questId, quest) {
       const progress = allCompleted[i];
       progress.leaderboardRank = i + 1;
 
-      if (i < topWinners) {
-        progress.isWinner = true;
+      if (questEnded && i < topWinners) {
+        progress.isWinner   = true;
         progress.winnerRank = i + 1;
 
         if (winnerBonusXp > 0 && progress.xpBreakdown.winnerBonus === 0) {
-          // ✅ Add winner bonus
           progress.xpBreakdown.winnerBonus = winnerBonusXp;
-          
-          // ✅ Recalculate totalXp
-          progress.xpBreakdown.totalXp = 
+          progress.xpBreakdown.totalXp =
             (progress.xpBreakdown.taskXp || 0) +
             (progress.xpBreakdown.baseXp || 0) +
             (progress.xpBreakdown.referralJoinBonus || 0) +
             (progress.xpBreakdown.referralCompleteBonus || 0) +
             winnerBonusXp;
-
           progress.markModified('xpBreakdown');
-          
-          // ✅ GLOBAL XP: Add to user's total
+
           const user = await User.findById(progress.userId);
           if (user) {
             user.xp += winnerBonusXp;
@@ -1123,12 +1121,14 @@ async function updateQuestLeaderboard(questId, quest) {
               action: `🥇 Won #${i + 1} in quest! (+${winnerBonusXp} bonus XP)`,
               timestamp: new Date()
             });
-            if (user.recentActivity.length > 10) {
-              user.recentActivity = user.recentActivity.slice(0, 10);
-            }
+            if (user.recentActivity.length > 10) user.recentActivity = user.recentActivity.slice(0, 10);
             await user.save();
           }
         }
+      } else if (!questEnded) {
+        // Quest still active — don't mark anyone as winner yet
+        progress.isWinner   = false;
+        progress.winnerRank = null;
       }
 
       await progress.save();

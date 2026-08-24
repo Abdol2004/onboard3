@@ -2359,6 +2359,37 @@ router.post('/bulkmail/test', isAdminPage, async (req, res) => {
   }
 });
 
+// ── Strip winner bonus from Apex Raiders (one-time fix) ─────────────────────
+router.post('/api/apex/fix-winner-bonus', isAdminPage, async (req, res) => {
+  try {
+    const Quest             = require('../models/Quest');
+    const UserQuestProgress = require('../models/UserQuestProgress');
+    const quest = await Quest.findOne({ slug: 'apex-raiders' });
+    if (!quest) return res.json({ success: false, message: 'Apex Raiders quest not found' });
+
+    quest.competitionConfig.winnerBonusXP = 0;
+    quest.markModified('competitionConfig');
+    await quest.save();
+
+    const records = await UserQuestProgress.find({ questId: quest._id, 'xpBreakdown.winnerBonus': { $gt: 0 } });
+    for (const rec of records) {
+      const bonus = rec.xpBreakdown.winnerBonus || 0;
+      await User.findByIdAndUpdate(rec.userId, { $inc: { xp: -bonus } });
+      rec.xpBreakdown.winnerBonus = 0;
+      rec.xpBreakdown.totalXp =
+        (rec.xpBreakdown.taskXp || 0) + (rec.xpBreakdown.baseXp || 0) +
+        (rec.xpBreakdown.referralJoinBonus || 0) + (rec.xpBreakdown.referralCompleteBonus || 0);
+      rec.isWinner = false; rec.winnerRank = null;
+      rec.markModified('xpBreakdown');
+      await rec.save();
+    }
+    res.json({ success: true, fixed: records.length, message: `Removed winner bonus from ${records.length} users` });
+  } catch (err) {
+    console.error('[fix-winner-bonus]', err);
+    res.json({ success: false, message: err.message });
+  }
+});
+
 // ── Add Discord daily task to Apex Raiders (one-time setup) ─────────────────
 router.post('/api/apex/add-discord-task', isAdminPage, async (req, res) => {
   try {
