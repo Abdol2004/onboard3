@@ -951,9 +951,18 @@
               <input class="p-input" id="nt_biz_input_label" placeholder="e.g. Submit comment link" style="font-size:.8125rem">
             </div>
           </div>
-          <div class="p-form-group" style="margin-bottom:.75rem">
-            <label style="font-size:.8rem">Description</label>
-            <input class="p-input" id="nt_biz_desc" placeholder="Short task instructions" style="font-size:.8125rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.625rem">
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Submission Approval</label>
+              <select class="p-input" id="nt_biz_approval" style="font-size:.8125rem">
+                <option value="0">Auto-approve (instant XP)</option>
+                <option value="1">Manual review required</option>
+              </select>
+            </div>
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Description</label>
+              <input class="p-input" id="nt_biz_desc" placeholder="Short task instructions" style="font-size:.8125rem">
+            </div>
           </div>
           <button class="p-btn p-btn-bd p-btn-sm" onclick="submitBizAddTask()"><i class="fas fa-plus"></i> Add Task</button>
           <div id="addTaskBizMsg" style="display:none;margin-top:.625rem;font-size:.8125rem;padding:.5rem .75rem;border-radius:var(--radius-sm)"></div>
@@ -1770,9 +1779,10 @@ function submitBizAddTask() {
     xpReward: parseInt(document.getElementById('nt_biz_xp').value) || 0,
     buttonText: document.getElementById('nt_biz_btntext').value.trim() || 'Complete',
     buttonLink: document.getElementById('nt_biz_btnlink').value.trim(),
-    inputType:  document.getElementById('nt_biz_input_type').value,
-    inputName:  document.getElementById('nt_biz_input_name').value.trim(),
-    inputLabel: document.getElementById('nt_biz_input_label').value.trim()
+    inputType:       document.getElementById('nt_biz_input_type').value,
+    inputName:       document.getElementById('nt_biz_input_name').value.trim(),
+    inputLabel:      document.getElementById('nt_biz_input_label').value.trim(),
+    requiresApproval: document.getElementById('nt_biz_approval').value === '1'
   };
   fetch('/business/api/quest/' + currentQuestId + '/tasks', {
     method: 'POST',
