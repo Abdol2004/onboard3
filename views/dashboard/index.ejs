@@ -98,7 +98,7 @@
                         <p style="font-size:1rem;font-weight:800;color:<%=pm.text%>"><%= pm.name %></p>
                     </div>
                     <% if (isApproved) { %>
-                    <button type="button" onclick="joinCommunity('<%=user.pathway%>')" class="btn btn-outline" style="font-size:.8rem;padding:.5rem 1rem;border-color:<%=pm.border%>;color:<%=pm.text%>;cursor:pointer;background:none">
+                    <button type="button" onclick="joinCommunity()" class="btn btn-outline" style="font-size:.8rem;padding:.5rem 1rem;border-color:<%=pm.border%>;color:<%=pm.text%>;cursor:pointer;background:none">
                         <i class="fas fa-users"></i> Join Community
                     </button>
                     <% } else if (ps === 'pending') { %>
@@ -761,17 +761,20 @@
         }
 
         /* ── Join Community (pathway-specific group link from admin) ── */
-        async function joinCommunity(pathway) {
-            var fallback = 'https://t.me/onboard_3';
-            if (!pathway || pathway === 'undefined' || pathway === 'null') {
-                window.open(fallback, '_blank');
-                return;
-            }
-            try {
-                const r = await fetch('/onboarding/pathway-config/' + encodeURIComponent(pathway));
-                const d = await r.json();
-                window.open((d.config && d.config.groupLink) ? d.config.groupLink : fallback, '_blank');
-            } catch { window.open(fallback, '_blank'); }
+        var _communityLink = 'https://t.me/onboard_3'; // default fallback
+
+        // Pre-fetch on load so window.open() stays synchronous (avoids popup blocker)
+        (function() {
+            var pw = '<%= user.pathway %>';
+            if (!pw || pw === 'undefined' || pw === 'null') return;
+            fetch('/onboarding/pathway-config/' + encodeURIComponent(pw))
+                .then(function(r){ return r.json(); })
+                .then(function(d){ if (d.config && d.config.groupLink) _communityLink = d.config.groupLink; })
+                .catch(function(){});
+        })();
+
+        function joinCommunity() {
+            window.open(_communityLink, '_blank');
         }
     </script>
 
