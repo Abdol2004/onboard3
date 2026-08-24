@@ -64,6 +64,7 @@
         <a href="?filter=approved" class="a-btn <%= filter==='approved' ?'a-btn-primary':'a-btn-ghost' %>">Approved</a>
         <a href="?filter=rejected" class="a-btn <%= filter==='rejected' ?'a-btn-primary':'a-btn-ghost' %>">Rejected</a>
         <a href="?filter=all"      class="a-btn <%= filter==='all'      ?'a-btn-primary':'a-btn-ghost' %>">All</a>
+        <button id="rejectAllBtn" onclick="rejectAllPending()" style="background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:.5rem 1rem;font-size:.82rem;font-weight:700;cursor:pointer"><i class="fas fa-times-circle"></i> Reject All Pending</button>
       </div>
     </div>
 
@@ -204,6 +205,29 @@ function addNote(form) {
     setTimeout(function(){ d.remove(); }, 4000);
   }
 })();
+
+async function rejectAllPending() {
+  if (!confirm('Reject ALL pending pathway applications? This cannot be undone.')) return;
+  var btn = document.getElementById('rejectAllBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
+  try {
+    var r = await fetch('/admin/api/reject-all-pathway-applications', { method: 'POST' });
+    var data = await r.json();
+    if (data.success) {
+      flash('success', 'Rejected ' + data.count + ' pending applications.');
+      setTimeout(function(){ location.reload(); }, 1500);
+    } else {
+      flash('error', data.message || 'Error rejecting applications.');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-times-circle"></i> Reject All Pending';
+    }
+  } catch(e) {
+    flash('error', 'Network error.');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-times-circle"></i> Reject All Pending';
+  }
+}
 </script>
 </body>
 </html>

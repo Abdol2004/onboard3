@@ -221,6 +221,18 @@ router.post('/api/reset-pathways',                   isAdminPage, requireSection
     res.json({ success: false, message: 'DB error' });
   }
 });
+router.post('/api/reject-all-pathway-applications',  isAdminPage, requireSection('pathway-applications'), async (req, res) => {
+  try {
+    const result = await User.updateMany(
+      { pathwayStatus: 'pending' },
+      { $set: { pathwayStatus: 'rejected', 'pathwayApplication.reviewedAt': new Date(), 'pathwayApplication.reviewNote': 'Pathway re-selection required.' } }
+    );
+    res.json({ success: true, count: result.modifiedCount });
+  } catch (err) {
+    console.error('[reject-all-pathway-applications]', err);
+    res.json({ success: false, message: 'DB error' });
+  }
+});
 router.post('/pathway-applications/:id/approve',     isAdminPage, requireSection('pathway-applications'), pages.approvePathwayApplication);
 router.post('/pathway-applications/:id/reject',      isAdminPage, requireSection('pathway-applications'), pages.rejectPathwayApplication);
 
