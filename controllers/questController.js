@@ -516,21 +516,27 @@ exports.submitTask = async (req, res) => {
       });
     }
 
-    // Find the task in progress first
-    const taskProgress = userProgress.taskProgress.find(
+    // Find the task in quest first
+    const allTasks = [...quest.tasks, ...(quest.dailyTasks || [])];
+    const task = allTasks.find(t => t._id.toString() === taskId);
+
+    // Find the task in progress — auto-heal if missing (e.g. task added after user was approved)
+    let taskProgress = userProgress.taskProgress.find(
       tp => tp.taskId.toString() === taskId
     );
 
     if (!taskProgress) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found in progress"
-      });
+      if (!task) {
+        return res.status(404).json({
+          success: false,
+          message: "Task not found"
+        });
+      }
+      // Task exists in quest but not in user's progress — add it now
+      userProgress.taskProgress.push({ taskId: task._id, isCompleted: false });
+      userProgress.totalTasks = allTasks.length;
+      taskProgress = userProgress.taskProgress[userProgress.taskProgress.length - 1];
     }
-
-    // Find the task in quest
-    const allTasks = [...quest.tasks, ...(quest.dailyTasks || [])];
-    const task = allTasks.find(t => t._id.toString() === taskId);
 
     // If task was removed from quest but exists in user's progress, auto-complete it with 0 XP
     if (!task) {

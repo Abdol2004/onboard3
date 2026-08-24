@@ -1090,6 +1090,21 @@ router.post('/api/launch-rewards/retry-failed', isAdmin, async (req, res) => {
   }
 });
 
+router.patch('/api/launch-rewards/:rewardId', isAdmin, async (req, res) => {
+  try {
+    const { amount, tier } = req.body;
+    const update = {};
+    if (amount !== undefined) update.amount = parseFloat(amount);
+    if (tier !== undefined) update.tier = tier;
+    if (!Object.keys(update).length) return res.status(400).json({ ok: false, error: 'Nothing to update' });
+    const reward = await LaunchReward.findByIdAndUpdate(req.params.rewardId, { $set: update }, { new: true });
+    if (!reward) return res.status(404).json({ ok: false, error: 'Reward not found' });
+    res.json({ ok: true, reward });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 module.exports = router;
 router.get('/api/quests/:questId/winners', isAdmin, adminController.getQuestWinners);
 router.post('/api/quests/distribute-rewards', isAdmin, adminController.distributeQuestRewards);
@@ -1778,7 +1793,7 @@ router.post('/quest-applications/:id/approve', isAdminPage, async (req, res) => 
           status:     'not_started',
           startedAt:  new Date(),
           totalTasks: allTasks.length,
-          taskProgress: []
+          taskProgress: allTasks.map(task => ({ taskId: task._id, isCompleted: false }))
         });
         await Quest.findByIdAndUpdate(quest._id, { $inc: { totalParticipants: 1 } });
       }
