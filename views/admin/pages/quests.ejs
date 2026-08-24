@@ -834,13 +834,27 @@ function loadQmEntries() {
         if (e.taskProgress && e.taskProgress.length) {
           var links = [];
           e.taskProgress.forEach(function(tp, ti) {
-            var tname = (tasks[ti] && tasks[ti].title) || ('Task ' + (ti+1));
+            /* Match task by taskId, fall back to index */
+            var tobj = tasks.find(function(t){ return String(t._id) === String(tp.taskId); }) || tasks[ti];
+            var tname = (tobj && tobj.title) || ('Task ' + (ti+1));
             if (tp.submissionImage) {
               links.push('<a href="' + escHtml(tp.submissionImage) + '" target="_blank" class="sub-link" style="color:#c084fc;border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.08)"><i class="fas fa-image"></i>' + escHtml(tname.substring(0,16)) + '</a>');
             } else if (tp.submissionUrl) {
               links.push('<a href="' + escHtml(tp.submissionUrl) + '" target="_blank" class="sub-link"><i class="fas fa-link"></i>' + escHtml(tname.substring(0,20)) + '</a>');
             } else if (tp.submissionText) {
               links.push('<span style="font-size:.72rem;color:#8aaf85">' + escHtml(tp.submissionText.substring(0,40)) + '</span>');
+            } else if (tp.submissionData && typeof tp.submissionData === 'object') {
+              /* Custom inputName fields land here */
+              var vals = Object.values(tp.submissionData).filter(function(v){ return v && String(v).trim(); });
+              vals.forEach(function(v) {
+                var sv = String(v).trim();
+                var isUrl = /^https?:\/\//.test(sv);
+                if (isUrl) {
+                  links.push('<a href="' + escHtml(sv) + '" target="_blank" class="sub-link"><i class="fas fa-link"></i>' + escHtml(tname.substring(0,20)) + '</a>');
+                } else {
+                  links.push('<span style="font-size:.72rem;color:#8aaf85">' + escHtml(sv.substring(0,40)) + '</span>');
+                }
+              });
             }
           });
           submissionLinks = links.join(' ') || '<span style="color:#5a7a56;font-size:.72rem">—</span>';
@@ -856,20 +870,19 @@ function loadQmEntries() {
         var approvalCells = '';
         if (e.taskProgress && e.taskProgress.length) {
           e.taskProgress.forEach(function(tp, ti) {
+            var atobj = tasks.find(function(t){ return String(t._id) === String(tp.taskId); }) || tasks[ti];
+            var atname = (atobj && atobj.title) || ('Task ' + (ti+1));
+            var tid = tp.taskId || '';
             if (tp.approvalStatus === 'pending') {
-              var tname = (tasks[ti] && tasks[ti].title) || ('Task ' + (ti+1));
-              var tid   = tp.taskId || '';
               approvalCells += '<div style="display:flex;align-items:center;gap:.35rem;margin-bottom:.25rem">' +
-                '<span style="font-size:.68rem;color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:20px;padding:.1rem .4rem">⏳ ' + escHtml(tname.substring(0,18)) + '</span>' +
+                '<span style="font-size:.68rem;color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:20px;padding:.1rem .4rem">⏳ ' + escHtml(atname.substring(0,18)) + '</span>' +
                 '<button onclick="approveTask(' + JSON.stringify(e._id) + ',' + JSON.stringify(tid) + ',this)" style="font-size:.65rem;padding:.1rem .4rem;background:rgba(94,194,19,.12);color:#5ec213;border:1px solid rgba(94,194,19,.3);border-radius:20px;cursor:pointer;font-family:Outfit,sans-serif">✓ Approve</button>' +
                 '<button onclick="rejectTask(' + JSON.stringify(e._id) + ',' + JSON.stringify(tid) + ',this)" style="font-size:.65rem;padding:.1rem .4rem;background:rgba(239,68,68,.08);color:#ef4444;border:1px solid rgba(239,68,68,.25);border-radius:20px;cursor:pointer;font-family:Outfit,sans-serif">✗ Reject</button>' +
               '</div>';
             } else if (tp.approvalStatus === 'approved') {
-              var tname2 = (tasks[ti] && tasks[ti].title) || ('Task ' + (ti+1));
-              approvalCells += '<span style="font-size:.68rem;color:#5ec213">✓ ' + escHtml(tname2.substring(0,18)) + '</span><br>';
+              approvalCells += '<span style="font-size:.68rem;color:#5ec213">✓ ' + escHtml(atname.substring(0,18)) + '</span><br>';
             } else if (tp.approvalStatus === 'rejected') {
-              var tname3 = (tasks[ti] && tasks[ti].title) || ('Task ' + (ti+1));
-              approvalCells += '<span style="font-size:.68rem;color:#ef4444">✗ ' + escHtml(tname3.substring(0,18)) + '</span><br>';
+              approvalCells += '<span style="font-size:.68rem;color:#ef4444">✗ ' + escHtml(atname.substring(0,18)) + '</span><br>';
             }
           });
         }
