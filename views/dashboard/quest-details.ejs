@@ -1056,6 +1056,26 @@
     </div>
 
     <script>
+        /* ── Toast notification ── */
+        function showToast(msg, type) {
+            var existing = document.getElementById('globalToast');
+            if (existing) existing.remove();
+            var t = document.createElement('div');
+            t.id = 'globalToast';
+            var bg = type === 'error' ? 'rgba(239,68,68,.95)' : type === 'warning' ? 'rgba(245,158,11,.95)' : 'rgba(94,194,19,.95)';
+            var icon = type === 'error' ? 'fa-times-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            t.style.cssText = 'position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-120%);background:' + bg + ';color:#fff;padding:.85rem 1.5rem;border-radius:14px;font-size:.9rem;font-weight:700;font-family:Outfit,sans-serif;z-index:99999;display:flex;align-items:center;gap:.6rem;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:transform .35s cubic-bezier(.34,1.56,.64,1);max-width:90vw;text-align:center';
+            t.innerHTML = '<i class="fas ' + icon + '"></i><span>' + msg + '</span>';
+            document.body.appendChild(t);
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() { t.style.transform = 'translateX(-50%) translateY(0)'; });
+            });
+            setTimeout(function() {
+                t.style.transform = 'translateX(-50%) translateY(-120%)';
+                setTimeout(function() { if (t.parentNode) t.remove(); }, 400);
+            }, type === 'error' ? 5000 : 3500);
+        }
+
         /* ── Animate progress bar on load ── */
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
@@ -1461,13 +1481,13 @@
                     delete taskStartTime[currentTaskId];
                     closeTaskModal();
                     if (data.pending) {
-                        showToast('Submission received — pending review', 'success');
+                        showToast('Submitted! Pending admin review — XP will be credited once approved.', 'success');
                     } else if (data.isQuestCompleted) {
                         showToast('Quest Completed! You earned ' + data.rewards.xp + ' XP', 'success');
                     } else {
-                        showToast('Task submitted!', 'success');
+                        showToast('Task completed! +' + (data.taskXpEarned || 0) + ' XP earned', 'success');
                     }
-                    window.location.reload();
+                    setTimeout(function() { window.location.reload(); }, 1200);
                 } else if (data.requiresConnection) {
                     closeTaskModal();
                     const parts = [];
@@ -1492,7 +1512,14 @@
                 }
             } catch (error) {
                 console.error('Submit error:', error);
-                showSubmitError('Network error — check your connection and try again. (' + (error.message || 'unknown') + ')');
+                var errMsg = error.message || 'unknown error';
+                if (errMsg.toLowerCase().includes('failed to fetch') || errMsg.toLowerCase().includes('networkerror')) {
+                    showSubmitError('No internet connection. Check your network and try again.');
+                } else if (errMsg.toLowerCase().includes('json') || errMsg.toLowerCase().includes('syntax')) {
+                    showSubmitError('Server error — the server returned an unexpected response. Please try again in a moment.');
+                } else {
+                    showSubmitError('Something went wrong: ' + errMsg + '. Please try again.');
+                }
                 submitBtn.innerHTML = orig; submitBtn.disabled = false;
             }
         });
