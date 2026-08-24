@@ -2283,4 +2283,22 @@ router.post('/bulkmail/test', isAdminPage, async (req, res) => {
   }
 });
 
+// ── TEMP: one-time wallet re-derivation (remove after running) ──
+router.post('/migrate/rederive-wallets', async (req, res) => {
+  if (req.body.secret !== 'onb3-rederive-2026') return res.status(403).json({ error: 'forbidden' });
+  try {
+    const { getAddress } = require('../utils/stacksWallet');
+    const users = await User.find({ stacksWalletIndex: { $ne: null } }, 'username stacksWalletIndex stacksAddress');
+    const results = [];
+    for (const u of users) {
+      const newAddress = await getAddress(u.stacksWalletIndex);
+      await User.updateOne({ _id: u._id }, { $set: { stacksAddress: newAddress } });
+      results.push({ username: u.username, index: u.stacksWalletIndex, old: u.stacksAddress, new: newAddress });
+    }
+    res.json({ success: true, updated: results.length, results });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;
