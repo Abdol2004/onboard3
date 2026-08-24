@@ -14,12 +14,33 @@
     <div class="a-content">
         <div class="a-page-header"><div><h1><i class="fas fa-gear"></i> Settings</h1><p>Platform configuration</p></div></div>
 
-        <!-- Pathway Community Links -->
+        <!-- Pathway Approval Mode -->
         <div class="a-card" style="animation-delay:0ms">
+            <div class="a-card-header"><h2><i class="fas fa-shield-check"></i> Pathway Approval Mode</h2></div>
+            <p style="font-size:.875rem;color:var(--text-3);margin-bottom:1.5rem">Control whether users are auto-approved when they select a pathway, or must submit an application for review.</p>
+            <form method="POST" action="/admin/settings/pathway-approval-mode">
+                <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem">
+                    <label style="flex:1;min-width:200px;cursor:pointer">
+                        <input type="radio" name="pathwayApprovalMode" value="auto" <%= pathwayApprovalMode === 'auto' ? 'checked' : '' %> style="accent-color:var(--green)">
+                        <span style="margin-left:.5rem;font-size:.9rem;font-weight:700;color:var(--text)">Auto-Approve</span>
+                        <div style="font-size:.78rem;color:var(--text-3);margin-left:1.375rem;margin-top:.25rem">Everyone is instantly approved when they select a pathway — no application needed.</div>
+                    </label>
+                    <label style="flex:1;min-width:200px;cursor:pointer">
+                        <input type="radio" name="pathwayApprovalMode" value="manual" <%= pathwayApprovalMode !== 'auto' ? 'checked' : '' %> style="accent-color:var(--green)">
+                        <span style="margin-left:.5rem;font-size:.9rem;font-weight:700;color:var(--text)">Manual Approval</span>
+                        <div style="font-size:.78rem;color:var(--text-3);margin-left:1.375rem;margin-top:.25rem">Users must submit a short application. You review and approve/reject from Pathway Applications.</div>
+                    </label>
+                </div>
+                <button type="submit" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-save"></i> Save Mode</button>
+            </form>
+        </div>
+
+        <!-- Pathway Community Links -->
+        <div class="a-card" style="animation-delay:30ms">
             <div class="a-card-header"><h2><i class="fas fa-map-signs"></i> Pathway Community Links</h2></div>
             <p style="font-size:.875rem;color:var(--text-3);margin-bottom:1.5rem">Set the Telegram group link for each pathway — shows as "Join Community" button on user dashboard.</p>
             <form method="POST" action="/admin/settings/pathways">
-                <% ['web3_jobs','ai','building','trading'].forEach(pw => { const pCfg = pathwayConfigs.find(p=>p.pathway===pw)||{}; const labels = {web3_jobs:'Web3 Jobs',ai:'AI & Web3',building:'Building',trading:'Trading'}; const icons = {web3_jobs:'fa-briefcase',ai:'fa-microchip',building:'fa-code',trading:'fa-chart-line'}; %>
+                <% ['web3_jobs','ai','building','nft','trading'].forEach(pw => { const pCfg = pathwayConfigs.find(p=>p.pathway===pw)||{}; const labels = {web3_jobs:'Web3 Jobs',ai:'AI & Web3',building:'Building',nft:'NFTs & Digital Assets',trading:'Trading'}; const icons = {web3_jobs:'fa-briefcase',ai:'fa-microchip',building:'fa-code',nft:'fa-image',trading:'fa-chart-line'}; %>
                 <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:1.125rem;margin-bottom:.875rem">
                     <p style="font-size:.875rem;font-weight:800;color:var(--green);margin-bottom:.875rem;display:flex;align-items:center;gap:.5rem"><i class="fas <%= icons[pw] %>"></i> <%= labels[pw] %></p>
                     <div class="a-form-row">

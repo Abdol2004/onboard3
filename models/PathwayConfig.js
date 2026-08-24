@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const pathwayConfigSchema = new mongoose.Schema({
     pathway: {
         type: String,
-        enum: ['web3_jobs', 'ai', 'building', 'trading'],
+        enum: ['web3_jobs', 'ai', 'building', 'nft', 'trading'],
         required: true,
         unique: true
     },

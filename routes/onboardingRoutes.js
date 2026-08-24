@@ -29,6 +29,7 @@ router.get('/', isAuthenticated, async (req, res) => {
     res.render('onboarding', {
       user: user.toObject(),
       isLaunchDay: isLaunchDay || false,
+      pathwayApprovalMode: config.pathwayApprovalMode || 'manual',
       obConfig: {
         step4Title:        config.step4Title,
         step4Desc:         config.step4Desc,
@@ -47,16 +48,16 @@ router.get('/', isAuthenticated, async (req, res) => {
   }
 });
 
-// Set pathway (with XP-based auto-approve or pending application)
+// Set pathway (auto-approve or pending application based on admin config)
 router.post('/pathway', isAuthenticated, async (req, res) => {
   try {
     const { pathway, reason, experience } = req.body;
     if (!['web3_jobs', 'ai', 'building', 'nft', 'trading'].includes(pathway))
       return res.json({ success: false, message: 'Invalid pathway' });
 
-    const user = await User.findById(req.session.userId).select('xp pathway pathwayStatus');
-    const XP_THRESHOLD = 10000;
-    const autoApprove  = (user.xp || 0) >= XP_THRESHOLD;
+    const OnboardingConfig = require('../models/OnboardingConfig');
+    const config = await OnboardingConfig.get();
+    const autoApprove = config.pathwayApprovalMode === 'auto';
 
     const updates = { pathway };
 

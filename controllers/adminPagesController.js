@@ -174,9 +174,11 @@ exports.bannedPage = async (req, res) => {
 // ── GET /admin/settings ───────────────────────────────────────────────────────
 exports.settingsPage = async (req, res) => {
     try {
-        const [pathwayConfigs, settingsDoc, totalUsers, totalXpAgg, totalUsdcAgg, totalQuests, totalEvents] = await Promise.all([
+        const OnboardingConfig = require('../models/OnboardingConfig');
+        const [pathwayConfigs, settingsDoc, obConfig, totalUsers, totalXpAgg, totalUsdcAgg, totalQuests, totalEvents] = await Promise.all([
             PathwayConfig.find().lean(),
             require('../models/Settings').findOne().lean().catch(()=>null),
+            OnboardingConfig.get(),
             User.countDocuments(),
             User.aggregate([{ $group:{ _id:null, total:{ $sum:'$xp' } } }]).catch(()=>[]),
             Transaction.aggregate([{ $match:{ type:{ $in:['quest_reward','referral_bonus'] }, status:'completed' } }, { $group:{ _id:null, total:{ $sum:'$amount' } } }]).catch(()=>[]),
@@ -188,6 +190,7 @@ exports.settingsPage = async (req, res) => {
             user: req.user,
             pathwayConfigs,
             settings: settingsDoc || { twitterRequired: false },
+            pathwayApprovalMode: obConfig.pathwayApprovalMode || 'manual',
             platformStats: {
                 'Total Users':    totalUsers,
                 'Total Quests':   totalQuests,
@@ -205,7 +208,7 @@ exports.settingsPage = async (req, res) => {
 // ── POST /admin/settings/pathways ─────────────────────────────────────────────
 exports.savePathways = async (req, res) => {
     try {
-        const pathways = ['web3_jobs','ai','building','trading'];
+        const pathways = ['web3_jobs','ai','building','nft','trading'];
         for (const pw of pathways) {
             const groupLink = req.body[pw+'_groupLink'] || null;
             const xLink     = req.body[pw+'_xLink'] || null;
@@ -213,6 +216,22 @@ exports.savePathways = async (req, res) => {
         }
         res.redirect('/admin/settings?saved=1');
     } catch (err) {
+        res.redirect('/admin/settings?error=1');
+    }
+};
+
+exports.savePathwayApprovalMode = async (req, res) => {
+    try {
+        const { pathwayApprovalMode } = req.body;
+        if (!['auto', 'manual'].includes(pathwayApprovalMode))
+            return res.redirect('/admin/settings?error=1');
+        const OnboardingConfig = require('../models/OnboardingConfig');
+        const config = await OnboardingConfig.get();
+        config.pathwayApprovalMode = pathwayApprovalMode;
+        await config.save();
+        res.redirect('/admin/settings?saved=1');
+    } catch (err) {
+        console.error('[savePathwayApprovalMode]', err);
         res.redirect('/admin/settings?error=1');
     }
 };

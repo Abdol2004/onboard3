@@ -206,6 +206,7 @@ router.post('/ambassadors/:id/reject',     isAdminPage, requireSection('ambassad
 router.post('/projects/:id/approve',       isAdminPage, requireSection('projects'),           pages.approveProject);
 router.post('/projects/:id/reject',        isAdminPage, requireSection('projects'),           pages.rejectProject);
 router.post('/settings/pathways',                    isAdminPage, requireSection('settings'),             pages.savePathways);
+router.post('/settings/pathway-approval-mode',       isAdminPage, requireSection('settings'),             pages.savePathwayApprovalMode);
 router.post('/pathway-applications/:id/approve',     isAdminPage, requireSection('pathway-applications'), pages.approvePathwayApplication);
 router.post('/pathway-applications/:id/reject',      isAdminPage, requireSection('pathway-applications'), pages.rejectPathwayApplication);
 

@@ -266,7 +266,7 @@
                         <i class="fas fa-file-pen" style="color:var(--green)"></i>
                         <div>
                             <div style="font-size:.875rem;font-weight:800;color:var(--text)">Quick Application</div>
-                            <div style="font-size:.75rem;color:var(--text-3)">Users with 10,000+ XP get instant access. Help us understand you better.</div>
+                            <div style="font-size:.75rem;color:var(--text-3)">Tell us a bit about yourself so we can connect you to the right community.</div>
                         </div>
                     </div>
                     <div style="margin-bottom:.875rem">
@@ -654,8 +654,7 @@
     }
 
     /* ── Pathway ── */
-    var userXp = <%= user.xp || 0 %>;
-    var XP_THRESHOLD = 10000;
+    var pathwayApprovalMode = '<%= pathwayApprovalMode %>';
 
     function selectPathway(key) {
         selectedPathway = key;
@@ -667,7 +666,7 @@
     }
     async function confirmPathway() {
         if (!selectedPathway) return;
-        if (userXp < XP_THRESHOLD) {
+        if (pathwayApprovalMode === 'manual') {
             document.getElementById('pathwayAppForm').style.display = '';
             document.getElementById('pathBtn').style.display = 'none';
             return;

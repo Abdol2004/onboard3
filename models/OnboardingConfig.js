@@ -34,6 +34,8 @@ const onboardingConfigSchema = new mongoose.Schema({
   tasks:      [taskSchema],
   extraTasks: [extraTaskSchema],
 
+  pathwayApprovalMode: { type: String, enum: ['auto', 'manual'], default: 'manual' },
+
   updatedAt: { type: Date, default: Date.now }
 }, { collection: 'onboarding_config' });
 

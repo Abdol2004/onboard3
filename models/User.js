@@ -101,7 +101,7 @@ const userSchema = new mongoose.Schema({
   },
   pathway: {
     type: String,
-    enum: ['web3_jobs', 'ai', 'building', 'trading', null],
+    enum: ['web3_jobs', 'ai', 'building', 'nft', 'trading', null],
     default: null
   },
   pathwayStatus: {
