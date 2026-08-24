@@ -1084,17 +1084,21 @@
           <input class="p-input" id="et_btnlink" placeholder="https://..." style="font-size:.8125rem">
         </div>
         <div class="p-form-group" style="margin:0">
-          <label style="font-size:.8rem">Input Type</label>
+          <label style="font-size:.8rem">Proof Type</label>
           <select class="p-input" id="et_input_type" style="font-size:.8125rem">
+            <option value="none">No Proof Required</option>
             <option value="link">Link / URL</option>
             <option value="text">Text</option>
             <option value="file">File Upload</option>
-            <option value="none">No Input</option>
           </select>
         </div>
         <div class="p-form-group" style="margin:0">
-          <label style="font-size:.8rem">Input Label</label>
-          <input class="p-input" id="et_input_label" placeholder="e.g. Your X post link" style="font-size:.8125rem">
+          <label style="font-size:.8rem">Proof Field Name</label>
+          <input class="p-input" id="et_input_name" placeholder="e.g. post_link" style="font-size:.8125rem">
+        </div>
+        <div class="p-form-group" style="margin:0;grid-column:1/-1">
+          <label style="font-size:.8rem">Proof Label (shown to user)</label>
+          <input class="p-input" id="et_input_label" placeholder="e.g. Paste your post link here" style="font-size:.8125rem">
         </div>
         <div class="p-form-group" style="margin:0;grid-column:1/-1">
           <label style="font-size:.8rem">Description</label>
@@ -1776,16 +1780,17 @@ var _bizTaskCache = {};
 
 function bizOpenEditTask(questId, taskId) {
   var t = _bizTaskCache[taskId];
-  if (!t) return;
-  document.getElementById('et_task_id').value    = taskId;
-  document.getElementById('et_title').value      = t.title || '';
-  document.getElementById('et_type').value       = t.taskType || 'external';
-  document.getElementById('et_xp').value         = t.xpReward || 0;
-  document.getElementById('et_btntext').value    = t.buttonText || '';
-  document.getElementById('et_btnlink').value    = t.buttonLink || '';
-  document.getElementById('et_input_type').value = t.inputType || 'link';
+  if (!t) { alert('Task data not loaded. Close and reopen the quest.'); return; }
+  document.getElementById('et_task_id').value     = taskId;
+  document.getElementById('et_title').value       = t.title || '';
+  document.getElementById('et_type').value        = t.taskType || 'external';
+  document.getElementById('et_xp').value          = t.xpReward || 0;
+  document.getElementById('et_btntext').value     = t.buttonText || '';
+  document.getElementById('et_btnlink').value     = t.buttonLink || '';
+  document.getElementById('et_input_type').value  = t.inputType || 'none';
+  document.getElementById('et_input_name').value  = t.inputName || '';
   document.getElementById('et_input_label').value = t.inputLabel || '';
-  document.getElementById('et_desc').value       = t.description || '';
+  document.getElementById('et_desc').value        = t.description || '';
   var msg = document.getElementById('editTaskMsg');
   msg.style.display = 'none';
   openModal('editTaskModal');
@@ -1803,6 +1808,7 @@ function bizSaveEditTask() {
     buttonText: document.getElementById('et_btntext').value.trim(),
     buttonLink: document.getElementById('et_btnlink').value.trim(),
     inputType:  document.getElementById('et_input_type').value,
+    inputName:  document.getElementById('et_input_name').value.trim(),
     inputLabel: document.getElementById('et_input_label').value.trim()
   };
   fetch('/business/api/quest/' + currentQuestId + '/tasks/' + taskId, {

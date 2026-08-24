@@ -1416,17 +1416,21 @@
             <input type="text" id="aet_btnlink" placeholder="https://...">
           </div>
           <div class="form-group">
-            <label>Input Type</label>
+            <label>Proof Type</label>
             <select id="aet_input_type">
+              <option value="none">No Proof Required</option>
               <option value="link">Link / URL</option>
               <option value="text">Text</option>
               <option value="file">File Upload</option>
-              <option value="none">No Input</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Input Label</label>
-            <input type="text" id="aet_input_label" placeholder="e.g. Your post link">
+            <label>Proof Field Name</label>
+            <input type="text" id="aet_input_name" placeholder="e.g. post_link, screenshot">
+          </div>
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Proof Label (shown to user)</label>
+            <input type="text" id="aet_input_label" placeholder="e.g. Paste your post link here">
           </div>
         </div>
         <div id="aetMsg" style="display:none;padding:.5rem .875rem;border-radius:6px;font-size:.85rem;font-weight:600;margin:.75rem 0"></div>
@@ -4186,16 +4190,17 @@ var _adminTaskCache = {};
 
 function adminOpenEditTask(questId, taskId) {
     var t = _adminTaskCache[taskId];
-    if (!t) return;
+    if (!t) { alert('Task data not loaded. Close and reopen the leaderboard.'); return; }
     document.getElementById('aet_quest_id').value    = questId;
     document.getElementById('aet_task_id').value     = taskId;
     document.getElementById('aet_title').value       = t.title || '';
     document.getElementById('aet_desc').value        = t.description || '';
     document.getElementById('aet_type').value        = t.taskType || 'external';
-    document.getElementById('aet_xp').value          = t.xpReward || 0;
+    document.getElementById('aet_xp').value          = t.xpReward || t.xp || 0;
     document.getElementById('aet_btntext').value     = t.buttonText || '';
     document.getElementById('aet_btnlink').value     = t.buttonLink || '';
-    document.getElementById('aet_input_type').value  = t.inputType || 'link';
+    document.getElementById('aet_input_type').value  = t.inputType || 'none';
+    document.getElementById('aet_input_name').value  = t.inputName || '';
     document.getElementById('aet_input_label').value = t.inputLabel || '';
     var msg = document.getElementById('aetMsg');
     msg.style.display = 'none';
@@ -4215,6 +4220,7 @@ function adminSaveEditTask() {
         buttonText: document.getElementById('aet_btntext').value.trim(),
         buttonLink: document.getElementById('aet_btnlink').value.trim(),
         inputType:  document.getElementById('aet_input_type').value,
+        inputName:  document.getElementById('aet_input_name').value.trim(),
         inputLabel: document.getElementById('aet_input_label').value.trim()
     };
     fetch('/admin/api/quests/' + questId + '/tasks/' + taskId, {

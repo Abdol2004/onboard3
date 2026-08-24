@@ -837,7 +837,18 @@ exports.getQuestLeaderboardAdmin = async (req, res) => {
         questType: quest.questType,
         startDate: quest.startDate,
         endDate: quest.endDate,
-        tasks: (quest.tasks || []).map(t => ({ _id: t._id, title: t.title, taskType: t.taskType, xp: t.xpReward || 0 }))
+        tasks: (quest.tasks || []).map(t => ({
+          _id:        t._id,
+          title:      t.title,
+          description:t.description || '',
+          taskType:   t.taskType,
+          xpReward:   t.xpReward || 0,
+          buttonText: t.buttonText || '',
+          buttonLink: t.buttonLink || '',
+          inputType:  t.inputType || 'none',
+          inputLabel: t.inputLabel || '',
+          inputName:  t.inputName  || ''
+        }))
       },
       leaderboard: leaderboardData,
       totalParticipants: quest.totalParticipants,

@@ -672,7 +672,7 @@ router.patch('/api/quest/:id/tasks/:taskId', businessAuth, async (req, res) => {
     }
     const task = quest.tasks.id(req.params.taskId);
     if (!task) return res.json({ success: false, message: 'Task not found' });
-    const { title, description, taskType, xpReward, buttonText, buttonLink, inputType, inputLabel } = req.body;
+    const { title, description, taskType, xpReward, buttonText, buttonLink, inputType, inputLabel, inputName } = req.body;
     if (title) task.title = title.trim();
     if (description !== undefined) task.description = description;
     if (taskType) task.taskType = taskType;
@@ -681,6 +681,7 @@ router.patch('/api/quest/:id/tasks/:taskId', businessAuth, async (req, res) => {
     if (buttonLink !== undefined) task.buttonLink = buttonLink;
     if (inputType) task.inputType = inputType;
     if (inputLabel !== undefined) task.inputLabel = inputLabel;
+    if (inputName !== undefined) task.inputName = inputName;
     await quest.save();
     res.json({ success: true, task });
   } catch (err) {
