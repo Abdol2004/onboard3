@@ -61,6 +61,26 @@
     .winner-rank-3 { background:rgba(180,120,80,.15); color:#cd7f32; }
     .winner-pfp { width:44px; height:44px; border-radius:11px; flex-shrink:0; background:rgba(94,194,19,.1); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); overflow:hidden; }
     .winner-pfp img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
+
+    @media (max-width:600px) {
+      .bd-hero-content { padding:1.25rem 1rem; gap:1rem; min-height:160px; }
+      .bd-title { font-size:1.3rem; letter-spacing:-.5px; }
+      .bd-layout { margin-top:.875rem; gap:.875rem; }
+      .reward-strip { gap:.5rem; margin-top:.875rem; }
+      .reward-pill { font-size:.78rem; padding:.4rem .75rem; }
+      .submit-card { padding:1.125rem; border-radius:14px; }
+      .countdown-box { padding:.875rem; }
+      .countdown-val { font-size:1.25rem; }
+      .split-table { font-size:.8rem; display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+      .winner-card { flex-wrap:wrap; gap:.625rem; }
+      .winner-card > div:last-child { width:100%; text-align:left; }
+      .sub-card { gap:.625rem; }
+      .sub-pfp { width:34px; height:34px; font-size:.85rem; }
+      .card { border-radius:14px; }
+      .card > div[style*="padding:0 1.5rem"] { padding:0 1rem 1rem !important; }
+      .card-header { padding:.875rem 1rem !important; }
+      .form-group input, .form-group textarea { font-size:.9rem; padding:.65rem .875rem; }
+    }
   </style>
 </head>
 <body>
