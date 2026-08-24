@@ -1047,6 +1047,69 @@
   </div>
 </div>
 
+<!-- Edit Task Modal -->
+<div class="p-modal-overlay" id="editTaskModal">
+  <div class="p-modal" style="max-width:520px">
+    <div class="p-modal-head">
+      <h3 class="p-modal-title">Edit Task</h3>
+      <button class="p-modal-close" onclick="closeModal('editTaskModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="p-modal-body">
+      <input type="hidden" id="et_task_id">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+        <div class="p-form-group" style="margin:0;grid-column:1/-1">
+          <label style="font-size:.8rem">Task Title *</label>
+          <input class="p-input" id="et_title" placeholder="e.g. Follow us on X" style="font-size:.8125rem">
+        </div>
+        <div class="p-form-group" style="margin:0">
+          <label style="font-size:.8rem">Task Type</label>
+          <select class="p-input" id="et_type" style="font-size:.8125rem">
+            <option value="external">External Link</option>
+            <option value="social">Social Media</option>
+            <option value="submission">Submission</option>
+            <option value="daily">Daily</option>
+            <option value="verification">Verification</option>
+          </select>
+        </div>
+        <div class="p-form-group" style="margin:0">
+          <label style="font-size:.8rem">XP Reward</label>
+          <input class="p-input" id="et_xp" type="number" min="0" style="font-size:.8125rem">
+        </div>
+        <div class="p-form-group" style="margin:0">
+          <label style="font-size:.8rem">Button Text</label>
+          <input class="p-input" id="et_btntext" placeholder="Complete" style="font-size:.8125rem">
+        </div>
+        <div class="p-form-group" style="margin:0">
+          <label style="font-size:.8rem">Button Link</label>
+          <input class="p-input" id="et_btnlink" placeholder="https://..." style="font-size:.8125rem">
+        </div>
+        <div class="p-form-group" style="margin:0">
+          <label style="font-size:.8rem">Input Type</label>
+          <select class="p-input" id="et_input_type" style="font-size:.8125rem">
+            <option value="link">Link / URL</option>
+            <option value="text">Text</option>
+            <option value="file">File Upload</option>
+            <option value="none">No Input</option>
+          </select>
+        </div>
+        <div class="p-form-group" style="margin:0">
+          <label style="font-size:.8rem">Input Label</label>
+          <input class="p-input" id="et_input_label" placeholder="e.g. Your X post link" style="font-size:.8125rem">
+        </div>
+        <div class="p-form-group" style="margin:0;grid-column:1/-1">
+          <label style="font-size:.8rem">Description</label>
+          <input class="p-input" id="et_desc" placeholder="Short task instructions" style="font-size:.8125rem">
+        </div>
+      </div>
+      <div id="editTaskMsg" style="display:none;padding:.5rem .875rem;border-radius:8px;font-size:.8rem;font-weight:600;margin-top:.5rem"></div>
+    </div>
+    <div class="p-modal-foot">
+      <button type="button" class="p-btn p-btn-secondary p-btn-sm" onclick="closeModal('editTaskModal')">Cancel</button>
+      <button type="button" class="p-btn p-btn-bd p-btn-sm" onclick="bizSaveEditTask()"><i class="fas fa-save"></i> Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Section nav ───────────────────────────────────────────────────────────────
 function showSection(name, el) {
@@ -1656,14 +1719,18 @@ function loadBizTaskList(questId, questType) {
       if (!d.success || !d.quest) { wrap.innerHTML = '<div style="color:var(--text-3);font-size:.85rem;padding:.75rem 0">No task data available.</div>'; return; }
       var tasks = d.quest.tasks || [];
       if (!tasks.length) { wrap.innerHTML = '<div style="color:var(--text-3);font-size:.85rem;padding:.75rem 0">No tasks yet.</div>'; return; }
+      _bizTaskCache = {};
+      tasks.forEach(function(t) { _bizTaskCache[t._id] = t; });
       wrap.innerHTML = tasks.map(function(t, i) {
-        return '<div style="display:flex;align-items:center;gap:.75rem;padding:.625rem .875rem;border-radius:10px;background:var(--surface);border:1px solid var(--border);margin-bottom:.5rem">' +
+        return '<div style="display:flex;align-items:center;gap:.625rem;padding:.625rem .875rem;border-radius:10px;background:var(--surface);border:1px solid var(--border);margin-bottom:.5rem">' +
           '<div style="flex-shrink:0;width:26px;height:26px;border-radius:50%;background:rgba(16,185,129,.12);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900">' + (i+1) + '</div>' +
           '<div style="flex:1;min-width:0">' +
             '<p style="font-size:.83rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (t.title||'Task') + '</p>' +
             '<span style="font-size:.7rem;color:var(--text-3)">' + (t.taskType||'external') + '</span>' +
           '</div>' +
-          '<span style="font-size:.75rem;font-weight:800;color:var(--green)">' + (t.xpReward||0) + ' XP</span>' +
+          '<span style="font-size:.75rem;font-weight:800;color:var(--green);margin-right:.25rem">' + (t.xpReward||0) + ' XP</span>' +
+          '<button onclick="bizOpenEditTask(\'' + currentQuestId + '\',\'' + t._id + '\')" title="Edit task" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:.25rem .375rem;border-radius:6px;font-size:.8rem" onmouseover="this.style.color=\'var(--green)\'" onmouseout="this.style.color=\'var(--text-3)\'"><i class="fas fa-pen"></i></button>' +
+          '<button onclick="bizDeleteTask(\'' + currentQuestId + '\',\'' + t._id + '\')" title="Delete task" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:.25rem .375rem;border-radius:6px;font-size:.8rem" onmouseover="this.style.color=\'#ef4444\'" onmouseout="this.style.color=\'var(--text-3)\'"><i class="fas fa-trash"></i></button>' +
           '</div>';
       }).join('');
     });
@@ -1702,6 +1769,68 @@ function submitBizAddTask() {
       loadBizTaskList(currentQuestId, currentQuestType);
     }
     setTimeout(function() { msg.style.display = 'none'; }, 3000);
+  });
+}
+
+var _bizTaskCache = {};
+
+function bizOpenEditTask(questId, taskId) {
+  var t = _bizTaskCache[taskId];
+  if (!t) return;
+  document.getElementById('et_task_id').value    = taskId;
+  document.getElementById('et_title').value      = t.title || '';
+  document.getElementById('et_type').value       = t.taskType || 'external';
+  document.getElementById('et_xp').value         = t.xpReward || 0;
+  document.getElementById('et_btntext').value    = t.buttonText || '';
+  document.getElementById('et_btnlink').value    = t.buttonLink || '';
+  document.getElementById('et_input_type').value = t.inputType || 'link';
+  document.getElementById('et_input_label').value = t.inputLabel || '';
+  document.getElementById('et_desc').value       = t.description || '';
+  var msg = document.getElementById('editTaskMsg');
+  msg.style.display = 'none';
+  openModal('editTaskModal');
+}
+
+function bizSaveEditTask() {
+  var taskId = document.getElementById('et_task_id').value;
+  var title  = document.getElementById('et_title').value.trim();
+  if (!title) { alert('Task title is required'); return; }
+  var payload = {
+    title:      title,
+    description: document.getElementById('et_desc').value.trim(),
+    taskType:   document.getElementById('et_type').value,
+    xpReward:   parseInt(document.getElementById('et_xp').value) || 0,
+    buttonText: document.getElementById('et_btntext').value.trim(),
+    buttonLink: document.getElementById('et_btnlink').value.trim(),
+    inputType:  document.getElementById('et_input_type').value,
+    inputLabel: document.getElementById('et_input_label').value.trim()
+  };
+  fetch('/business/api/quest/' + currentQuestId + '/tasks/' + taskId, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(d => {
+    var msg = document.getElementById('editTaskMsg');
+    msg.textContent = d.success ? 'Task updated!' : (d.message || 'Error updating task');
+    msg.style.display = '';
+    msg.style.background = d.success ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)';
+    msg.style.color = d.success ? 'var(--green)' : 'var(--red)';
+    if (d.success) {
+      loadBizTaskList(currentQuestId, currentQuestType);
+      setTimeout(function() { closeModal('editTaskModal'); }, 1000);
+    }
+  });
+}
+
+function bizDeleteTask(questId, taskId) {
+  if (!confirm('Delete this task? This cannot be undone.')) return;
+  fetch('/business/api/quest/' + questId + '/tasks/' + taskId, { method: 'DELETE' })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) { loadBizTaskList(questId, currentQuestType); }
+    else alert(d.message || 'Error deleting task');
   });
 }
 

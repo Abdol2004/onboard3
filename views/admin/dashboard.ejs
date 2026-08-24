@@ -1375,6 +1375,68 @@
     </div>
 </div>
 
+    <!-- Admin Edit Task Modal -->
+    <div class="modal" id="adminEditTaskModal">
+      <div class="modal-content" style="max-width:520px">
+        <div class="modal-header">
+          <h3>Edit Task</h3>
+          <button class="close-btn" onclick="closeModal('adminEditTaskModal')">&times;</button>
+        </div>
+        <input type="hidden" id="aet_quest_id">
+        <input type="hidden" id="aet_task_id">
+        <div class="form-group">
+          <label>Task Title *</label>
+          <input type="text" id="aet_title">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="aet_desc" rows="2"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label>Task Type</label>
+            <select id="aet_type">
+              <option value="external">External Link</option>
+              <option value="social">Social Media</option>
+              <option value="submission">Submission</option>
+              <option value="daily">Daily</option>
+              <option value="verification">Verification</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>XP Reward</label>
+            <input type="number" id="aet_xp" min="0" value="0">
+          </div>
+          <div class="form-group">
+            <label>Button Text</label>
+            <input type="text" id="aet_btntext" placeholder="Complete">
+          </div>
+          <div class="form-group">
+            <label>Button Link</label>
+            <input type="text" id="aet_btnlink" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label>Input Type</label>
+            <select id="aet_input_type">
+              <option value="link">Link / URL</option>
+              <option value="text">Text</option>
+              <option value="file">File Upload</option>
+              <option value="none">No Input</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Input Label</label>
+            <input type="text" id="aet_input_label" placeholder="e.g. Your post link">
+          </div>
+        </div>
+        <div id="aetMsg" style="display:none;padding:.5rem .875rem;border-radius:6px;font-size:.85rem;font-weight:600;margin:.75rem 0"></div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('adminEditTaskModal')">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="adminSaveEditTask()"><i class="fas fa-save"></i> Save</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Create Event Modal -->
     <div class="modal" id="createEventModal">
         <div class="modal-content">
@@ -4074,6 +4136,24 @@ function showLeaderboardModal(data, questId) {
     var questTitle = (data.quest && data.quest.title) || 'Quest';
     var questType = (data.quest && data.quest.questType) || '';
 
+    // Build task management rows
+    _adminTaskCache = {};
+    var taskSection = '';
+    if (currentQuestTasks && currentQuestTasks.length > 0) {
+        var taskHtml = '';
+        for (var k = 0; k < currentQuestTasks.length; k++) {
+            var tsk = currentQuestTasks[k];
+            _adminTaskCache[tsk._id] = tsk;
+            taskHtml += '<div id="atrow-' + tsk._id + '" style="display:flex;align-items:center;gap:.75rem;padding:.5rem .875rem;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);margin-bottom:.375rem">'
+                + '<div style="flex:1;min-width:0"><p style="font-size:.83rem;font-weight:700;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (tsk.title || 'Task') + '</p>'
+                + '<span style="font-size:.72rem;color:#888">' + (tsk.taskType || '') + ' · ' + (tsk.xpReward || 0) + ' XP</span></div>'
+                + '<button onclick="adminOpenEditTask(\'' + finalQuestId + '\',\'' + tsk._id + '\')" style="background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.3);color:var(--green);border-radius:6px;padding:.2rem .6rem;font-size:.75rem;cursor:pointer;font-family:inherit"><i class="fas fa-pen"></i> Edit</button>'
+                + '<button onclick="adminDeleteTask(\'' + finalQuestId + '\',\'' + tsk._id + '\')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:6px;padding:.2rem .6rem;font-size:.75rem;cursor:pointer;font-family:inherit"><i class="fas fa-trash"></i></button>'
+                + '</div>';
+        }
+        taskSection = '<details style="margin-bottom:1.5rem"><summary style="cursor:pointer;font-size:.9rem;font-weight:700;color:var(--green);padding:.5rem 0;user-select:none"><i class="fas fa-tasks"></i> Manage Tasks (' + currentQuestTasks.length + ')</summary><div style="margin-top:.75rem">' + taskHtml + '</div></details>';
+    }
+
     modal.innerHTML = '<div class="modal-content" style="max-width: 1200px; max-height: 90vh; overflow-y: auto;">'
         + '<div class="modal-header"><div>'
         + '<h3>' + questTitle + ' - Leaderboard</h3>'
@@ -4084,6 +4164,7 @@ function showLeaderboardModal(data, questId) {
         + '<button class="btn btn-secondary btn-sm" onclick="exportLeaderboard(\'' + finalQuestId + '\')"><i class="fas fa-download"></i> Export CSV</button>'
         + '<button class="btn btn-secondary btn-sm" style="background: rgba(29,161,242,0.1); border-color: #1DA1F2; color: #1DA1F2;" onclick="openTaskExportModal(\'' + finalQuestId + '\')"><i class="fas fa-tasks"></i> Export with Tasks</button>'
         + '</div>'
+        + taskSection
         + '<div class="table-container"><table>'
         + '<thead><tr><th>Rank</th><th>Username</th><th>Total XP</th><th>Task XP</th><th>Base XP</th><th>Referral Join</th><th>Winner Bonus</th><th>Time</th><th>Completed</th><th>Actions</th></tr></thead>'
         + '<tbody>' + rows + '</tbody>'
@@ -4098,6 +4179,82 @@ function closeLeaderboardModal() {
     if (modal) {
         modal.remove();
     }
+}
+
+// ── Admin task management ─────────────────────────────────────────────────────
+var _adminTaskCache = {};
+
+function adminOpenEditTask(questId, taskId) {
+    var t = _adminTaskCache[taskId];
+    if (!t) return;
+    document.getElementById('aet_quest_id').value    = questId;
+    document.getElementById('aet_task_id').value     = taskId;
+    document.getElementById('aet_title').value       = t.title || '';
+    document.getElementById('aet_desc').value        = t.description || '';
+    document.getElementById('aet_type').value        = t.taskType || 'external';
+    document.getElementById('aet_xp').value          = t.xpReward || 0;
+    document.getElementById('aet_btntext').value     = t.buttonText || '';
+    document.getElementById('aet_btnlink').value     = t.buttonLink || '';
+    document.getElementById('aet_input_type').value  = t.inputType || 'link';
+    document.getElementById('aet_input_label').value = t.inputLabel || '';
+    var msg = document.getElementById('aetMsg');
+    msg.style.display = 'none';
+    openModal('adminEditTaskModal');
+}
+
+function adminSaveEditTask() {
+    var questId = document.getElementById('aet_quest_id').value;
+    var taskId  = document.getElementById('aet_task_id').value;
+    var title   = document.getElementById('aet_title').value.trim();
+    if (!title) { alert('Task title is required'); return; }
+    var payload = {
+        title:      title,
+        description: document.getElementById('aet_desc').value.trim(),
+        taskType:   document.getElementById('aet_type').value,
+        xpReward:   parseInt(document.getElementById('aet_xp').value) || 0,
+        buttonText: document.getElementById('aet_btntext').value.trim(),
+        buttonLink: document.getElementById('aet_btnlink').value.trim(),
+        inputType:  document.getElementById('aet_input_type').value,
+        inputLabel: document.getElementById('aet_input_label').value.trim()
+    };
+    fetch('/admin/api/quests/' + questId + '/tasks/' + taskId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(d => {
+        var msg = document.getElementById('aetMsg');
+        msg.textContent = d.success ? 'Task updated!' : (d.message || 'Error');
+        msg.style.display = '';
+        msg.style.background = d.success ? 'rgba(94,194,19,.15)' : 'rgba(239,68,68,.15)';
+        msg.style.color = d.success ? 'var(--green)' : '#ef4444';
+        if (d.success) {
+            // Update cache and label in leaderboard modal
+            Object.assign(_adminTaskCache[taskId], payload);
+            var row = document.getElementById('atrow-' + taskId);
+            if (row) {
+                row.querySelector('p').textContent = payload.title;
+                row.querySelector('span').textContent = payload.taskType + ' · ' + payload.xpReward + ' XP';
+            }
+            setTimeout(function() { closeModal('adminEditTaskModal'); }, 900);
+        }
+    });
+}
+
+function adminDeleteTask(questId, taskId) {
+    if (!confirm('Delete this task? This cannot be undone.')) return;
+    fetch('/admin/api/quests/' + questId + '/tasks/' + taskId, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            var row = document.getElementById('atrow-' + taskId);
+            if (row) row.remove();
+            delete _adminTaskCache[taskId];
+        } else {
+            alert(d.message || 'Error deleting task');
+        }
+    });
 }
 
 function exportLeaderboard(questId) {

@@ -576,6 +576,43 @@ router.get("/api/quests/:questId/users/:userId/referrals", isAdmin, adminControl
 router.patch("/api/quests/:questId/toggle", isAdmin, adminController.toggleQuestStatus);
 router.delete("/api/quests/:questId", isAdmin, adminController.deleteQuest);
 
+// Individual task CRUD (admin)
+router.patch("/api/quests/:questId/tasks/:taskId", isAdmin, async (req, res) => {
+  try {
+    const Quest = require('../models/Quest');
+    const quest = await Quest.findById(req.params.questId);
+    if (!quest) return res.json({ success: false, message: 'Quest not found' });
+    const task = quest.tasks.id(req.params.taskId);
+    if (!task) return res.json({ success: false, message: 'Task not found' });
+    const { title, description, taskType, xpReward, buttonText, buttonLink, inputType, inputLabel } = req.body;
+    if (title) task.title = title.trim();
+    if (description !== undefined) task.description = description;
+    if (taskType) task.taskType = taskType;
+    if (xpReward !== undefined) task.xpReward = parseInt(xpReward) || 0;
+    if (buttonText !== undefined) task.buttonText = buttonText;
+    if (buttonLink !== undefined) task.buttonLink = buttonLink;
+    if (inputType) task.inputType = inputType;
+    if (inputLabel !== undefined) task.inputLabel = inputLabel;
+    await quest.save();
+    res.json({ success: true, task });
+  } catch (err) {
+    res.json({ success: false, message: 'Server error' });
+  }
+});
+router.delete("/api/quests/:questId/tasks/:taskId", isAdmin, async (req, res) => {
+  try {
+    const Quest = require('../models/Quest');
+    const quest = await Quest.findById(req.params.questId);
+    if (!quest) return res.json({ success: false, message: 'Quest not found' });
+    if (!quest.tasks.id(req.params.taskId)) return res.json({ success: false, message: 'Task not found' });
+    quest.tasks.pull(req.params.taskId);
+    await quest.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, message: 'Server error' });
+  }
+});
+
 // ==================== EVENTS ====================
 
 // IMPORTANT: Put /stats BEFORE /:eventId
@@ -972,26 +1009,28 @@ router.post('/api/launch-rewards/distribute', isAdmin, async (req, res) => {
   _distributing = true;
   res.json({ ok: true, message: 'Distribution started — refresh the page to see progress' });
 
-  const { sendUsdc } = require('../utils/sendUsdc');
-  const pending = await LaunchReward.find({ status: 'pending' }).sort({ amount: -1 }).lean();
+  const User = require('../models/User');
+  const pending = await LaunchReward.find({ status: 'pending' }).lean();
   let sent = 0, failed = 0;
 
   for (const reward of pending) {
-    if (!reward.walletAddress) {
-      await LaunchReward.updateOne({ _id: reward._id }, { $set: { status: 'skipped_no_wallet' } });
-      continue;
-    }
     try {
-      const sig = await sendUsdc(reward.walletAddress, reward.amount);
-      await LaunchReward.updateOne({ _id: reward._id }, { $set: { status: 'sent', txSignature: sig, sentAt: new Date() } });
+      await User.collection.updateOne(
+        { _id: reward.userId },
+        { $inc: { usdcBalance: reward.amount } }
+      );
+      await LaunchReward.updateOne({ _id: reward._id }, {
+        $set: { status: 'sent', sentAt: new Date() }
+      });
       sent++;
-      console.log(`[Rewards] Sent $${reward.amount} → @${reward.username} | TX: ${sig}`);
+      console.log(`[Rewards] Credited $${reward.amount} → @${reward.username}`);
     } catch (err) {
-      await LaunchReward.updateOne({ _id: reward._id }, { $set: { status: 'failed', failReason: err.message } });
+      await LaunchReward.updateOne({ _id: reward._id }, {
+        $set: { status: 'failed', failReason: err.message }
+      });
       failed++;
       console.error(`[Rewards] FAILED @${reward.username}: ${err.message}`);
     }
-    await new Promise(r => setTimeout(r, 1500));
   }
   console.log(`[Rewards] Done — sent:${sent} failed:${failed}`);
   _distributing = false;

@@ -662,6 +662,51 @@ router.post('/api/quest/:id/tasks', businessAuth, async (req, res) => {
   }
 });
 
+// ── Edit task ─────────────────────────────────────────────────────────────────
+router.patch('/api/quest/:id/tasks/:taskId', businessAuth, async (req, res) => {
+  try {
+    const business = req.business;
+    const quest = await Quest.findById(req.params.id);
+    if (!quest || String(quest.sponsoredBy) !== String(business._id)) {
+      return res.json({ success: false, message: 'Quest not found' });
+    }
+    const task = quest.tasks.id(req.params.taskId);
+    if (!task) return res.json({ success: false, message: 'Task not found' });
+    const { title, description, taskType, xpReward, buttonText, buttonLink, inputType, inputLabel } = req.body;
+    if (title) task.title = title.trim();
+    if (description !== undefined) task.description = description;
+    if (taskType) task.taskType = taskType;
+    if (xpReward !== undefined) task.xpReward = parseInt(xpReward) || 0;
+    if (buttonText !== undefined) task.buttonText = buttonText;
+    if (buttonLink !== undefined) task.buttonLink = buttonLink;
+    if (inputType) task.inputType = inputType;
+    if (inputLabel !== undefined) task.inputLabel = inputLabel;
+    await quest.save();
+    res.json({ success: true, task });
+  } catch (err) {
+    console.error('Edit task error:', err);
+    res.json({ success: false, message: 'Server error' });
+  }
+});
+
+// ── Delete task ───────────────────────────────────────────────────────────────
+router.delete('/api/quest/:id/tasks/:taskId', businessAuth, async (req, res) => {
+  try {
+    const business = req.business;
+    const quest = await Quest.findById(req.params.id);
+    if (!quest || String(quest.sponsoredBy) !== String(business._id)) {
+      return res.json({ success: false, message: 'Quest not found' });
+    }
+    if (!quest.tasks.id(req.params.taskId)) return res.json({ success: false, message: 'Task not found' });
+    quest.tasks.pull(req.params.taskId);
+    await quest.save();
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete task error:', err);
+    res.json({ success: false, message: 'Server error' });
+  }
+});
+
 // ── Review task submission (approve/reject) ───────────────────────────────────
 
 router.post('/api/quest/:id/review/:progressId', businessAuth, async (req, res) => {
