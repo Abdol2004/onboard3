@@ -186,8 +186,8 @@ function toggleApp(id) {
   el.style.display = el.style.display === 'none' ? '' : 'none';
 }
 function addNote(form) {
-  var note = prompt('Rejection reason (optional — will be shown to user):') || '';
-  form.querySelector('[name="note"]').value = note;
+  if (!confirm('Reject this application?')) return false;
+  form.querySelector('[name="note"]').value = '';
   return true;
 }
 (function() {
@@ -212,7 +212,7 @@ async function rejectAllPending() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
   try {
-    var r = await fetch('/admin/api/reject-all-pathway-applications', { method: 'POST' });
+    var r = await fetch('/admin/api/reject-all-pathway-applications', { method: 'POST', headers: { 'Accept': 'application/json' } });
     var data = await r.json();
     if (data.success) {
       flash('success', 'Rejected ' + data.count + ' pending applications.');
