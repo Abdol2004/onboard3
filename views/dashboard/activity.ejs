@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Feed — ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <%- include('../partials/achievement-popup') %>
+    <style>
+        .feed-wrap { max-width: 640px; margin: 0 auto; }
+        .feed-filters { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+        .feed-filter-btn {
+            padding:.35rem .875rem; border-radius:50px; font-size:.78rem; font-weight:700;
+            border:1px solid var(--border); background:rgba(255,255,255,.04);
+            color:var(--text-3); cursor:pointer; font-family:'Outfit',sans-serif; transition:all .2s;
+        }
+        .feed-filter-btn:hover, .feed-filter-btn.active {
+            background:rgba(94,194,19,.1); border-color:rgba(94,194,19,.35); color:var(--green);
+        }
+        .feed-list { display:flex; flex-direction:column; gap:.625rem; }
+        .feed-card {
+            display:flex; align-items:flex-start; gap:.875rem;
+            background:var(--bg-card); border:1px solid var(--border); border-radius:16px;
+            padding:1rem 1.125rem; transition:all .25s; animation:cardIn .4s ease both;
+        }
+        .feed-card:hover { border-color:rgba(94,194,19,.2); transform:translateY(-1px); }
+        .feed-icon {
+            width:40px; height:40px; border-radius:12px; flex-shrink:0;
+            display:flex; align-items:center; justify-content:center; font-size:.9375rem;
+        }
+        .fi-role   { background:rgba(168,85,247,.12); color:#c084fc; border:1px solid rgba(168,85,247,.25); }
+        .fi-usdc   { background:rgba(251,191,36,.12);  color:#fbbf24; border:1px solid rgba(251,191,36,.25); }
+        .fi-quest  { background:rgba(94,194,19,.12);   color:var(--green); border:1px solid rgba(94,194,19,.25); }
+        .fi-default{ background:rgba(255,255,255,.05); color:var(--text-3); border:1px solid var(--border); }
+        .feed-body { flex:1; min-width:0; }
+        .feed-text { font-size:.875rem; color:var(--text); line-height:1.55; font-weight:600; }
+        .feed-time { font-size:.72rem; color:var(--text-3); margin-top:.2rem; }
+        .like-btn {
+            display:flex; align-items:center; gap:.3rem; padding:.3rem .7rem;
+            border-radius:50px; font-size:.75rem; font-weight:700; white-space:nowrap;
+            background:rgba(255,255,255,.04); border:1px solid var(--border);
+            color:var(--text-3); cursor:pointer; font-family:'Outfit',sans-serif; transition:all .2s;
+        }
+        .like-btn:hover, .like-btn.liked { background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.3); color:#f87171; }
+        .feed-empty { text-align:center; padding:3rem 1rem; color:var(--text-3); display:flex; flex-direction:column; align-items:center; gap:.5rem; }
+        .feed-empty i { font-size:2rem; margin-bottom:.25rem; }
+        .feed-load-btn {
+            width:100%; padding:.75rem; border-radius:12px; margin-top:.5rem;
+            background:rgba(255,255,255,.04); border:1px solid var(--border);
+            color:var(--text-3); font-family:'Outfit',sans-serif; font-size:.875rem; font-weight:700; cursor:pointer; transition:all .2s;
+        }
+        .feed-load-btn:hover { background:rgba(94,194,19,.08); border-color:rgba(94,194,19,.25); color:var(--green); }
+        .live-dot { width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; margin-right:.4rem; animation:pulseDot 1.5s ease infinite; }
+        @keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:.4} }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <% const currentPage = 'activity'; %>
+    <%- include('../partials/sidebar', { user, currentPage }) %>
+
+    <div class="dashboard-container">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2><i class="fas fa-bolt" style="color:var(--green);margin-right:.5rem"></i>Activity Feed</h2>
+                        <p><span class="live-dot"></span>Live platform activity — updates every minute</p>
+                    </div>
+                    <div class="header-stats">
+                        <div class="stat-badge">
+                            <i class="fas fa-bolt" style="color:var(--green)"></i>
+                            <span><%= (user.xp || 0).toLocaleString() %> XP</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="feed-wrap">
+                    <div class="feed-filters">
+                        <button class="feed-filter-btn active" onclick="setFilter('all',this)">All</button>
+                        <button class="feed-filter-btn" onclick="setFilter('role_upgrade',this)"><i class="fas fa-crown"></i> Role Upgrades</button>
+                        <button class="feed-filter-btn" onclick="setFilter('usdc_earned',this)"><i class="fas fa-coins"></i> USDC Earned</button>
+                        <button class="feed-filter-btn" onclick="setFilter('quest_complete',this)"><i class="fas fa-trophy"></i> Quests</button>
+                    </div>
+
+                    <div class="feed-list" id="feedList">
+                        <div class="feed-empty"><i class="fas fa-spinner fa-spin"></i><p>Loading activity...</p></div>
+                    </div>
+
+                    <button class="feed-load-btn" id="loadMoreBtn" style="display:none" onclick="loadMore()">
+                        <i class="fas fa-chevron-down"></i> Load more
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+    var _filter = 'all', _all = [], _shown = 15;
+
+    function ago(d) {
+        var diff = Date.now() - new Date(d);
+        if (diff < 60000)    return 'just now';
+        if (diff < 3600000)  return Math.floor(diff/60000) + 'm ago';
+        if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+        return Math.floor(diff/86400000) + 'd ago';
+    }
+
+    function iconCls(type) {
+        if (type === 'role_upgrade')   return ['fa-crown','fi-role'];
+        if (type === 'usdc_earned')    return ['fa-coins','fi-usdc'];
+        if (type === 'quest_complete') return ['fa-trophy','fi-quest'];
+        return ['fa-star','fi-default'];
+    }
+
+    function buildMsg(ev) {
+        var u = '<strong>' + ev.username + '</strong>';
+        var m = ev.metadata || {};
+        if (ev.type === 'role_upgrade')   return u + ' levelled up to <strong>' + (m.newRole || 'new role') + '</strong> 🎉';
+        if (ev.type === 'usdc_earned')    return u + ' earned <strong>$' + (m.amount || '?') + ' USDC</strong>';
+        if (ev.type === 'quest_complete') return u + ' completed <strong>' + (m.questTitle || 'a quest') + '</strong>';
+        return u + ' was active on ONBOARD3';
+    }
+
+    function buildCard(ev) {
+        var ic = iconCls(ev.type);
+        var cnt = ev.likes ? (ev.likes.count || 0) : 0;
+        var liked = ev.viewerLiked;
+        return '<div class="feed-card" data-type="' + ev.type + '">' +
+            '<div class="feed-icon ' + ic[1] + '"><i class="fas ' + ic[0] + '"></i></div>' +
+            '<div class="feed-body">' +
+              '<div class="feed-text">' + buildMsg(ev) + '</div>' +
+              '<div class="feed-time">' + ago(ev.createdAt) + '</div>' +
+            '</div>' +
+            '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="likeEv(\'' + ev._id + '\',this)">' +
+              '<i class="fas fa-heart"></i>' + (cnt > 0 ? ' ' + cnt : '') +
+            '</button></div>';
+    }
+
+    function render() {
+        var list = document.getElementById('feedList');
+        var items = _filter === 'all' ? _all : _all.filter(function(e){ return e.type === _filter; });
+        if (!items.length) {
+            list.innerHTML = '<div class="feed-empty"><i class="fas fa-satellite-dish"></i><p>No activity yet — check back soon!</p></div>';
+            document.getElementById('loadMoreBtn').style.display = 'none';
+            return;
+        }
+        list.innerHTML = items.slice(0, _shown).map(buildCard).join('');
+        document.getElementById('loadMoreBtn').style.display = _shown < items.length ? 'block' : 'none';
+    }
+
+    function setFilter(t, btn) {
+        _filter = t; _shown = 15;
+        document.querySelectorAll('.feed-filter-btn').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        render();
+    }
+
+    function loadMore() { _shown += 15; render(); }
+
+    function likeEv(id, btn) {
+        btn.classList.toggle('liked');
+        var ev = _all.find(function(e){ return e._id === id; });
+        if (ev) {
+            ev.likes = ev.likes || { count: 0 };
+            var liked = btn.classList.contains('liked');
+            ev.likes.count = liked ? ev.likes.count + 1 : Math.max(0, ev.likes.count - 1);
+            btn.innerHTML = '<i class="fas fa-heart"></i>' + (ev.likes.count > 0 ? ' ' + ev.likes.count : '');
+        }
+        fetch('/api/feed/' + id + '/like', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    }
+
+    fetch('/api/feed').then(function(r){ return r.json(); }).then(function(d) {
+        _all = d.events || []; render();
+    }).catch(function() {
+        document.getElementById('feedList').innerHTML = '<div class="feed-empty"><i class="fas fa-exclamation-circle"></i><p>Could not load feed. Please refresh.</p></div>';
+    });
+
+    setInterval(function() {
+        fetch('/api/feed').then(function(r){ return r.json(); }).then(function(d) {
+            var fresh = d.events || [];
+            if (fresh.length && (!_all.length || fresh[0]._id !== _all[0]._id)) {
+                _all = fresh; render();
+            }
+        });
+    }, 60000);
+    </script>
+</body>
+</html>

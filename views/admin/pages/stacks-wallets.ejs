@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Stacks Wallets — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .sw-table { width:100%; border-collapse:collapse; font-size:.875rem }
+    .sw-table th { text-align:left; padding:.625rem 1rem; font-size:.7rem; font-weight:800; letter-spacing:.8px; text-transform:uppercase; color:var(--text-3); border-bottom:1px solid var(--border) }
+    .sw-table td { padding:.75rem 1rem; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle }
+    .sw-table tr:last-child td { border-bottom:none }
+    .sw-table tr:hover td { background:rgba(255,255,255,.02) }
+    .sw-addr { font-family:monospace; font-size:.78rem; color:#60a5fa }
+    .sw-bal  { font-weight:800; color:#5EC213 }
+    .sw-zero { color:var(--text-3) }
+    .sw-badge { display:inline-block; font-size:.7rem; font-weight:800; padding:.2rem .6rem; border-radius:6px; background:rgba(94,194,19,.1); color:#5EC213; border:1px solid rgba(94,194,19,.2) }
+    .sw-actions { display:flex; gap:.5rem }
+    .sw-btn { display:inline-flex; align-items:center; gap:.375rem; padding:.4rem .875rem; border-radius:8px; font-size:.78rem; font-weight:700; cursor:pointer; border:1px solid; font-family:inherit; transition:opacity .15s }
+    .sw-btn:hover { opacity:.8 }
+    .sw-btn-refresh { background:rgba(96,165,250,.1); border-color:rgba(96,165,250,.25); color:#60a5fa }
+    .sw-btn-sweep   { background:rgba(94,194,19,.1);  border-color:rgba(94,194,19,.25);  color:#5EC213 }
+    .sw-btn-sweep:disabled { opacity:.35; cursor:not-allowed }
+    .sw-stat { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.25rem 1.5rem }
+    .sw-stat-val { font-size:1.75rem; font-weight:900; color:var(--text) }
+    .sw-stat-lbl { font-size:.75rem; font-weight:700; color:var(--text-3); margin-top:.25rem; text-transform:uppercase; letter-spacing:.5px }
+    .sw-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-bottom:1.5rem }
+    .sw-empty { text-align:center; padding:3rem; color:var(--text-3); font-size:.875rem }
+  </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'stacks-wallets', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content" style="max-width:1100px">
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-wallet" style="color:#f7931a"></i> Stacks Wallets</h1>
+        <p>Custodial STX wallets generated for ZeroAuthDAO bounty submissions — sweep rewards to your main wallet</p>
+      </div>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+        <button onclick="refreshAll()" class="a-btn" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:#60a5fa">
+          <i class="fas fa-rotate"></i> Refresh All Balances
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="sw-grid">
+      <div class="sw-stat">
+        <div class="sw-stat-val" id="statWallets"><%= users.length %></div>
+        <div class="sw-stat-lbl">Total Wallets</div>
+      </div>
+      <div class="sw-stat">
+        <div class="sw-stat-val" id="statSTX" style="color:#f7931a">
+          <%= (users.reduce((s,u)=>s+(u.stacksBalance||0),0)/1_000_000).toFixed(2) %> STX
+        </div>
+        <div class="sw-stat-lbl">Total Balance</div>
+      </div>
+      <div class="sw-stat">
+        <div class="sw-stat-val" id="statUSD" style="color:#5EC213">
+          $<%= users.reduce((s,u)=>s+(u.stacksBalanceUSD||0),0).toFixed(2) %>
+        </div>
+        <div class="sw-stat-lbl">Total USD Value</div>
+      </div>
+      <div class="sw-stat">
+        <div class="sw-stat-val" style="color:#fbbf24">$<%= stxPrice.toFixed(4) %></div>
+        <div class="sw-stat-lbl">STX Price (CoinGecko)</div>
+      </div>
+    </div>
+
+    <!-- Fee Wallet -->
+    <% if (feeWallet) { %>
+    <div class="a-card" style="margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+      <div>
+        <div style="font-size:.7rem;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--text-3);margin-bottom:.375rem">ONBOARD3 Fee Wallet <span style="color:#f7931a;margin-left:.5rem">pays gas for all submissions</span></div>
+        <div style="font-family:monospace;font-size:.875rem;color:#60a5fa;margin-bottom:.375rem"><%= feeWallet.address %></div>
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap">
+          <span style="font-size:.875rem;font-weight:800;color:<%= feeWallet.stx < 1 ? '#f87171' : '#5EC213' %>">
+            <%= feeWallet.stx.toFixed(4) %> STX
+          </span>
+          <span style="font-size:.875rem;color:var(--text-3)">≈ $<%= feeWallet.usd.toFixed(2) %></span>
+          <span style="font-size:.78rem;color:var(--text-3)">~<%= Math.floor(feeWallet.microSTX / 3000).toLocaleString() %> submissions remaining</span>
+        </div>
+        <% if (feeWallet.stx < 1) { %>
+        <div style="margin-top:.5rem;font-size:.78rem;color:#f87171;font-weight:700"><i class="fas fa-triangle-exclamation"></i> Low balance — send more STX to keep submissions working</div>
+        <% } %>
+      </div>
+      <button onclick="navigator.clipboard.writeText('<%= feeWallet.address %>').then(()=>aToast('Address copied'))" class="a-btn" style="white-space:nowrap"><i class="fas fa-copy"></i> Copy Address</button>
+    </div>
+    <% } %>
+
+    <!-- Environment check -->
+    <% if (!hasSeed || !hasMainWallet) { %>
+    <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;gap:.75rem;align-items:flex-start">
+      <i class="fas fa-triangle-exclamation" style="color:#f87171;margin-top:.15rem"></i>
+      <div>
+        <div style="color:#f87171;font-weight:800;font-size:.875rem;margin-bottom:.25rem">Missing environment variables</div>
+        <div style="color:#aaa;font-size:.8125rem;line-height:1.6">
+          <% if (!hasSeed) { %>
+            <div>• <code style="color:#f87171">STACKS_MASTER_SEED</code> — run <code>node scripts/generate-stacks-seed.js</code> to create one</div>
+          <% } %>
+          <% if (!hasMainWallet) { %>
+            <div>• <code style="color:#f87171">STACKS_MAIN_WALLET</code> — your personal Stacks address where all sweep funds land</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Wallets table -->
+    <div class="a-card" style="padding:0;overflow:hidden">
+      <% if (users.length === 0) { %>
+      <div class="sw-empty">
+        <i class="fas fa-wallet" style="font-size:2rem;margin-bottom:.75rem;display:block;color:var(--text-3)"></i>
+        No custodial wallets created yet.<br>Wallets are auto-generated when users submit a ZeroAuthDAO bounty.
+      </div>
+      <% } else { %>
+      <div style="overflow-x:auto">
+      <table class="sw-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>User</th>
+            <th>Stacks Address</th>
+            <th>STX Balance</th>
+            <th>USD Value</th>
+            <th>Last Checked</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="walletsBody">
+        <% users.forEach(function(u, i) {
+          var stx = (u.stacksBalance || 0) / 1_000_000;
+          var usd = u.stacksBalanceUSD || 0;
+          var hasBalance = u.stacksBalance > 0;
+        %>
+        <tr id="row-<%= u._id %>">
+          <td style="color:var(--text-3);font-size:.78rem"><%= u.stacksWalletIndex %></td>
+          <td>
+            <div style="font-weight:800;font-size:.875rem"><%= u.username %></div>
+            <div style="font-size:.75rem;color:var(--text-3)"><%= u.email %></div>
+          </td>
+          <td>
+            <span class="sw-addr"><%= u.stacksAddress %></span>
+            <button onclick="copyAddr('<%= u.stacksAddress %>')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:.1rem .3rem;margin-left:.25rem;font-size:.75rem" title="Copy"><i class="fas fa-copy"></i></button>
+          </td>
+          <td>
+            <span class="<%= hasBalance ? 'sw-bal' : 'sw-zero' %>">
+              <%= stx.toFixed(6) %> STX
+            </span>
+          </td>
+          <td>
+            <span class="<%= hasBalance ? 'sw-bal' : 'sw-zero' %>">
+              $<%= usd.toFixed(2) %>
+            </span>
+          </td>
+          <td style="font-size:.78rem;color:var(--text-3)">
+            <%= u.stacksCheckedAt ? new Date(u.stacksCheckedAt).toLocaleString() : 'Never' %>
+          </td>
+          <td>
+            <div class="sw-actions">
+              <button class="sw-btn sw-btn-refresh" onclick="refreshOne('<%= u._id %>', this)" title="Refresh balance">
+                <i class="fas fa-rotate"></i>
+              </button>
+              <button class="sw-btn sw-btn-sweep <%= !hasBalance ? 'disabled' : '' %>"
+                <%= !hasBalance ? 'disabled' : '' %>
+                onclick="sweep('<%= u._id %>', '<%= u.username %>', this)"
+                title="Sweep to main wallet">
+                <i class="fas fa-arrow-right-arrow-left"></i> Sweep
+              </button>
+            </div>
+          </td>
+        </tr>
+        <% }); %>
+        </tbody>
+      </table>
+      </div>
+      <% } %>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function copyAddr(addr) {
+  navigator.clipboard.writeText(addr).then(() => aToast('Address copied'));
+}
+
+function refreshOne(userId, btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  btn.disabled = true;
+  fetch('/admin/stacks-wallets/refresh', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId })
+  }).then(r => r.json()).then(d => {
+    btn.innerHTML = orig;
+    btn.disabled = false;
+    if (d.success) { aToast('Balance updated'); setTimeout(() => location.reload(), 800); }
+    else aToast(d.message || 'Failed', 'error');
+  });
+}
+
+function refreshAll() {
+  aToast('Refreshing all balances — this may take a moment...');
+  fetch('/admin/stacks-wallets/refresh', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({})
+  }).then(r => r.json()).then(d => {
+    if (d.success) { aToast('Updated ' + d.updated + ' wallets'); setTimeout(() => location.reload(), 1000); }
+    else aToast(d.message || 'Failed', 'error');
+  });
+}
+
+function sweep(userId, username, btn) {
+  if (!confirm('Sweep ' + username + "'s wallet to your main Stacks address?\n\n• All STX will be transferred\n• User receives 90% as USDC on their balance\n• 10% platform fee kept")) return;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sweeping...';
+  btn.disabled = true;
+  fetch('/admin/stacks-wallets/sweep/' + userId, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  }).then(r => r.json()).then(d => {
+    btn.innerHTML = orig;
+    if (d.success) {
+      aToast(username + ' swept — $' + d.userCredit.toFixed(2) + ' USDC credited (tx: ' + d.txId.slice(0,12) + '...)');
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      btn.disabled = false;
+      aToast(d.message || 'Sweep failed', 'error');
+    }
+  });
+}
+</script>
+</body>
+</html>

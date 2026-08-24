@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Bulk Mail — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .bm-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:.875rem; margin-bottom:1.25rem; }
+    .bm-stat  { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.125rem 1.25rem; }
+    .bm-stat-val { font-size:1.75rem; font-weight:900; color:var(--text); line-height:1; }
+    .bm-stat-lbl { font-size:.72rem; font-weight:700; color:var(--text-4); text-transform:uppercase; letter-spacing:.07em; margin-top:.35rem; }
+    .bm-progress-wrap { background:rgba(255,255,255,.05); border-radius:99px; height:8px; overflow:hidden; margin-bottom:1.25rem; }
+    .bm-progress-bar  { height:100%; background:linear-gradient(90deg,#5EC213,#8ef542); border-radius:99px; transition:width .4s ease; }
+    .bm-controls { display:flex; gap:.75rem; flex-wrap:wrap; align-items:center; margin-bottom:1.5rem; }
+    .bm-btn { padding:.65rem 1.5rem; border:none; border-radius:10px; font-family:Outfit,sans-serif; font-size:.875rem; font-weight:800; cursor:pointer; transition:opacity .15s; }
+    .bm-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .bm-btn-green  { background:#5EC213; color:#000; }
+    .bm-btn-red    { background:rgba(239,68,68,.15); color:#ef4444; border:1px solid rgba(239,68,68,.3); }
+    .bm-btn-grey   { background:rgba(255,255,255,.07); color:var(--text-2); border:1px solid var(--border); }
+    .bm-status-pill { display:inline-flex; align-items:center; gap:.4rem; padding:.35rem .875rem; border-radius:99px; font-size:.8rem; font-weight:800; }
+    .pill-idle         { background:rgba(255,255,255,.06); color:var(--text-3); }
+    .pill-running      { background:rgba(94,194,19,.12); color:#5EC213; }
+    .pill-paused       { background:rgba(251,191,36,.1); color:#fbbf24; }
+    .pill-limit_reached{ background:rgba(239,68,68,.1); color:#ef4444; }
+    .pill-completed    { background:rgba(16,185,129,.1); color:#10b981; }
+    .bm-acct-row { display:flex; align-items:center; justify-content:space-between; padding:.625rem 0; border-bottom:1px solid rgba(255,255,255,.05); }
+    .bm-acct-row:last-child { border:none; }
+    .bm-acct-bar-wrap { width:140px; background:rgba(255,255,255,.05); border-radius:99px; height:6px; }
+    .bm-acct-bar { height:100%; border-radius:99px; background:#5EC213; }
+    .bm-feed { max-height:400px; overflow-y:auto; }
+    .bm-feed-row { display:flex; align-items:center; gap:.75rem; padding:.5rem 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:.8125rem; }
+    .bm-feed-row:last-child { border:none; }
+    .bm-dot-sent   { width:7px; height:7px; border-radius:50%; background:#5EC213; flex-shrink:0; }
+    .bm-dot-failed { width:7px; height:7px; border-radius:50%; background:#ef4444; flex-shrink:0; }
+    .bm-toggle { position:relative; width:44px; height:24px; }
+    .bm-toggle input { opacity:0; width:0; height:0; }
+    .bm-toggle-slider { position:absolute; inset:0; background:rgba(255,255,255,.1); border-radius:99px; cursor:pointer; transition:.2s; }
+    .bm-toggle-slider:before { content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+    .bm-toggle input:checked + .bm-toggle-slider { background:#5EC213; }
+    .bm-toggle input:checked + .bm-toggle-slider:before { transform:translateX(20px); }
+
+    @media (max-width: 640px) {
+      .bm-stats { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 380px) {
+      .bm-stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'bulkmail', admin:user }) %>
+<div class="a-main">
+  <div class="a-content">
+
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-paper-plane"></i> Bulk Mail</h1>
+        <p>Send "We're Back" email to all active members (1k+ XP)</p>
+      </div>
+      <div id="statusPill" class="bm-status-pill pill-<%= job.status %>">
+        <i class="fas fa-circle" style="font-size:.45rem"></i>
+        <span id="statusText"><%= job.status.replace('_',' ').toUpperCase() %></span>
+      </div>
+    </div>
+
+    <!-- Test Email -->
+    <div class="a-card" style="margin-bottom:1.25rem">
+      <div style="font-weight:800;font-size:.9375rem;margin-bottom:.75rem"><i class="fas fa-vial" style="color:#60a5fa;margin-right:.5rem"></i>Send Test Email</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <input id="testEmail" type="email" placeholder="Email address" style="flex:1;min-width:200px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.55rem .875rem;color:var(--text);font-family:inherit;font-size:.875rem;outline:none">
+        <input id="testUsername" type="text" placeholder="Username" style="width:140px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.55rem .875rem;color:var(--text);font-family:inherit;font-size:.875rem;outline:none">
+        <button onclick="sendTestEmail()" class="bm-btn" style="background:#60a5fa;color:#000"><i class="fas fa-paper-plane"></i> Send Test</button>
+      </div>
+    </div>
+
+    <!-- Coming Soon Toggle -->
+    <div class="a-card" style="margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+      <div>
+        <div style="font-weight:800;font-size:.9375rem;margin-bottom:.25rem"><i class="fas fa-clock" style="color:#fbbf24;margin-right:.5rem"></i>Coming Soon Mode</div>
+        <div style="font-size:.8rem;color:var(--text-3)">When ON — visitors see a "Coming Soon" page instead of the platform</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <span id="csLabel" style="font-size:.8rem;font-weight:700;color:<%= job.comingSoonMode ? '#fbbf24' : 'var(--text-3)' %>">
+          <%= job.comingSoonMode ? 'ON' : 'OFF' %>
+        </span>
+        <label class="bm-toggle">
+          <input type="checkbox" id="csToggle" <%= job.comingSoonMode ? 'checked' : '' %> onchange="toggleComingSoon(this.checked)">
+          <span class="bm-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="bm-stats">
+      <div class="bm-stat">
+        <div class="bm-stat-val" id="statTotal"><%= job.totalRecipients.toLocaleString() %></div>
+        <div class="bm-stat-lbl">Total Recipients</div>
+      </div>
+      <div class="bm-stat" style="border-color:rgba(94,194,19,.2)">
+        <div class="bm-stat-val" id="statSent" style="color:#5EC213"><%= job.sentCount.toLocaleString() %></div>
+        <div class="bm-stat-lbl">Sent</div>
+      </div>
+      <div class="bm-stat" style="border-color:rgba(239,68,68,.15)">
+        <div class="bm-stat-val" id="statFailed" style="color:#ef4444"><%= job.failedCount.toLocaleString() %></div>
+        <div class="bm-stat-lbl">Failed</div>
+      </div>
+      <div class="bm-stat">
+        <div class="bm-stat-val" id="statRemaining" style="color:var(--text-2)"><%= Math.max(0, job.totalRecipients - job.currentIndex).toLocaleString() %></div>
+        <div class="bm-stat-lbl">Remaining</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="bm-progress-wrap">
+      <div class="bm-progress-bar" id="progressBar" style="width:<%= job.totalRecipients > 0 ? Math.round(job.currentIndex / job.totalRecipients * 100) : 0 %>%"></div>
+    </div>
+    <div style="font-size:.75rem;color:var(--text-4);margin-top:-.75rem;margin-bottom:1.25rem;text-align:right" id="progressLabel">
+      <%= job.totalRecipients > 0 ? Math.round(job.currentIndex / job.totalRecipients * 100) : 0 %>% — index <%= job.currentIndex %> / <%= job.totalRecipients %>
+    </div>
+
+    <!-- Controls -->
+    <div class="bm-controls">
+      <button id="btnStart" class="bm-btn bm-btn-green" onclick="startJob()" <%= ['running','completed'].includes(job.status) ? 'disabled' : '' %>>
+        <i class="fas fa-play"></i> <%= job.status === 'paused' || job.status === 'limit_reached' ? 'Resume' : 'Start' %>
+      </button>
+      <button id="btnPause" class="bm-btn bm-btn-red" onclick="pauseJob()" <%= job.status !== 'running' ? 'disabled' : '' %>>
+        <i class="fas fa-pause"></i> Pause
+      </button>
+      <button class="bm-btn bm-btn-grey" onclick="resetJob()">
+        <i class="fas fa-rotate-left"></i> Reset
+      </button>
+      <span style="font-size:.78rem;color:var(--text-4)" id="tickStatus"></span>
+    </div>
+
+    <!-- Account usage -->
+    <div class="a-card" style="margin-bottom:1.25rem">
+      <h3 style="font-size:.9375rem;font-weight:800;margin-bottom:1rem"><i class="fas fa-envelope" style="color:#5EC213;margin-right:.5rem"></i>Gmail Accounts</h3>
+      <div id="acctList">
+        <% job.accountUsage.forEach(acct => {
+          const pct = Math.min(100, Math.round(acct.sentToday / 450 * 100));
+        %>
+        <div class="bm-acct-row">
+          <div>
+            <div style="font-weight:700;font-size:.875rem"><%= acct.name %></div>
+            <div style="font-size:.72rem;color:var(--text-3)"><%= acct.email %></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <div style="font-size:.8rem;color:var(--text-2);white-space:nowrap"><%= acct.sentToday %>/<%= 450 %> today</div>
+            <div class="bm-acct-bar-wrap">
+              <div class="bm-acct-bar" style="width:<%= pct %>%;background:<%= pct >= 100 ? '#ef4444' : '#5EC213' %>"></div>
+            </div>
+            <div style="font-size:.75rem;font-weight:700;color:var(--text-3);width:36px;text-align:right"><%= acct.totalSent %> total</div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="a-card" style="padding:0">
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <h3 style="font-size:.9375rem;font-weight:800;margin:0"><i class="fas fa-list" style="color:#5EC213;margin-right:.5rem"></i>Recent Activity</h3>
+        <span style="font-size:.75rem;color:var(--text-4)">Last 120 entries</span>
+      </div>
+      <div class="bm-feed" id="activityFeed" style="padding:.75rem 1.25rem">
+        <% if (!job.recentActivity.length) { %>
+        <div style="text-align:center;padding:2rem;color:var(--text-4);font-size:.875rem">No activity yet — start the job to send emails.</div>
+        <% } else { job.recentActivity.forEach(a => { %>
+        <div class="bm-feed-row">
+          <div class="bm-dot-<%= a.status %>"></div>
+          <div style="flex:1;min-width:0">
+            <span style="font-weight:700;color:var(--text)">@<%= a.username %></span>
+            <span style="color:var(--text-3);margin-left:.5rem"><%= a.email %></span>
+            <% if (a.error) { %><span style="color:#ef4444;font-size:.72rem;margin-left:.5rem">— <%= a.error.slice(0,60) %></span><% } %>
+          </div>
+          <div style="font-size:.72rem;color:var(--text-4);white-space:nowrap;margin-left:.5rem"><%= a.account %></div>
+          <div style="font-size:.72rem;font-weight:700;margin-left:.75rem;color:<%= a.status==='sent'?'#5EC213':'#ef4444' %>"><%= a.status.toUpperCase() %></div>
+        </div>
+        <% }) } %>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var _running = '<%= job.status %>' === 'running';
+var _tickTimer = null;
+var _pollTimer = null;
+
+function startJob() {
+  fetch('/admin/bulkmail/start', { method:'POST' }).then(r => r.json()).then(d => {
+    if (d.success) { _running = true; document.getElementById('btnStart').disabled = true; document.getElementById('btnPause').disabled = false; updateStatusPill('running'); startTicking(); aToast('Bulk mail started'); }
+    else aToast(d.message || 'Error', 'error');
+  });
+}
+
+function pauseJob() {
+  fetch('/admin/bulkmail/pause', { method:'POST' }).then(r => r.json()).then(d => {
+    if (d.success) { _running = false; stopTicking(); document.getElementById('btnStart').disabled = false; document.getElementById('btnStart').innerHTML = '<i class="fas fa-play"></i> Resume'; document.getElementById('btnPause').disabled = true; updateStatusPill('paused'); aToast('Paused'); }
+  });
+}
+
+function resetJob() {
+  if (!confirm('Reset the job? This resets the index back to 0 — all emails will be sent again from the beginning.')) return;
+  fetch('/admin/bulkmail/reset', { method:'POST' }).then(r => r.json()).then(d => {
+    if (d.success) { aToast('Reset — reloading...'); setTimeout(() => location.reload(), 800); }
+    else aToast('Error', 'error');
+  });
+}
+
+function sendTestEmail() {
+  const email = document.getElementById('testEmail').value.trim();
+  const username = document.getElementById('testUsername').value.trim() || 'Friend';
+  if (!email) { aToast('Enter an email address', 'error'); return; }
+  fetch('/admin/bulkmail/test', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ email, username })
+  }).then(r => r.json()).then(d => {
+    if (d.success) aToast('Test email sent to ' + email);
+    else aToast('Failed: ' + (d.message || 'unknown error'), 'error');
+  });
+}
+
+function toggleComingSoon(enabled) {
+  fetch('/admin/bulkmail/coming-soon', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ enabled: enabled })
+  }).then(r => r.json()).then(d => {
+    if (d.success) {
+      document.getElementById('csLabel').textContent = d.comingSoonMode ? 'ON' : 'OFF';
+      document.getElementById('csLabel').style.color = d.comingSoonMode ? '#fbbf24' : 'var(--text-3)';
+      aToast('Coming soon mode ' + (d.comingSoonMode ? 'enabled' : 'disabled'));
+    } else aToast('Error', 'error');
+  });
+}
+
+function startTicking() {
+  if (_tickTimer) return;
+  _tickTimer = setInterval(doTick, 5000);
+  doTick();
+}
+
+function stopTicking() {
+  clearInterval(_tickTimer); _tickTimer = null;
+}
+
+function doTick() {
+  if (!_running) return;
+  document.getElementById('tickStatus').textContent = 'Sending...';
+  fetch('/admin/bulkmail/tick', { method:'POST' }).then(r => r.json()).then(d => {
+    document.getElementById('tickStatus').textContent = '';
+    if (d.status && d.status !== 'running') {
+      _running = false;
+      stopTicking();
+      updateStatusPill(d.status);
+      document.getElementById('btnStart').disabled = d.status === 'completed';
+      document.getElementById('btnPause').disabled = true;
+      if (d.status === 'completed') aToast('All emails sent!');
+      if (d.status === 'limit_reached') aToast('Daily limit reached — come back tomorrow to resume', 'error');
+    }
+  }).catch(() => { document.getElementById('tickStatus').textContent = ''; });
+}
+
+function pollStatus() {
+  fetch('/admin/bulkmail/status').then(r => r.json()).then(d => {
+    document.getElementById('statTotal').textContent     = (d.totalRecipients||0).toLocaleString();
+    document.getElementById('statSent').textContent      = (d.sentCount||0).toLocaleString();
+    document.getElementById('statFailed').textContent    = (d.failedCount||0).toLocaleString();
+    document.getElementById('statRemaining').textContent = Math.max(0, (d.totalRecipients||0) - (d.currentIndex||0)).toLocaleString();
+
+    var pct = d.totalRecipients > 0 ? Math.round((d.currentIndex||0) / d.totalRecipients * 100) : 0;
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = pct + '% — index ' + (d.currentIndex||0) + ' / ' + (d.totalRecipients||0);
+
+    // Update activity feed
+    if (d.recentActivity && d.recentActivity.length) {
+      var html = d.recentActivity.map(function(a) {
+        var err = a.error ? '<span style="color:#ef4444;font-size:.72rem;margin-left:.5rem">— ' + a.error.slice(0,60) + '</span>' : '';
+        return '<div class="bm-feed-row">'
+          + '<div class="bm-dot-' + a.status + '"></div>'
+          + '<div style="flex:1;min-width:0"><span style="font-weight:700;color:var(--text)">@' + a.username + '</span><span style="color:var(--text-3);margin-left:.5rem">' + a.email + '</span>' + err + '</div>'
+          + '<div style="font-size:.72rem;color:var(--text-4);white-space:nowrap;margin-left:.5rem">' + a.account + '</div>'
+          + '<div style="font-size:.72rem;font-weight:700;margin-left:.75rem;color:' + (a.status==='sent'?'#5EC213':'#ef4444') + '">' + a.status.toUpperCase() + '</div>'
+          + '</div>';
+      }).join('');
+      document.getElementById('activityFeed').innerHTML = html;
+    }
+
+    // Update account usage
+    if (d.accountUsage && d.accountUsage.length) {
+      var ahtml = d.accountUsage.map(function(acct) {
+        var pctA = Math.min(100, Math.round((acct.sentToday||0) / 450 * 100));
+        return '<div class="bm-acct-row">'
+          + '<div><div style="font-weight:700;font-size:.875rem">' + acct.name + '</div><div style="font-size:.72rem;color:var(--text-3)">' + acct.email + '</div></div>'
+          + '<div style="display:flex;align-items:center;gap:.75rem">'
+          + '<div style="font-size:.8rem;color:var(--text-2);white-space:nowrap">' + (acct.sentToday||0) + '/450 today</div>'
+          + '<div class="bm-acct-bar-wrap"><div class="bm-acct-bar" style="width:' + pctA + '%;background:' + (pctA>=100?'#ef4444':'#5EC213') + '"></div></div>'
+          + '<div style="font-size:.75rem;font-weight:700;color:var(--text-3);width:36px;text-align:right">' + (acct.totalSent||0) + ' total</div>'
+          + '</div></div>';
+      }).join('');
+      document.getElementById('acctList').innerHTML = ahtml;
+    }
+
+    updateStatusPill(d.status);
+  }).catch(function(){});
+}
+
+function updateStatusPill(status) {
+  var pill = document.getElementById('statusPill');
+  pill.className = 'bm-status-pill pill-' + status;
+  document.getElementById('statusText').textContent = status.replace('_',' ').toUpperCase();
+}
+
+// Poll every 4 seconds
+_pollTimer = setInterval(pollStatus, 4000);
+
+// If already running on page load, start ticking
+if (_running) { startTicking(); }
+</script>
+</body>
+</html>

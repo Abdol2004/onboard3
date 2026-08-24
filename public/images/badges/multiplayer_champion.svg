@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <radialGradient id="medal-gradient-multiplayer_champion" cx="30%" cy="30%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.6)" />
+            <stop offset="50%" style="stop-color:#FF0080" />
+            <stop offset="100%" style="stop-color:rgba(0,0,0,0.8)" />
+        </radialGradient>
+        <filter id="shadow-multiplayer_champion">
+            <feDropShadow dx="0" dy="10" stdDeviation="15" flood-opacity="0.5"/>
+        </filter>
+    </defs>
+
+    <!-- Outer ring -->
+    <circle cx="256" cy="256" r="240" fill="none" stroke="#FF0080" stroke-width="8" opacity="0.4" filter="url(#shadow-multiplayer_champion)" />
+
+    <!-- Main medal circle -->
+    <circle cx="256" cy="256" r="200" fill="url(#medal-gradient-multiplayer_champion)" stroke="#FF0080" stroke-width="6" filter="url(#shadow-multiplayer_champion)" />
+
+    <!-- Inner glow ring -->
+    <circle cx="256" cy="256" r="180" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3" />
+
+    <!-- Icon/Number -->
+    <text x="256" y="280" font-family="Arial, sans-serif" font-size="120" font-weight="bold" fill="white" text-anchor="middle" style="text-shadow: 0 5px 10px rgba(0,0,0,0.5);">⚔️</text>
+
+    <!-- Ribbon at bottom (decorative) -->
+    <path d="M 200 450 L 256 480 L 312 450 L 312 500 L 256 470 L 200 500 Z" fill="#FF0080" opacity="0.7" />
+</svg>

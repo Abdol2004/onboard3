@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Pathway Applications — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .pw-filter-bar { display:flex; gap:.5rem; flex-wrap:wrap; }
+
+    /* ── Mobile card layout ── */
+    @media (max-width: 640px) {
+      .pw-table-wrap { overflow-x: unset; }
+      .pw-table, .pw-table thead, .pw-table tbody, .pw-table th, .pw-table td, .pw-table tr { display: block; }
+      .pw-table thead tr { display: none; }
+      .pw-table tr {
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 12px;
+        margin-bottom: .875rem;
+        padding: .75rem;
+        background: rgba(255,255,255,.02);
+      }
+      .pw-table tr:last-child { margin-bottom: 0; }
+      .pw-table td {
+        padding: .375rem .5rem .375rem 0;
+        border: none;
+        display: flex;
+        align-items: flex-start;
+        gap: .5rem;
+      }
+      .pw-table td::before {
+        content: attr(data-label);
+        flex-shrink: 0;
+        width: 72px;
+        font-size: .68rem;
+        font-weight: 700;
+        color: var(--text-4);
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        padding-top: .15rem;
+      }
+      .pw-table td.td-user { border-bottom: 1px solid rgba(255,255,255,.05); margin-bottom: .375rem; padding-bottom: .625rem; }
+      .pw-table td.td-actions { margin-top: .375rem; border-top: 1px solid rgba(255,255,255,.05); padding-top: .625rem; }
+      .pw-table td.td-actions::before { display: none; }
+      .pw-actions-row { display: flex; gap: .5rem; width: 100%; }
+      .pw-actions-row form { flex: 1; }
+      .pw-actions-row button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'pathway-applications', admin:user }) %>
+<div class="a-main">
+  <div class="a-content">
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-map-signs"></i> Pathway Applications</h1>
+        <p>Review and approve community pathway access requests</p>
+      </div>
+      <div class="pw-filter-bar">
+        <a href="?filter=pending"  class="a-btn <%= filter==='pending'  ?'a-btn-primary':'a-btn-ghost' %>">Pending</a>
+        <a href="?filter=approved" class="a-btn <%= filter==='approved' ?'a-btn-primary':'a-btn-ghost' %>">Approved</a>
+        <a href="?filter=rejected" class="a-btn <%= filter==='rejected' ?'a-btn-primary':'a-btn-ghost' %>">Rejected</a>
+        <a href="?filter=all"      class="a-btn <%= filter==='all'      ?'a-btn-primary':'a-btn-ghost' %>">All</a>
+      </div>
+    </div>
+
+    <% const pwMeta = { web3_jobs:{name:'Web3 Jobs',icon:'fa-briefcase',color:'#fbbf24'}, ai:{name:'AI & Web3',icon:'fa-microchip',color:'#c084fc'}, building:{name:'Building',icon:'fa-code',color:'#60a5fa'}, trading:{name:'Trading',icon:'fa-chart-line',color:'#10b981'}, nft:{name:'NFTs',icon:'fa-image',color:'#f472b6'} }; %>
+
+    <% if (applications.length === 0) { %>
+    <div class="a-card" style="text-align:center;padding:3rem">
+      <i class="fas fa-inbox" style="font-size:2.5rem;color:var(--text-4);margin-bottom:1rem;display:block"></i>
+      <p style="color:var(--text-3)">No <%= filter !== 'all' ? filter : '' %> applications</p>
+    </div>
+    <% } else { %>
+    <div class="a-card" style="padding:0">
+      <div class="pw-table-wrap" style="overflow-x:auto">
+        <table class="pw-table" style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)">
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">User</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">Pathway</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">XP</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">Status</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">Applied</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">Application</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% applications.forEach(app => {
+            const pm = pwMeta[app.pathway] || { name: app.pathway, icon: 'fa-circle', color: '#6b7280' };
+            const statusColors = { pending:'#f59e0b', auto_approved:'#10b981', approved:'#10b981', rejected:'#ef4444' };
+            const sColor = statusColors[app.pathwayStatus] || '#6b7280';
+          %>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.05)" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
+            <td class="td-user" data-label="User" style="padding:.875rem 1rem">
+              <div>
+                <div style="font-weight:700;font-size:.9375rem">@<%= app.username %></div>
+                <div style="font-size:.75rem;color:var(--text-3)"><%= app.email %></div>
+              </div>
+            </td>
+            <td data-label="Pathway" style="padding:.875rem 1rem">
+              <span style="display:inline-flex;align-items:center;gap:.4rem;font-weight:700;color:<%= pm.color %>">
+                <i class="fas <%= pm.icon %>"></i> <%= pm.name %>
+              </span>
+            </td>
+            <td data-label="XP" style="padding:.875rem 1rem;font-weight:700;color:<%= (app.xp||0)>=10000?'#10b981':'#f59e0b' %>">
+              <%= (app.xp||0).toLocaleString() %>
+            </td>
+            <td data-label="Status" style="padding:.875rem 1rem">
+              <span style="font-size:.75rem;font-weight:700;padding:.25rem .625rem;border-radius:99px;background:<%=sColor%>20;color:<%=sColor%>">
+                <%= (app.pathwayStatus||'').replace('_',' ').toUpperCase() %>
+              </span>
+            </td>
+            <td data-label="Applied" style="padding:.875rem 1rem;font-size:.8rem;color:var(--text-3)">
+              <%= app.pathwayApplication?.appliedAt ? new Date(app.pathwayApplication.appliedAt).toLocaleDateString() : '—' %>
+            </td>
+            <td data-label="Note" style="padding:.875rem 1rem;max-width:300px">
+              <div>
+              <% if (app.pathwayApplication?.reason || app.pathwayApplication?.experience) { %>
+              <button onclick="toggleApp('app-<%= app._id %>')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text-2);font-size:.75rem;padding:.25rem .625rem;border-radius:6px;cursor:pointer">
+                <i class="fas fa-eye"></i> View
+              </button>
+              <div id="app-<%= app._id %>" style="display:none;margin-top:.625rem">
+                <% if (app.pathwayApplication.reason) { %>
+                <div style="margin-bottom:.5rem">
+                  <div style="font-size:.7rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem">Why this pathway</div>
+                  <div style="font-size:.8125rem;color:var(--text-2);line-height:1.5;background:rgba(255,255,255,.03);padding:.5rem .75rem;border-radius:6px"><%= app.pathwayApplication.reason %></div>
+                </div>
+                <% } %>
+                <% if (app.pathwayApplication.experience) { %>
+                <div>
+                  <div style="font-size:.7rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem">Experience</div>
+                  <div style="font-size:.8125rem;color:var(--text-2);line-height:1.5;background:rgba(255,255,255,.03);padding:.5rem .75rem;border-radius:6px"><%= app.pathwayApplication.experience %></div>
+                </div>
+                <% } %>
+                <% if (app.pathwayApplication.reviewNote) { %>
+                <div style="margin-top:.5rem">
+                  <div style="font-size:.7rem;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem">Rejection Note</div>
+                  <div style="font-size:.8125rem;color:#ef4444;background:rgba(239,68,68,.06);padding:.5rem .75rem;border-radius:6px"><%= app.pathwayApplication.reviewNote %></div>
+                </div>
+                <% } %>
+              </div>
+              <% } else { %>
+              <span style="font-size:.75rem;color:var(--text-4)">Auto-approved (10k+ XP)</span>
+              <% } %>
+              </div>
+            </td>
+            <td class="td-actions" data-label="Actions" style="padding:.875rem 1rem">
+              <% if (app.pathwayStatus === 'pending') { %>
+              <div class="pw-actions-row">
+                <form method="POST" action="/admin/pathway-applications/<%= app._id %>/approve">
+                  <button type="submit" style="width:100%;background:#10b981;color:#000;border:none;border-radius:6px;padding:.375rem .875rem;font-size:.8rem;font-weight:700;cursor:pointer">
+                    <i class="fas fa-check"></i> Approve
+                  </button>
+                </form>
+                <form method="POST" action="/admin/pathway-applications/<%= app._id %>/reject" onsubmit="return addNote(this)">
+                  <input type="hidden" name="note" id="note-<%= app._id %>" value="">
+                  <button type="submit" style="width:100%;background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:.375rem .875rem;font-size:.8rem;font-weight:700;cursor:pointer">
+                    <i class="fas fa-times"></i> Reject
+                  </button>
+                </form>
+              </div>
+              <% } else { %>
+              <span style="font-size:.75rem;color:var(--text-4);font-style:italic">Reviewed</span>
+              <% } %>
+            </td>
+          </tr>
+          <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% } %>
+
+  </div>
+</div>
+
+<script>
+function toggleApp(id) {
+  var el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+function addNote(form) {
+  var note = prompt('Rejection reason (optional — will be shown to user):') || '';
+  form.querySelector('[name="note"]').value = note;
+  return true;
+}
+(function() {
+  var p = new URLSearchParams(location.search);
+  var s = p.get('success'), e = p.get('error');
+  var msgs = { approved:'Application approved — email sent.', rejected:'Application rejected — email sent.' };
+  var errMsgs = { not_found:'User not found.', server:'Server error.' };
+  if (s && msgs[s]) flash('success', msgs[s]);
+  if (e && errMsgs[e]) flash('error', errMsgs[e]);
+  function flash(type, msg) {
+    var d = document.createElement('div');
+    d.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:9999;padding:.75rem 1.25rem;border-radius:8px;font-weight:700;font-size:.875rem;' + (type==='success'?'background:#10b981;color:#000':'background:#ef4444;color:#fff');
+    d.textContent = msg;
+    document.body.appendChild(d);
+    setTimeout(function(){ d.remove(); }, 4000);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <%- include('../partials/achievement-popup') %>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    .bd-hero { border-radius:18px; overflow:hidden; border:1px solid var(--border); min-height:180px; position:relative; }
+    .bd-hero-bg { position:absolute; inset:0; background:linear-gradient(135deg,#0d190d 0%,#111c11 50%,#0f1d0e 100%); }
+    .bd-hero-overlay { position:absolute; inset:0; background:radial-gradient(ellipse at 70% 50%,rgba(251,191,36,.08) 0%,transparent 65%); }
+    <% if (bounty.image) { %>.bd-hero-img { position:absolute; inset:0; background:url('<%= bounty.image %>') center/cover; opacity:.25; }<% } %>
+    .bd-hero-content { position:relative; z-index:1; padding:2rem 2.25rem; min-height:200px; display:flex; align-items:flex-end; flex-wrap:wrap; gap:1.5rem; }
+    .bd-back { display:inline-flex; align-items:center; gap:.5rem; color:var(--text-3); font-size:.8125rem; font-weight:700; text-decoration:none; margin-bottom:1rem; }
+    .bd-back:hover { color:var(--green); }
+    .bd-badge { font-size:.68rem; font-weight:800; padding:.3rem .75rem; border-radius:50px; letter-spacing:.5px; }
+    .bd-badge--live { background:rgba(94,194,19,.18); color:var(--green); border:1px solid rgba(94,194,19,.35); }
+    .bd-badge--ended { background:rgba(239,68,68,.15); color:#f87171; border:1px solid rgba(239,68,68,.3); }
+    .bd-badge--int { background:rgba(251,146,60,.15); color:#fb923c; border:1px solid rgba(251,146,60,.3); }
+    .bd-badge--win { background:rgba(251,191,36,.18); color:#fbbf24; border:1px solid rgba(251,191,36,.35); }
+    .bd-title { font-size:clamp(1.4rem,3vw,2rem); font-weight:900; color:var(--text); letter-spacing:-1px; margin-bottom:.5rem; }
+    .reward-strip { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.25rem; }
+    .reward-pill { display:inline-flex; align-items:center; gap:.45rem; padding:.5rem 1rem; border-radius:50px; font-size:.875rem; font-weight:800; }
+    .reward-pill--pool { background:rgba(251,191,36,.15); color:#fbbf24; border:1px solid rgba(251,191,36,.3); }
+    .reward-pill--subs { background:rgba(94,194,19,.1); color:var(--green); border:1px solid rgba(94,194,19,.2); }
+    .bd-layout { display:grid; grid-template-columns:1fr 320px; gap:1.25rem; align-items:start; margin-top:1.25rem; }
+    @media (max-width:1100px) { .bd-layout { grid-template-columns:1fr 280px; } }
+    @media (max-width:820px)  { .bd-layout { grid-template-columns:1fr; } }
+    .split-table { width:100%; border-collapse:collapse; font-size:.875rem; }
+    .split-table th { text-align:left; color:var(--text-3); font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; padding:.5rem .75rem; }
+    .split-table td { padding:.625rem .75rem; border-top:1px solid rgba(255,255,255,.05); color:var(--text); font-weight:700; }
+    .split-table .gold { color:#fbbf24; }
+    .submit-card { background:var(--bg-card); border:1px solid var(--border); border-radius:18px; padding:1.5rem; position:sticky; top:1.25rem; }
+    @media (max-width:820px) { .submit-card { position:static; } }
+    .submit-card h3 { font-size:.9375rem; font-weight:900; margin-bottom:1rem; color:var(--text); }
+    .form-group { margin-bottom:1rem; }
+    .form-group label { display:block; font-size:.78rem; font-weight:800; color:var(--text-3); text-transform:uppercase; letter-spacing:.8px; margin-bottom:.4rem; }
+    .form-group input, .form-group textarea { width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:10px; color:var(--text); font-family:'Outfit',sans-serif; font-size:.875rem; padding:.75rem 1rem; resize:vertical; box-sizing:border-box; }
+    .form-group input:focus, .form-group textarea:focus { border-color:rgba(94,194,19,.5); outline:none; }
+    .submit-btn { width:100%; padding:.875rem; border-radius:12px; background:var(--green); color:#000; font-family:'Outfit',sans-serif; font-size:.9375rem; font-weight:900; border:none; cursor:pointer; transition:all .25s; }
+    .submit-btn:hover { transform:translateY(-2px); box-shadow:0 6px 22px rgba(94,194,19,.45); }
+    .submit-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+    .countdown-box { background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:1.25rem; text-align:center; margin-bottom:1.25rem; }
+    .countdown-val { font-size:1.5rem; font-weight:900; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-.5px; }
+    .countdown-val.urgent { color:#f87171; }
+    .countdown-lbl { font-size:.72rem; color:var(--text-3); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:.25rem; }
+    .sub-card { background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:1rem 1.125rem; display:flex; gap:.875rem; }
+    .sub-pfp { width:40px; height:40px; border-radius:10px; flex-shrink:0; background:rgba(94,194,19,.1); border:1px solid rgba(94,194,19,.2); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); font-size:1rem; overflow:hidden; }
+    .sub-pfp img { width:100%; height:100%; object-fit:cover; border-radius:9px; }
+    .sub-name { font-size:.875rem; font-weight:800; color:var(--text); }
+    .sub-title { font-size:.8125rem; color:var(--text-2); margin:.15rem 0; font-weight:600; }
+    .sub-desc { font-size:.78rem; color:var(--text-3); line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    .sub-meta { font-size:.7rem; color:var(--text-3); margin-top:.375rem; }
+    .sub-winner-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .65rem; border-radius:50px; background:rgba(251,191,36,.15); color:#fbbf24; border:1px solid rgba(251,191,36,.35); font-size:.65rem; font-weight:800; margin-left:.5rem; }
+    .winner-card { background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,146,60,.06)); border:1px solid rgba(251,191,36,.3); border-radius:16px; padding:1.125rem; display:flex; align-items:center; gap:1rem; }
+    .winner-rank { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:900; flex-shrink:0; }
+    .winner-rank-1 { background:rgba(251,191,36,.2); color:#fbbf24; }
+    .winner-rank-2 { background:rgba(148,163,184,.15); color:#94a3b8; }
+    .winner-rank-3 { background:rgba(180,120,80,.15); color:#cd7f32; }
+    .winner-pfp { width:44px; height:44px; border-radius:11px; flex-shrink:0; background:rgba(94,194,19,.1); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); overflow:hidden; }
+    .winner-pfp img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
+  </style>
+</head>
+<body>
+<%- include('../partials/sidebar', { user, currentPage }) %>
+<div class="dashboard-container">
+  <main class="main-content">
+    <div class="content" style="gap:0;padding-bottom:2.5rem">
+
+    <!-- Hero -->
+    <div class="bd-hero">
+      <div class="bd-hero-bg"></div>
+      <div class="bd-hero-overlay"></div>
+      <% if (bounty.image) { %><div class="bd-hero-img"></div><% } %>
+      <div class="bd-hero-content">
+        <div style="flex:1;min-width:0">
+          <a href="/dashboard/bounties" class="bd-back"><i class="fas fa-arrow-left"></i> All Bounties</a>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+            <span class="bd-badge bd-badge--int">ONBOARD3</span>
+            <% if (bounty.status === 'winners_announced') { %>
+              <span class="bd-badge bd-badge--win"><i class="fas fa-trophy"></i> Winners Announced</span>
+            <% } else if (bounty.hasEnded || (bounty.endDate && new Date() > new Date(bounty.endDate))) { %>
+              <span class="bd-badge bd-badge--ended">Ended</span>
+            <% } else { %>
+              <span class="bd-badge bd-badge--live"><i class="fas fa-circle" style="font-size:.5rem"></i> Live</span>
+            <% } %>
+            <% if (bounty.category) { %><span class="bd-badge" style="background:rgba(255,255,255,.06);color:var(--text-2);border:1px solid rgba(255,255,255,.1);text-transform:capitalize"><%= bounty.category %></span><% } %>
+          </div>
+          <h1 class="bd-title"><%= bounty.title %></h1>
+          <p style="color:var(--text-2);font-size:.9375rem;line-height:1.65"><%= bounty.shortDescription %></p>
+          <div class="reward-strip">
+            <span class="reward-pill reward-pill--pool"><i class="fas fa-coins"></i> <%= (bounty.rewardPool||0).toLocaleString() %> <%= bounty.rewardToken || 'USDC' %> Pool</span>
+            <span class="reward-pill reward-pill--subs"><i class="fas fa-file-alt"></i> <%= submissions.length %> Submission<%= submissions.length !== 1 ? 's' : '' %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bd-layout">
+      <!-- Left: description + submissions -->
+      <div>
+
+        <!-- Description -->
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="card-header"><h3><i class="fas fa-info-circle"></i> About This Bounty</h3></div>
+          <div style="padding:0 1.5rem 1.5rem;color:var(--text-2);line-height:1.75;font-size:.9rem;white-space:pre-wrap"><%= bounty.description %></div>
+        </div>
+
+        <!-- Reward split -->
+        <% if (bounty.rewardSplit && bounty.rewardSplit.length > 0) { %>
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="card-header"><h3><i class="fas fa-chart-pie"></i> Reward Split</h3></div>
+          <div style="padding:0 1.5rem 1.5rem">
+            <table class="split-table">
+              <thead><tr><th>Rank</th><th>%</th><th>Amount</th></tr></thead>
+              <tbody>
+              <% bounty.rewardSplit.forEach(function(s, i) { %>
+              <tr>
+                <td class="gold"><%= i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1) %> <%= s.label %></td>
+                <td><%= s.percentage %>%</td>
+                <td class="gold"><%= (s.amount || Math.round(bounty.rewardPool * s.percentage / 100 * 100)/100).toLocaleString() %> <%= bounty.rewardToken || 'USDC' %></td>
+              </tr>
+              <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <% } %>
+
+        <!-- Winners (if announced) -->
+        <% if (bounty.status === 'winners_announced' && bounty.winners && bounty.winners.length > 0) { %>
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="card-header"><h3><i class="fas fa-trophy" style="color:#fbbf24"></i> Winners</h3></div>
+          <div style="padding:0 1.5rem 1.5rem;display:flex;flex-direction:column;gap:.75rem">
+            <% bounty.winners.forEach(function(w) {
+              const winSub = submissions.find(s => s._id.toString() === (w.submissionId||'').toString());
+            %>
+            <div class="winner-card">
+              <div class="winner-rank winner-rank-<%= Math.min(w.rank,3) %>"><%= w.rank===1?'🥇':w.rank===2?'🥈':w.rank===3?'🥉':'#'+w.rank %></div>
+              <div class="winner-pfp">
+                <% if (winSub?.userId?.profilePicture) { %>
+                <img src="<%= winSub.userId.profilePicture %>" alt="">
+                <% } else { %><span><%= (winSub?.userId?.username || '?').charAt(0).toUpperCase() %></span><% } %>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:800;color:var(--text)"><%= winSub?.userId?.username || 'Unknown' %></div>
+                <% if (winSub) { %><div style="font-size:.8rem;color:var(--text-3);margin-top:2px"><%= winSub.title %></div><% } %>
+              </div>
+              <div style="text-align:right;flex-shrink:0">
+                <div style="font-size:1rem;font-weight:900;color:#fbbf24"><%= (w.amountWon||0).toLocaleString() %> <%= bounty.rewardToken||'USDC' %></div>
+              </div>
+            </div>
+            <% }); %>
+          </div>
+        </div>
+        <% } %>
+
+        <!-- All submissions -->
+        <div class="card">
+          <div class="card-header" style="flex-wrap:wrap;gap:.5rem">
+            <h3><i class="fas fa-file-alt"></i> Submissions (<%= submissions.length %>)</h3>
+          </div>
+          <div style="padding:0 1.5rem 1.5rem;display:flex;flex-direction:column;gap:.75rem">
+            <% if (submissions.length === 0) { %>
+            <div style="text-align:center;padding:2rem;color:var(--text-3);font-size:.875rem"><i class="fas fa-inbox" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No submissions yet. Be the first!</div>
+            <% } %>
+            <% submissions.forEach(function(sub) { %>
+            <div class="sub-card" style="<%= sub.status==='winner'?'border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.04)':'' %>">
+              <div class="sub-pfp">
+                <% if (sub.userId?.profilePicture) { %>
+                <img src="<%= sub.userId.profilePicture %>" alt="">
+                <% } else { %><span><%= (sub.userId?.username||'?').charAt(0).toUpperCase() %></span><% } %>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div class="sub-name">
+                  <%= sub.userId?.username || 'Anonymous' %>
+                  <% if (sub.status === 'winner') { %><span class="sub-winner-badge"><i class="fas fa-trophy"></i> #<%= sub.rank %> Winner</span><% } %>
+                </div>
+                <div class="sub-title"><%= sub.title %></div>
+                <div class="sub-desc"><%= sub.description %></div>
+                <% if (sub.submissionUrl) { %>
+                <a href="<%= sub.submissionUrl %>" target="_blank" style="font-size:.75rem;color:var(--green);font-weight:700;text-decoration:none;margin-top:.3rem;display:inline-flex;align-items:center;gap:.3rem"><i class="fas fa-external-link-alt"></i> View Work</a>
+                <% } %>
+                <div class="sub-meta"><%= new Date(sub.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></div>
+              </div>
+              <% if (sub.amountWon) { %><div style="flex-shrink:0;font-weight:900;color:#fbbf24;font-size:.875rem"><%= sub.amountWon.toLocaleString() %> <%= bounty.rewardToken||'USDC' %></div><% } %>
+            </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: submit + countdown sidebar -->
+      <div>
+        <!-- Countdown -->
+        <% if (bounty.endDate) { %>
+        <div class="countdown-box" style="margin-bottom:1.25rem">
+          <% const ended = new Date() > new Date(bounty.endDate); %>
+          <% if (ended || bounty.status === 'winners_announced') { %>
+          <div class="countdown-val">Ended</div>
+          <div class="countdown-lbl">This bounty is closed</div>
+          <% } else { %>
+          <div class="countdown-val" id="cdVal">--</div>
+          <div class="countdown-lbl">Time Remaining</div>
+          <% } %>
+        </div>
+        <% } %>
+
+        <!-- Submit card -->
+        <%
+          const isEnded = bounty.endDate && new Date() > new Date(bounty.endDate);
+          const winnersOut = bounty.status === 'winners_announced';
+        %>
+        <div class="submit-card">
+          <% if (winnersOut) { %>
+          <div style="text-align:center;padding:1rem 0">
+            <i class="fas fa-trophy" style="font-size:2.5rem;color:#fbbf24;display:block;margin-bottom:.75rem"></i>
+            <h3 style="color:#fbbf24">Winners Announced</h3>
+            <p style="color:var(--text-3);font-size:.8125rem">This bounty has concluded.</p>
+          </div>
+          <% } else if (mySubmission) { %>
+          <div style="text-align:center;padding:1rem 0">
+            <i class="fas fa-check-circle" style="font-size:2.5rem;color:var(--green);display:block;margin-bottom:.75rem"></i>
+            <h3 style="color:var(--green)">Submitted!</h3>
+            <p style="color:var(--text-3);font-size:.8125rem;margin-bottom:.5rem">Your submission is in.</p>
+            <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.75rem;text-align:left;font-size:.8rem">
+              <strong style="color:var(--text)"><%= mySubmission.title %></strong>
+              <p style="color:var(--text-3);margin-top:.3rem"><%= mySubmission.description.substring(0,100) %><%= mySubmission.description.length>100?'...':'' %></p>
+            </div>
+          </div>
+          <% } else if (isEnded) { %>
+          <div style="text-align:center;padding:1rem 0">
+            <i class="fas fa-lock" style="font-size:2rem;color:var(--text-3);display:block;margin-bottom:.75rem"></i>
+            <h3 style="color:var(--text-3)">Submissions Closed</h3>
+            <p style="color:var(--text-3);font-size:.8125rem">This bounty has ended.</p>
+          </div>
+          <% } else { %>
+          <h3><i class="fas fa-paper-plane" style="color:var(--green)"></i> Submit Your Work</h3>
+          <form id="submitForm">
+            <div class="form-group">
+              <label>Submission Title *</label>
+              <input type="text" id="subTitle" placeholder="Give your submission a title" required>
+            </div>
+            <div class="form-group">
+              <label>Description *</label>
+              <textarea id="subDesc" rows="5" placeholder="Describe what you built / delivered..." required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Work URL <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+              <input type="url" id="subUrl" placeholder="https://github.com/... or demo link">
+            </div>
+            <button type="submit" class="submit-btn" id="submitBtn"><i class="fas fa-paper-plane"></i> Submit</button>
+          </form>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    </div><!-- /.content -->
+  </main>
+</div><!-- /.dashboard-container -->
+
+<script>
+// Countdown
+<% if (bounty.endDate && new Date() < new Date(bounty.endDate)) { %>
+const endMs = <%= new Date(bounty.endDate).getTime() %>;
+const cdEl  = document.getElementById('cdVal');
+function tickCD() {
+  const ms = endMs - Date.now();
+  if (ms <= 0) { if(cdEl) cdEl.textContent='Ended'; return; }
+  const d=Math.floor(ms/86400000), h=Math.floor((ms%86400000)/3600000),
+        m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000);
+  if(cdEl) {
+    cdEl.textContent = d>0 ? d+'d '+h+'h '+m+'m' : h+'h '+m+'m '+s+'s';
+    if(ms<3600000) cdEl.classList.add('urgent');
+  }
+}
+tickCD(); setInterval(tickCD, 1000);
+<% } %>
+
+// Submit form
+const form = document.getElementById('submitForm');
+if (form) {
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    try {
+      const res = await fetch('/dashboard/bounties/internal/<%= bounty._id %>/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title:         document.getElementById('subTitle').value,
+          description:   document.getElementById('subDesc').value,
+          submissionUrl: document.getElementById('subUrl').value
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Submission received!', 'success');
+        setTimeout(function() { location.reload(); }, 1200);
+      } else {
+        showToast(data.message || 'Error submitting', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
+      }
+    } catch(err) {
+      showToast('Network error. Please try again.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
+    }
+  });
+}
+</script>
+</body>
+</html>

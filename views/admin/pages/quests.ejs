@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Quests — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    /* ── Responsive table ── */
+    .a-table-wrap { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .at { min-width:720px; }
+    .at td, .at th { white-space:nowrap; }
+    .at td:first-child { white-space:normal; min-width:200px; }
+
+    /* ── Quest Manager Panel ── */
+    .qm-overlay {
+      position:fixed;inset:0;background:rgba(0,0,0,.55);
+      backdrop-filter:blur(4px);z-index:1000;
+      opacity:0;pointer-events:none;transition:opacity .25s;
+    }
+    .qm-overlay.open { opacity:1;pointer-events:all; }
+    .qm-panel {
+      position:fixed;top:0;right:0;bottom:0;
+      width:min(680px,100vw);
+      background:#0d160d;
+      border-left:1px solid rgba(94,194,19,.2);
+      display:flex;flex-direction:column;
+      transform:translateX(100%);
+      transition:transform .3s cubic-bezier(.4,0,.2,1);
+      z-index:1001;overflow:hidden;
+    }
+    .qm-overlay.open .qm-panel { transform:translateX(0); }
+
+    .qm-head {
+      display:flex;align-items:flex-start;justify-content:space-between;
+      padding:1.25rem 1.5rem 0;border-bottom:1px solid rgba(94,194,19,.12);
+      padding-bottom:1rem;flex-shrink:0;
+    }
+    .qm-head h3 { font-size:1.05rem;font-weight:800;color:#e8f5e2;margin-bottom:.35rem; }
+    .qm-close {
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+      color:#8aaf85;width:32px;height:32px;border-radius:8px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+      transition:background .15s;
+    }
+    .qm-close:hover { background:rgba(239,68,68,.15);color:#ef4444; }
+
+    .qm-tabs {
+      display:flex;gap:0;flex-shrink:0;
+      border-bottom:1px solid rgba(94,194,19,.12);
+      padding:0 1.5rem;
+    }
+    .qm-tab {
+      padding:.625rem 1.25rem;font-size:.82rem;font-weight:700;
+      background:transparent;border:none;cursor:pointer;
+      color:#5a7a56;border-bottom:2px solid transparent;
+      margin-bottom:-1px;transition:color .15s,border-color .15s;
+      font-family:'Outfit',sans-serif;
+    }
+    .qm-tab.active { color:#5ec213;border-bottom-color:#5ec213; }
+    .qm-tab:hover { color:#8aaf85; }
+
+    .qm-body { flex:1;overflow-y:auto;padding:1.25rem 1.5rem; }
+    .qm-body::-webkit-scrollbar { width:4px; }
+    .qm-body::-webkit-scrollbar-thumb { background:rgba(94,194,19,.2);border-radius:2px; }
+
+    /* Task list in panel */
+    .task-row {
+      display:flex;align-items:center;gap:.75rem;
+      padding:.625rem .875rem;border-radius:10px;
+      background:rgba(255,255,255,.03);border:1px solid rgba(94,194,19,.1);
+      margin-bottom:.5rem;
+    }
+    .task-num {
+      flex-shrink:0;width:26px;height:26px;border-radius:50%;
+      background:rgba(94,194,19,.12);color:#5ec213;
+      display:flex;align-items:center;justify-content:center;
+      font-size:.72rem;font-weight:900;
+    }
+    .task-info { flex:1;min-width:0; }
+    .task-info p { font-size:.83rem;font-weight:700;color:#e8f5e2;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .task-info span { font-size:.7rem;color:#5a7a56; }
+    .task-xp { font-size:.75rem;font-weight:800;color:#5ec213; }
+
+    /* Add task form */
+    .add-task-form {
+      border:1px dashed rgba(94,194,19,.25);border-radius:12px;
+      padding:1rem;margin-top:1rem;background:rgba(94,194,19,.03);
+    }
+    .add-task-form h4 { font-size:.8rem;font-weight:800;color:#8aaf85;
+      text-transform:uppercase;letter-spacing:.08em;margin-bottom:.875rem; }
+    .aqf-grid { display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin-bottom:.625rem; }
+    @media(max-width:520px){ .aqf-grid{grid-template-columns:1fr;} }
+
+    /* Entries table */
+    .entries-wrap { overflow-x:auto;border-radius:10px;border:1px solid rgba(94,194,19,.12); }
+    .entries-table { width:100%;border-collapse:collapse;min-width:540px; }
+    .entries-table th {
+      background:rgba(94,194,19,.06);font-size:.7rem;font-weight:800;
+      text-transform:uppercase;letter-spacing:.07em;color:#5a7a56;
+      padding:.6rem .875rem;text-align:left;white-space:nowrap;
+    }
+    .entries-table td {
+      padding:.6rem .875rem;font-size:.8125rem;color:#e8f5e2;
+      border-top:1px solid rgba(94,194,19,.07);vertical-align:middle;
+    }
+    .entries-table tr:hover td { background:rgba(94,194,19,.03); }
+    .rank-badge {
+      display:inline-flex;align-items:center;justify-content:center;
+      width:26px;height:26px;border-radius:50%;
+      font-size:.72rem;font-weight:900;
+    }
+    .rank-1 { background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.3); }
+    .rank-2 { background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.25); }
+    .rank-3 { background:rgba(180,83,9,.12);color:#c2793a;border:1px solid rgba(180,83,9,.25); }
+    .rank-n { background:rgba(255,255,255,.05);color:#5a7a56;border:1px solid rgba(255,255,255,.08); }
+    .sub-link {
+      display:inline-flex;align-items:center;gap:.3rem;
+      color:#60a5fa;font-size:.75rem;text-decoration:none;
+      padding:.15rem .5rem;border-radius:20px;
+      background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);
+      transition:background .15s;white-space:nowrap;
+    }
+    .sub-link:hover { background:rgba(96,165,250,.15); }
+    .bonus-xp-btn {
+      display:inline-flex;align-items:center;gap:.3rem;
+      font-size:.72rem;font-weight:700;padding:.2rem .6rem;
+      border-radius:20px;background:rgba(245,158,11,.08);
+      color:#f59e0b;border:1px solid rgba(245,158,11,.25);
+      cursor:pointer;transition:background .15s;font-family:'Outfit',sans-serif;
+    }
+    .bonus-xp-btn:hover { background:rgba(245,158,11,.18); }
+
+    /* Reward plan preview */
+    .reward-preview {
+      margin-top:.625rem;padding:.625rem .875rem;border-radius:8px;
+      background:rgba(94,194,19,.06);border:1px solid rgba(94,194,19,.2);
+      font-size:.8rem;color:#8aaf85;display:none;
+    }
+    .reward-preview strong { color:#5ec213; }
+
+    /* Status tags */
+    .qt-tag {
+      display:inline-block;padding:.15rem .55rem;border-radius:20px;
+      font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+    }
+    .qt-standard   { background:rgba(94,194,19,.1); color:#5ec213; }
+    .qt-fcfs       { background:rgba(59,130,246,.1);color:#60a5fa; }
+    .qt-competition{ background:rgba(168,85,247,.1);color:#c084fc; }
+    .qt-referral_boost{ background:rgba(251,191,36,.1);color:#fbbf24; }
+    .qt-default    { background:rgba(255,255,255,.07);color:#8aaf85; }
+
+    /* Flash */
+    .qm-flash {
+      padding:.5rem .875rem;border-radius:8px;font-size:.8rem;font-weight:700;
+      margin-bottom:.875rem;display:none;
+    }
+    .qm-flash.ok  { background:rgba(94,194,19,.12);color:#5ec213;border:1px solid rgba(94,194,19,.3); }
+    .qm-flash.err { background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.25); }
+  </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'quests', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content">
+
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-trophy"></i> Quest Management</h1>
+        <p><%= quests.length %> quests — <%= quests.filter(q=>q.isActive).length %> active</p>
+      </div>
+      <button onclick="openModal('createQuestModal')" class="a-btn a-btn-primary">
+        <i class="fas fa-plus"></i> Create Quest
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="a-stats">
+      <div class="a-stat"><div class="a-stat-icon"><i class="fas fa-fire"></i></div><div class="a-stat-val"><%= quests.filter(q=>q.isActive).length %></div><div class="a-stat-lbl">Active</div></div>
+      <div class="a-stat"><div class="a-stat-icon"><i class="fas fa-users"></i></div><div class="a-stat-val"><%= quests.reduce((s,q)=>s+(q.totalParticipants||0),0) %></div><div class="a-stat-lbl">Participants</div></div>
+      <div class="a-stat"><div class="a-stat-icon"><i class="fas fa-check-circle"></i></div><div class="a-stat-val"><%= quests.reduce((s,q)=>s+(q.totalCompletions||0),0) %></div><div class="a-stat-lbl">Completions</div></div>
+      <div class="a-stat"><div class="a-stat-icon"><i class="fas fa-coins"></i></div><div class="a-stat-val">$<%= quests.reduce((s,q)=>s+(q.usdcReward||0),0).toFixed(0) %></div><div class="a-stat-lbl">Total USDC</div></div>
+    </div>
+
+    <!-- Pending Business Quests -->
+    <% var pendingBizQuests = quests.filter(function(q){ return q.approvalStatus === 'pending' && q.sponsoredBy; }); %>
+    <% if (pendingBizQuests.length) { %>
+    <div class="a-card" style="border-color:rgba(245,158,11,.3);margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:.625rem;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid rgba(245,158,11,.15)">
+        <i class="fas fa-clock" style="color:#f59e0b"></i>
+        <span style="font-weight:800;color:#f59e0b;font-size:.9rem">Pending Business Quests (<%= pendingBizQuests.length %>)</span>
+        <span style="font-size:.75rem;color:#5a7a56;margin-left:auto">Review and approve or reject sponsor quests</span>
+      </div>
+      <% pendingBizQuests.forEach(function(q) { %>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;padding:.875rem;background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.12);border-radius:10px;margin-bottom:.625rem">
+        <div style="min-width:0;flex:1">
+          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+            <span style="font-weight:700;color:#e8f5e2;font-size:.9rem"><%= q.title || '(untitled)' %></span>
+            <span class="qt-tag qt-<%= q.questType || 'standard' %>"><%= q.questType || 'standard' %></span>
+            <span style="font-size:.72rem;color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);padding:.1rem .5rem;border-radius:20px">$<%= (q.usdcReward||0).toFixed(2) %> pool</span>
+          </div>
+          <div style="font-size:.75rem;color:#5a7a56;margin-top:.2rem">
+            by <strong style="color:#8aaf85"><%= q.sponsoredBy.name || q.sponsoredBy.username || 'Business' %></strong>
+            &nbsp;·&nbsp; <%= (q.tasks && q.tasks.length) || 0 %> tasks
+          </div>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+          <form method="POST" action="/admin/business-quests/<%= q._id %>/approve" style="display:inline">
+            <button type="submit" class="a-btn a-btn-success a-btn-sm" onclick="return confirm('Approve and launch this quest?')">
+              <i class="fas fa-check"></i> Approve
+            </button>
+          </form>
+          <div class="bq-reject-wrap" style="position:relative">
+            <button type="button" class="a-btn a-btn-danger a-btn-sm" onclick="toggleRejectForm(this)">
+              <i class="fas fa-times"></i> Reject
+            </button>
+            <div class="bq-reject-form" style="display:none;position:absolute;right:0;top:calc(100% + .5rem);z-index:50;background:#0d160d;border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:.875rem;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.5)">
+              <form method="POST" action="/admin/business-quests/<%= q._id %>/reject">
+                <label style="display:block;font-size:.72rem;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.375rem">Rejection Reason</label>
+                <textarea name="reason" placeholder="Explain why this quest is being rejected..." style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(239,68,68,.25);border-radius:8px;color:#e8f5e2;padding:.5rem .75rem;font-size:.8rem;font-family:'Outfit',sans-serif;min-height:70px;resize:vertical;outline:none;margin-bottom:.5rem"></textarea>
+                <div style="display:flex;gap:.5rem;justify-content:flex-end">
+                  <button type="button" class="a-btn a-btn-secondary a-btn-sm" onclick="toggleRejectForm(this.closest('.bq-reject-form').previousElementSibling)">Cancel</button>
+                  <button type="submit" class="a-btn a-btn-danger a-btn-sm"><i class="fas fa-ban"></i> Confirm Reject</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <!-- Quest Table -->
+    <div class="a-card">
+      <div class="a-table-wrap">
+        <table class="at">
+          <thead>
+            <tr>
+              <th>Quest</th>
+              <th>Type</th>
+              <th>Rewards</th>
+              <th>Reward Plan</th>
+              <th>Participants</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% quests.forEach(q => {
+            const typeClass = 'qt-' + (q.questType || 'standard');
+            const hasPlan = q.rewardPlan && q.rewardPlan.rewardPerPerson > 0;
+          %>
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:.625rem">
+                <% if (q.image) { %>
+                  <img src="<%= q.image %>" style="width:32px;height:32px;border-radius:8px;object-fit:contain;background:#fff;padding:2px;flex-shrink:0">
+                <% } else { %>
+                  <div style="width:32px;height:32px;border-radius:8px;background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <i class="fas fa-trophy" style="color:var(--green);font-size:.8rem"></i>
+                  </div>
+                <% } %>
+                <div style="min-width:0">
+                  <p style="font-weight:700;color:var(--text);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><%= q.title || '(untitled)' %></p>
+                  <p style="font-size:.7rem;color:var(--text-3)"><%= (q.tasks && q.tasks.length) || 0 %> tasks</p>
+                </div>
+              </div>
+            </td>
+            <td><span class="qt-tag <%= typeClass %>"><%= q.questType || 'standard' %></span></td>
+            <td>
+              <p style="font-size:.8rem;font-weight:700;color:var(--green)"><%= q.baseXpReward||0 %> XP</p>
+              <% if (q.usdcReward > 0) { %><p style="font-size:.72rem;color:var(--amber)">$<%= q.usdcReward %> budget</p><% } %>
+            </td>
+            <td>
+              <% if (hasPlan) { %>
+                <span style="font-size:.75rem;color:#e8f5e2;font-weight:700">$<%= q.rewardPlan.rewardPerPerson %> × <%= q.rewardPlan.maxWinners || '∞' %></span>
+              <% } else { %>
+                <span style="font-size:.72rem;color:var(--text-3)">—</span>
+              <% } %>
+            </td>
+            <td style="font-weight:700;color:var(--text)"><%= q.totalParticipants || 0 %></td>
+            <td>
+              <span class="a-badge <%= q.isActive ? 'a-badge-success' : 'a-badge-neutral' %>">
+                <%= q.isActive ? 'Active' : 'Draft' %>
+              </span>
+            </td>
+            <td>
+              <div style="display:flex;gap:.4rem;flex-wrap:nowrap">
+                <button class="a-btn a-btn-primary a-btn-sm" title="Manage"
+                  data-qid="<%= q._id %>" data-qtype="<%= q.questType %>" data-qtitle="<%= (q.title||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') %>"
+                  onclick="openQuestManager(this.dataset.qid,this.dataset.qtitle,this.dataset.qtype)">
+                  <i class="fas fa-sliders"></i> Manage
+                </button>
+                <form method="POST" action="/admin/quests/<%= q._id %>/toggle" style="display:inline" onsubmit="return confirm('<%= q.isActive?'Deactivate':'Launch' %> this quest?')">
+                  <button type="submit" class="a-btn <%= q.isActive?'a-btn-warning':'a-btn-success' %> a-btn-sm" title="<%= q.isActive?'Deactivate':'Launch' %>">
+                    <i class="fas fa-<%= q.isActive?'pause':'rocket' %>"></i>
+                  </button>
+                </form>
+                <form method="POST" action="/admin/quests/<%= q._id %>/delete" style="display:inline" onsubmit="return confirm('Delete this quest permanently?')">
+                  <button type="submit" class="a-btn a-btn-danger a-btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (!quests.length) { %>
+          <tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-3)">
+            <i class="fas fa-trophy" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No quests yet
+          </td></tr>
+          <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /a-content -->
+</div><!-- /a-main -->
+
+<!-- ══════════════ CREATE QUEST MODAL ══════════════ -->
+<div class="a-modal-overlay" id="createQuestModal">
+  <div class="a-modal" style="max-width:720px">
+    <div class="a-modal-header">
+      <h3><i class="fas fa-plus" style="color:var(--green)"></i> Create New Quest</h3>
+      <button class="a-modal-close" onclick="closeModal('createQuestModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="/admin/quests/create">
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label>Title *</label>
+          <input type="text" name="title" class="a-input" required placeholder="Quest title">
+        </div>
+        <div class="a-form-group">
+          <label>Short Description *</label>
+          <input type="text" name="shortDescription" class="a-input" required placeholder="One-liner">
+        </div>
+      </div>
+      <div class="a-form-group">
+        <label>Full Description *</label>
+        <textarea name="description" class="a-input" required placeholder="Detailed quest description" style="min-height:80px"></textarea>
+      </div>
+      <div class="a-form-group">
+        <label>Banner Image URL <span style="color:var(--text-3)">(optional)</span></label>
+        <input type="url" name="image" class="a-input" placeholder="https://... or /img/...">
+      </div>
+
+      <div class="a-form-row-3">
+        <div class="a-form-group">
+          <label>Category</label>
+          <select name="category" class="a-input">
+            <option value="learning">Learning</option>
+            <option value="social">Social</option>
+            <option value="development">Development</option>
+            <option value="community">Community</option>
+            <option value="special">Special</option>
+          </select>
+        </div>
+        <div class="a-form-group">
+          <label>Difficulty</label>
+          <select name="difficulty" class="a-input">
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+        <div class="a-form-group">
+          <label>Quest Type</label>
+          <select name="questType" class="a-input" id="cqType" onchange="onCqTypeChange()">
+            <option value="standard">Standard</option>
+            <option value="fcfs">FCFS (First Come First Served)</option>
+            <option value="competition">Competition</option>
+            <option value="referral_boost">Referral Boost</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- XP -->
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label>Base XP Reward</label>
+          <input type="number" name="baseXpReward" class="a-input" value="0" min="0">
+        </div>
+        <div class="a-form-group">
+          <label>Total USDC Budget</label>
+          <input type="number" name="usdcReward" id="cqBudget" class="a-input" value="0" min="0" step="0.01" oninput="calcRewardPlan()">
+        </div>
+      </div>
+
+      <!-- Reward Distribution Plan -->
+      <div style="background:rgba(94,194,19,.04);border:1px solid rgba(94,194,19,.15);border-radius:10px;padding:1rem;margin-bottom:.875rem">
+        <p style="font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#5a7a56;margin-bottom:.75rem">
+          <i class="fas fa-chart-pie" style="color:var(--green)"></i> Reward Distribution Plan
+        </p>
+        <div class="a-form-row">
+          <div class="a-form-group" style="margin-bottom:0">
+            <label>USDC per person</label>
+            <input type="number" name="rewardPerPerson" id="cqPerPerson" class="a-input" value="0" min="0" step="0.01" oninput="calcRewardPlan()">
+          </div>
+          <div class="a-form-group" style="margin-bottom:0">
+            <label>Max recipients</label>
+            <input type="number" name="maxWinners" id="cqMaxWinners" class="a-input" value="0" min="0" placeholder="Auto from budget">
+          </div>
+        </div>
+        <div class="reward-preview" id="rewardPreview"></div>
+      </div>
+
+      <!-- FCFS config -->
+      <div id="cqFcfsConfig" style="display:none;background:rgba(59,130,246,.04);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:1rem;margin-bottom:.875rem">
+        <p style="font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#3b82f6;margin-bottom:.75rem">
+          <i class="fas fa-bolt"></i> FCFS Settings
+        </p>
+        <div class="a-form-row">
+          <div class="a-form-group" style="margin-bottom:0">
+            <label>Max Participants</label>
+            <input type="number" name="maxParticipants" class="a-input" placeholder="e.g. 100">
+          </div>
+          <div class="a-form-group" style="margin-bottom:0">
+            <label>Batch Size <span style="color:var(--text-3)">(optional)</span></label>
+            <input type="number" name="batchSize" class="a-input" placeholder="e.g. 50">
+          </div>
+        </div>
+      </div>
+
+      <!-- Competition config -->
+      <div id="cqCompConfig" style="display:none;background:rgba(168,85,247,.04);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:1rem;margin-bottom:.875rem">
+        <p style="font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#a855f7;margin-bottom:.75rem">
+          <i class="fas fa-medal"></i> Competition Settings
+        </p>
+        <div class="a-form-row">
+          <div class="a-form-group" style="margin-bottom:0">
+            <label>Top Winners Count</label>
+            <input type="number" name="competitionTopWinners" class="a-input" value="10" min="1">
+          </div>
+          <div class="a-form-group" style="margin-bottom:0">
+            <label>Winner Bonus XP</label>
+            <input type="number" name="competitionWinnerXP" class="a-input" value="0" min="0">
+          </div>
+        </div>
+      </div>
+
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label>Start Date <span style="color:var(--text-3)">(optional)</span></label>
+          <input type="datetime-local" name="startDate" class="a-input">
+        </div>
+        <div class="a-form-group">
+          <label>End Date <span style="color:var(--text-3)">(optional)</span></label>
+          <input type="datetime-local" name="endDate" class="a-input">
+        </div>
+      </div>
+
+      <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:.625rem .875rem;margin-bottom:.875rem;font-size:.78rem;color:#f59e0b">
+        <i class="fas fa-info-circle"></i>
+        Quest is saved as <strong>Draft</strong>. Add tasks in the manager, then launch when ready.
+      </div>
+
+      <div style="display:flex;gap:.75rem;justify-content:flex-end">
+        <button type="button" onclick="closeModal('createQuestModal')" class="a-btn a-btn-secondary">Cancel</button>
+        <button type="submit" class="a-btn a-btn-primary"><i class="fas fa-save"></i> Save Draft</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════ QUEST MANAGER PANEL ══════════════ -->
+<div class="qm-overlay" id="qmOverlay" onclick="onQmOverlayClick(event)">
+  <div class="qm-panel" id="qmPanel">
+
+    <div class="qm-head">
+      <div>
+        <h3 id="qmTitle">Quest Manager</h3>
+        <div id="qmMeta" style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.25rem"></div>
+      </div>
+      <button class="qm-close" onclick="closeQM()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="qm-tabs">
+      <button class="qm-tab active" id="qtab-tasks"    onclick="qmTab('tasks')">   <i class="fas fa-tasks"></i> Tasks</button>
+      <button class="qm-tab"        id="qtab-entries"  onclick="qmTab('entries')"> <i class="fas fa-list-ol"></i> Entries</button>
+      <button class="qm-tab"        id="qtab-settings" onclick="qmTab('settings')"><i class="fas fa-sliders-h"></i> Settings</button>
+    </div>
+
+    <!-- ── TASKS panel ── -->
+    <div class="qm-body" id="qm-tasks">
+      <div id="qmFlash" class="qm-flash"></div>
+
+      <p style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#5a7a56;margin-bottom:.75rem">Current Tasks</p>
+      <div id="qmTaskList">
+        <div style="color:#5a7a56;font-size:.85rem;padding:.75rem 0">Loading tasks…</div>
+      </div>
+
+      <!-- Add Task Form -->
+      <div class="add-task-form" id="addTaskForm">
+        <h4><i class="fas fa-plus" style="color:var(--green)"></i> Add Task</h4>
+        <div class="aqf-grid">
+          <div class="a-form-group" style="margin-bottom:0">
+            <label style="font-size:.75rem">Task Title *</label>
+            <input type="text" id="nt_title" class="a-input" placeholder="e.g. Follow us on X" style="font-size:.82rem;padding:.5rem .75rem">
+          </div>
+          <div class="a-form-group" style="margin-bottom:0">
+            <label style="font-size:.75rem">Task Type</label>
+            <select id="nt_type" class="a-input" style="font-size:.82rem;padding:.5rem .75rem" onchange="onTaskTypeChange()">
+              <option value="external">External Link (click to confirm)</option>
+              <option value="submission">Link Submission (URL input)</option>
+              <option value="image_upload">Image Upload (proof screenshot)</option>
+              <option value="social">Social Media</option>
+              <option value="verification">Verification</option>
+              <option value="discord_join">Discord Join</option>
+              <option value="telegram_join">Telegram Join</option>
+            </select>
+          </div>
+        </div>
+        <div class="aqf-grid">
+          <div class="a-form-group" style="margin-bottom:0">
+            <label style="font-size:.75rem">XP Reward</label>
+            <input type="number" id="nt_xp" class="a-input" value="0" min="0" style="font-size:.82rem;padding:.5rem .75rem">
+          </div>
+          <div class="a-form-group" style="margin-bottom:0">
+            <label style="font-size:.75rem">Button Link (optional)</label>
+            <input type="url" id="nt_link" class="a-input" placeholder="https://..." style="font-size:.82rem;padding:.5rem .75rem">
+          </div>
+        </div>
+        <div class="a-form-group" style="margin-bottom:.75rem;margin-top:.625rem">
+          <label style="font-size:.75rem">Description (optional)</label>
+          <input type="text" id="nt_desc" class="a-input" placeholder="Short task instructions" style="font-size:.82rem;padding:.5rem .75rem">
+        </div>
+        <div id="approvalToggleRow" style="display:flex;align-items:center;gap:.625rem;margin-bottom:.75rem;padding:.5rem .75rem;background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:8px">
+          <input type="checkbox" id="nt_approval" style="width:16px;height:16px;accent-color:#5ec213;cursor:pointer">
+          <label for="nt_approval" style="font-size:.78rem;color:#e8f5e2;cursor:pointer;font-weight:600;margin:0">
+            Require manual approval <span style="color:#5a7a56;font-weight:400">(admin reviews submission before XP is granted)</span>
+          </label>
+          <span id="approvalFcfsNote" style="display:none;font-size:.7rem;color:#60a5fa;margin-left:auto">Auto (FCFS)</span>
+        </div>
+        <button onclick="submitAddTask()" class="a-btn a-btn-primary a-btn-sm" id="addTaskBtn">
+          <i class="fas fa-plus"></i> Add Task
+        </button>
+      </div>
+    </div>
+
+    <!-- ── ENTRIES panel ── -->
+    <div class="qm-body" id="qm-entries" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+        <p style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#5a7a56">
+          Participants &amp; Submissions
+        </p>
+        <span id="qmFcfsNote" style="display:none;font-size:.72rem;color:#60a5fa;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);padding:.2rem .6rem;border-radius:20px">
+          <i class="fas fa-info-circle"></i> FCFS — ranked by time, not XP
+        </span>
+      </div>
+      <div id="qmEntriesWrap">
+        <div style="color:#5a7a56;font-size:.85rem;padding:.75rem 0">Loading entries…</div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS panel ── -->
+    <div class="qm-body" id="qm-settings" style="display:none">
+      <div id="qmSettingsFlash" class="qm-flash"></div>
+      <p style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#5a7a56;margin-bottom:1rem">Quest Settings</p>
+
+      <!-- XP & Budget -->
+      <div style="background:rgba(94,194,19,.04);border:1px solid rgba(94,194,19,.15);border-radius:10px;padding:1rem;margin-bottom:.875rem">
+        <p style="font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#5a7a56;margin-bottom:.75rem"><i class="fas fa-star" style="color:var(--green)"></i> XP &amp; Budget</p>
+        <div class="aqf-grid">
+          <div class="a-form-group" style="margin-bottom:0">
+            <label style="font-size:.75rem">Base XP Reward</label>
+            <input type="number" id="sq_baseXp" class="a-input" value="0" min="0" style="font-size:.82rem;padding:.5rem .75rem">
+          </div>
+          <div class="a-form-group" style="margin-bottom:0">
+            <label style="font-size:.75rem">Total USDC Budget</label>
+            <input type="number" id="sq_usdc" class="a-input" value="0" min="0" step="0.01" style="font-size:.82rem;padding:.5rem .75rem" oninput="calcSqPlan()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Reward Plan -->
+      <div style="background:rgba(94,194,19,.04);border:1px solid rgba(94,194,19,.15);border-radius:10px;padding:1rem;margin-bottom:.875rem">
+        <p style="font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#5a7a56;margin-bottom:.75rem"><i class="fas fa-chart-pie" style="color:var(--green)"></i> Reward Distribution</p>
+        <div class="aqf-grid">
+          <div class="a-form-group" style="margin-bottom:0">
+            <label style="font-size:.75rem">USDC per person</label>
+            <input type="number" id="sq_perPerson" class="a-input" value="0" min="0" step="0.01" style="font-size:.82rem;padding:.5rem .75rem" oninput="calcSqPlan()">
+          </div>
+          <div class="a-form-group" style="margin-bottom:0">
+            <label style="font-size:.75rem">Max recipients</label>
+            <input type="number" id="sq_maxWinners" class="a-input" value="0" min="0" style="font-size:.82rem;padding:.5rem .75rem">
+          </div>
+        </div>
+        <div id="sqRewardPreview" class="reward-preview" style="margin-top:.5rem"></div>
+      </div>
+
+      <!-- Participation limit (FCFS) -->
+      <div id="sq_fcfsSection" style="background:rgba(59,130,246,.04);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:1rem;margin-bottom:.875rem">
+        <p style="font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#3b82f6;margin-bottom:.75rem"><i class="fas fa-bolt"></i> FCFS / Slot Limit</p>
+        <div class="a-form-group" style="margin-bottom:0">
+          <label style="font-size:.75rem">Max Participants <span style="color:#5a7a56;font-weight:400">(leave 0 for unlimited)</span></label>
+          <input type="number" id="sq_maxParticipants" class="a-input" value="0" min="0" style="font-size:.82rem;padding:.5rem .75rem">
+        </div>
+      </div>
+
+      <button onclick="saveQuestSettings()" class="a-btn a-btn-primary" id="saveSettingsBtn" style="width:100%">
+        <i class="fas fa-save"></i> Save Settings
+      </button>
+    </div>
+
+  </div><!-- /qm-panel -->
+</div><!-- /qm-overlay -->
+
+<!-- Bonus XP mini modal -->
+<div class="a-modal-overlay" id="bonusXpModal">
+  <div class="a-modal" style="max-width:380px">
+    <div class="a-modal-header">
+      <h3><i class="fas fa-bolt" style="color:#f59e0b"></i> Award Bonus XP</h3>
+      <button class="a-modal-close" onclick="closeModal('bonusXpModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:.25rem 0 1.25rem">
+      <p id="bonusXpTarget" style="font-size:.85rem;color:#8aaf85;margin-bottom:.875rem"></p>
+      <div class="a-form-group">
+        <label>XP Amount to Award</label>
+        <input type="number" id="bonusXpAmount" class="a-input" min="1" placeholder="e.g. 50">
+      </div>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end">
+      <button onclick="closeModal('bonusXpModal')" class="a-btn a-btn-secondary">Cancel</button>
+      <button onclick="confirmBonusXp()" class="a-btn a-btn-primary"><i class="fas fa-bolt"></i> Award XP</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Modal helpers ── */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.a-modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); }));
+
+/* ── Business quest reject form toggle ── */
+function toggleRejectForm(btn) {
+  var wrap = btn.closest('.bq-reject-wrap');
+  var form = wrap.querySelector('.bq-reject-form');
+  // close all others first
+  document.querySelectorAll('.bq-reject-form').forEach(function(f) {
+    if (f !== form) f.style.display = 'none';
+  });
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+// Close reject forms when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.bq-reject-wrap')) {
+    document.querySelectorAll('.bq-reject-form').forEach(function(f) { f.style.display = 'none'; });
+  }
+});
+
+/* ── Reward plan calculator ── */
+function calcRewardPlan() {
+  var budget    = parseFloat(document.getElementById('cqBudget').value)    || 0;
+  var perPerson = parseFloat(document.getElementById('cqPerPerson').value) || 0;
+  var preview   = document.getElementById('rewardPreview');
+  if (budget <= 0 || perPerson <= 0) { preview.style.display='none'; return; }
+  var winners = Math.floor(budget / perPerson);
+  document.getElementById('cqMaxWinners').value = winners;
+  preview.style.display = 'block';
+  preview.innerHTML = '<strong>$' + budget.toFixed(2) + '</strong> total &nbsp;→&nbsp; <strong>$' + perPerson.toFixed(2) + '</strong> each &nbsp;→&nbsp; <strong>' + winners + ' recipients</strong>';
+}
+
+/* ── Quest type change ── */
+function onCqTypeChange() {
+  var t = document.getElementById('cqType').value;
+  document.getElementById('cqFcfsConfig').style.display  = t==='fcfs'        ? 'block' : 'none';
+  document.getElementById('cqCompConfig').style.display  = t==='competition'  ? 'block' : 'none';
+}
+
+function onTaskTypeChange() {
+  var type = document.getElementById('nt_type').value;
+  var approvalRow = document.getElementById('approvalToggleRow');
+  if (!approvalRow) return;
+  var needsReview = type === 'submission' || type === 'image_upload';
+  document.getElementById('nt_approval').checked = needsReview && _qmQuestType !== 'fcfs';
+}
+
+/* ── Quest Manager Panel ── */
+var _qmQuestId   = null;
+var _qmQuestType = null;
+
+function openQuestManager(id, title, type) {
+  _qmQuestId   = id;
+  _qmQuestType = type;
+  document.getElementById('qmTitle').textContent = title;
+  var metaEl = document.getElementById('qmMeta');
+  var typeColors = { standard:'#5ec213', fcfs:'#60a5fa', competition:'#c084fc', referral_boost:'#fbbf24' };
+  var col = typeColors[type] || '#8aaf85';
+  metaEl.innerHTML = '<span style="font-size:.7rem;font-weight:800;padding:.15rem .55rem;border-radius:20px;background:' + col + '18;color:' + col + ';border:1px solid ' + col + '33;text-transform:uppercase">' + type + '</span>';
+  document.getElementById('qmFcfsNote').style.display = type==='fcfs' ? 'inline-flex' : 'none';
+  /* For FCFS quests disable approval checkbox and show note */
+  var approvalRow = document.getElementById('approvalToggleRow');
+  var approvalCb  = document.getElementById('nt_approval');
+  var fcfsNote    = document.getElementById('approvalFcfsNote');
+  if (type === 'fcfs') {
+    approvalCb.checked  = false;
+    approvalCb.disabled = true;
+    if (approvalRow) approvalRow.style.opacity = '.45';
+    if (fcfsNote)   fcfsNote.style.display = 'inline';
+  } else {
+    approvalCb.disabled = false;
+    if (approvalRow) approvalRow.style.opacity = '1';
+    if (fcfsNote)   fcfsNote.style.display = 'none';
+  }
+  /* Load current quest settings into the Settings tab */
+  fetch('/admin/quests/' + id + '/entries')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      if (!d.success) return;
+      var q = d.quest;
+      document.getElementById('sq_baseXp').value        = q.baseXpReward || 0;
+      document.getElementById('sq_usdc').value          = q.usdcReward || 0;
+      document.getElementById('sq_perPerson').value     = (q.rewardPlan && q.rewardPlan.rewardPerPerson) || 0;
+      document.getElementById('sq_maxWinners').value    = (q.rewardPlan && q.rewardPlan.maxWinners) || 0;
+      document.getElementById('sq_maxParticipants').value = q.maxParticipants || 0;
+      calcSqPlan();
+    }).catch(function(){});
+  /* reset to tasks tab */
+  qmTab('tasks');
+  document.getElementById('qmOverlay').classList.add('open');
+  loadQmTasks();
+}
+
+function closeQM() {
+  document.getElementById('qmOverlay').classList.remove('open');
+}
+function onQmOverlayClick(e) {
+  if (e.target === document.getElementById('qmOverlay')) closeQM();
+}
+
+function qmTab(tab) {
+  ['tasks','entries','settings'].forEach(function(t) {
+    document.getElementById('qtab-' + t).classList.toggle('active', t===tab);
+    document.getElementById('qm-' + t).style.display = t===tab ? 'block' : 'none';
+  });
+  if (tab === 'entries') loadQmEntries();
+}
+
+/* ── Load tasks ── */
+function loadQmTasks() {
+  var list = document.getElementById('qmTaskList');
+  list.innerHTML = '<div style="color:#5a7a56;font-size:.85rem;padding:.5rem 0">Loading…</div>';
+  fetch('/admin/quests/' + _qmQuestId + '/entries')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      if (!d.success) { list.innerHTML = '<div style="color:#ef4444;font-size:.82rem">Failed to load tasks</div>'; return; }
+      var tasks = d.quest.tasks || [];
+      if (!tasks.length) {
+        list.innerHTML = '<div style="color:#5a7a56;font-size:.82rem;padding:.5rem 0"><i class="fas fa-info-circle"></i> No tasks yet — add one below.</div>';
+        return;
+      }
+      list.innerHTML = tasks.map(function(t, i) {
+        return '<div class="task-row">' +
+          '<div class="task-num">' + (i+1) + '</div>' +
+          '<div class="task-info">' +
+            '<p>' + escHtml(t.title) + '</p>' +
+            '<span>' + (t.taskType || 'external') + (t.requiresApproval ? ' · <span style="color:#f59e0b;font-size:.68rem">⏳ manual review</span>' : '') + (t.buttonLink ? ' · <a href="' + escHtml(t.buttonLink) + '" target="_blank" style="color:#60a5fa">' + escHtml(t.buttonLink.replace(/^https?:\/\//,'').substring(0,40)) + '</a>' : '') + '</span>' +
+          '</div>' +
+          '<span class="task-xp">' + (t.xpReward||0) + ' XP</span>' +
+        '</div>';
+      }).join('');
+    })
+    .catch(function() { list.innerHTML = '<div style="color:#ef4444;font-size:.82rem">Error loading tasks</div>'; });
+}
+
+/* ── Add task ── */
+function submitAddTask() {
+  var title  = document.getElementById('nt_title').value.trim();
+  var type   = document.getElementById('nt_type').value;
+  var xp     = document.getElementById('nt_xp').value;
+  var link   = document.getElementById('nt_link').value.trim();
+  var desc   = document.getElementById('nt_desc').value.trim();
+  if (!title) { showQmFlash('Title is required', false); return; }
+  var btn = document.getElementById('addTaskBtn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  fetch('/admin/quests/' + _qmQuestId + '/add-task', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: title, taskType: type, xpReward: parseInt(xp)||0, buttonLink: link, description: desc || title, requiresApproval: document.getElementById('nt_approval').checked })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Add Task';
+    if (d.success) {
+      showQmFlash('Task added!', true);
+      document.getElementById('nt_title').value = '';
+      document.getElementById('nt_link').value  = '';
+      document.getElementById('nt_desc').value  = '';
+      document.getElementById('nt_xp').value    = '0';
+      loadQmTasks();
+    } else {
+      showQmFlash(d.message || 'Failed to add task', false);
+    }
+  })
+  .catch(function() {
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Add Task';
+    showQmFlash('Network error', false);
+  });
+}
+
+/* ── Load entries ── */
+function loadQmEntries() {
+  var wrap = document.getElementById('qmEntriesWrap');
+  wrap.innerHTML = '<div style="color:#5a7a56;font-size:.85rem;padding:.75rem 0">Loading…</div>';
+  fetch('/admin/quests/' + _qmQuestId + '/entries')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      if (!d.success) { wrap.innerHTML = '<div style="color:#ef4444;font-size:.82rem">Failed to load entries</div>'; return; }
+      var entries  = d.entries  || [];
+      var tasks    = d.quest.tasks || [];
+      var isFcfs   = _qmQuestType === 'fcfs';
+      if (!entries.length) {
+        wrap.innerHTML = '<div style="color:#5a7a56;font-size:.85rem;text-align:center;padding:2rem 0"><i class="fas fa-satellite-dish" style="display:block;font-size:1.5rem;margin-bottom:.5rem;opacity:.4"></i>No entries yet</div>';
+        return;
+      }
+      /* Sort: FCFS → by completedAt, others → by totalXp desc */
+      if (isFcfs) {
+        entries.sort(function(a,b){ return new Date(a.completedAt||'9999') - new Date(b.completedAt||'9999'); });
+      }
+      var rows = entries.map(function(e, idx) {
+        var rank = idx + 1;
+        var rankClass = rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':'rank-n';
+        var xp = (e.xpBreakdown && e.xpBreakdown.totalXp) || e.totalXp || 0;
+        var username = (e.userId && e.userId.username) || 'Unknown';
+        var userId   = e.userId && e.userId._id;
+        var email    = (e.userId && e.userId.email) || '';
+        /* Gather submission URLs from task progress */
+        var submissionLinks = '';
+        if (e.taskProgress && e.taskProgress.length) {
+          var links = [];
+          e.taskProgress.forEach(function(tp, ti) {
+            var tname = (tasks[ti] && tasks[ti].title) || ('Task ' + (ti+1));
+            if (tp.submissionImage) {
+              links.push('<a href="' + escHtml(tp.submissionImage) + '" target="_blank" class="sub-link" style="color:#c084fc;border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.08)"><i class="fas fa-image"></i>' + escHtml(tname.substring(0,16)) + '</a>');
+            } else if (tp.submissionUrl) {
+              links.push('<a href="' + escHtml(tp.submissionUrl) + '" target="_blank" class="sub-link"><i class="fas fa-link"></i>' + escHtml(tname.substring(0,20)) + '</a>');
+            } else if (tp.submissionText) {
+              links.push('<span style="font-size:.72rem;color:#8aaf85">' + escHtml(tp.submissionText.substring(0,40)) + '</span>');
+            }
+          });
+          submissionLinks = links.join(' ') || '<span style="color:#5a7a56;font-size:.72rem">—</span>';
+        } else {
+          submissionLinks = '<span style="color:#5a7a56;font-size:.72rem">—</span>';
+        }
+        var completed = e.completedAt ? new Date(e.completedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : 'In progress';
+        var bonusCell = !isFcfs && userId
+          ? '<button class="bonus-xp-btn" onclick="openBonusXp(' + JSON.stringify(userId) + ',' + JSON.stringify(username) + ')"><i class="fas fa-bolt"></i> Bonus XP</button>'
+          : '<span style="color:#5a7a56;font-size:.7rem">—</span>';
+
+        /* Gather pending approval tasks */
+        var approvalCells = '';
+        if (e.taskProgress && e.taskProgress.length) {
+          e.taskProgress.forEach(function(tp, ti) {
+            if (tp.approvalStatus === 'pending') {
+              var tname = (tasks[ti] && tasks[ti].title) || ('Task ' + (ti+1));
+              var tid   = tp.taskId || '';
+              approvalCells += '<div style="display:flex;align-items:center;gap:.35rem;margin-bottom:.25rem">' +
+                '<span style="font-size:.68rem;color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:20px;padding:.1rem .4rem">⏳ ' + escHtml(tname.substring(0,18)) + '</span>' +
+                '<button onclick="approveTask(' + JSON.stringify(e._id) + ',' + JSON.stringify(tid) + ',this)" style="font-size:.65rem;padding:.1rem .4rem;background:rgba(94,194,19,.12);color:#5ec213;border:1px solid rgba(94,194,19,.3);border-radius:20px;cursor:pointer;font-family:Outfit,sans-serif">✓ Approve</button>' +
+                '<button onclick="rejectTask(' + JSON.stringify(e._id) + ',' + JSON.stringify(tid) + ',this)" style="font-size:.65rem;padding:.1rem .4rem;background:rgba(239,68,68,.08);color:#ef4444;border:1px solid rgba(239,68,68,.25);border-radius:20px;cursor:pointer;font-family:Outfit,sans-serif">✗ Reject</button>' +
+              '</div>';
+            } else if (tp.approvalStatus === 'approved') {
+              var tname2 = (tasks[ti] && tasks[ti].title) || ('Task ' + (ti+1));
+              approvalCells += '<span style="font-size:.68rem;color:#5ec213">✓ ' + escHtml(tname2.substring(0,18)) + '</span><br>';
+            } else if (tp.approvalStatus === 'rejected') {
+              var tname3 = (tasks[ti] && tasks[ti].title) || ('Task ' + (ti+1));
+              approvalCells += '<span style="font-size:.68rem;color:#ef4444">✗ ' + escHtml(tname3.substring(0,18)) + '</span><br>';
+            }
+          });
+        }
+        if (!approvalCells) approvalCells = '<span style="color:#5a7a56;font-size:.7rem">—</span>';
+
+        return '<tr>' +
+          '<td><span class="rank-badge ' + rankClass + '">' + rank + '</span></td>' +
+          '<td><a href="/u/' + escHtml(username) + '" target="_blank" style="color:#5ec213;font-weight:700;text-decoration:none">@' + escHtml(username) + '</a><br><span style="font-size:.68rem;color:#5a7a56">' + escHtml(email) + '</span></td>' +
+          '<td style="font-weight:800;color:#e8f5e2">' + (isFcfs ? '<span style="color:#5a7a56;font-size:.72rem">FCFS</span>' : xp.toLocaleString() + ' XP') + '</td>' +
+          '<td>' + submissionLinks + '</td>' +
+          '<td>' + approvalCells + '</td>' +
+          '<td style="font-size:.72rem;color:#8aaf85">' + completed + '</td>' +
+          '<td>' + bonusCell + '</td>' +
+        '</tr>';
+      }).join('');
+      wrap.innerHTML = '<div class="entries-wrap"><table class="entries-table">' +
+        '<thead><tr><th>#</th><th>User</th><th>' + (isFcfs?'Status':'XP') + '</th><th>Submissions</th><th>Approval</th><th>Completed</th><th>Bonus XP</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+        '</table></div>';
+    })
+    .catch(function() { wrap.innerHTML = '<div style="color:#ef4444;font-size:.82rem">Error loading entries</div>'; });
+}
+
+/* ── Bonus XP ── */
+var _bonusUserId = null;
+function openBonusXp(userId, username) {
+  _bonusUserId = userId;
+  document.getElementById('bonusXpTarget').textContent = 'Award extra XP to @' + username + ' — this raises their leaderboard position.';
+  document.getElementById('bonusXpAmount').value = '';
+  openModal('bonusXpModal');
+}
+function confirmBonusXp() {
+  var xp = parseInt(document.getElementById('bonusXpAmount').value) || 0;
+  if (xp < 1) { alert('Enter a valid XP amount'); return; }
+  fetch('/admin/quests/' + _qmQuestId + '/users/' + _bonusUserId + '/bonus-xp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ xp: xp })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    closeModal('bonusXpModal');
+    if (d.success) {
+      showQmFlash('+' + xp + ' XP awarded! New total: ' + d.newTotal + ' XP', true);
+      loadQmEntries();
+    } else {
+      alert(d.message || 'Failed to award XP');
+    }
+  })
+  .catch(function() { alert('Network error'); });
+}
+
+/* ── Helpers ── */
+function showQmFlash(msg, ok) {
+  var el = document.getElementById('qmFlash');
+  el.textContent = msg;
+  el.className = 'qm-flash ' + (ok ? 'ok' : 'err');
+  el.style.display = 'block';
+  setTimeout(function(){ el.style.display='none'; }, 3500);
+}
+function approveTask(progressId, taskId, btn) {
+  if (!confirm('Approve this submission and grant XP?')) return;
+  btn.disabled = true; btn.textContent = '…';
+  fetch('/admin/quests/' + _qmQuestId + '/submissions/' + progressId + '/review', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ taskId: taskId, action: 'approve' })
+  }).then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.success) { showQmFlash('Approved! +' + (d.xpGranted||0) + ' XP granted', true); loadQmEntries(); }
+    else { alert(d.message || 'Failed'); btn.disabled = false; btn.textContent = '✓ Approve'; }
+  }).catch(function() { btn.disabled = false; btn.textContent = '✓ Approve'; });
+}
+
+function rejectTask(progressId, taskId, btn) {
+  if (!confirm('Reject this submission?')) return;
+  btn.disabled = true; btn.textContent = '…';
+  fetch('/admin/quests/' + _qmQuestId + '/submissions/' + progressId + '/review', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ taskId: taskId, action: 'reject' })
+  }).then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.success) { showQmFlash('Submission rejected', true); loadQmEntries(); }
+    else { alert(d.message || 'Failed'); btn.disabled = false; btn.textContent = '✗ Reject'; }
+  }).catch(function() { btn.disabled = false; btn.textContent = '✗ Reject'; });
+}
+
+function calcSqPlan() {
+  var budget    = parseFloat(document.getElementById('sq_usdc').value)      || 0;
+  var perPerson = parseFloat(document.getElementById('sq_perPerson').value) || 0;
+  var preview   = document.getElementById('sqRewardPreview');
+  if (budget <= 0 || perPerson <= 0) { preview.style.display='none'; return; }
+  var winners = Math.floor(budget / perPerson);
+  document.getElementById('sq_maxWinners').value = winners;
+  preview.style.display = 'block';
+  preview.innerHTML = '<strong>$' + budget.toFixed(2) + '</strong> total &nbsp;→&nbsp; <strong>$' + perPerson.toFixed(2) + '</strong> each &nbsp;→&nbsp; <strong>' + winners + ' recipients</strong>';
+}
+
+function saveQuestSettings() {
+  var btn = document.getElementById('saveSettingsBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+  fetch('/admin/quests/' + _qmQuestId + '/update-settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      baseXpReward:    parseInt(document.getElementById('sq_baseXp').value) || 0,
+      usdcReward:      parseFloat(document.getElementById('sq_usdc').value) || 0,
+      rewardPerPerson: parseFloat(document.getElementById('sq_perPerson').value) || 0,
+      maxWinners:      parseInt(document.getElementById('sq_maxWinners').value) || 0,
+      maxParticipants: parseInt(document.getElementById('sq_maxParticipants').value) || 0
+    })
+  }).then(function(r){ return r.json(); })
+  .then(function(d) {
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Settings';
+    if (d.success) {
+      showSettingsFlash('Settings saved!', true);
+    } else {
+      showSettingsFlash(d.message || 'Failed to save', false);
+    }
+  }).catch(function() {
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Settings';
+    showSettingsFlash('Network error', false);
+  });
+}
+
+function showSettingsFlash(msg, ok) {
+  var el = document.getElementById('qmSettingsFlash');
+  el.textContent = msg;
+  el.className = 'qm-flash ' + (ok ? 'ok' : 'err');
+  el.style.display = 'block';
+  setTimeout(function(){ el.style.display='none'; }, 3500);
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

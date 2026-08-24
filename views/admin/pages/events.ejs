@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Events — ONBOARD3 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'events', admin:user }) %>
+
+<div class="a-main">
+    <div class="a-content">
+        <div class="a-page-header">
+            <div>
+                <h1><i class="fas fa-calendar-alt"></i> Events</h1>
+                <p><%= items.length %> total events</p>
+            </div>
+            <button onclick="document.getElementById('createEventModal').classList.add('open')" class="a-btn a-btn-primary"><i class="fas fa-plus"></i> Create Event</button>
+        </div>
+
+        <div class="a-card">
+            <div class="a-table-wrap">
+                <table class="at">
+                    <thead><tr><th>Event</th><th>Date</th><th>Type</th><th>Location</th><th>Registered</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="eventsTableBody">
+                        <% if (items && items.length > 0) { %>
+                            <% items.forEach(e => { %>
+                        <tr>
+                            <td style="font-weight:700;color:var(--text)"><%= e.title %></td>
+                            <td style="color:var(--text-3);font-size:.8125rem"><%= new Date(e.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></td>
+                            <td><span class="a-badge a-badge-neutral" style="text-transform:capitalize"><%= e.eventType || 'Online' %></span></td>
+                            <td style="color:var(--text-3);font-size:.8125rem"><%= e.location || '—' %></td>
+                            <td style="font-weight:700;color:var(--text)"><%= e.totalApproved || 0 %></td>
+                            <td><span class="a-badge <%= e.isActive ? 'a-badge-success':'a-badge-neutral' %>"><%= e.isActive ? 'Active':'Ended' %></span></td>
+                            <td><div style="display:flex;gap:.4rem">
+                                <a href="/admin/events/<%= e._id %>" class="a-btn a-btn-secondary a-btn-sm"><i class="fas fa-eye"></i></a>
+                                <form method="POST" action="/admin/events/<%= e._id %>/delete" onsubmit="return confirm('Delete this event?')"><button type="submit" class="a-btn a-btn-danger a-btn-sm"><i class="fas fa-trash"></i></button></form>
+                            </div></td>
+                        </tr>
+                        <% }) %>
+                        <% } else { %>
+                        <tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-3)">
+                            <i class="fas fa-calendar-alt" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>
+                            No events found
+                        </td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="a-modal-overlay" id="createEventModal">
+    <div class="a-modal" style="max-width:640px">
+        <div class="a-modal-header"><h3><i class="fas fa-plus" style="color:var(--green)"></i> Create Event</h3><button class="a-modal-close" onclick="document.getElementById('createEventModal').classList.remove('open')"><i class="fas fa-times"></i></button></div>
+        <form method="POST" action="/admin/events/create">
+            <div class="a-form-row"><div class="a-form-group"><label>Title *</label><input type="text" name="title" class="a-input" required></div><div class="a-form-group"><label>Event Type</label><select name="eventType" class="a-input"><option value="Online">Online</option><option value="In-Person">In-Person</option><option value="Hybrid">Hybrid</option></select></div></div>
+            <div class="a-form-group"><label>Description *</label><textarea name="description" class="a-input" required></textarea></div>
+            <div class="a-form-row"><div class="a-form-group"><label>Start Date *</label><input type="datetime-local" name="startDate" class="a-input" required></div><div class="a-form-group"><label>End Date</label><input type="datetime-local" name="endDate" class="a-input"></div></div>
+            <div class="a-form-row"><div class="a-form-group"><label>Location</label><input type="text" name="location" class="a-input" placeholder="City, Venue or Online"></div><div class="a-form-group"><label>Max Attendees</label><input type="number" name="maxAttendees" class="a-input" placeholder="Leave blank for unlimited"></div></div>
+            <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.5rem">
+                <button type="button" onclick="document.getElementById('createEventModal').classList.remove('open')" class="a-btn a-btn-secondary">Cancel</button>
+                <button type="submit" class="a-btn a-btn-primary"><i class="fas fa-calendar-plus"></i> Create Event</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>document.querySelectorAll('.a-modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));</script>
+</body>
+</html>

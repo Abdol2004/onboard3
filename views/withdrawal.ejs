@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdrawals — ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        /* ── Toast ── */
+        .toast {
+            position: fixed; top: 1.5rem; right: 1.5rem; z-index: 9999;
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.875rem 1.25rem; border-radius: 14px; min-width: 280px;
+            font-size: 0.9rem; font-weight: 600; font-family: 'Outfit', sans-serif;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4); backdrop-filter: blur(12px);
+            animation: toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes toastIn { from{opacity:0;transform:translateX(120px)} to{opacity:1;transform:translateX(0)} }
+        .toast--success { background: rgba(14,22,14,0.97); border: 1px solid rgba(94,194,19,0.4); color: var(--green); }
+        .toast--error   { background: rgba(22,12,12,0.97); border: 1px solid rgba(239,68,68,0.4);  color: #f87171; }
+
+        /* ── Balance hero card ── */
+        .balance-hero {
+            background: linear-gradient(135deg, rgba(18,30,18,0.98) 0%, rgba(14,24,14,0.98) 100%);
+            border: 1px solid rgba(94,194,19,0.3); border-radius: 22px;
+            padding: 2.5rem; position: relative; overflow: hidden;
+            animation: cardIn 0.5s ease both;
+        }
+        .balance-hero::before {
+            content: ''; position: absolute; top: -60px; right: -60px;
+            width: 280px; height: 280px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(94,194,19,0.1), transparent 65%);
+            pointer-events: none;
+            animation: glowPulse 4s ease-in-out infinite;
+        }
+        @keyframes glowPulse { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.15)} }
+        .balance-hero-inner {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 2rem; position: relative; z-index: 1;
+        }
+        .balance-label { font-size: 0.78rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--text-3); margin-bottom: 0.625rem; }
+        .balance-amount {
+            font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900; letter-spacing: -2px;
+            color: var(--green); line-height: 1;
+            filter: drop-shadow(0 0 24px rgba(94,194,19,0.45));
+        }
+        .balance-currency { font-size: 1.25rem; font-weight: 700; color: var(--text-2); margin-left: 4px; }
+        .balance-wallet {
+            display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem;
+            font-size: 0.8125rem; color: var(--text-3); font-family: 'Courier New', monospace;
+        }
+        .balance-wallet i { color: var(--green); }
+
+        /* ── Pending banner ── */
+        .pending-banner {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 1rem;
+            padding: 1.125rem 1.375rem; border-radius: 14px;
+            background: rgba(251,191,36,0.07); border: 1px solid rgba(251,191,36,0.3);
+            animation: cardIn 0.5s ease 60ms both;
+        }
+        .pending-banner-left { display: flex; align-items: center; gap: 0.875rem; }
+        .pending-icon { width: 40px; height: 40px; border-radius: 11px; background: rgba(251,191,36,0.15); display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #fbbf24; flex-shrink: 0; }
+        .pending-info strong { display: block; font-size: 0.9375rem; font-weight: 800; color: var(--text); }
+        .pending-info span { font-size: 0.78rem; color: var(--text-3); }
+
+        /* ── No wallet notice ── */
+        .no-wallet-notice {
+            display: flex; align-items: flex-start; gap: 1rem;
+            padding: 1.375rem; border-radius: 16px;
+            background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.2);
+            animation: cardIn 0.5s ease 60ms both;
+        }
+        .no-wallet-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(239,68,68,0.12); display: flex; align-items: center; justify-content: center; font-size: 1.125rem; color: #f87171; flex-shrink: 0; }
+        .no-wallet-text h4 { font-size: 0.9375rem; font-weight: 800; color: #f87171; margin-bottom: 0.35rem; }
+        .no-wallet-text p  { font-size: 0.8375rem; color: var(--text-2); line-height: 1.6; margin-bottom: 0.875rem; }
+
+        /* ── Fee breakdown box ── */
+        .fee-breakdown {
+            padding: 1rem 1.125rem; border-radius: 13px;
+            background: rgba(94,194,19,0.04); border: 1px solid rgba(94,194,19,0.15);
+            margin: 1rem 0; display: none;
+        }
+        .fee-row { display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0; font-size: 0.875rem; }
+        .fee-row span:first-child { color: var(--text-3); }
+        .fee-row.total { border-top: 1px solid var(--border); margin-top: 0.35rem; padding-top: 0.625rem; }
+        .fee-row.total span:first-child { font-weight: 800; color: var(--text); }
+        .fee-row.total span:last-child { font-size: 1.0625rem; font-weight: 900; color: var(--green); }
+        .fee-schedule {
+            font-size: 0.75rem; color: var(--text-3); display: flex; align-items: flex-start; gap: 0.5rem;
+            padding: 0.75rem; border-radius: 10px; background: rgba(255,255,255,0.025); border: 1px solid var(--border);
+        }
+        .fee-schedule i { color: #fbbf24; flex-shrink: 0; margin-top: 1px; }
+
+        /* ── Transaction list ── */
+        .tx-list { display: flex; flex-direction: column; gap: 0.625rem; }
+        .tx-item {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 1rem 1.125rem; border-radius: 13px;
+            background: rgba(255,255,255,0.025); border: 1px solid var(--border);
+            transition: border-color 0.2s, background 0.2s;
+            animation: cardIn 0.4s ease both;
+        }
+        .tx-item:hover { background: rgba(94,194,19,0.04); border-color: rgba(94,194,19,0.2); }
+        .tx-icon { width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+        .tx-icon--in  { background: rgba(94,194,19,0.12); color: var(--green); }
+        .tx-icon--out { background: rgba(239,68,68,0.1);  color: #f87171; }
+        .tx-body { flex: 1; min-width: 0; }
+        .tx-type { font-size: 0.875rem; font-weight: 700; color: var(--text); text-transform: capitalize; }
+        .tx-detail { font-size: 0.75rem; color: var(--text-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tx-right { text-align: right; flex-shrink: 0; }
+        .tx-amount { font-size: 1rem; font-weight: 900; }
+        .tx-amount--in  { color: var(--green); }
+        .tx-amount--out { color: #f87171; }
+        .tx-date { font-size: 0.72rem; color: var(--text-3); margin-top: 2px; }
+        .tx-badge {
+            font-size: 0.65rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
+            padding: 0.2rem 0.55rem; border-radius: 50px;
+        }
+        .tx-badge--pending   { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+        .tx-badge--completed { background: rgba(94,194,19,0.12);  color: var(--green); border: 1px solid rgba(94,194,19,0.3); }
+        .tx-badge--rejected  { background: rgba(239,68,68,0.1);   color: #f87171;  border: 1px solid rgba(239,68,68,0.25); }
+        .tx-badge--cancelled { background: rgba(100,100,100,0.1); color: #888;     border: 1px solid rgba(100,100,100,0.2); }
+        .tx-empty { text-align: center; padding: 3rem 1rem; }
+        .tx-empty i { font-size: 2.5rem; color: var(--text-3); display: block; margin-bottom: 0.75rem; }
+        .tx-empty p { color: var(--text-3); font-size: 0.875rem; }
+
+        /* ── Withdrawal modal ── */
+        .wd-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(6px); z-index: 9000;
+            display: none; align-items: center; justify-content: center; padding: 1rem;
+        }
+        .wd-modal-overlay.active { display: flex; }
+        .wd-modal {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 22px; padding: 2rem; max-width: 480px; width: 100%;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 40px rgba(94,194,19,0.07);
+            animation: modalIn 0.35s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        @keyframes modalIn { from{opacity:0;transform:translateY(20px) scale(0.96)} to{opacity:1;transform:translateY(0) scale(1)} }
+        .wd-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .wd-modal-head h3 { font-size: 1.125rem; font-weight: 800; color: var(--text); letter-spacing: -0.3px; display: flex; align-items: center; gap: 0.5rem; }
+        .wd-modal-head h3 i { color: var(--green); }
+        .wd-modal-close { width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 9px; background: rgba(255,255,255,0.04); color: var(--text-2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: all 0.2s; }
+        .wd-modal-close:hover { background: rgba(255,255,255,0.1); color: var(--text); transform: rotate(90deg); }
+        .wd-wallet-display {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem;
+            border-radius: 12px; background: rgba(94,194,19,0.05); border: 1px solid rgba(94,194,19,0.2);
+            margin-bottom: 1.25rem;
+        }
+        .wd-wallet-display i { color: var(--green); font-size: 0.9rem; flex-shrink: 0; }
+        .wd-wallet-display span { font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-2); word-break: break-all; }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <% const currentPage = 'withdrawal'; %>
+    <%- include('partials/sidebar', { user, currentPage }) %>
+
+    <div class="dashboard-container">
+        <main class="main-content">
+
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2><i class="fas fa-wallet" style="color:var(--green);margin-right:.5rem"></i>Withdrawals</h2>
+                        <p>Request and track your USDC payouts</p>
+                    </div>
+                    <div class="header-stats">
+                        <div class="stat-badge" style="background:rgba(94,194,19,0.12);border-color:rgba(94,194,19,0.35)">
+                            <i class="fas fa-dollar-sign" style="color:var(--green)"></i>
+                            <span style="color:var(--green);font-weight:800">$<%= user.usdcBalance || 0 %> USDC</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+
+                <!-- ══ BALANCE HERO ══ -->
+                <div class="balance-hero">
+                    <div class="balance-hero-inner">
+                        <div>
+                            <p class="balance-label">Available Balance</p>
+                            <div>
+                                <span class="balance-amount">$<%= user.usdcBalance || 0 %></span>
+                                <span class="balance-currency">USDC</span>
+                            </div>
+                            <% if (user.walletAddress) { %>
+                            <div class="balance-wallet">
+                                <i class="fas fa-wallet"></i>
+                                <%= user.walletAddress.substring(0,8) %>....<%= user.walletAddress.slice(-6) %>
+                            </div>
+                            <% } %>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:.75rem;align-items:flex-end">
+                            <% if (!user.walletAddress) { %>
+                            <a href="/dashboard/settings" class="btn btn-outline">
+                                <i class="fas fa-plus"></i> Connect Wallet First
+                            </a>
+                            <% } else if (pendingWithdrawal) { %>
+                            <div style="text-align:right">
+                                <span style="font-size:.72rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#fbbf24;display:block;margin-bottom:.3rem">Pending</span>
+                                <span style="font-size:1.5rem;font-weight:900;color:#fbbf24">$<%= pendingWithdrawal.amount %></span>
+                            </div>
+                            <% } else if ((user.usdcBalance || 0) >= 5) { %>
+                            <button class="btn btn-primary" onclick="openWithdrawModal()">
+                                <i class="fas fa-arrow-up-from-bracket"></i> Withdraw
+                            </button>
+                            <p style="font-size:.75rem;color:var(--text-3);text-align:center">Min. $5.00</p>
+                            <% } else { %>
+                            <div style="text-align:right">
+                                <p style="font-size:.8rem;color:var(--text-3)">Minimum withdrawal: <strong style="color:var(--text-2)">$5.00</strong></p>
+                                <p style="font-size:.75rem;color:var(--text-3);margin-top:.25rem">Complete quests to earn USDC</p>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ PENDING NOTICE ══ -->
+                <% if (pendingWithdrawal) { %>
+                <div class="pending-banner">
+                    <div class="pending-banner-left">
+                        <div class="pending-icon"><i class="fas fa-clock"></i></div>
+                        <div class="pending-info">
+                            <strong>Withdrawal Pending — $<%= pendingWithdrawal.amount %> USDC</strong>
+                            <span>Submitted <%= new Date(pendingWithdrawal.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %> · Usually processed within 24–48 hours</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="cancelWithdrawal('<%= pendingWithdrawal._id %>')">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+                <% } %>
+
+                <!-- ══ NO WALLET NOTICE ══ -->
+                <% if (!user.walletAddress) { %>
+                <div class="no-wallet-notice">
+                    <div class="no-wallet-icon"><i class="fas fa-triangle-exclamation"></i></div>
+                    <div class="no-wallet-text">
+                        <h4>No Wallet Connected</h4>
+                        <p>You need a <strong style="color:#fbbf24">Solana wallet</strong> USDC address to withdraw your earnings. Use any Solana wallet (Phantom, Backpack, Solflare, etc.), copy your USDC address, then paste it in Settings.</p>
+                        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.75rem">
+                            <a href="/dashboard/settings" class="btn btn-outline" style="text-decoration:none;display:inline-flex">
+                                <i class="fas fa-gear"></i> Add Wallet Address
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <% } else { %>
+                <!-- Solana wallet reminder -->
+                <div style="display:flex;align-items:flex-start;gap:.875rem;padding:1rem 1.25rem;border-radius:14px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2)">
+                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(251,191,36,.12);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#fbbf24;flex-shrink:0"><i class="fas fa-circle-info"></i></div>
+                    <div style="font-size:.8125rem;color:var(--text-3);line-height:1.6">
+                        <strong style="color:#fbbf24;display:block;margin-bottom:.2rem">Use any Solana wallet USDC address</strong>
+                        Withdrawals are sent as USDC on Solana. Make sure the address saved in your settings is your <strong style="color:var(--text-2)">Solana wallet</strong> address (Phantom, Backpack, Solflare etc.) — not an EVM or Ethereum address.
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- ══ TRANSACTION HISTORY ══ -->
+                <div class="card" style="animation-delay:120ms">
+                    <div class="card-header">
+                        <h3><i class="fas fa-clock-rotate-left"></i> Transaction History</h3>
+                        <% if (transactions && transactions.length > 0) { %>
+                        <span style="font-size:.78rem;font-weight:700;color:var(--text-3)"><%= transactions.length %> records</span>
+                        <% } %>
+                    </div>
+
+                    <% if (transactions && transactions.length > 0) { %>
+                    <div class="tx-list">
+                        <% transactions.forEach((tx, i) => {
+                            const isOut = tx.type === 'withdrawal';
+                            const typeLabel = tx.type.replace(/_/g, ' ');
+                            const detail = tx.questTitle || tx.notes || null;
+                        %>
+                        <div class="tx-item" style="animation-delay:<%= i * 40 %>ms">
+                            <div class="tx-icon <%= isOut ? 'tx-icon--out' : 'tx-icon--in' %>">
+                                <i class="fas fa-<%= isOut ? 'arrow-up' : tx.type === 'referral_bonus' ? 'users' : 'bolt' %>"></i>
+                            </div>
+                            <div class="tx-body">
+                                <div class="tx-type"><%= typeLabel %></div>
+                                <div class="tx-detail"><%= detail || 'ONBOARD3 reward' %></div>
+                            </div>
+                            <div class="tx-right">
+                                <div class="tx-amount <%= isOut ? 'tx-amount--out' : 'tx-amount--in' %>">
+                                    <%= isOut ? '-' : '+' %>$<%= tx.amount %>
+                                </div>
+                                <div class="tx-date"><%= new Date(tx.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></div>
+                                <span class="tx-badge tx-badge--<%= tx.status %>"><%= tx.status %></span>
+                            </div>
+                        </div>
+                        <% }); %>
+                    </div>
+                    <% } else { %>
+                    <div class="tx-empty">
+                        <i class="fas fa-receipt"></i>
+                        <p>No transactions yet — complete quests to earn USDC rewards</p>
+                    </div>
+                    <% } %>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ══ WITHDRAWAL MODAL ══ -->
+    <div class="wd-modal-overlay" id="withdrawModal">
+        <div class="wd-modal">
+            <div class="wd-modal-head">
+                <h3><i class="fas fa-arrow-up-from-bracket"></i> Request Withdrawal</h3>
+                <button class="wd-modal-close" onclick="closeWithdrawModal()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="wd-wallet-display">
+                <i class="fas fa-wallet"></i>
+                <span><%= user.walletAddress %></span>
+            </div>
+
+            <form id="withdrawForm">
+                <div class="form-group">
+                    <label>Amount (USDC) <span style="color:#f87171">*</span></label>
+                    <div style="position:relative">
+                        <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--green);font-weight:800;font-size:1rem">$</span>
+                        <input type="number" id="withdrawAmount"
+                            min="5" max="<%= user.usdcBalance %>" step="0.01"
+                            required placeholder="0.00"
+                            style="padding-left:2rem"
+                            oninput="updateFeeDisplay(this.value)">
+                    </div>
+                    <small style="color:var(--text-3);margin-top:.375rem;display:block">
+                        Available: <strong style="color:var(--green)">$<%= (user.usdcBalance || 0).toFixed(2) %></strong> &nbsp;·&nbsp; Minimum: $5.00
+                    </small>
+                </div>
+
+                <!-- Fee breakdown -->
+                <div class="fee-breakdown" id="feeBreakdown">
+                    <div class="fee-row">
+                        <span>Withdrawal Amount</span>
+                        <span id="displayAmount" style="color:var(--text-2);font-weight:700">$0.00</span>
+                    </div>
+                    <div class="fee-row">
+                        <span>Processing Fee</span>
+                        <span id="displayFee" style="color:#f87171;font-weight:700">-$0.00</span>
+                    </div>
+                    <div class="fee-row total">
+                        <span>You Receive</span>
+                        <span id="displayReceive">$0.00</span>
+                    </div>
+                </div>
+
+                <div class="fee-schedule">
+                    <i class="fas fa-info-circle"></i>
+                    <span>
+                        Fees: Under $<%= platformSettings.feeTierSmallUpTo %> → $<%= platformSettings.feeTierSmall.toFixed(2) %>
+                        &nbsp;|&nbsp;
+                        $<%= platformSettings.feeTierSmallUpTo %>–$<%= platformSettings.feeTierMediumUpTo %> → $<%= platformSettings.feeTierMedium.toFixed(2) %>
+                        &nbsp;|&nbsp;
+                        Over $<%= platformSettings.feeTierMediumUpTo %> → $<%= platformSettings.feeTierLarge.toFixed(2) %>
+                        &nbsp;·&nbsp; Min: $<%= platformSettings.withdrawalMin %>
+                    </span>
+                </div>
+
+                <div style="display:flex;gap:.75rem;margin-top:1.5rem;justify-content:flex-end">
+                    <button type="button" class="btn btn-secondary" onclick="closeWithdrawModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitWithdrawBtn">
+                        <i class="fas fa-paper-plane"></i> Submit Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let _toastTimer;
+        function showToast(msg, type='success') {
+            const old = document.getElementById('_toast'); if(old) old.remove(); clearTimeout(_toastTimer);
+            const t = document.createElement('div'); t.id='_toast'; t.className='toast toast--'+type;
+            t.innerHTML=`<i class="fas fa-${type==='success'?'check-circle':'circle-xmark'}"></i> ${msg}`;
+            document.body.appendChild(t);
+            _toastTimer = setTimeout(()=>{ t.style.animation='toastIn .3s ease reverse both'; setTimeout(()=>t.remove(),320); }, 4000);
+        }
+
+        function openWithdrawModal() {
+            document.getElementById('withdrawForm').reset();
+            document.getElementById('feeBreakdown').style.display = 'none';
+            document.getElementById('withdrawModal').classList.add('active');
+        }
+        function closeWithdrawModal() {
+            document.getElementById('withdrawModal').classList.remove('active');
+        }
+        document.getElementById('withdrawModal').addEventListener('click', e => { if(e.target===document.getElementById('withdrawModal')) closeWithdrawModal(); });
+
+        const _feeSmallUpTo  = <%= platformSettings.feeTierSmallUpTo %>;
+        const _feeMediumUpTo = <%= platformSettings.feeTierMediumUpTo %>;
+        const _feeSmall      = <%= platformSettings.feeTierSmall %>;
+        const _feeMedium     = <%= platformSettings.feeTierMedium %>;
+        const _feeLarge      = <%= platformSettings.feeTierLarge %>;
+        const _withdrawMin   = <%= platformSettings.withdrawalMin %>;
+
+        function updateFeeDisplay(val) {
+            const amount = parseFloat(val) || 0;
+            const box = document.getElementById('feeBreakdown');
+            if (amount < _withdrawMin) { box.style.display='none'; return; }
+            const fee = amount < _feeSmallUpTo ? _feeSmall : amount <= _feeMediumUpTo ? _feeMedium : _feeLarge;
+            const receive = amount - fee;
+            document.getElementById('displayAmount').textContent  = '$' + amount.toFixed(2);
+            document.getElementById('displayFee').textContent     = '-$' + fee.toFixed(2);
+            document.getElementById('displayReceive').textContent = '$' + Math.max(0, receive).toFixed(2);
+            box.style.display = 'block';
+        }
+
+        document.getElementById('withdrawForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            if (!amount || amount < _withdrawMin) { showToast('Minimum withdrawal is $' + _withdrawMin, 'error'); return; }
+            const btn = document.getElementById('submitWithdrawBtn');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            try {
+                const r = await fetch('/dashboard/withdrawal/request', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ amount })
+                });
+                const d = await r.json();
+                if (d.success) {
+                    showToast(d.message, 'success');
+                    closeWithdrawModal();
+                    setTimeout(() => location.reload(), 1800);
+                } else {
+                    showToast(d.message, 'error');
+                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Request';
+                }
+            } catch { showToast('Network error. Please try again.', 'error'); btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i> Submit Request'; }
+        });
+
+        async function cancelWithdrawal(id) {
+            if (!confirm('Cancel this withdrawal request?')) return;
+            try {
+                const r = await fetch(`/dashboard/withdrawal/cancel/${id}`, { method:'POST', headers:{'Content-Type':'application/json'} });
+                const d = await r.json();
+                showToast(d.message, d.success ? 'success' : 'error');
+                if (d.success) setTimeout(() => location.reload(), 1800);
+            } catch { showToast('Error cancelling request', 'error'); }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Users — ONBOARD3 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'users', admin:user }) %>
+
+<div class="a-main">
+    <div class="a-content">
+        <div class="a-page-header">
+            <div>
+                <h1><i class="fas fa-users"></i> Users</h1>
+                <p><%= total.toLocaleString() %> total users</p>
+            </div>
+            <a href="/admin/users/export" class="a-btn a-btn-secondary"><i class="fas fa-download"></i> Export CSV</a>
+        </div>
+
+        <!-- Search + filters -->
+        <form method="GET" action="/admin/users" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem">
+            <div class="a-search" style="flex:1;min-width:200px">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="text" name="q" value="<%= search %>" placeholder="Search username or email...">
+            </div>
+            <select name="status" class="a-input" style="width:auto;padding:.6rem 1rem">
+                <option value="">All Status</option>
+                <option value="verified" <%= statusFilter==='verified'?'selected':'' %>>Verified</option>
+                <option value="unverified" <%= statusFilter==='unverified'?'selected':'' %>>Unverified</option>
+            </select>
+            <button type="submit" class="a-btn a-btn-primary"><i class="fas fa-filter"></i> Filter</button>
+            <% if (search || statusFilter) { %>
+            <a href="/admin/users" class="a-btn a-btn-secondary"><i class="fas fa-times"></i> Clear</a>
+            <% } %>
+        </form>
+
+        <div class="a-card">
+            <div class="a-table-wrap">
+                <table class="at">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>XP</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <% users.forEach(u => { %>
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:.625rem">
+                                <% if (u.profilePicture) { %>
+                                <img src="<%= u.profilePicture %>" style="width:32px;height:32px;border-radius:8px;object-fit:cover;flex-shrink:0">
+                                <% } else { %>
+                                <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--green-dark));display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:#000;flex-shrink:0"><%= u.username.charAt(0).toUpperCase() %></div>
+                                <% } %>
+                                <div>
+                                    <p style="font-weight:700;color:var(--text)"><%= u.username %></p>
+                                    <% if (u.isAdmin) { %><span class="a-badge a-badge-info" style="font-size:.58rem">Admin</span><% } %>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="color:var(--text-3);font-size:.8125rem"><%= u.email %></td>
+                        <td style="color:var(--green);font-weight:800"><%= (u.xp||0).toLocaleString() %></td>
+                        <td style="color:var(--amber);font-weight:700">$<%= u.usdcBalance||0 %></td>
+                        <td>
+                            <% if (u.isBanned) { %>
+                            <span class="a-badge a-badge-danger"><i class="fas fa-ban"></i> Banned</span>
+                            <% } else if (u.isVerified) { %>
+                            <span class="a-badge a-badge-success"><i class="fas fa-check"></i> Verified</span>
+                            <% } else { %>
+                            <span class="a-badge a-badge-neutral">Unverified</span>
+                            <% } %>
+                        </td>
+                        <td style="color:var(--text-3);font-size:.8125rem"><%= new Date(u.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></td>
+                        <td>
+                            <div style="display:flex;gap:.4rem">
+                                <a href="/admin/users/<%= u._id %>" class="a-btn a-btn-secondary a-btn-sm"><i class="fas fa-eye"></i></a>
+                                <form method="POST" action="/admin/users/<%= u._id %>/ban" style="display:inline" onsubmit="return confirm('<%= u.isBanned ? 'Unban' : 'Ban' %> this user?')">
+                                    <input type="hidden" name="_method" value="POST">
+                                    <button type="submit" class="a-btn <%= u.isBanned ? 'a-btn-secondary' : 'a-btn-danger' %> a-btn-sm">
+                                        <i class="fas fa-<%= u.isBanned ? 'unlock' : 'ban' %>"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                    <% if (!users.length) { %>
+                    <tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-3)"><i class="fas fa-users" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No users found</td></tr>
+                    <% } %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <% if (totalPages > 1) { %>
+            <div class="a-pagination">
+                <% if (currentPage > 1) { %>
+                <a href="/admin/users?page=<%= currentPage-1 %>&q=<%= search %>&status=<%= statusFilter %>" class="a-page-btn"><i class="fas fa-chevron-left"></i></a>
+                <% } %>
+                <% for (let i = Math.max(1,currentPage-2); i <= Math.min(totalPages,currentPage+2); i++) { %>
+                <a href="/admin/users?page=<%= i %>&q=<%= search %>&status=<%= statusFilter %>" class="a-page-btn <%= i===currentPage?'active':'' %>"><%= i %></a>
+                <% } %>
+                <% if (currentPage < totalPages) { %>
+                <a href="/admin/users?page=<%= currentPage+1 %>&q=<%= search %>&status=<%= statusFilter %>" class="a-page-btn"><i class="fas fa-chevron-right"></i></a>
+                <% } %>
+            </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+</body>
+</html>

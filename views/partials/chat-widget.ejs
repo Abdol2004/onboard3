@@ -1,0 +1,292 @@
+<style>
+#chatBtn {
+  position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9990;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--green), var(--green-dark));
+  border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(94,194,19,.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.375rem; color: #000;
+  transition: transform .25s, box-shadow .25s;
+}
+#chatBtn:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(94,194,19,.6); }
+#chatUnread {
+  position: absolute; top: -4px; right: -4px;
+  background: #f87171; color: #fff; border-radius: 50%;
+  width: 18px; height: 18px; font-size: .65rem; font-weight: 900;
+  display: none; align-items: center; justify-content: center;
+  border: 2px solid var(--bg);
+}
+
+#chatPanel {
+  position: fixed; bottom: 5.5rem; right: 1.5rem; z-index: 9991;
+  width: min(400px, calc(100vw - 2rem)); height: min(560px, calc(100vh - 8rem));
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+  display: none; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,.55);
+  animation: chatSlide .25s cubic-bezier(.4,0,.2,1);
+}
+@keyframes chatSlide { from{opacity:0;transform:translateY(12px) scale(.97)} to{opacity:1;transform:none} }
+
+#chatPanelHead {
+  padding: .875rem 1.125rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: .625rem; flex-shrink: 0;
+  border-radius: 20px 20px 0 0; background: rgba(94,194,19,.05);
+}
+.chat-ai-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, #5EC213, #3a8a0a);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 900; color: #000; flex-shrink: 0;
+  font-family: 'Outfit', sans-serif; letter-spacing: -.5px;
+}
+.chat-head-info { flex: 1 }
+.chat-head-name { font-size: .9rem; font-weight: 800; color: var(--text); }
+.chat-head-sub  { font-size: .72rem; color: var(--text-3); }
+.chat-head-dot  { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: .3rem; }
+#chatCloseBtn { background: none; border: none; color: var(--text-3); font-size: 1.1rem; cursor: pointer; padding: .25rem; transition: color .2s; }
+#chatCloseBtn:hover { color: var(--text); }
+
+#chatMessages {
+  flex: 1; overflow-y: auto; padding: .875rem 1rem; display: flex; flex-direction: column; gap: .625rem;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.chat-msg {
+  max-width: 82%; padding: .625rem .875rem; border-radius: 14px; font-size: .875rem; line-height: 1.55;
+  word-break: break-word;
+}
+.chat-msg--user {
+  align-self: flex-end; background: linear-gradient(135deg, var(--green), var(--green-dark));
+  color: #000; font-weight: 600; border-bottom-right-radius: 4px;
+}
+.chat-msg--ai {
+  align-self: flex-start; background: rgba(255,255,255,.06); color: var(--text-2);
+  border: 1px solid var(--border); border-bottom-left-radius: 4px;
+}
+.chat-msg--admin {
+  align-self: flex-start; background: rgba(168,85,247,.1); color: #c084fc;
+  border: 1px solid rgba(168,85,247,.25); border-bottom-left-radius: 4px;
+}
+.chat-msg-meta { font-size: .68rem; color: var(--text-3); margin-top: .2rem; }
+.chat-msg-meta--right { text-align: right; }
+
+.chat-typing { align-self: flex-start; display: none; gap: .3rem; align-items: center; padding: .5rem .875rem; }
+.chat-typing-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--text-3);
+  animation: typingBounce .9s ease infinite;
+}
+.chat-typing-dot:nth-child(2) { animation-delay: .15s; }
+.chat-typing-dot:nth-child(3) { animation-delay: .3s; }
+@keyframes typingBounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+
+#chatInputArea {
+  padding: .75rem 1rem; border-top: 1px solid var(--border); display: flex; gap: .5rem; flex-shrink: 0;
+  border-radius: 0 0 20px 20px;
+}
+#chatInput {
+  flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: .625rem .875rem; color: var(--text); font-family: 'Outfit', sans-serif; font-size: .875rem;
+  outline: none; resize: none; max-height: 80px; transition: border-color .2s;
+}
+#chatInput:focus { border-color: rgba(94,194,19,.4); }
+#chatSendBtn {
+  width: 38px; height: 38px; flex-shrink: 0; border-radius: 10px;
+  background: linear-gradient(135deg, var(--green), var(--green-dark));
+  border: none; cursor: pointer; color: #000; font-size: .875rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .2s, opacity .2s; align-self: flex-end;
+}
+#chatSendBtn:disabled { opacity: .5; cursor: default; }
+#chatSendBtn:not(:disabled):hover { transform: scale(1.07); }
+
+.chat-empty {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .5rem; text-align: center; padding: 1.5rem;
+}
+.chat-empty-icon { font-size: 2rem; color: var(--green); margin-bottom: .25rem; }
+.chat-empty p { font-size: .875rem; color: var(--text-3); line-height: 1.6; }
+.chat-quick-btns { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center; margin-top: .5rem; }
+.chat-quick-btn {
+  font-size: .75rem; padding: .35rem .75rem; border-radius: 50px;
+  background: rgba(94,194,19,.08); border: 1px solid rgba(94,194,19,.2); color: var(--green);
+  cursor: pointer; font-family: 'Outfit', sans-serif; font-weight: 700; transition: all .2s;
+}
+.chat-quick-btn:hover { background: rgba(94,194,19,.16); }
+</style>
+
+<!-- Floating chat button -->
+<button id="chatBtn" onclick="toggleChat()" title="Support Chat">
+  <i class="fas fa-comments"></i>
+  <span id="chatUnread"></span>
+</button>
+
+<!-- Chat panel -->
+<div id="chatPanel">
+  <div id="chatPanelHead">
+    <div class="chat-ai-avatar">T</div>
+    <div class="chat-head-info">
+      <div class="chat-head-name">Tope <span style="font-size:.7rem;font-weight:700;background:rgba(94,194,19,.15);color:var(--green);border:1px solid rgba(94,194,19,.3);padding:.1rem .45rem;border-radius:6px;margin-left:.3rem;vertical-align:middle">AI</span></div>
+      <div class="chat-head-sub"><span class="chat-head-dot"></span>Your ONBOARD3 guide · Always here</div>
+    </div>
+    <button id="chatCloseBtn" onclick="toggleChat()"><i class="fas fa-times"></i></button>
+  </div>
+
+  <div id="chatMessages">
+    <!-- Filled by JS -->
+  </div>
+
+  <div class="chat-typing" id="chatTyping">
+    <div class="chat-typing-dot"></div>
+    <div class="chat-typing-dot"></div>
+    <div class="chat-typing-dot"></div>
+  </div>
+
+  <div id="chatInputArea">
+    <textarea id="chatInput" rows="1" placeholder="Ask anything about ONBOARD3..." maxlength="500"></textarea>
+    <button id="chatSendBtn" onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<script>
+var _chatOpen = false;
+var _chatHistory = [];
+var _chatLoaded = false;
+
+function toggleChat() {
+  _chatOpen = !_chatOpen;
+  var panel = document.getElementById('chatPanel');
+  panel.style.display = _chatOpen ? 'flex' : 'none';
+  if (_chatOpen) {
+    if (!_chatLoaded) loadChatHistory();
+    setTimeout(function() { document.getElementById('chatInput').focus(); }, 100);
+    clearUnread();
+  }
+}
+
+function clearUnread() {
+  var u = document.getElementById('chatUnread');
+  u.style.display = 'none';
+  u.textContent = '';
+}
+
+function loadChatHistory() {
+  _chatLoaded = true;
+  fetch('/api/support/history').then(function(r){ return r.json(); }).then(function(d) {
+    if (d.success && d.messages && d.messages.length > 0) {
+      d.messages.forEach(function(m) { appendChatMsg(m.role, m.content, m.adminName); });
+      scrollChatBottom();
+    } else {
+      showChatEmpty();
+    }
+    _chatHistory = d.messages || [];
+  }).catch(function() { showChatEmpty(); });
+}
+
+function showChatEmpty() {
+  var msgs = document.getElementById('chatMessages');
+  msgs.innerHTML = '<div class="chat-empty">' +
+    '<div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#5EC213,#3a8a0a);display:flex;align-items:center;justify-content:center;font-size:1.625rem;font-weight:900;color:#000;font-family:Outfit,sans-serif;margin-bottom:.5rem">T</div>' +
+    '<p style="font-weight:700;color:var(--text);font-size:.9375rem;margin-bottom:.25rem">Hey, I\'m Tope! 👋</p>' +
+    '<p>Your personal guide to everything ONBOARD3. Ask me anything — quests, bounties, XP, roles, events, you name it!</p>' +
+    '<div class="chat-quick-btns">' +
+    '<span class="chat-quick-btn" onclick="quickSend(\'How do I earn XP?\')">How to earn XP?</span>' +
+    '<span class="chat-quick-btn" onclick="quickSend(\'What are bounties and how do they work?\')">What are bounties?</span>' +
+    '<span class="chat-quick-btn" onclick="quickSend(\'Tell me about the role system\')">Role system?</span>' +
+    '<span class="chat-quick-btn" onclick="quickSend(\'I have a complaint or issue\')">Report an issue</span>' +
+    '</div></div>';
+}
+
+function quickSend(text) {
+  document.getElementById('chatInput').value = text;
+  sendChatMessage();
+}
+
+function appendChatMsg(role, content, adminName) {
+  var msgs = document.getElementById('chatMessages');
+  // Remove empty state if present
+  var empty = msgs.querySelector('.chat-empty');
+  if (empty) empty.remove();
+
+  var div = document.createElement('div');
+  var cls = role === 'user' ? 'chat-msg--user' : role === 'admin' ? 'chat-msg--admin' : 'chat-msg--ai';
+  var label = role === 'admin' ? '🛡️ ' + (adminName || 'Team') : role === 'user' ? '' : 'Tope';
+  div.className = 'chat-msg ' + cls;
+  div.innerHTML = (label ? '<div style="font-size:.7rem;font-weight:800;margin-bottom:.2rem;opacity:.7">' + label + '</div>' : '') +
+    content.replace(/\n/g, '<br>');
+  msgs.appendChild(div);
+}
+
+function scrollChatBottom() {
+  var msgs = document.getElementById('chatMessages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function sendChatMessage() {
+  var input = document.getElementById('chatInput');
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+
+  appendChatMsg('user', text);
+  scrollChatBottom();
+
+  var typing = document.getElementById('chatTyping');
+  typing.style.display = 'flex';
+  document.getElementById('chatSendBtn').disabled = true;
+  scrollChatBottom();
+
+  fetch('/api/support/message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: text })
+  }).then(function(r){ return r.json(); }).then(function(d) {
+    typing.style.display = 'none';
+    document.getElementById('chatSendBtn').disabled = false;
+    if (d.success) {
+      appendChatMsg('assistant', d.reply);
+      scrollChatBottom();
+    }
+  }).catch(function() {
+    typing.style.display = 'none';
+    document.getElementById('chatSendBtn').disabled = false;
+    appendChatMsg('assistant', 'Hmm, I ran into a little hiccup there — give it another try in a sec! If it keeps happening, the team will be happy to help.');
+    scrollChatBottom();
+  });
+}
+
+// Auto-resize textarea
+document.getElementById('chatInput').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 80) + 'px';
+});
+document.getElementById('chatInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+});
+
+// Poll for admin replies every 30s when chat is open
+setInterval(function() {
+  if (!_chatOpen) return;
+  fetch('/api/support/history').then(function(r){ return r.json(); }).then(function(d) {
+    if (!d.success) return;
+    var msgs = d.messages || [];
+    if (msgs.length > _chatHistory.length) {
+      // New messages — check for admin replies
+      var newMsgs = msgs.slice(_chatHistory.length);
+      newMsgs.forEach(function(m) {
+        if (m.role === 'admin') appendChatMsg('admin', m.content, m.adminName);
+      });
+      _chatHistory = msgs;
+      scrollChatBottom();
+    }
+  });
+}, 30000);
+
+// Check for unread admin replies on load
+fetch('/api/support/unread').then(function(r){ return r.json(); }).then(function(d) {
+  if (d.count > 0) {
+    var u = document.getElementById('chatUnread');
+    u.textContent = d.count;
+    u.style.display = 'flex';
+  }
+}).catch(function(){});
+</script>

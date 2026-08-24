@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - ONBOARD3</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/head.css">
+    <link rel="stylesheet" href="./css/irl.css">
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <div class="logo-icon"><img src="./img/logo.png" alt="" style="max-height:100%;max-width:100%;object-fit:contain;"></div>
+                <span class="logo-text">ONBOARD3</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/events" class="nav-link active">Events</a></li>
+                <li><a href="/ecosystem" class="nav-link">Ecosystem</a></li>
+                <li><a href="/partner" class="nav-link">Partner</a></li>
+            </ul>
+            <div class="nav-cta">
+                <a href="/auth" class="btn btn-primary">Get Started</a>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-menu">
+            <br>
+            <li><a href="/" class="mobile-nav-link">Home</a></li>
+            <li><a href="/about" class="mobile-nav-link">About</a></li>
+            <li><a href="/events" class="mobile-nav-link active">Events</a></li>
+            <li><a href="/ecosystem" class="mobile-nav-link">Ecosystem</a></li>
+            <li><a href="/partner" class="mobile-nav-link">Partner</a></li>
+        </ul>
+        <div class="mobile-cta">
+            <a href="/auth" class="btn btn-primary">Get Started</a>
+        </div>
+    </div>
+
+    <!-- ═══════════ PAGE HEADER ═══════════ -->
+    <div class="page-header">
+        <div class="page-header-inner">
+            <div class="page-badge"><i class="fas fa-map-pin"></i> IRL + Online</div>
+            <h1>Meet. Build. Ship.</h1>
+            <p>Real events, real people, real Web3. From campus meetups to city-wide bootcamps — ONBOARD3 brings the community together.</p>
+            <div class="header-actions">
+                <a href="#upcoming" class="btn btn-primary"><i class="fas fa-calendar"></i> Upcoming Events</a>
+                <a href="#host" class="btn btn-outline"><i class="fas fa-handshake"></i> Host an Event</a>
+            </div>
+            <div class="header-stats" id="headerStats">
+                <div class="hstat">
+                    <span class="hstat-num" id="totalEventsNum">0</span>
+                    <span class="hstat-label">Events Hosted</span>
+                </div>
+                <div class="hstat">
+                    <span class="hstat-num" id="totalAttendeesNum">0</span>
+                    <span class="hstat-label">Total Attendees</span>
+                </div>
+                <div class="hstat">
+                    <span class="hstat-num">2</span>
+                    <span class="hstat-label">Cities Reached</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ UPCOMING EVENTS ═══════════ -->
+    <section class="section" id="upcoming">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label reveal-up">What's Next</span>
+                <h2 class="section-title reveal-up" style="--d:80ms">Upcoming Events</h2>
+                <p class="section-sub reveal-up" style="--d:160ms">Register early — seats fill fast.</p>
+            </div>
+            <div class="events-grid" id="upcomingGrid">
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading events...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ PAST EVENTS ═══════════ -->
+    <section class="section" id="past">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label reveal-up">History</span>
+                <h2 class="section-title reveal-up" style="--d:80ms">Past Events</h2>
+                <p class="section-sub reveal-up" style="--d:160ms">Every event, every face, every milestone.</p>
+            </div>
+            <div class="past-grid" id="pastGrid">
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ HOST CTA ═══════════ -->
+    <section class="host-section" id="host">
+        <div class="container">
+            <div class="host-card reveal-up">
+                <div class="host-glow"></div>
+                <h2>Want to <span class="gradient-text">Host or Partner</span><br>on an Event?</h2>
+                <p>We plug into your community, your campus, your city. Bring the audience — we bring the curriculum, the energy, and the Web3 ecosystem.</p>
+                <div class="host-perks">
+                    <span class="perk-tag"><i class="fas fa-check"></i> Access to verified students</span>
+                    <span class="perk-tag"><i class="fas fa-check"></i> Live onboarding integration</span>
+                    <span class="perk-tag"><i class="fas fa-check"></i> Branding at event</span>
+                    <span class="perk-tag"><i class="fas fa-check"></i> Custom quest campaigns</span>
+                    <span class="perk-tag"><i class="fas fa-check"></i> Post-event analytics</span>
+                    <span class="perk-tag"><i class="fas fa-check"></i> Community amplification</span>
+                </div>
+                <a href="https://t.me/onboard_3" target="_blank" class="btn btn-primary btn-lg">
+                    <i class="fab fa-telegram"></i> Reach Out on Telegram
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ FOOTER ═══════════ -->
+    <footer>
+        <div class="container">
+            <div class="footer-top">
+                <a href="/" class="footer-logo">
+                    <img src="./img/logo.png" alt="ONBOARD3" style="height:32px;object-fit:contain;mix-blend-mode:screen;">
+                    <span>ONBOARD3</span>
+                </a>
+                <div class="footer-links">
+                    <a href="/about">About</a>
+                    <a href="/events">Events</a>
+                    <a href="/ecosystem">Ecosystem</a>
+                    <a href="/partner">Partner</a>
+                </div>
+                <div class="footer-social">
+                    <a href="https://x.com/onboard3__" target="_blank" class="social-link" title="X / Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://t.me/onboard_3" target="_blank" class="social-link" title="Telegram">
+                        <i class="fab fa-telegram"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-tagline">© 2025 ONBOARD3 · Onboard. Educate. Build.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Event Detail Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModal"><i class="fas fa-times"></i></button>
+            <div class="modal-banner" id="modalBanner">
+                <div class="modal-banner-placeholder">🎉</div>
+            </div>
+            <div class="modal-body">
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <div class="modal-meta-grid" id="modalMeta"></div>
+                <div class="modal-divider"></div>
+                <div class="modal-section" id="modalDesc"></div>
+                <div id="modalActions" style="margin-top:1.5rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/head.js"></script>
+    <script>
+        // Navbar scroll
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Scroll reveal
+        const revealObs = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+        document.querySelectorAll('.reveal-up').forEach(el => revealObs.observe(el));
+
+        // Animated counter
+        function animateCount(el, target) {
+            if (target === 0) { el.textContent = '0'; return; }
+            let cur = 0;
+            const step = Math.ceil(target / 60);
+            const t = setInterval(() => {
+                cur = Math.min(cur + step, target);
+                el.textContent = cur;
+                if (cur >= target) clearInterval(t);
+            }, 20);
+        }
+
+        // Modal
+        const modal = document.getElementById('eventModal');
+        document.getElementById('closeModal').addEventListener('click', () => { modal.classList.remove('active'); document.body.style.overflow = ''; });
+        modal.addEventListener('click', (e) => { if (e.target === modal) { modal.classList.remove('active'); document.body.style.overflow = ''; } });
+
+        function openEventModal(event) {
+            const banner = document.getElementById('modalBanner');
+            banner.innerHTML = event.bannerImage
+                ? `<img src="${event.bannerImage}" alt="${event.title}">`
+                : `<div class="modal-banner-placeholder">🎉</div>`;
+
+            document.getElementById('modalTitle').textContent = event.title;
+
+            const loc = event.eventType === 'virtual' ? 'Online' : (event.venue || 'TBA');
+            const dateStr = new Date(event.startDate).toLocaleDateString('en-US', { weekday:'short', month:'long', day:'numeric', year:'numeric' });
+
+            document.getElementById('modalMeta').innerHTML = `
+                <div class="modal-meta-item"><label><i class="fas fa-calendar"></i> Date</label><span>${dateStr}${event.startTime ? ' · ' + event.startTime : ''}</span></div>
+                <div class="modal-meta-item"><label><i class="fas fa-map-pin"></i> Location</label><span>${loc}</span></div>
+                <div class="modal-meta-item"><label><i class="fas fa-tag"></i> Type</label><span style="text-transform:capitalize;">${event.eventType || 'In-Person'}</span></div>
+                <div class="modal-meta-item"><label><i class="fas fa-users"></i> Registered</label><span>${event.totalApproved || 0}${event.maxAttendees ? ' / ' + event.maxAttendees : ''}</span></div>
+            `;
+
+            document.getElementById('modalDesc').innerHTML = `<h3>About this Event</h3><p>${event.description}</p>`;
+            document.getElementById('modalActions').innerHTML = `<a href="/events/${event._id}" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;"><i class="fas fa-arrow-right"></i> View Full Details & Register</a>`;
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function formatDate(d) {
+            return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function renderUpcoming(events) {
+            const grid = document.getElementById('upcomingGrid');
+            if (!events || !events.length) {
+                grid.innerHTML = `<div class="empty-state"><i class="fas fa-calendar-times"></i><p>No upcoming events right now. Check back soon!</p></div>`;
+                return;
+            }
+            grid.innerHTML = events.map((ev, i) => {
+                const loc = ev.eventType === 'virtual' ? 'Online' : (ev.venue || 'TBA');
+                const typeLabel = ev.eventType === 'virtual' ? 'Virtual' : ev.eventType === 'hybrid' ? 'Hybrid' : 'IRL';
+                const capPct = ev.maxAttendees ? Math.min(100, ((ev.totalApproved || 0) / ev.maxAttendees) * 100) : 0;
+                const banner = ev.bannerImage
+                    ? `<img class="event-banner-img" src="${ev.bannerImage}" alt="${ev.title}">`
+                    : `<div class="event-banner-placeholder">🎉</div>`;
+                return `
+                <div class="event-card reveal-up" style="--d:${i * 80}ms">
+                    <div class="event-banner" style="position:relative;">
+                        ${banner}
+                        <span class="event-type-badge">${typeLabel}</span>
+                    </div>
+                    <div class="event-body">
+                        <div class="event-title">${ev.title}</div>
+                        <div class="event-meta">
+                            <div class="event-meta-row"><i class="fas fa-calendar-alt"></i><span>${formatDate(ev.startDate)}${ev.startTime ? ' · ' + ev.startTime : ''}</span></div>
+                            <div class="event-meta-row"><i class="fas fa-map-pin"></i><span>${loc}</span></div>
+                        </div>
+                        <p class="event-desc">${ev.description.substring(0, 110)}${ev.description.length > 110 ? '...' : ''}</p>
+                        ${ev.maxAttendees ? `
+                        <div>
+                            <div style="font-size:.8125rem;color:var(--green);font-weight:700;margin-bottom:.3rem;">${ev.totalApproved || 0} / ${ev.maxAttendees} seats</div>
+                            <div class="capacity-bar"><div class="capacity-fill" style="width:${capPct}%"></div></div>
+                        </div>` : `<div style="font-size:.8125rem;color:var(--green);font-weight:700;">${ev.totalApproved || 0} registered</div>`}
+                        <div class="event-footer">
+                            <span></span>
+                            <button class="btn btn-outline btn-sm" onclick='openEventModal(${JSON.stringify(ev).replace(/'/g, "&#39;")})'>View Details</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            grid.querySelectorAll('.reveal-up').forEach(el => revealObs.observe(el));
+        }
+
+        function renderPast(events) {
+            const grid = document.getElementById('pastGrid');
+            if (!events || !events.length) {
+                grid.innerHTML = `<div class="empty-state"><i class="fas fa-history"></i><p>No past events recorded yet.</p></div>`;
+                return;
+            }
+            grid.innerHTML = events.map((ev, i) => {
+                const attendees = ev.totalApproved || 0;
+                const dateStr = formatDate(ev.startDate);
+                const banner = ev.bannerImage
+                    ? `<img src="${ev.bannerImage}" alt="${ev.title}" style="width:100%;height:100%;object-fit:cover;">`
+                    : `<div class="past-banner-placeholder">📸</div>`;
+                return `
+                <div class="past-card reveal-up" style="--d:${i * 70}ms">
+                    <div class="past-banner">${banner}</div>
+                    <div class="past-body">
+                        <div class="past-name">${ev.title}</div>
+                        <div class="past-stats">
+                            <div class="past-stat"><i class="fas fa-calendar"></i><span>${dateStr}</span></div>
+                            <div class="past-stat"><i class="fas fa-users"></i><strong>${attendees}</strong><span>attended</span></div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            grid.querySelectorAll('.reveal-up').forEach(el => revealObs.observe(el));
+
+            // Update header stats
+            const totalAttendees = events.reduce((sum, ev) => sum + (ev.totalApproved || 0), 0);
+            animateCount(document.getElementById('totalAttendeesNum'), totalAttendees);
+        }
+
+        async function loadEvents() {
+            try {
+                const res = await fetch('/api/events');
+                const data = await res.json();
+                if (data.success) {
+                    const total = (data.activeEvents?.length || 0) + (data.pastEvents?.length || 0);
+                    animateCount(document.getElementById('totalEventsNum'), total);
+                    renderUpcoming(data.activeEvents || []);
+                    renderPast(data.pastEvents || []);
+                } else {
+                    document.getElementById('upcomingGrid').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${data.message || 'Failed to load events.'}</p></div>`;
+                }
+            } catch (err) {
+                document.getElementById('upcomingGrid').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Could not load events. Try again later.</p></div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadEvents);
+    </script>
+</body>
+</html>

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Partners — ONBOARD3 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        .p-tabs { display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap; }
+        .p-tab { padding:.6rem 1.25rem;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text-2);cursor:pointer;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:700;transition:all .25s; }
+        .p-tab.active { background:rgba(94,194,19,.13);color:var(--green);border-color:rgba(94,194,19,.35); }
+        .p-tab:hover:not(.active) { background:rgba(255,255,255,.07);color:var(--text); }
+        .detail-row { display:flex;justify-content:space-between;align-items:flex-start;padding:.75rem 0;border-bottom:1px solid var(--border-2);gap:1rem; }
+        .detail-label { font-size:.78rem;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0; }
+        .detail-value { font-size:.875rem;color:var(--text);text-align:right; }
+    </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('partials/nav', { page:'partners', admin:user }) %>
+<div class="a-main"><div class="a-content">
+
+        <div class="a-page-header"><div><h1><i class="fas fa-handshake"></i> Partner Management</h1><p>Manage Business Developer applications and proposals</p></div></div>
+<!-- Stats -->
+        <div class="a-stats" style="grid-template-columns:repeat(4,1fr)">
+            <div class="a-stat">
+                <div class="a-stat-val" id="totalPartners">0</div>
+                <div class="a-stat-lbl">Total Partners</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-val" id="pendingApplications">0</div>
+                <div class="a-stat-lbl">Pending Applications</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-val" id="pendingProposals">0</div>
+                <div class="a-stat-lbl">Pending Proposals</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-val" id="totalCommission">$0</div>
+                <div class="a-stat-lbl">Total Commission Paid</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="p-tabs">
+            <button class="p-tab active" onclick="switchTab('applications')">
+                <i class="fas fa-user-plus"></i> Applications
+            </button>
+            <button class="p-tab" onclick="switchTab('partners')">
+                <i class="fas fa-users"></i> Approved Partners
+            </button>
+            <button class="p-tab" onclick="switchTab('proposals')">
+                <i class="fas fa-file-alt"></i> Proposals
+            </button>
+        </div>
+
+        <!-- Applications Tab -->
+        <div id="applicationsTab" class="a-card">
+            <div class="a-card-header"><h2><i class="fas fa-user-plus"></i> Partner Applications</h3>
+            </div>
+            <div id="applicationsTable">
+                <div style="text-align:center;padding:2rem;color:var(--text-3)">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading applications...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Partners Tab -->
+        <div id="partnersTab" class="a-card" style="display: none;">
+            <div class="a-card-header"><h2><i class="fas fa-users"></i> Approved Partners</h2>
+            </div>
+            <div id="partnersTable">
+                <div style="text-align:center;padding:2rem;color:var(--text-3)">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading partners...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proposals Tab -->
+        <div id="proposalsTab" class="a-card" style="display: none;">
+            <div class="a-card-header"><h2><i class="fas fa-file-alt"></i> Project Proposals</h2>
+            </div>
+            <div id="proposalsTable">
+                <div style="text-align:center;padding:2rem;color:var(--text-3)">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading proposals...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="a-modal-overlay" id="detailModal">
+        <div class="a-modal">
+            <div class="a-modal-header">
+                <h3 id="modalTitle">Details</h2>
+                <button class="a-modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'applications';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadApplications();
+        });
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('open'));
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('open');
+
+            document.getElementById('applicationsTab').style.display = tab === 'applications' ? 'block' : 'none';
+            document.getElementById('partnersTab').style.display = tab === 'partners' ? 'block' : 'none';
+            document.getElementById('proposalsTab').style.display = tab === 'proposals' ? 'block' : 'none';
+
+            if (tab === 'applications') loadApplications();
+            else if (tab === 'partners') loadPartners();
+            else if (tab === 'proposals') loadProposals();
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/admin/api/partners/stats');
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('totalPartners').textContent = result.stats.totalPartners || 0;
+                    document.getElementById('pendingApplications').textContent = result.stats.pendingApplications || 0;
+                    document.getElementById('pendingProposals').textContent = result.stats.pendingProposals || 0;
+                    document.getElementById('totalCommission').textContent = '$' + (result.stats.totalCommission || 0).toLocaleString();
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadApplications() {
+            try {
+                const response = await fetch('/admin/api/partners?status=pending');
+                const result = await response.json();
+
+                const container = document.getElementById('applicationsTable');
+
+                if (!result.success || !result.data || result.data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3)"><i class="fas fa-check-circle"></i><p>No pending applications</p></div>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table class="at">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Username</th>
+                                <th>Telegram</th>
+                                <th>Experience</th>
+                                <th>Applied</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${result.data.map(p => `
+                                <tr>
+                                    <td><strong>${p.fullName}</strong></td>
+                                    <td>${p.userId?.username || 'N/A'}</td>
+                                    <td><a href="https://t.me/${p.telegramUsername?.replace('@', '')}" target="_blank" style="color: #00D9FF;">${p.telegramUsername}</a></td>
+                                    <td>${p.experience || 'N/A'}</td>
+                                    <td>${new Date(p.appliedAt).toLocaleDateString()}</td>
+                                    <td>
+                                        <button class="a-btn a-btn-secondary a-btn-sm" onclick="viewApplication('${p._id}')"><i class="fas fa-eye"></i></button>
+                                        <button class="a-btn a-btn-primary a-btn-sm" onclick="approveApplication('${p._id}')"><i class="fas fa-check"></i></button>
+                                        <button class="a-btn a-btn-danger a-btn-sm" onclick="rejectApplication('${p._id}')"><i class="fas fa-times"></i></button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('applicationsTable').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3)"><i class="fas fa-exclamation-triangle"></i><p>Error loading applications</p></div>';
+            }
+        }
+
+        async function loadPartners() {
+            try {
+                const response = await fetch('/admin/api/partners?status=approved');
+                const result = await response.json();
+
+                const container = document.getElementById('partnersTable');
+
+                if (!result.success || !result.data || result.data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3)"><i class="fas fa-users"></i><p>No approved partners yet</p></div>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table class="at">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Username</th>
+                                <th>Telegram</th>
+                                <th>Proposals</th>
+                                <th>Commission</th>
+                                <th>Tier</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${result.data.map(p => `
+                                <tr>
+                                    <td><strong>${p.fullName}</strong></td>
+                                    <td>${p.userId?.username || 'N/A'}</td>
+                                    <td><a href="https://t.me/${p.telegramUsername?.replace('@', '')}" target="_blank" style="color: #00D9FF;">${p.telegramUsername}</a></td>
+                                    <td>${p.approvedProposals || 0}/${p.totalProposals || 0}</td>
+                                    <td>$${(p.totalCommissionEarned || 0).toLocaleString()}</td>
+                                    <td><span class="a-badge a-badge-success">${p.partnerTier || 'Bronze'}</span></td>
+                                    <td>
+                                        <button class="a-btn a-btn-secondary a-btn-sm" onclick="viewPartner('${p._id}')"><i class="fas fa-eye"></i></button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('partnersTable').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3)"><i class="fas fa-exclamation-triangle"></i><p>Error loading partners</p></div>';
+            }
+        }
+
+        async function loadProposals() {
+            try {
+                const response = await fetch('/admin/api/partners/proposals');
+                const result = await response.json();
+
+                const container = document.getElementById('proposalsTable');
+
+                if (!result.success || !result.data || result.data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3)"><i class="fas fa-file-alt"></i><p>No proposals yet</p></div>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table class="at">
+                        <thead>
+                            <tr>
+                                <th>Project</th>
+                                <th>Partner</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${result.data.map(p => `
+                                <tr>
+                                    <td><strong>${p.projectName}</strong></td>
+                                    <td>${p.partnerName || 'N/A'}</td>
+                                    <td>${p.projectType?.replace('_', ' ') || 'N/A'}</td>
+                                    <td><span class="status-badge status-${p.status}">${p.status}</span></td>
+                                    <td>${new Date(p.submittedAt).toLocaleDateString()}</td>
+                                    <td>
+                                        <button class="a-btn a-btn-secondary a-btn-sm" onclick="viewProposal('${p.partnerId}', '${p.proposalId}')"><i class="fas fa-eye"></i></button>
+                                        ${p.status === 'pending' ? `
+                                            <button class="a-btn a-btn-primary a-btn-sm" onclick="approveProposal('${p.partnerId}', '${p.proposalId}')"><i class="fas fa-check"></i></button>
+                                            <button class="a-btn a-btn-danger a-btn-sm" onclick="rejectProposal('${p.partnerId}', '${p.proposalId}')"><i class="fas fa-times"></i></button>
+                                        ` : ''}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('proposalsTable').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3)"><i class="fas fa-exclamation-triangle"></i><p>Error loading proposals</p></div>';
+            }
+        }
+
+        async function viewApplication(id) {
+            try {
+                const response = await fetch(`/admin/api/partners/${id}`);
+                const result = await response.json();
+                if (!result.success) return alert('Error loading application');
+
+                const p = result.data;
+                document.getElementById('modalTitle').textContent = 'Application Details';
+                document.getElementById('modalBody').innerHTML = `
+                    <div class="detail-row"><span class="detail-label">Full Name</span><span class="detail-value">${p.fullName}</span></div>
+                    <div class="detail-row"><span class="detail-label">Username</span><span class="detail-value">${p.userId?.username || 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${p.userId?.email || 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Telegram</span><span class="detail-value"><a href="https://t.me/${p.telegramUsername?.replace('@', '')}" target="_blank" style="color: #00D9FF;">${p.telegramUsername}</a></span></div>
+                    <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value">${p.phone || 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Country</span><span class="detail-value">${p.country || 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Experience</span><span class="detail-value">${p.experience || 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Previous Partnerships</span><span class="detail-value">${p.previousPartnerships || 'None listed'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Motivation</span><span class="detail-value">${p.motivation}</span></div>
+                    <div class="detail-row"><span class="detail-label">User XP</span><span class="detail-value">${p.userId?.xp?.toLocaleString() || 0} XP</span></div>
+                    <div class="detail-row"><span class="detail-label">Applied At</span><span class="detail-value">${new Date(p.appliedAt).toLocaleString()}</span></div>
+                    <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                        <button class="a-btn a-btn-primary a-btn-sm" onclick="approveApplication('${p._id}')" style="flex: 1; padding: 1rem;"><i class="fas fa-check"></i> Approve</button>
+                        <button class="a-btn a-btn-danger a-btn-sm" onclick="rejectApplication('${p._id}')" style="flex: 1; padding: 1rem;"><i class="fas fa-times"></i> Reject</button>
+                    </div>
+                `;
+                document.getElementById('detailModal').classList.add('open');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading application details');
+            }
+        }
+
+        async function approveApplication(id) {
+            if (!confirm('Approve this partner application?')) return;
+            try {
+                const response = await fetch(`/admin/api/partners/${id}/approve`, { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    alert('Application approved! Partner has been notified via Telegram.');
+                    closeModal();
+                    loadStats();
+                    loadApplications();
+                } else {
+                    alert(result.message || 'Error approving application');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error');
+            }
+        }
+
+        async function rejectApplication(id) {
+            const reason = prompt('Rejection reason (optional):');
+            if (reason === null) return;
+            try {
+                const response = await fetch(`/admin/api/partners/${id}/reject`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('Application rejected.');
+                    closeModal();
+                    loadStats();
+                    loadApplications();
+                } else {
+                    alert(result.message || 'Error rejecting application');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error');
+            }
+        }
+
+        async function viewPartner(id) {
+            try {
+                const response = await fetch(`/admin/api/partners/${id}`);
+                const result = await response.json();
+                if (!result.success) return alert('Error loading partner');
+
+                const p = result.data;
+                document.getElementById('modalTitle').textContent = 'Partner Details';
+                document.getElementById('modalBody').innerHTML = `
+                    <div class="detail-row"><span class="detail-label">Full Name</span><span class="detail-value">${p.fullName}</span></div>
+                    <div class="detail-row"><span class="detail-label">Telegram</span><span class="detail-value"><a href="https://t.me/${p.telegramUsername?.replace('@', '')}" target="_blank" style="color: #00D9FF;">${p.telegramUsername}</a></span></div>
+                    <div class="detail-row"><span class="detail-label">Total Proposals</span><span class="detail-value">${p.totalProposals || 0}</span></div>
+                    <div class="detail-row"><span class="detail-label">Approved Proposals</span><span class="detail-value">${p.approvedProposals || 0}</span></div>
+                    <div class="detail-row"><span class="detail-label">Commission Earned</span><span class="detail-value">$${(p.totalCommissionEarned || 0).toLocaleString()}</span></div>
+                    <div class="detail-row"><span class="detail-label">Partner Tier</span><span class="detail-value">${p.partnerTier || 'Bronze'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Approved At</span><span class="detail-value">${new Date(p.approvedAt).toLocaleString()}</span></div>
+                `;
+                document.getElementById('detailModal').classList.add('open');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading partner details');
+            }
+        }
+
+        async function viewProposal(partnerId, proposalId) {
+            try {
+                const response = await fetch(`/admin/api/partners/${partnerId}/proposals/${proposalId}`);
+                const result = await response.json();
+                if (!result.success) return alert('Error loading proposal');
+
+                const p = result.data;
+                document.getElementById('modalTitle').textContent = 'Proposal Details';
+                document.getElementById('modalBody').innerHTML = `
+                    <div class="detail-row"><span class="detail-label">Project Name</span><span class="detail-value">${p.projectName}</span></div>
+                    <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value">${p.projectType?.replace('_', ' ')}</span></div>
+                    <div class="detail-row"><span class="detail-label">Description</span><span class="detail-value">${p.projectDescription}</span></div>
+                    <div class="detail-row"><span class="detail-label">Website</span><span class="detail-value">${p.projectWebsite ? `<a href="${p.projectWebsite}" target="_blank" style="color: #00D9FF;">${p.projectWebsite}</a>` : 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Twitter</span><span class="detail-value">${p.projectTwitter || 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Estimated Budget</span><span class="detail-value">${p.estimatedBudget || 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Additional Notes</span><span class="detail-value">${p.additionalNotes || 'None'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="status-badge status-${p.status}">${p.status}</span></span></div>
+                    ${p.status === 'pending' ? `
+                        <div style="margin-top: 1.5rem;">
+                            <div class="a-form-group">
+                                <label style="display:block;font-size:.72rem;font-weight:800;color:var(--text-3);text-transform:uppercase;margin-bottom:.4rem">Commission Amount ($)</label>
+                                <input type="number" class="a-input" id="commissionAmount" placeholder="Enter commission amount">
+                            </div>
+                            <div style="display: flex; gap: 1rem;">
+                                <button class="a-btn a-btn-primary a-btn-sm" onclick="approveProposal('${partnerId}', '${proposalId}')" style="flex: 1; padding: 1rem;"><i class="fas fa-check"></i> Approve</button>
+                                <button class="a-btn a-btn-danger a-btn-sm" onclick="rejectProposal('${partnerId}', '${proposalId}')" style="flex: 1; padding: 1rem;"><i class="fas fa-times"></i> Reject</button>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+                document.getElementById('detailModal').classList.add('open');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading proposal details');
+            }
+        }
+
+        async function approveProposal(partnerId, proposalId) {
+            const commissionInput = document.getElementById('commissionAmount');
+            const commission = commissionInput ? parseInt(commissionInput.value) || 0 : 0;
+
+            if (!confirm('Approve this proposal?')) return;
+            try {
+                const response = await fetch(`/admin/api/partners/${partnerId}/proposals/${proposalId}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ commission })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('Proposal approved!');
+                    closeModal();
+                    loadStats();
+                    loadProposals();
+                } else {
+                    alert(result.message || 'Error approving proposal');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error');
+            }
+        }
+
+        async function rejectProposal(partnerId, proposalId) {
+            const reason = prompt('Rejection reason:');
+            if (reason === null) return;
+            try {
+                const response = await fetch(`/admin/api/partners/${partnerId}/proposals/${proposalId}/reject`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('Proposal rejected.');
+                    closeModal();
+                    loadStats();
+                    loadProposals();
+                } else {
+                    alert(result.message || 'Error rejecting proposal');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('open');
+        }
+
+        document.getElementById('detailModal').addEventListener('click', (e) => {
+            if (e.target.e.target.classList.contains('a-modal-overlay')) closeModal();
+        });
+    </script>
+</body>
+</html>

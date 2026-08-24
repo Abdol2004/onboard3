@@ -1,0 +1,1139 @@
+const Quest = require("../models/Quest");
+const UserQuestProgress = require("../models/UserQuestProgress");
+const User = require("../models/User");
+const QuestApplication = require("../models/QuestApplication");
+const { notify } = require('../utils/notificationService');
+
+// Add this at the top of your quest controller functions
+const checkIfBanned = async (userId) => {
+  const user = await User.findById(userId);
+  if (user && user.isBanned) {
+    return {
+      banned: true,
+      reason: user.banReason || 'Terms of Service violation'
+    };
+  }
+  return { banned: false };
+};
+
+
+// ==================== QUEST LISTING ====================
+exports.getAllQuests = async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.redirect('/auth');
+    }
+
+    const user = await User.findById(req.session.userId).select('-password');
+    
+    if (!user) {
+      return res.redirect('/auth');
+    }
+     if (user.isBanned) {
+      return res.render('dashboard/quest', { 
+        title: 'Quests - Access Restricted',
+        user: user.toObject(),
+        isBanned: true,
+        banReason: user.banReason || 'Terms of Service violation',
+        bannedAt: user.bannedAt,
+        activeQuests: [],
+        availableQuests: [],
+        completedQuests: [],
+        pastQuests: [],
+        completedCount: 0
+      });
+    }
+    
+    const now = new Date();
+
+    // Get ALL active quests
+    const allQuests = await Quest.find({
+      isActive: true
+    }).sort({ createdAt: -1 });
+
+    // Get user's progress for all quests
+    const userProgress = await UserQuestProgress.find({
+      userId: req.session.userId
+    });
+
+    // Get user's quest applications for gated quests
+    const gatedQuestIds = allQuests.filter(q => q.gated).map(q => q._id);
+    const appMap = {};
+    if (gatedQuestIds.length > 0) {
+      const apps = await QuestApplication.find({ userId: req.session.userId, questId: { $in: gatedQuestIds } });
+      apps.forEach(a => { appMap[a.questId.toString()] = a; });
+    }
+
+    // Create a map of quest progress
+    const progressMap = {};
+    userProgress.forEach(progress => {
+      progressMap[progress.questId.toString()] = progress;
+    });
+
+    // Categorize quests
+    const activeQuests = [];
+    const availableQuests = [];
+    const completedQuests = [];
+    const pastQuests = [];
+    const specialCampaigns = [];
+
+    allQuests.forEach(quest => {
+      const progress = progressMap[quest._id.toString()];
+      const app = appMap[quest._id.toString()];
+
+      const questData = {
+        ...quest.toObject(),
+        userProgress: progress ? progress.toObject() : null,
+        appStatus: app ? app.status : 'none'
+      };
+
+      // Special/gated quests go in their own section
+      if (quest.isSpecialQuest || quest.gated) {
+        specialCampaigns.push(questData);
+        return;
+      }
+
+      // Check if quest is currently active based on dates
+      const isAvailableNow = (!quest.startDate || quest.startDate <= now) &&
+                             (!quest.endDate || quest.endDate >= now);
+
+      const hasEnded = quest.endDate && quest.endDate < now;
+
+      if (hasEnded) {
+        pastQuests.push(questData);
+      } else if (isAvailableNow) {
+        if (progress && progress.status === 'completed') {
+          completedQuests.push(questData);
+        } else if (progress && progress.status === 'in_progress') {
+          activeQuests.push(questData);
+        } else {
+          availableQuests.push(questData);
+        }
+      }
+    });
+
+    console.log('📊 Quest counts - Special:', specialCampaigns.length, 'Available:', availableQuests.length, 'Active:', activeQuests.length, 'Completed:', completedQuests.length, 'Past:', pastQuests.length);
+
+    res.render('dashboard/quest', {
+      title: 'Quests',
+      user: user.toObject(),
+      activeQuests: activeQuests || [],
+      availableQuests: availableQuests || [],
+      completedQuests: completedQuests || [],
+      pastQuests: pastQuests || [],
+      specialCampaigns: specialCampaigns || [],
+      completedCount: completedQuests.length
+    });
+
+  } catch (error) {
+    console.error("❌ Get quests error:", error);
+    res.status(500).send("Error loading quests");
+  }
+};
+
+// ==================== QUEST DETAILS ====================
+exports.getQuestDetails = async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.redirect('/auth');
+    }
+    const { questId } = req.params;
+    const user = await User.findById(req.session.userId).select('-password');
+    
+
+    // 🚫 CHECK IF USER IS BANNED
+    if (user.isBanned) {
+      return res.render('dashboard/quest-details', { 
+        title: 'Quest - Access Restricted',
+        user: user.toObject(),
+        isBanned: true,
+        banReason: user.banReason || 'Terms of Service violation',
+        bannedAt: user.bannedAt,
+        quest: null,
+        userProgress: null,
+        leaderboard: [],
+        userRank: null
+      });
+    }
+   
+    
+    const quest = await Quest.findById(questId);
+
+    if (!quest) {
+      return res.status(404).send("Quest not found");
+    }
+
+    // Handle gated quests: check application status before creating progress
+    if (quest.gated && quest.memberApproval) {
+      const application = await QuestApplication.findOne({ questId: quest._id, userId: req.session.userId });
+      const appState = application ? application.status : 'none';
+
+      if (appState !== 'approved') {
+        // Fetch participant count for display
+        const participantCount = await QuestApplication.countDocuments({ questId: quest._id, status: 'approved' });
+        return res.render('dashboard/quest-details', {
+          title: quest.title,
+          user: user.toObject(),
+          quest: quest.toObject(),
+          questStatus: quest.getDisplayStatus(),
+          appState: appState,
+          application: application ? application.toObject() : null,
+          participantCount,
+          userProgress: null,
+          leaderboard: [],
+          userRank: null,
+          isBanned: false
+        });
+      }
+    }
+
+    // Get or create user progress
+    let userProgress = await UserQuestProgress.findOne({
+      userId: req.session.userId,
+      questId: questId
+    });
+
+    if (!userProgress) {
+      // Combine regular tasks + daily tasks
+      const allTasks = [...quest.tasks, ...(quest.dailyTasks || [])];
+
+      userProgress = new UserQuestProgress({
+        userId: req.session.userId,
+        questId: questId,
+        totalTasks: allTasks.length,
+        taskProgress: allTasks.map(task => ({
+          taskId: task._id,
+          isCompleted: false
+        }))
+      });
+      await userProgress.save();
+    } else {
+      // 🔄 SYNC PROGRESS: Handle tasks added/removed from quest
+      const allTasks = [...quest.tasks, ...(quest.dailyTasks || [])];
+      const currentTaskIds = allTasks.map(t => t._id.toString());
+      let progressUpdated = false;
+
+      // Remove tasks that no longer exist in quest
+      const validTaskProgress = userProgress.taskProgress.filter(tp => {
+        const taskStillExists = currentTaskIds.includes(tp.taskId.toString());
+        if (!taskStillExists && !tp.isCompleted) {
+          console.log(`🗑️ Removing deleted task ${tp.taskId} from user progress`);
+          progressUpdated = true;
+          if (tp.isCompleted) {
+            userProgress.tasksCompleted -= 1;
+          }
+        }
+        return taskStillExists;
+      });
+
+      // Add new tasks that don't exist in progress
+      allTasks.forEach(task => {
+        const exists = validTaskProgress.find(tp => tp.taskId.toString() === task._id.toString());
+        if (!exists) {
+          console.log(`➕ Adding new task ${task._id} to user progress`);
+          validTaskProgress.push({
+            taskId: task._id,
+            isCompleted: false
+          });
+          progressUpdated = true;
+        }
+      });
+
+      if (progressUpdated) {
+        userProgress.taskProgress = validTaskProgress;
+        userProgress.totalTasks = allTasks.length;
+        userProgress.progress = Math.round((userProgress.tasksCompleted / userProgress.totalTasks) * 100);
+
+        if (userProgress.tasksCompleted === userProgress.totalTasks && userProgress.status !== 'completed') {
+          userProgress.status = 'completed';
+          userProgress.completedAt = new Date();
+        }
+
+        await userProgress.save();
+        console.log(`✅ User progress synced - ${userProgress.tasksCompleted}/${userProgress.totalTasks} tasks`);
+      }
+    }
+
+    // ✅ FIXED: Get leaderboard - Sort by XP only, not by status
+    const leaderboard = await UserQuestProgress.find({
+      questId: questId,
+      status: { $in: ['completed', 'in_progress'] }
+    })
+    .populate('userId', 'username profilePicture')
+    .sort({ 
+      'xpBreakdown.totalXp': -1,  // Sort by total XP (highest first)
+      completedAt: 1               // Then by completion time (earliest first)
+    })
+    .limit(100);
+
+    // Filter out deleted users
+    const validLeaderboard = leaderboard.filter(entry => entry.userId);
+
+    // Find user's rank
+    const userRank = validLeaderboard.findIndex(
+      entry => entry.userId._id.toString() === req.session.userId
+    ) + 1;
+
+    // Get quest display status
+    const questStatus = quest.getDisplayStatus();
+
+    // For approved gated quest members: get participant count
+    let participantCount = 0;
+    if (quest.gated && quest.memberApproval) {
+      participantCount = await QuestApplication.countDocuments({ questId: quest._id, status: 'approved' });
+    }
+
+    res.render('dashboard/quest-details', {
+      title: quest.title,
+      user: user.toObject(),
+      quest: quest.toObject(),
+      questStatus: questStatus,
+      appState: 'approved',
+      application: null,
+      participantCount,
+      userProgress: userProgress.toObject(),
+      leaderboard: validLeaderboard.map(item => item.toObject()),
+      userRank: userRank || null,
+      isBanned: false
+    });
+
+  } catch (error) {
+    console.error("Get quest details error:", error);
+    res.status(500).send("Error loading quest details");
+  }
+};
+
+// ==================== START QUEST ====================
+exports.startQuest = async (req, res) => {
+  try {
+    const banCheck = await checkIfBanned(req.session.userId);
+    if (banCheck.banned) {
+      return res.status(403).json({
+        success: false,
+        message: `Account suspended: ${banCheck.reason}`
+      });
+    }
+
+
+    const { questId } = req.body;
+
+    const quest = await Quest.findById(questId);
+    
+    if (!quest) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Quest not found" 
+      });
+    }
+
+    // Check if quest has ended
+    if (quest.hasEnded()) {
+      const status = quest.getDisplayStatus();
+      if (status === 'distributing') {
+        return res.status(400).json({
+          success: false,
+          message: "This quest has ended. Rewards are being distributed.",
+          questStatus: 'distributing'
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: "This quest has ended.",
+        questStatus: 'ended'
+      });
+    }
+
+    // Check if quest is currently active
+    if (!quest.isCurrentlyActive()) {
+      return res.status(400).json({
+        success: false,
+        message: "This quest is not currently available"
+      });
+    }
+
+    // Check if user already has progress
+    let userProgress = await UserQuestProgress.findOne({
+      userId: req.session.userId,
+      questId: questId
+    });
+
+    if (userProgress && userProgress.status === 'in_progress') {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Quest already in progress" 
+      });
+    }
+
+    if (userProgress && userProgress.status === 'completed') {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Quest already completed" 
+      });
+    }
+
+    // ==================== BATCH RELEASE CHECK (FCFS only) ====================
+    if (quest.questType === 'fcfs' && quest.batchConfig?.enabled && quest.startDate) {
+      const batchSize = quest.batchConfig.batchSize || 50;
+      const intervalHours = quest.batchConfig.intervalHours || 48;
+      const hoursElapsed = (Date.now() - new Date(quest.startDate).getTime()) / (1000 * 60 * 60);
+      const currentBatch = Math.floor(hoursElapsed / intervalHours) + 1;
+      const spotsAvailable = currentBatch * batchSize;
+
+      if (quest.totalParticipants >= spotsAvailable) {
+        const nextBatchAt = new Date(quest.startDate.getTime() + currentBatch * intervalHours * 60 * 60 * 1000);
+        return res.status(403).json({
+          success: false,
+          message: `This batch is full. The next batch of ${batchSize} spots opens soon.`,
+          batchFull: true,
+          nextBatchAt,
+          spotsInBatch: batchSize,
+          currentBatch
+        });
+      }
+    }
+
+    if (!userProgress) {
+      const allTasks = [...quest.tasks, ...(quest.dailyTasks || [])];
+
+      userProgress = new UserQuestProgress({
+        userId: req.session.userId,
+        questId: questId,
+        totalTasks: allTasks.length,
+        taskProgress: allTasks.map(task => ({
+          taskId: task._id,
+          isCompleted: false
+        }))
+      });
+    } else {
+      // 🔄 SYNC PROGRESS: If user had old progress, sync with current quest structure
+      const allTasks = [...quest.tasks, ...(quest.dailyTasks || [])];
+      const currentTaskIds = allTasks.map(t => t._id.toString());
+
+      // Remove tasks that no longer exist
+      const validTaskProgress = userProgress.taskProgress.filter(tp =>
+        currentTaskIds.includes(tp.taskId.toString())
+      );
+
+      // Add new tasks
+      allTasks.forEach(task => {
+        const exists = validTaskProgress.find(tp => tp.taskId.toString() === task._id.toString());
+        if (!exists) {
+          validTaskProgress.push({
+            taskId: task._id,
+            isCompleted: false
+          });
+        }
+      });
+
+      userProgress.taskProgress = validTaskProgress;
+      userProgress.totalTasks = allTasks.length;
+      userProgress.tasksCompleted = validTaskProgress.filter(tp => tp.isCompleted).length;
+      userProgress.progress = Math.round((userProgress.tasksCompleted / userProgress.totalTasks) * 100);
+    }
+
+    userProgress.status = 'in_progress';
+    userProgress.startedAt = new Date();
+    await userProgress.save();
+
+    // Update quest stats
+    quest.totalAttempts += 1;
+    quest.totalParticipants += 1;
+    await quest.save();
+
+    // ==================== REFERRAL BONUS ====================
+    const user = await User.findById(req.session.userId);
+    
+    if (quest.referralConfig?.enabled && user.referredBy) {
+      await processReferralJoinBonus(user.referredBy, user._id, questId, quest.referralConfig.xpPerReferralJoin);
+    }
+
+    // Add activity to user
+    user.recentActivity.unshift({
+      action: `Started quest: ${quest.title}`,
+      timestamp: new Date()
+    });
+    if (user.recentActivity.length > 10) {
+      user.recentActivity = user.recentActivity.slice(0, 10);
+    }
+    await user.save();
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Quest started successfully",
+      questId: questId
+    });
+
+  } catch (error) {
+    console.error("Start quest error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error" 
+    });
+  }
+};
+
+// ==================== SUBMIT TASK - FIXED ====================
+exports.submitTask = async (req, res) => {
+  try {
+    const { questId, taskId, submissionUrl, submissionData } = req.body;
+    let submissionText = req.body.submissionText;
+
+
+    const userProgress = await UserQuestProgress.findOne({
+      userId: req.session.userId,
+      questId: questId
+    });
+
+    if (!userProgress) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Quest progress not found" 
+      });
+    }
+
+    const quest = await Quest.findById(questId);
+    if (!quest) {
+      return res.status(404).json({
+        success: false,
+        message: "Quest not found"
+      });
+    }
+
+    // Check if quest has ended
+    if (quest.hasEnded()) {
+      const status = quest.getDisplayStatus();
+      if (status === 'distributing') {
+        return res.status(400).json({
+          success: false,
+          message: "This quest has ended. Rewards are being distributed. No more submissions allowed.",
+          questStatus: 'distributing'
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: "This quest has ended. No more submissions allowed.",
+        questStatus: 'ended'
+      });
+    }
+
+    // Find the task in progress first
+    const taskProgress = userProgress.taskProgress.find(
+      tp => tp.taskId.toString() === taskId
+    );
+
+    if (!taskProgress) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found in progress"
+      });
+    }
+
+    // Find the task in quest
+    const allTasks = [...quest.tasks, ...(quest.dailyTasks || [])];
+    const task = allTasks.find(t => t._id.toString() === taskId);
+
+    // If task was removed from quest but exists in user's progress, auto-complete it with 0 XP
+    if (!task) {
+      console.log(`⚠️ Task ${taskId} removed from quest but exists in user progress - auto-completing`);
+
+      taskProgress.isCompleted = true;
+      taskProgress.completedAt = new Date();
+      taskProgress.xpEarned = 0;
+
+      userProgress.tasksCompleted += 1;
+      userProgress.progress = Math.round((userProgress.tasksCompleted / userProgress.totalTasks) * 100);
+
+      await userProgress.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "This task is no longer part of the quest and has been marked as complete",
+        progress: userProgress.progress,
+        isQuestCompleted: userProgress.tasksCompleted === userProgress.totalTasks,
+        taskXpEarned: 0,
+        taskRemoved: true
+      });
+    }
+
+    if (taskProgress.isCompleted) {
+      return res.status(400).json({
+        success: false,
+        message: "Task already completed"
+      });
+    }
+
+    // ==================== SPECIAL TASK TYPE VERIFICATION ====================
+    const { verifyTelegramMembership, verifyDiscordMembership, callWebhook } = require('../utils/socialVerification');
+
+    if (task.taskType === 'poll') {
+      const pollChoice = submissionData?.pollChoice;
+      if (!pollChoice) {
+        return res.status(400).json({ success: false, message: 'Please select a poll option' });
+      }
+      // Find and increment the vote on the quest document
+      const taskInQuest = quest.tasks.id(taskId) || (quest.dailyTasks || []).find(t => t._id.toString() === taskId);
+      if (taskInQuest) {
+        const option = taskInQuest.pollOptions.find(o => o.text === pollChoice);
+        if (!option) return res.status(400).json({ success: false, message: 'Invalid poll option' });
+        option.votes += 1;
+        quest.markModified('tasks');
+        quest.markModified('dailyTasks');
+        await quest.save();
+      }
+      // Store the choice in submissionText so it's visible in admin
+      submissionText = pollChoice;
+
+    } else if (task.taskType === 'webhook') {
+      if (!task.webhookUrl) {
+        return res.status(400).json({ success: false, message: 'This task has no verification endpoint configured' });
+      }
+      const webhookUser = await User.findById(req.session.userId).select('username telegramUsername').lean();
+      const result = await callWebhook(task.webhookUrl, {
+        userId:   req.session.userId,
+        username: webhookUser?.username,
+        telegram: webhookUser?.telegramUsername,
+        taskId,
+        questId
+      });
+      if (!result.success) {
+        return res.status(400).json({ success: false, message: result.message || 'Verification failed' });
+      }
+
+    } else if (task.taskType === 'telegram_join') {
+      const tgUser = await User.findById(req.session.userId).select('telegramId').lean();
+      if (!tgUser?.telegramId) {
+        return res.status(400).json({ success: false, message: 'Connect your Telegram account first', requiresTelegram: true });
+      }
+      if (!task.telegramChatId) {
+        return res.status(400).json({ success: false, message: 'Task has no Telegram group configured' });
+      }
+      const result = await verifyTelegramMembership(task.telegramChatId, tgUser.telegramId);
+      if (!result.isMember) {
+        const chatName = task.telegramChatName ? `"${task.telegramChatName}"` : 'the required Telegram group';
+        return res.status(400).json({ success: false, message: `You are not a member of ${chatName}. Join it and try again.` });
+      }
+
+    } else if (task.taskType === 'discord_join') {
+      const dcUser = await User.findById(req.session.userId).select('discordId discordConnected').lean();
+      if (!dcUser?.discordConnected || !dcUser?.discordId) {
+        return res.status(400).json({ success: false, message: 'Connect your Discord account first', requiresDiscord: true });
+      }
+      if (!task.discordGuildId) {
+        return res.status(400).json({ success: false, message: 'Task has no Discord server configured' });
+      }
+      const result = await verifyDiscordMembership(task.discordGuildId, dcUser.discordId);
+      if (!result.isMember) {
+        const guildName = task.discordGuildName ? `"${task.discordGuildName}"` : 'the required Discord server';
+        return res.status(400).json({ success: false, message: `You are not a member of ${guildName}. Join it and try again.` });
+      }
+
+    } else {
+      // ==================== ANTI-GARBAGE VALIDATION (standard tasks) ====================
+      const { validateSubmission } = require('../utils/submissionValidator');
+
+      const validationResult = await validateSubmission(
+        task,
+        { url: submissionUrl, text: submissionText, screenshot: submissionData },
+        req.session.userId
+      );
+
+      if (!validationResult.isValid) {
+        return res.status(400).json({
+          success: false,
+          message: "Submission validation failed",
+          errors: validationResult.errors,
+          warnings: validationResult.warnings
+        });
+      }
+    }
+
+    // Update task progress
+    const needsApproval = task.requiresApproval && quest.questType !== 'fcfs';
+    taskProgress.approvalStatus = needsApproval ? 'pending' : 'auto';
+    taskProgress.submissionUrl  = submissionUrl;
+    taskProgress.submissionText = submissionText;
+    taskProgress.submissionData = submissionData;
+    if (submissionData && submissionData.image) {
+      taskProgress.submissionImage = submissionData.image;
+    }
+
+    if (needsApproval) {
+      await userProgress.save();
+      return res.json({
+        success: true,
+        pending: true,
+        message: 'Submission received — pending admin review',
+        progress: userProgress.progress
+      });
+    }
+
+    taskProgress.isCompleted = true;
+    taskProgress.completedAt = new Date();
+    
+    // Award XP for this specific task
+    const taskXp = task.xpReward || 0;
+    taskProgress.xpEarned = taskXp;
+    
+    // ✅ QUEST-SPECIFIC XP (for leaderboard)
+    userProgress.xpBreakdown.taskXp += taskXp;
+
+    // Update overall progress
+    userProgress.tasksCompleted += 1;
+    userProgress.progress = Math.round((userProgress.tasksCompleted / userProgress.totalTasks) * 100);
+
+    // ✅ Recalculate totalXp
+    userProgress.xpBreakdown.totalXp = 
+      (userProgress.xpBreakdown.taskXp || 0) +
+      (userProgress.xpBreakdown.baseXp || 0) +
+      (userProgress.xpBreakdown.referralJoinBonus || 0) +
+      (userProgress.xpBreakdown.referralCompleteBonus || 0) +
+      (userProgress.xpBreakdown.winnerBonus || 0);
+
+    userProgress.markModified('xpBreakdown');
+
+    // ✅ GLOBAL XP (for dashboard) - Add task XP immediately
+    const user = await User.findById(req.session.userId);
+    user.xp += taskXp;
+    
+    user.recentActivity.unshift({
+      action: `Completed task: ${task.title} (+${taskXp} XP)`,
+      timestamp: new Date()
+    });
+
+    // ==================== CHECK IF QUEST COMPLETED ====================
+    if (userProgress.tasksCompleted === userProgress.totalTasks) {
+      userProgress.status = 'completed';
+      userProgress.completedAt = new Date();
+      
+      // Calculate time spent
+      if (userProgress.startedAt) {
+        userProgress.timeSpentMinutes = Math.round(
+          (userProgress.completedAt - userProgress.startedAt) / 60000
+        );
+      }
+
+      // ✅ QUEST-SPECIFIC: Base XP for completing quest
+      const baseQuestXp = quest.baseXpReward || 0;
+      userProgress.xpBreakdown.baseXp = baseQuestXp;
+      // FCFS: instant per-person reward from rewardPlan; other types use full pool (legacy)
+      const fcfsReward = (quest.questType === 'fcfs' && quest.rewardPlan && quest.rewardPlan.rewardPerPerson > 0)
+        ? quest.rewardPlan.rewardPerPerson
+        : (quest.usdcReward || 0);
+      userProgress.usdcEarned = fcfsReward;
+      userProgress.badgeEarned = quest.badgeReward;
+
+      // ✅ Recalculate totalXp with base XP
+      userProgress.xpBreakdown.totalXp = 
+        (userProgress.xpBreakdown.taskXp || 0) +
+        baseQuestXp +
+        (userProgress.xpBreakdown.referralJoinBonus || 0) +
+        (userProgress.xpBreakdown.referralCompleteBonus || 0) +
+        (userProgress.xpBreakdown.winnerBonus || 0);
+
+      userProgress.markModified('xpBreakdown');
+
+      // ✅ GLOBAL XP: Add base quest XP to user's total
+      user.xp += baseQuestXp;
+      user.usdcBalance += userProgress.usdcEarned;
+
+      // Calculate total quest XP for display
+      const totalQuestXp = userProgress.xpBreakdown.taskXp + baseQuestXp;
+
+      user.recentActivity.unshift({
+        action: `🎉 Completed quest: ${quest.title} (+${totalQuestXp} XP${userProgress.usdcEarned > 0 ? ', +' + userProgress.usdcEarned + ' USDC' : ''})`,
+        timestamp: new Date()
+      });
+
+      // Update quest stats
+      quest.totalCompletions += 1;
+
+      // Update average completion time
+      const completedQuests = await UserQuestProgress.find({
+        questId: questId,
+        status: 'completed',
+        timeSpentMinutes: { $gt: 0 }
+      });
+
+      if (completedQuests.length > 0) {
+        const totalTime = completedQuests.reduce((sum, q) => sum + q.timeSpentMinutes, 0);
+        quest.averageCompletionTime = Math.round(totalTime / completedQuests.length);
+      }
+
+      // ==================== FCFS: auto-close when slots fill up ====================
+      if (quest.questType === 'fcfs' && quest.maxParticipants && quest.totalParticipants >= quest.maxParticipants) {
+        quest.isActive = false;
+        console.log(`[FCFS] Quest ${quest._id} auto-closed: ${quest.totalParticipants}/${quest.maxParticipants} slots filled`);
+      }
+
+      await quest.save();
+
+      // ==================== REFERRAL COMPLETION BONUS ====================
+      if (quest.referralConfig?.enabled && user.referredBy) {
+        await processReferralCompleteBonus(user.referredBy, user._id, questId, quest.referralConfig.xpPerReferralComplete);
+      }
+
+      // ==================== FCFS/COMPETITION LOGIC ====================
+      if (quest.questType === 'fcfs' || quest.questType === 'competition') {
+        await updateQuestLeaderboard(questId, quest);
+      }
+    }
+    
+    if (user.recentActivity.length > 10) {
+      user.recentActivity = user.recentActivity.slice(0, 10);
+    }
+
+    // ── Feed events: role upgrade + USDC earned ────────────────────────────
+    try {
+      const FeedEvent = require('../models/FeedEvent');
+      const io        = req.app.get('io');
+
+      const getRoleKey = (xp) => {
+        if ((xp||0) >= 500000) return 'core_team';
+        if ((xp||0) >= 250000) return 'major';
+        if ((xp||0) >= 100000) return 'legend';
+        if ((xp||0) >= 50000)  return 'maxi';
+        if ((xp||0) >= 25000)  return 'captain';
+        if ((xp||0) >= 10000)  return 'contributor';
+        return 'citizen';
+      };
+
+      const totalXpAwarded = taskXp + (userProgress.status === 'completed' ? (quest.baseXpReward || 0) : 0);
+      const xpBefore = user.xp - totalXpAwarded;
+      const oldRole  = getRoleKey(xpBefore);
+      const newRole  = getRoleKey(user.xp);
+
+      if (oldRole !== newRole) {
+        const ev = await FeedEvent.create({
+          type: 'role_upgrade', userId: user._id, username: user.username,
+          data: { oldRole, newRole }
+        });
+        io?.emit('feed_event', {
+          type: 'role_upgrade', username: user.username,
+          data: { oldRole, newRole }, createdAt: ev.createdAt
+        });
+      }
+
+      if (userProgress.status === 'completed' && (userProgress.usdcEarned || 0) > 0) {
+        const ev = await FeedEvent.create({
+          type: 'usdc_earned', userId: user._id, username: user.username,
+          data: { amount: userProgress.usdcEarned, questTitle: quest.title }
+        });
+        io?.emit('feed_event', {
+          type: 'usdc_earned', username: user.username,
+          data: { amount: userProgress.usdcEarned, questTitle: quest.title }, createdAt: ev.createdAt
+        });
+      }
+    } catch (_) {}
+    // ──────────────────────────────────────────────────────────────────────
+
+    await user.save();
+    await userProgress.save();
+
+    // ── Notifications ───────────────────────────────────────────────────────
+    if (userProgress.status === 'completed') {
+        const totalXp = userProgress.xpBreakdown?.totalXp || 0;
+        const usdc    = userProgress.usdcEarned || 0;
+        await notify(user._id, {
+            type:    'quest',
+            title:   'Quest Completed!',
+            message: `You completed "${quest.title}" and earned ${totalXp} XP${usdc > 0 ? ` + $${usdc} USDC` : ''}!`,
+            link:    `/dashboard/quests/${quest._id}`
+        });
+    } else if (taskXp > 0) {
+        await notify(user._id, {
+            type:    'submission',
+            title:   'Task Approved',
+            message: `Your task in "${quest.title}" was approved. +${taskXp} XP`,
+            link:    `/dashboard/quests/${quest._id}`
+        });
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
+    res.status(200).json({
+      success: true,
+      message: userProgress.status === 'completed' ? "Quest completed!" : "Task submitted successfully",
+      progress: userProgress.progress,
+      isQuestCompleted: userProgress.status === 'completed',
+      taskXpEarned: taskXp,
+      rewards: userProgress.status === 'completed' ? {
+        xp: userProgress.xpBreakdown.totalXp,
+        usdc: userProgress.usdcEarned,
+        badge: userProgress.badgeEarned
+      } : null
+    });
+
+  } catch (error) {
+    console.error("Submit task error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error" 
+    });
+  }
+};
+
+// ==================== QUEST LEADERBOARD ====================
+exports.getQuestLeaderboard = async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.redirect('/auth');
+    }
+
+    const { questId } = req.params;
+    const user = await User.findById(req.session.userId).select('-password');
+
+    const quest = await Quest.findById(questId);
+    if (!quest) {
+      return res.status(404).send("Quest not found");
+    }
+
+    // ✅ FIXED: Get ALL participants - Sort by XP only, not by status
+    const leaderboard = await UserQuestProgress.find({
+      questId: questId,
+      status: { $in: ['completed', 'in_progress'] }
+    })
+    .populate('userId', 'username profilePicture')
+    .sort({ 
+      'xpBreakdown.totalXp': -1,  // Sort by total XP (highest first)
+      completedAt: 1               // Then by completion time (earliest first)
+    })
+    .limit(500);
+
+    // Filter out deleted users
+    const validLeaderboard = leaderboard.filter(entry => entry.userId);
+
+    // Find user's rank
+    const userRank = validLeaderboard.findIndex(
+      entry => entry.userId._id.toString() === req.session.userId
+    ) + 1;
+
+    // Get user's progress
+    const userProgress = await UserQuestProgress.findOne({
+      userId: req.session.userId,
+      questId: questId
+    });
+
+    console.log(`📊 Leaderboard for ${quest.title}:`);
+    console.log(`   Total entries: ${validLeaderboard.length}`);
+    console.log(`   User rank: ${userRank || 'Not found'}`);
+    if (userProgress) {
+      console.log(`   User status: ${userProgress.status}`);
+      console.log(`   User XP: ${userProgress.xpBreakdown?.totalXp || 0}`);
+      console.log(`   User tasks: ${userProgress.tasksCompleted}/${userProgress.totalTasks}`);
+    }
+
+    res.render('dashboard/quest-leaderboard', { 
+      title: `${quest.title} - Leaderboard`,
+      user: user.toObject(),
+      quest: quest.toObject(),
+      leaderboard: validLeaderboard.map(item => item.toObject()),
+      userRank: userRank || null,
+      userProgress: userProgress ? userProgress.toObject() : null
+    });
+
+  } catch (error) {
+    console.error("Get leaderboard error:", error);
+    res.status(500).send("Error loading leaderboard");
+  }
+};
+
+// ==================== HELPER FUNCTIONS - FIXED (NO VERIFICATION CHECKS) ====================
+async function processReferralJoinBonus(referralCode, referredUserId, questId, xpBonus) {
+  try {
+    if (xpBonus <= 0) return;
+
+    const quest = await Quest.findById(questId);
+    if (quest && quest.hasEnded()) {
+      console.log(`⏹️ Quest ${questId} has ended - skipping referral join bonus`);
+      return;
+    }
+
+    // ✅ REMOVED ALL VERIFICATION CHECKS - Just verify user exists
+    const referredUser = await User.findById(referredUserId);
+    if (!referredUser) {
+      console.log(`⚠️ Referral join bonus skipped - referred user not found`);
+      return;
+    }
+
+    const referrer = await User.findOne({ referralCode });
+    if (!referrer) {
+      console.log(`⚠️ Referral join bonus skipped - referrer not found`);
+      return;
+    }
+
+    let referrerProgress = await UserQuestProgress.findOne({
+      userId: referrer._id,
+      questId: questId
+    });
+
+    // Update quest-level referral stats if referrer has started the quest
+    if (referrerProgress) {
+      // Check if this referral was already counted
+      const alreadyCounted = referrerProgress.referralStats.referralsJoined.some(
+        r => r.userId.toString() === referredUserId.toString()
+      );
+      if (alreadyCounted) {
+        console.log(`⚠️ Referral join bonus skipped - already counted for ${referredUser.username}`);
+        return;
+      }
+
+      // ✅ Add referral to quest progress
+      referrerProgress.referralStats.referralsJoined.push({
+        userId: referredUserId,
+        joinedAt: new Date(),
+        xpEarned: xpBonus
+      });
+
+      // ✅ Recalculate referral XP
+      referrerProgress.calculateReferralXp();
+      referrerProgress.markModified('xpBreakdown');
+      referrerProgress.markModified('referralStats');
+      await referrerProgress.save();
+    } else {
+      console.log(`ℹ️ Referrer ${referrer.username} hasn't started this quest yet - awarding global XP only`);
+    }
+
+    // ✅ GLOBAL XP: Always award to referrer regardless of quest progress
+    referrer.xp += xpBonus;
+    referrer.recentActivity.unshift({
+      action: `Earned ${xpBonus} XP - ${referredUser.username} joined quest 🎁`,
+      timestamp: new Date()
+    });
+
+    if (referrer.recentActivity.length > 10) {
+      referrer.recentActivity = referrer.recentActivity.slice(0, 10);
+    }
+
+    await referrer.save();
+    console.log(`✅ Referral join bonus: ${referrer.username} earned ${xpBonus} XP for ${referredUser.username}`);
+  } catch (error) {
+    console.error("Process referral join bonus error:", error);
+  }
+}
+
+async function processReferralCompleteBonus(referralCode, referredUserId, questId, xpBonus) {
+  try {
+    if (xpBonus <= 0) return;
+
+    const quest = await Quest.findById(questId);
+    if (quest && quest.hasEnded()) {
+      console.log(`⏹️ Quest ${questId} has ended - skipping referral complete bonus`);
+      return;
+    }
+
+    // ✅ REMOVED ALL VERIFICATION CHECKS - Just verify user exists
+    const referredUser = await User.findById(referredUserId);
+    if (!referredUser) {
+      console.log(`⚠️ Referral complete bonus skipped - referred user not found`);
+      return;
+    }
+
+    const referrer = await User.findOne({ referralCode });
+    if (!referrer) {
+      console.log(`⚠️ Referral complete bonus skipped - referrer not found`);
+      return;
+    }
+
+    let referrerProgress = await UserQuestProgress.findOne({
+      userId: referrer._id,
+      questId: questId
+    });
+
+    // Update quest-level referral stats if referrer has started the quest
+    if (referrerProgress) {
+      // Check if already counted
+      const alreadyCounted = referrerProgress.referralStats.referralsCompleted.some(
+        r => r.userId.toString() === referredUserId.toString()
+      );
+      if (alreadyCounted) {
+        console.log(`⚠️ Referral complete bonus skipped - already counted for ${referredUser.username}`);
+        return;
+      }
+
+      // ✅ Add referral to quest progress
+      referrerProgress.referralStats.referralsCompleted.push({
+        userId: referredUserId,
+        completedAt: new Date(),
+        xpEarned: xpBonus
+      });
+
+      // ✅ Recalculate referral XP
+      referrerProgress.calculateReferralXp();
+      referrerProgress.markModified('xpBreakdown');
+      referrerProgress.markModified('referralStats');
+      await referrerProgress.save();
+    } else {
+      console.log(`ℹ️ Referrer ${referrer.username} hasn't started this quest yet - awarding global XP only`);
+    }
+
+    // ✅ GLOBAL XP: Always award to referrer regardless of quest progress
+    referrer.xp += xpBonus;
+    referrer.recentActivity.unshift({
+      action: `Earned ${xpBonus} XP - ${referredUser.username} completed quest 🏆`,
+      timestamp: new Date()
+    });
+
+    if (referrer.recentActivity.length > 10) {
+      referrer.recentActivity = referrer.recentActivity.slice(0, 10);
+    }
+
+    await referrer.save();
+    console.log(`✅ Referral complete bonus: ${referrer.username} earned ${xpBonus} XP for ${referredUser.username}`);
+  } catch (error) {
+    console.error("Process referral complete bonus error:", error);
+  }
+}
+
+async function updateQuestLeaderboard(questId, quest) {
+  try {
+    const topWinners = quest.competitionConfig?.topWinnersCount || 10;
+    const winnerBonusXp = quest.competitionConfig?.winnerBonusXP || 0;
+
+    const allCompleted = await UserQuestProgress.find({
+      questId: questId,
+      status: 'completed'
+    }).sort({ completedAt: 1 });
+
+    for (let i = 0; i < allCompleted.length; i++) {
+      const progress = allCompleted[i];
+      progress.leaderboardRank = i + 1;
+
+      if (i < topWinners) {
+        progress.isWinner = true;
+        progress.winnerRank = i + 1;
+
+        if (winnerBonusXp > 0 && progress.xpBreakdown.winnerBonus === 0) {
+          // ✅ Add winner bonus
+          progress.xpBreakdown.winnerBonus = winnerBonusXp;
+          
+          // ✅ Recalculate totalXp
+          progress.xpBreakdown.totalXp = 
+            (progress.xpBreakdown.taskXp || 0) +
+            (progress.xpBreakdown.baseXp || 0) +
+            (progress.xpBreakdown.referralJoinBonus || 0) +
+            (progress.xpBreakdown.referralCompleteBonus || 0) +
+            winnerBonusXp;
+
+          progress.markModified('xpBreakdown');
+          
+          // ✅ GLOBAL XP: Add to user's total
+          const user = await User.findById(progress.userId);
+          if (user) {
+            user.xp += winnerBonusXp;
+            user.recentActivity.unshift({
+              action: `🥇 Won #${i + 1} in quest! (+${winnerBonusXp} bonus XP)`,
+              timestamp: new Date()
+            });
+            if (user.recentActivity.length > 10) {
+              user.recentActivity = user.recentActivity.slice(0, 10);
+            }
+            await user.save();
+          }
+        }
+      }
+
+      await progress.save();
+    }
+  } catch (error) {
+    console.error("Update leaderboard error:", error);
+  }
+}

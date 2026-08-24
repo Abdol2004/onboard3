@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        /* Override dashboard styles for public page */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .dashboard-container {
+            margin-left: 0 !important;
+        }
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+
+            .header {
+                margin-bottom: 1rem;
+            }
+
+            .header h2 {
+                font-size: 1.5rem;
+            }
+
+            .card {
+                padding: 1rem !important;
+            }
+
+            /* Banner */
+            #eventTitleBanner {
+                font-size: 1.8rem !important;
+            }
+
+            #eventDateBanner {
+                font-size: 1rem !important;
+            }
+
+            /* Hero section */
+            #eventDescription {
+                font-size: 1rem !important;
+            }
+
+            /* Action buttons */
+            #actionButtons {
+                width: 100%;
+                min-width: 100% !important;
+            }
+
+            #actionButtons button {
+                width: 100%;
+                padding: 0.8rem 1.5rem !important;
+                font-size: 0.95rem !important;
+            }
+
+            /* Quick info grid - make it single column on mobile */
+            .card > div[style*="grid"] {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            /* Info cards */
+            .card > div > div[style*="background: rgba(57,255,20,0.05)"] {
+                padding: 1rem !important;
+            }
+
+            .card > div > div i.fa-calendar-alt,
+            .card > div > div i.fa-clock,
+            .card > div > div i.fa-map-marker-alt,
+            .card > div > div i.fa-users {
+                font-size: 1.5rem !important;
+            }
+
+            /* Speakers grid */
+            #speakersList {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Status badges */
+            .status-badge {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            /* Back button */
+            .header a[href="/events"] {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 0.75rem;
+            }
+
+            /* Banner */
+            #eventTitleBanner {
+                font-size: 1.5rem !important;
+            }
+
+            #eventDateBanner {
+                font-size: 0.9rem !important;
+            }
+
+            #eventDescription {
+                font-size: 0.95rem !important;
+            }
+
+            .card h3 {
+                font-size: 1.1rem;
+            }
+
+            #actionButtons button {
+                padding: 0.7rem 1rem !important;
+                font-size: 0.9rem !important;
+            }
+        }
+
+        /* Ensure hero section wraps properly */
+        .card > div[style*="display: flex"] {
+            display: flex !important;
+            flex-wrap: wrap !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <div class="dashboard-container">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <a href="/events" style="color: #39FF14; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <i class="fas fa-arrow-left"></i> Back to Events
+                        </a>
+                        <h2 id="eventTitle">Event Details</h2>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Loading State -->
+                <div id="loadingState" class="card" style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #39FF14;"></i>
+                    <p style="color: #888; margin-top: 1rem;">Loading event details...</p>
+                </div>
+
+                <!-- Event Details Content -->
+                <div id="eventDetailsContent" style="display: none;">
+                    <!-- Event Banner -->
+                    <div id="eventBanner" style="border-radius: 16px; padding: 4rem 2rem; margin-bottom: 2rem; position: relative; overflow: hidden; min-height: 300px; background: linear-gradient(135deg, #39FF14 0%, #00D9FF 100%); background-size: cover; background-position: center;">
+                        <!-- Dark overlay for text readability (only shows when image exists) -->
+                        <div id="bannerOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 100%); display: none;"></div>
+
+                        <!-- Decorative circles (for gradient fallback) -->
+                        <div id="decorCircle1" style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                        <div id="decorCircle2" style="position: absolute; bottom: -30px; left: -30px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+
+                        <div style="position: relative; z-index: 1; text-align: center;">
+                            <h1 id="eventTitleBanner" style="color: #0a0a0a; margin: 0 0 1rem 0; font-size: 2.5rem; font-weight: 800; word-break: break-word; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);"></h1>
+                            <p id="eventDateBanner" style="color: rgba(10,10,10,0.8); font-size: 1.2rem; font-weight: 600; margin: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);"></p>
+                        </div>
+                    </div>
+
+                    <!-- Hero Card -->
+                    <div class="card" style="background: linear-gradient(135deg, rgba(57,255,20,0.1) 0%, rgba(57,255,20,0.05) 100%);">
+                        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1.5rem;">
+                            <div style="flex: 1; min-width: 250px;">
+                                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                                    <span id="eventTypeBadge" class="status-badge"></span>
+                                    <span id="eventCategoryBadge" class="status-badge"></span>
+                                    <span id="eventStatusBadge" class="status-badge"></span>
+                                </div>
+
+                                <h2 style="color: #39FF14; margin: 0 0 1rem 0; font-size: 1.5rem;">About This Event</h2>
+                                <p id="eventDescription" style="color: #ccc; font-size: 1.1rem; line-height: 1.6; word-break: break-word;"></p>
+                            </div>
+
+                            <div id="actionButtons" style="display: flex; flex-direction: column; gap: 0.8rem; min-width: 200px; align-self: center;">
+                                <!-- Dynamic buttons will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Info -->
+                    <div class="card">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <i class="fas fa-calendar-alt" style="font-size: 2rem; color: #39FF14; flex-shrink: 0;"></i>
+                                    <div style="overflow: hidden;">
+                                        <p style="color: #888; font-size: 0.85rem; margin: 0;">Date</p>
+                                        <p id="eventDate" style="color: #fff; font-size: 1rem; font-weight: 600; margin: 0.3rem 0 0 0; word-break: break-word;"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <i class="fas fa-clock" style="font-size: 2rem; color: #39FF14; flex-shrink: 0;"></i>
+                                    <div style="overflow: hidden;">
+                                        <p style="color: #888; font-size: 0.85rem; margin: 0;">Time</p>
+                                        <p id="eventTime" style="color: #fff; font-size: 1rem; font-weight: 600; margin: 0.3rem 0 0 0; word-break: break-word;"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="venueCard" style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2); display: none;">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <i class="fas fa-map-marker-alt" style="font-size: 2rem; color: #39FF14; flex-shrink: 0;"></i>
+                                    <div style="overflow: hidden;">
+                                        <p style="color: #888; font-size: 0.85rem; margin: 0;">Venue</p>
+                                        <p id="eventVenue" style="color: #fff; font-size: 1rem; font-weight: 600; margin: 0.3rem 0 0 0; word-break: break-word;"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <i class="fas fa-users" style="font-size: 2rem; color: #39FF14; flex-shrink: 0;"></i>
+                                    <div style="overflow: hidden;">
+                                        <p style="color: #888; font-size: 0.85rem; margin: 0;">Registered</p>
+                                        <p id="eventRegistrations" style="color: #fff; font-size: 1rem; font-weight: 600; margin: 0.3rem 0 0 0;"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Virtual Link (if applicable) -->
+                    <div id="virtualLinkCard" class="card" style="display: none; background: rgba(57,255,20,0.1);">
+                        <h3 style="color: #39FF14; margin-top: 0;"><i class="fas fa-video"></i> Join Virtually</h3>
+                        <p style="color: #ccc; margin-bottom: 1rem;">Click the link below to join the virtual event:</p>
+                        <a id="virtualLink" href="#" target="_blank" style="display: inline-block; background: #39FF14; color: #0a0a0a; padding: 0.8rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                            Join Event <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+
+                    <!-- Prize Pool (if applicable) -->
+                    <div id="prizePoolCard" class="card" style="display: none;">
+                        <h3 style="color: #39FF14; margin-top: 0;"><i class="fas fa-trophy"></i> Prize Pool</h3>
+                        <p id="prizePool" style="color: #fff; font-size: 1.5rem; font-weight: 700;"></p>
+                    </div>
+
+                    <!-- Requirements -->
+                    <div id="requirementsCard" class="card" style="display: none;">
+                        <h3 style="color: #39FF14; margin-top: 0;"><i class="fas fa-check-circle"></i> Requirements</h3>
+                        <ul id="requirementsList" style="color: #ccc; line-height: 2;"></ul>
+                    </div>
+
+                    <!-- Agenda -->
+                    <div id="agendaCard" class="card" style="display: none;">
+                        <h3 style="color: #39FF14; margin-top: 0;"><i class="fas fa-list"></i> Event Agenda</h3>
+                        <div id="agendaList"></div>
+                    </div>
+
+                    <!-- Speakers -->
+                    <div id="speakersCard" class="card" style="display: none;">
+                        <h3 style="color: #39FF14; margin-top: 0;"><i class="fas fa-microphone"></i> Speakers</h3>
+                        <div id="speakersList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;"></div>
+                    </div>
+
+                    <!-- Registered Attendees -->
+                    <div id="attendeesCard" class="card">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3><i class="fas fa-user-friends"></i> Registered Attendees (<span id="attendeeCount">0</span>)</h3>
+                        </div>
+                        <div id="attendeesList"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Pass eventId and isAuthenticated to JavaScript -->
+    <script>
+        const EVENT_ID = '<%= eventId %>';
+        const IS_AUTHENTICATED = <%= isAuthenticated %>;
+        const IS_PUBLIC_PAGE = true; // Flag to indicate this is the public page
+    </script>
+    <script src="/js/event-details.js"></script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- OG / Twitter Card -->
+  <meta property="og:type"        content="profile">
+  <meta property="og:site_name"   content="ONBOARD3">
+  <meta property="og:title"       content="@<%= cardUser.username %> is a <%= role.name %> on ONBOARD3">
+  <meta property="og:description" content="<%= (cardUser.xp||0).toLocaleString() %> XP earned · $<%= totalUsdc %> USDC · Building in Web3 🚀">
+  <meta property="og:url"         content="https://<%= host %>/card/<%= cardUser.username %>">
+  <meta property="og:image"       content="https://<%= host %>/img/og-default.png">
+  <meta name="twitter:card"       content="summary_large_image">
+  <meta name="twitter:site"       content="@onboard3__">
+  <meta name="twitter:title"      content="@<%= cardUser.username %> is a <%= role.name %> on ONBOARD3">
+  <meta name="twitter:description" content="<%= (cardUser.xp||0).toLocaleString() %> XP · $<%= totalUsdc %> USDC earned 🔥">
+  <meta name="twitter:image"      content="https://<%= host %>/img/og-default.png">
+
+  <title>@<%= cardUser.username %> — ONBOARD3</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0a0a0a;
+      --surface: #111111;
+      --border:  #1f1f1f;
+      --text:    #f0f0f0;
+      --muted:   #666;
+      --green:   #5ec213;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient glows */
+    .glow-1, .glow-2 {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(94,194,19,.12) 0%, transparent 70%);
+      top: -150px; left: -150px;
+    }
+    .glow-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(94,194,19,.07) 0%, transparent 70%);
+      bottom: -100px; right: -100px;
+    }
+
+    /* Top bar */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      padding: .9rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(10,10,10,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+    .topbar-logo {
+      display: flex; align-items: center; gap: .5rem;
+      text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.05rem;
+    }
+    .topbar-logo img { height: 28px; object-fit: contain; }
+    .topbar-join {
+      background: var(--green); color: #000; font-weight: 700;
+      padding: .45rem 1.1rem; border-radius: 6px; text-decoration: none;
+      font-size: .85rem; transition: opacity .2s;
+    }
+    .topbar-join:hover { opacity: .85; }
+
+    /* Card wrapper */
+    .card-wrap {
+      position: relative; z-index: 1;
+      margin-top: 60px;
+      width: 100%; max-width: 480px;
+    }
+
+    /* The card itself */
+    .share-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Card banner */
+    .card-banner {
+      height: 100px;
+      background: linear-gradient(135deg, #0d1f08 0%, #111 40%, #0a0a0a 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .card-banner::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(94,194,19,.25) 0%, transparent 55%),
+        radial-gradient(circle at 80% 30%, rgba(94,194,19,.10) 0%, transparent 50%);
+    }
+    .card-banner-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(94,194,19,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(94,194,19,.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .card-banner-brand {
+      position: absolute; top: 14px; right: 18px;
+      font-size: .7rem; font-weight: 700; letter-spacing: .12em;
+      color: rgba(94,194,19,.7); text-transform: uppercase;
+    }
+
+    /* Avatar */
+    .card-avatar {
+      position: absolute;
+      left: 24px; top: 56px;
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      border: 3px solid var(--surface);
+      overflow: hidden;
+      background: #1a1a1a;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: 800;
+      color: var(--green);
+    }
+    .card-avatar img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+
+    /* Body */
+    .card-body {
+      padding: 2.5rem 1.5rem 1.5rem;
+      margin-top: 16px;
+    }
+
+    .card-username {
+      font-size: 1.4rem; font-weight: 800; letter-spacing: -.5px;
+      margin-bottom: .2rem;
+    }
+
+    /* Role badge */
+    .card-role {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .25rem .7rem;
+      border-radius: 20px;
+      font-size: .75rem; font-weight: 700;
+      letter-spacing: .04em;
+      margin-bottom: 1.25rem;
+      border: 1px solid;
+    }
+    .card-role i { font-size: .65rem; }
+
+    /* Stats row */
+    .card-stats {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: .75rem; margin-bottom: 1.4rem;
+    }
+    .cstat {
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .75rem .6rem;
+      text-align: center;
+    }
+    .cstat-val {
+      font-size: 1.05rem; font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: .2rem;
+    }
+    .cstat-val.green { color: var(--green); }
+    .cstat-label {
+      font-size: .65rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .07em;
+    }
+
+    /* Pathway pill */
+    .card-pathway {
+      display: flex; align-items: center; gap: .5rem;
+      font-size: .78rem; color: var(--muted);
+      margin-bottom: 1.4rem;
+    }
+    .card-pathway i { color: var(--green); }
+
+    /* Member since */
+    .card-since {
+      font-size: .75rem; color: var(--muted);
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .card-since i { font-size: .65rem; }
+
+    /* Divider */
+    .card-divider {
+      height: 1px; background: var(--border);
+      margin: 1.25rem 0;
+    }
+
+    /* Action buttons */
+    .card-actions {
+      display: flex; gap: .75rem;
+    }
+    .btn-share-x {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      background: #000; color: #fff;
+      border: 1px solid #333;
+      border-radius: 8px; padding: .65rem 1rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: .85rem; font-weight: 700;
+      text-decoration: none; cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .btn-share-x:hover { background: #111; border-color: #555; }
+    .btn-copy-link {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      background: rgba(94,194,19,.1); color: var(--green);
+      border: 1px solid rgba(94,194,19,.25);
+      border-radius: 8px; padding: .65rem 1.1rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: .85rem; font-weight: 700;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-copy-link:hover { background: rgba(94,194,19,.18); }
+
+    /* Footer note */
+    .card-footer-note {
+      text-align: center; margin-top: 1.5rem;
+      font-size: .72rem; color: var(--muted);
+    }
+    .card-footer-note a { color: var(--green); text-decoration: none; }
+
+    /* Copied toast */
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--green); color: #000;
+      padding: .55rem 1.2rem; border-radius: 30px;
+      font-size: .82rem; font-weight: 700;
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s, transform .3s;
+      z-index: 200;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 520px) {
+      .card-wrap { max-width: 100%; }
+      .card-stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="glow-1"></div>
+<div class="glow-2"></div>
+
+<nav class="topbar">
+  <a href="/" class="topbar-logo">
+    <img src="/img/logo.png" alt="ONBOARD3">
+    ONBOARD3
+  </a>
+  <a href="/auth" class="topbar-join">Join Free</a>
+</nav>
+
+<%
+  var pathwayLabels = { web3_jobs:'Web3 Jobs', ai:'AI & Web3', building:'Building', trading:'Trading', nft:'NFT' };
+  var memberSince = new Date(cardUser.createdAt);
+  var sinceStr = memberSince.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+  var tweetText = encodeURIComponent(
+    '@' + cardUser.username + ' just hit ' + role.name + ' rank on @onboard3__ 🚀\n' +
+    (cardUser.xp||0).toLocaleString() + ' XP · $' + totalUsdc + ' USDC earned\n\n' +
+    'Building in Web3 👇'
+  );
+  var cardUrl = encodeURIComponent('https://' + host + '/card/' + cardUser.username);
+%>
+
+<div class="card-wrap">
+  <div class="share-card">
+    <!-- Banner -->
+    <div class="card-banner">
+      <div class="card-banner-grid"></div>
+      <div class="card-banner-brand">ONBOARD3</div>
+    </div>
+
+    <!-- Avatar (overlaps banner) -->
+    <div class="card-avatar">
+      <% if (cardUser.profilePicture) { %>
+        <img src="<%= cardUser.profilePicture %>" alt="<%= cardUser.username %>">
+      <% } else { %>
+        <%= cardUser.username.charAt(0).toUpperCase() %>
+      <% } %>
+    </div>
+
+    <div class="card-body">
+      <div class="card-username">@<%= cardUser.username %></div>
+
+      <!-- Role badge -->
+      <div class="card-role" style="color:<%= role.color %>;border-color:<%= role.color %>22;background:<%= role.color %>11;">
+        <i class="fas fa-shield-halved"></i>
+        <%= role.name %>
+      </div>
+
+      <!-- Stats -->
+      <div class="card-stats">
+        <div class="cstat">
+          <div class="cstat-val green"><%= (cardUser.xp||0).toLocaleString() %></div>
+          <div class="cstat-label">XP</div>
+        </div>
+        <div class="cstat">
+          <div class="cstat-val">$<%= totalUsdc %></div>
+          <div class="cstat-label">USDC</div>
+        </div>
+        <div class="cstat">
+          <div class="cstat-val"><%= sinceStr.split(' ')[1] %></div>
+          <div class="cstat-label">Member Since</div>
+        </div>
+      </div>
+
+      <% if (cardUser.pathway) { %>
+      <div class="card-pathway">
+        <i class="fas fa-route"></i>
+        <%= pathwayLabels[cardUser.pathway] || cardUser.pathway %> Pathway
+      </div>
+      <% } %>
+
+      <div class="card-since">
+        <i class="fas fa-calendar"></i>
+        Building since <%= sinceStr %>
+      </div>
+
+      <div class="card-divider"></div>
+
+      <div class="card-actions">
+        <a class="btn-share-x"
+           href="https://twitter.com/intent/tweet?text=<%= tweetText %>&url=<%= cardUrl %>"
+           target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 1200 1227" fill="currentColor">
+            <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z"/>
+          </svg>
+          Share on X
+        </a>
+        <button class="btn-copy-link" onclick="copyLink()">
+          <i class="fas fa-link"></i>
+          Copy
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-footer-note">
+    Want your own card? <a href="/auth">Join ONBOARD3 free →</a>
+  </div>
+</div>
+
+<div class="toast" id="toast">Link copied!</div>
+
+<script>
+  function copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(function() {
+      var t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(function() { t.classList.remove('show'); }, 2200);
+    });
+  }
+</script>
+</body>
+</html>

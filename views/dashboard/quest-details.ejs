@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= quest.title %> — ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <%- include('../partials/achievement-popup') %>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        /* ══ HERO BANNER ══ */
+        .qd-hero {
+            position: relative; border-radius: 22px; overflow: hidden;
+            margin-bottom: 1.5rem;
+            animation: cardIn 0.5s ease both;
+            border: 1px solid var(--border);
+            min-height: 220px;
+        }
+        .qd-hero-bg {
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, #0d190d 0%, #111c11 50%, #0f1d0e 100%);
+        }
+        /* No stretched cover — logo is shown centered in qd-hero-logo */
+        .qd-hero-overlay {
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 70% 50%, rgba(94,194,19,0.06) 0%, transparent 65%);
+        }
+        .qd-hero-content {
+            position: relative; z-index: 1;
+            padding: 2rem 2.25rem;
+            display: flex; align-items: flex-end; justify-content: space-between;
+            flex-wrap: wrap; gap: 1.5rem;
+            min-height: 220px;
+        }
+        .qd-hero-left { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; }
+        .qd-back {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            color: var(--text-3); font-size: 0.8125rem; font-weight: 700; text-decoration: none;
+            margin-bottom: 1rem; transition: color 0.2s;
+            width: fit-content;
+        }
+        .qd-back:hover { color: var(--green); }
+        .qd-hero-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.875rem; }
+        .qd-badge {
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.5px;
+            padding: 0.3rem 0.75rem; border-radius: 50px; white-space: nowrap;
+        }
+        .qd-badge--type   { background: rgba(94,194,19,0.18); color: var(--green); border: 1px solid rgba(94,194,19,0.35); }
+        .qd-badge--fcfs   { background: rgba(251,191,36,0.18); color: #fbbf24; border: 1px solid rgba(251,191,36,0.35); }
+        .qd-badge--comp   { background: rgba(239,68,68,0.18); color: #f87171; border: 1px solid rgba(239,68,68,0.35); }
+        .qd-badge--ref    { background: rgba(168,85,247,0.18); color: #c084fc; border: 1px solid rgba(168,85,247,0.35); }
+        .qd-badge--done   { background: rgba(94,194,19,0.2); color: var(--green-light); border: 1px solid rgba(94,194,19,0.5); }
+        .qd-badge--diff   { background: rgba(255,255,255,0.08); color: var(--text-2); border: 1px solid rgba(255,255,255,0.12); text-transform: capitalize; }
+        .qd-title {
+            font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 900;
+            color: var(--text); letter-spacing: -1px; line-height: 1.15;
+            margin-bottom: 0.5rem;
+        }
+        .qd-short { font-size: 0.9375rem; color: var(--text-2); line-height: 1.65; }
+
+        /* Quest logo — large, centered right of hero */
+        .qd-hero-logo {
+            width: 100px; height: 100px; border-radius: 24px; overflow: hidden;
+            background: #fff; padding: 10px; flex-shrink: 0;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.15), 0 0 40px rgba(94,194,19,0.12);
+            animation: logoPop 0.6s cubic-bezier(0.34,1.56,0.64,1) both 0.2s;
+        }
+        /* ONBOARD3 default logo — dark green bg, no white box */
+        .qd-hero-logo--brand {
+            background: rgba(94,194,19,0.12);
+            border: 2px solid rgba(94,194,19,0.35);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.55), 0 0 40px rgba(94,194,19,0.2);
+        }
+        @keyframes logoPop { from{opacity:0;transform:scale(0.7)} to{opacity:1;transform:scale(1)} }
+        .qd-hero-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 14px; }
+        @media (max-width: 600px) { .qd-hero-logo { width: 64px; height: 64px; border-radius: 16px; padding: 7px; } }
+
+        /* Reward strip */
+        .qd-reward-strip {
+            display: flex; flex-wrap: wrap; gap: 0.75rem;
+            align-items: center; margin-top: 1.25rem;
+        }
+        .qd-reward-pill {
+            display: inline-flex; align-items: center; gap: 0.45rem;
+            padding: 0.5rem 1rem; border-radius: 50px; font-size: 0.875rem; font-weight: 800;
+        }
+        .qd-reward-pill--xp   { background: rgba(94,194,19,0.15); color: var(--green); border: 1px solid rgba(94,194,19,0.3); }
+        .qd-reward-pill--usdc { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+
+        /* ══ PROGRESS CARD ══ */
+        .qd-progress-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 18px; padding: 1.5rem;
+            animation: cardIn 0.5s ease 60ms both;
+        }
+        .qd-progress-top {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;
+        }
+        .qd-progress-label { font-size: 0.8125rem; font-weight: 800; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; }
+        .qd-progress-pct { font-size: 1.5rem; font-weight: 900; color: var(--green); letter-spacing: -0.5px; }
+        .qd-progress-bar { height: 10px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
+        .qd-progress-fill {
+            height: 100%; border-radius: 99px;
+            background: linear-gradient(90deg, var(--green-dark), var(--green), var(--green-light));
+            box-shadow: 0 0 12px rgba(94,194,19,0.5);
+            transition: width 1.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .qd-progress-meta {
+            display: flex; justify-content: space-between; margin-top: 0.625rem;
+            font-size: 0.75rem; font-weight: 700; color: var(--text-3);
+        }
+
+        /* ══ INFO PILLS ROW ══ */
+        .qd-info-row {
+            display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem;
+        }
+        .qd-info-pill {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 0.75rem 1.25rem; border-radius: 13px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            min-width: 90px;
+        }
+        .qd-info-pill-val { font-size: 0.9375rem; font-weight: 800; color: var(--green); }
+        .qd-info-pill-lbl { font-size: 0.68rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }
+
+        /* ══ XP BREAKDOWN ══ */
+        .xp-breakdown-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.875rem;
+            margin-top: 1.25rem;
+        }
+        .xp-breakdown-item {
+            padding: 1rem; border-radius: 13px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+        }
+        .xp-breakdown-item.winner { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.3); }
+        .xp-breakdown-lbl { font-size: 0.75rem; color: var(--text-3); margin-bottom: 0.35rem; }
+        .xp-breakdown-val { font-size: 1.375rem; font-weight: 900; color: var(--green); letter-spacing: -0.5px; }
+        .xp-breakdown-item.winner .xp-breakdown-val { color: #fbbf24; }
+
+        /* ══ TASK CARDS ══ */
+        .task-list { display: flex; flex-direction: column; gap: 0.875rem; }
+        .task-card {
+            border-radius: 15px; overflow: hidden;
+            border: 1px solid var(--border);
+            animation: cardIn 0.4s ease both;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+        .task-card:hover { border-color: rgba(94,194,19,0.25); }
+        .task-card--completed { border-color: rgba(94,194,19,0.3); background: rgba(94,194,19,0.04); }
+        .task-card--active    { border-color: rgba(251,146,60,0.35); background: rgba(251,146,60,0.03); }
+        .task-card--locked    { background: rgba(255,255,255,0.015); opacity: 0.6; }
+        .task-card--pending   { border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.03); }
+
+        .task-card-head {
+            display: flex; align-items: center; gap: 1rem; padding: 1.125rem 1.25rem;
+        }
+        .task-num {
+            width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8125rem; font-weight: 900;
+        }
+        .task-num--done    { background: rgba(94,194,19,0.2); color: var(--green); }
+        .task-num--active  { background: rgba(251,146,60,0.2); color: #fb923c; }
+        .task-num--locked  { background: rgba(100,100,100,0.15); color: #666; }
+        .task-num--pending { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .task-num--done i, .task-num--active i, .task-num--locked i, .task-num--pending i { font-size: 0.875rem; }
+
+        .task-card-title {
+            flex: 1; font-size: 0.9375rem; font-weight: 800; color: var(--text);
+            letter-spacing: -0.2px;
+        }
+        .task-card--completed .task-card-title { color: var(--green); }
+        .task-card--locked .task-card-title    { color: var(--text-3); }
+        .task-card--pending .task-card-title   { color: #f59e0b; }
+
+        .task-xp-badge {
+            font-size: 0.72rem; font-weight: 800; padding: 0.25rem 0.6rem;
+            border-radius: 50px; white-space: nowrap; flex-shrink: 0;
+        }
+        .task-xp-badge--done    { background: rgba(94,194,19,0.15); color: var(--green); border: 1px solid rgba(94,194,19,0.3); }
+        .task-xp-badge--active  { background: rgba(251,146,60,0.15); color: #fb923c; border: 1px solid rgba(251,146,60,0.3); }
+        .task-xp-badge--locked  { background: rgba(100,100,100,0.12); color: #666; border: 1px solid rgba(100,100,100,0.2); }
+        .task-xp-badge--pending { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+
+        .task-status-chip {
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
+            padding: 0.28rem 0.7rem; border-radius: 50px; flex-shrink: 0; white-space: nowrap;
+        }
+        .chip--done    { background: rgba(94,194,19,0.15); color: var(--green); border: 1px solid rgba(94,194,19,0.3); }
+        .chip--active  { background: rgba(251,146,60,0.15); color: #fb923c; border: 1px solid rgba(251,146,60,0.3); }
+        .chip--locked  { background: rgba(100,100,100,0.12); color: #666; border: 1px solid rgba(100,100,100,0.2); }
+        .chip--pending { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+
+        .task-card-body {
+            padding: 0 1.25rem 1.125rem 1.25rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 0.875rem;
+        }
+        .task-desc {
+            font-size: 0.8375rem; color: var(--text-2); line-height: 1.7;
+            white-space: pre-wrap; word-wrap: break-word; margin-bottom: 0.875rem;
+        }
+        .task-card--locked .task-desc { color: var(--text-3); }
+        .task-meta { font-size: 0.75rem; color: var(--text-3); display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .task-meta i { color: var(--green); font-size: 0.7rem; }
+        .task-actions-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.875rem; }
+
+        .task-action-btn {
+            display: inline-flex; align-items: center; gap: 0.45rem;
+            padding: 0.625rem 1.25rem; border-radius: 10px; font-size: 0.8375rem; font-weight: 700;
+            border: none; cursor: pointer; font-family: 'Outfit', sans-serif;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+        }
+        .task-action-btn--primary {
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+            color: #000; box-shadow: 0 3px 14px rgba(94,194,19,0.3);
+        }
+        .task-action-btn--primary:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(94,194,19,0.48); }
+        .task-action-btn--secondary {
+            background: rgba(255,255,255,0.06); color: var(--text-2); border: 1px solid var(--border);
+        }
+        .task-action-btn--secondary:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+        .locked-notice {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.625rem 0.875rem; border-radius: 9px;
+            background: rgba(251,193,7,0.07); border: 1px solid rgba(251,193,7,0.2);
+            font-size: 0.78rem; color: #fbbf24; margin-top: 0.625rem;
+        }
+
+        /* ══ COUNTDOWN ══ */
+        .qd-countdown {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 1rem;
+            padding: 1.125rem 1.5rem; border-radius: 15px;
+            background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.3);
+            animation: cardIn 0.5s ease both;
+        }
+        .qd-countdown-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #f87171; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem; }
+        .qd-countdown-time {
+            font-size: 1.5rem; font-weight: 900; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -0.5px;
+        }
+        .qd-countdown-sub { font-size: 0.72rem; color: var(--text-3); margin-top: 0.25rem; }
+        .qd-urgency { font-size: 0.75rem; font-weight: 800; padding: 0.4rem 1rem; border-radius: 50px; white-space: nowrap; }
+
+        /* ══ LEADERBOARD ══ */
+        .podium-row {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 600px) { .podium-row { grid-template-columns: 1fr; } }
+        .podium-box {
+            text-align: center; padding: 1.25rem 0.875rem; border-radius: 15px;
+            transition: transform 0.3s;
+        }
+        .podium-box:hover { transform: translateY(-4px); }
+        .podium-box--1 { background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.3); }
+        .podium-box--2 { background: rgba(192,192,192,0.07); border: 1px solid rgba(192,192,192,0.25); }
+        .podium-box--3 { background: rgba(205,127,50,0.07); border: 1px solid rgba(205,127,50,0.25); }
+        .podium-medal { font-size: 2rem; margin-bottom: 0.375rem; }
+        .podium-name { font-size: 0.875rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem; word-break: break-word; }
+        .podium-xp { font-size: 1rem; font-weight: 900; color: var(--green); }
+        .podium-time { font-size: 0.7rem; color: var(--text-3); margin-top: 0.25rem; }
+
+        .lb-search {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.625rem 1rem; border-radius: 10px;
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+        }
+        .lb-search i { color: var(--text-3); font-size: 0.8rem; }
+        .lb-search input {
+            background: none; border: none; outline: none; color: var(--text);
+            font-family: 'Outfit', sans-serif; font-size: 0.875rem; width: 100%;
+        }
+        .lb-search input::placeholder { color: var(--text-3); }
+
+        .lb-row {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 3px;
+            background: rgba(255,255,255,0.02); border: 1px solid transparent;
+            transition: all 0.2s; cursor: default;
+        }
+        .lb-row:hover { background: rgba(94,194,19,0.04); border-color: rgba(94,194,19,0.15); transform: translateX(3px); }
+        .lb-row--me  { background: rgba(94,194,19,0.08) !important; border-color: rgba(94,194,19,0.25) !important; }
+        .lb-row--win { border-left: 3px solid var(--green); }
+        .lb-rank { min-width: 32px; font-size: 0.875rem; font-weight: 800; }
+        .lb-rank--1 { color: #FFD700; }
+        .lb-rank--2 { color: #C0C0C0; }
+        .lb-rank--3 { color: #CD7F32; }
+        .lb-rank--x { color: var(--text-3); }
+        .lb-name { flex: 1; min-width: 0; }
+        .lb-username { font-size: 0.875rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+        .lb-you { background: var(--green); color: #000; font-size: 0.6rem; font-weight: 900; padding: 0.1rem 0.45rem; border-radius: 4px; }
+        .lb-meta { font-size: 0.72rem; color: var(--text-3); margin-top: 1px; }
+        .lb-xp { text-align: right; flex-shrink: 0; }
+        .lb-xp-val { font-size: 1rem; font-weight: 900; color: var(--green); }
+        .lb-xp-lbl { font-size: 0.65rem; color: var(--text-3); }
+        .lb-list { max-height: 380px; overflow-y: auto; margin-top: 1rem; }
+        .lb-list::-webkit-scrollbar { width: 4px; }
+        .lb-list::-webkit-scrollbar-thumb { background: rgba(94,194,19,0.2); border-radius: 10px; }
+
+        /* ══ STATS BOXES ══ */
+        .qd-stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.875rem; }
+        @media (max-width: 600px) { .qd-stats-row { grid-template-columns: 1fr 1fr; } }
+        .qd-stat-box { text-align: center; padding: 1.125rem; border-radius: 13px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); }
+        .qd-stat-val { font-size: 1.75rem; font-weight: 900; color: var(--green); letter-spacing: -0.5px; }
+        .qd-stat-lbl { font-size: 0.72rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 0.25rem; }
+
+        /* ══ RESOURCES ══ */
+        .resource-item {
+            display: flex; align-items: center; gap: 1rem; padding: 0.875rem 1rem;
+            border-radius: 12px; border: 1px solid var(--border);
+            background: rgba(255,255,255,0.025); text-decoration: none; color: inherit;
+            transition: all 0.25s; margin-bottom: 0.625rem;
+        }
+        .resource-item:hover { background: rgba(94,194,19,0.06); border-color: rgba(94,194,19,0.25); transform: translateX(3px); }
+        .resource-icon { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; background: rgba(94,194,19,0.1); border: 1px solid rgba(94,194,19,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.875rem; color: var(--green); }
+        .resource-title { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+        .resource-type { font-size: 0.72rem; color: var(--text-3); text-transform: capitalize; margin-top: 1px; }
+
+        /* ══ TASK SUBMIT MODAL ══ */
+        .modal {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.88); backdrop-filter: blur(6px);
+            z-index: 9999; justify-content: center; align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        .modal-content {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 22px; padding: 2rem; max-width: 540px; width: 92%;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 40px rgba(94,194,19,0.06);
+            animation: slideUp 0.35s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        @keyframes slideUp { from{transform:translateY(28px);opacity:0} to{transform:translateY(0);opacity:1} }
+        .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .modal-header h3 { color: var(--green); font-size: 1.125rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; flex: 1; padding-right: 1rem; }
+        .modal-header p { color: var(--text-3); font-size: 0.8rem; margin-top: 0.25rem; }
+        .modal-close-btn { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 9px; background: rgba(255,255,255,0.05); color: var(--text-2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s; flex-shrink: 0; }
+        .modal-close-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); transform: rotate(90deg); }
+        .modal-footer { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
+        @media (max-width: 500px) { .modal-footer { flex-direction: column; } .modal-footer .btn { width: 100%; justify-content: center; } }
+
+        /* ended banner */
+        .qd-ended-banner {
+            border-radius: 16px; padding: 1.375rem 1.5rem; margin-bottom: 1.5rem;
+            display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
+            animation: cardIn 0.5s ease both;
+        }
+        .qd-ended-banner--dist { background: rgba(255,152,0,0.08); border: 1px solid rgba(255,152,0,0.35); }
+        .qd-ended-banner--done { background: rgba(76,175,80,0.08); border: 1px solid rgba(76,175,80,0.35); }
+        .qd-ended-banner-icon { font-size: 2rem; flex-shrink: 0; }
+        .qd-ended-banner-text h4 { font-size: 1.0625rem; font-weight: 800; margin-bottom: 0.25rem; }
+        .qd-ended-banner-text p { font-size: 0.875rem; color: var(--text-2); line-height: 1.6; }
+
+        /* user progress bar under leaderboard */
+        .lb-my-progress {
+            padding: 1rem 1.25rem; border-radius: 12px; margin-top: 1rem;
+            background: rgba(94,194,19,0.06); border: 1px solid rgba(94,194,19,0.2);
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+        }
+        .lb-my-progress-left { font-size: 0.875rem; color: var(--text-2); }
+        .lb-my-progress-left strong { color: var(--green); }
+        .lb-my-progress-right { font-size: 0.8rem; color: var(--text-3); }
+
+        @media (max-width: 768px) {
+            .qd-hero-content { padding: 1.5rem; min-height: 180px; }
+            .qd-title { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <% const currentPage = 'quests'; %>
+    <%- include('../partials/sidebar', { user, currentPage }) %>
+
+    <div class="dashboard-container">
+        <main class="main-content">
+            <div class="content">
+                <%
+                /* ── Resolve quest image ── */
+                function getQuestImage(q) {
+                    if (q.image) return { logo: q.image, isPartner: true };
+                    const t = (q.title || '').toLowerCase();
+                    const map = [
+                        { k:'eyecoin', v:'/img/partners/eyecoin.jpg' },
+                        { k:'ginox',   v:'/img/partners/ginox.jpg'   },
+                        { k:'twin3',   v:'/img/partners/twin3.jpg'   },
+                        { k:'aix',     v:'/img/partners/aixpay.jpg'  },
+                        { k:'tuition', v:'/img/partners/tuition.jpg' }
+                    ];
+                    for (const {k,v} of map) if (t.includes(k)) return { logo:v, isPartner:true };
+                    return { logo:'/img/logo.png', isPartner:false };
+                }
+                const qimg = getQuestImage(quest);
+                %>
+
+                <!-- Connection gate banner (populated by JS if needed) -->
+                <div id="connectionGateBanner"></div>
+
+                <!-- ══ ENDED BANNER ══ -->
+                <% if (typeof questStatus !== 'undefined' && (questStatus === 'distributing' || questStatus === 'completed')) { %>
+                <div class="qd-ended-banner <%= questStatus === 'distributing' ? 'qd-ended-banner--dist' : 'qd-ended-banner--done' %>">
+                    <div class="qd-ended-banner-icon">
+                        <% if (questStatus === 'distributing') { %>
+                        <i class="fas fa-hourglass-half" style="color:#fb923c"></i>
+                        <% } else { %>
+                        <i class="fas fa-check-circle" style="color:#4caf50"></i>
+                        <% } %>
+                    </div>
+                    <div class="qd-ended-banner-text">
+                        <% if (questStatus === 'distributing') { %>
+                        <h4 style="color:#fb923c">Quest Has Ended</h4>
+                        <p>Rewards are being distributed. Check the leaderboard for your final position!</p>
+                        <% } else { %>
+                        <h4 style="color:#4caf50">Quest Completed</h4>
+                        <p>This quest has ended and all rewards have been distributed.</p>
+                        <% } %>
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- ══ HERO CARD ══ -->
+                <div class="qd-hero">
+                    <div class="qd-hero-bg"></div>
+                    <div class="qd-hero-overlay"></div>
+                    <div class="qd-hero-content">
+                        <div class="qd-hero-left">
+                            <a href="/dashboard/quests" class="qd-back"><i class="fas fa-arrow-left"></i> All Quests</a>
+                            <div class="qd-hero-badges">
+                                <% if (quest.questType && quest.questType !== 'standard') { %>
+                                    <% if (quest.questType === 'referral_boost') { %><span class="qd-badge qd-badge--ref"><i class="fas fa-users"></i> Referral Boost</span>
+                                    <% } else if (quest.questType === 'fcfs') { %><span class="qd-badge qd-badge--fcfs"><i class="fas fa-bolt"></i> First Come First Serve</span>
+                                    <% } else if (quest.questType === 'competition') { %><span class="qd-badge qd-badge--comp"><i class="fas fa-trophy"></i> Competition</span>
+                                    <% } else { %><span class="qd-badge qd-badge--type"><%= quest.questType %></span><% } %>
+                                <% } else { %><span class="qd-badge qd-badge--type">Quest</span><% } %>
+                                <span class="qd-badge qd-badge--diff"><%= quest.difficulty %></span>
+                                <span class="qd-badge qd-badge--diff"><%= quest.category %></span>
+                                <% if (userProgress && userProgress.status === 'completed') { %><span class="qd-badge qd-badge--done"><i class="fas fa-check"></i> Completed</span><% } %>
+                            </div>
+                            <h1 class="qd-title"><%= quest.title %></h1>
+                            <p class="qd-short"><%= quest.shortDescription %></p>
+                            <div class="qd-reward-strip">
+                                <% if ((quest.baseXpReward || quest.xpReward) > 0) { %>
+                                <span class="qd-reward-pill qd-reward-pill--xp"><i class="fas fa-bolt"></i> <%= quest.baseXpReward || quest.xpReward %> XP</span>
+                                <% } %>
+                                <% if (quest.usdcReward > 0) { %>
+                                <span class="qd-reward-pill qd-reward-pill--usdc"><i class="fas fa-coins"></i> $<%= quest.usdcReward %> USDC</span>
+                                <% } %>
+                                <% if (userProgress && userProgress.status === 'completed' && userProgress.leaderboardRank) { %>
+                                <span class="qd-reward-pill" style="background:rgba(255,193,7,0.15);color:#fbbf24;border:1px solid rgba(255,193,7,0.3)"><i class="fas fa-medal"></i> Rank #<%= userProgress.leaderboardRank %></span>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="qd-hero-logo <%= !qimg.isPartner ? 'qd-hero-logo--brand' : '' %>">
+                            <img src="<%= qimg.logo %>" alt="<%= quest.title %>">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ GATED QUEST INFO (visible to ALL — sponsors + prize breakdown) ══ -->
+                <% if (quest.gated && quest.memberApproval) { %>
+
+                <!-- Sponsors row -->
+                <% if (quest.sponsors && quest.sponsors.length > 0) { %>
+                <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem">
+                    <span style="font-size:.78rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:1px">Hosted by</span>
+                    <% quest.sponsors.forEach(function(sp) { %>
+                    <div style="display:flex;align-items:center;gap:.4rem">
+                        <% if (sp.logo) { %>
+                        <div style="width:28px;height:28px;border-radius:7px;overflow:hidden;background:#fff;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.4)"><img src="<%= sp.logo %>" alt="<%= sp.name %>" style="width:100%;height:100%;object-fit:contain;border-radius:4px"></div>
+                        <% } %>
+                        <span style="font-size:.8375rem;font-weight:700;color:var(--text-2)"><%= sp.name %></span>
+                    </div>
+                    <% }); %>
+                    <span style="margin-left:auto;font-size:.78rem;color:var(--text-3)"><i class="fas fa-users"></i> <%= participantCount || 0 %> Raiders Enrolled</span>
+                </div>
+                <% } %>
+
+                <!-- Prize distribution -->
+                <div class="card" style="margin-bottom:1.5rem;background:linear-gradient(135deg,rgba(251,191,36,.05) 0%,rgba(0,0,0,0) 100%);border-color:rgba(251,191,36,.2)">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.125rem;flex-wrap:wrap;gap:.5rem">
+                        <h3 style="font-size:1rem;font-weight:900;color:var(--text);display:flex;align-items:center;gap:.5rem">
+                            <i class="fas fa-trophy" style="color:#fbbf24"></i> $500 Prize Pool
+                        </h3>
+                        <span style="font-size:.78rem;font-weight:700;color:#fbbf24;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);padding:.25rem .75rem;border-radius:50px">Top 30 Win</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem">
+                        <!-- Top 3 -->
+                        <div style="text-align:center;padding:1rem .75rem;border-radius:14px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25)">
+                            <div style="font-size:1.5rem;margin-bottom:.3rem">🥇</div>
+                            <div style="font-size:.75rem;font-weight:800;color:#fbbf24;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.25rem">Top 3</div>
+                            <div style="font-size:1.375rem;font-weight:900;color:#fbbf24;line-height:1">$100</div>
+                            <div style="font-size:.7rem;color:var(--text-3);margin-top:.25rem">shared equally</div>
+                            <div style="font-size:.75rem;font-weight:700;color:var(--text-2);margin-top:.4rem">~$33 each</div>
+                        </div>
+                        <!-- 4th–10th -->
+                        <div style="text-align:center;padding:1rem .75rem;border-radius:14px;background:rgba(156,163,175,.06);border:1px solid rgba(156,163,175,.2)">
+                            <div style="font-size:1.5rem;margin-bottom:.3rem">🥈</div>
+                            <div style="font-size:.75rem;font-weight:800;color:#9ca3af;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.25rem">4th – 10th</div>
+                            <div style="font-size:1.375rem;font-weight:900;color:#9ca3af;line-height:1">$100</div>
+                            <div style="font-size:.7rem;color:var(--text-3);margin-top:.25rem">shared equally</div>
+                            <div style="font-size:.75rem;font-weight:700;color:var(--text-2);margin-top:.4rem">~$14 each</div>
+                        </div>
+                        <!-- 11th–30th -->
+                        <div style="text-align:center;padding:1rem .75rem;border-radius:14px;background:rgba(180,120,60,.06);border:1px solid rgba(180,120,60,.2)">
+                            <div style="font-size:1.5rem;margin-bottom:.3rem">🥉</div>
+                            <div style="font-size:.75rem;font-weight:800;color:#cd7f32;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.25rem">11th – 30th</div>
+                            <div style="font-size:1.375rem;font-weight:900;color:#cd7f32;line-height:1">$300</div>
+                            <div style="font-size:.7rem;color:var(--text-3);margin-top:.25rem">shared equally</div>
+                            <div style="font-size:.75rem;font-weight:700;color:var(--text-2);margin-top:.4rem">$15 each</div>
+                        </div>
+                    </div>
+                    <p style="font-size:.78rem;color:var(--text-3);margin-top:.875rem;text-align:center"><i class="fas fa-info-circle"></i> Rank higher by completing daily tasks and earning XP. Quality submissions earn bonus XP.</p>
+                </div>
+
+                <% } %>
+
+                <!-- ══ GATED QUEST GATE (code entry / pending / rejected — non-approved only) ══ -->
+                <% if (quest.gated && quest.memberApproval && appState !== 'approved') { %>
+
+                <!-- Steps -->
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:1.5rem">
+                    <% var steps=[{i:'fa-key',l:'Enter Code',n:1},{i:'fa-paper-plane',l:'Apply',n:2},{i:'fa-shield-check',l:'Get Approved',n:3},{i:'fa-list-check',l:'Complete Tasks',n:4}]; %>
+                    <% var curStep = (appState==='none'?1:appState==='pending'?3:appState==='rejected'?3:4); %>
+                    <% steps.forEach(function(s){ %>
+                    <div style="text-align:center;padding:.75rem .5rem;border-radius:12px;background:<%= s.n<=curStep?'rgba(94,194,19,.08)':'rgba(255,255,255,.03)' %>;border:1px solid <%= s.n<=curStep?'rgba(94,194,19,.25)':'rgba(255,255,255,.07)' %>">
+                        <div style="width:32px;height:32px;border-radius:50%;margin:0 auto .4rem;display:flex;align-items:center;justify-content:center;background:<%= s.n<=curStep?'rgba(94,194,19,.18)':'rgba(255,255,255,.06)' %>;color:<%= s.n<=curStep?'var(--green)':'var(--text-3)' %>;font-size:.8rem"><i class="fas <%= s.i %>"></i></div>
+                        <div style="font-size:.7rem;font-weight:700;color:<%= s.n<=curStep?'var(--text-2)':'var(--text-3)' %>"><%= s.l %></div>
+                    </div>
+                    <% }); %>
+                </div>
+
+                <!-- Gate state card -->
+                <div class="card" style="max-width:520px;margin:0 auto">
+
+                    <% if (appState === 'none') { %>
+                    <!-- STEP 1: Code entry -->
+                    <div id="gateStep1">
+                        <div style="text-align:center;margin-bottom:1.5rem">
+                            <div style="width:56px;height:56px;border-radius:16px;background:rgba(245,158,11,.1);border:1.5px solid rgba(245,158,11,.3);display:flex;align-items:center;justify-content:center;font-size:1.375rem;color:#fbbf24;margin:0 auto .875rem">
+                                <i class="fas fa-key"></i>
+                            </div>
+                            <h3 style="font-size:1.125rem;font-weight:900;color:var(--text);margin-bottom:.35rem">Access Code Required</h3>
+                            <p style="color:var(--text-3);font-size:.875rem">Enter your Apex Raiders access code to join the campaign</p>
+                        </div>
+                        <div id="gateCodeErr" style="display:none;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:.75rem 1rem;font-size:.8375rem;color:#f87171;margin-bottom:1rem"></div>
+                        <input type="text" id="gateCodeInput" placeholder="Enter access code (e.g. APRAI2526)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:.875rem 1.125rem;color:var(--text);font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;outline:none;margin-bottom:1rem">
+                        <button onclick="verifyCode()" style="width:100%;padding:.875rem;border-radius:12px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.9375rem;font-weight:800">
+                            <i class="fas fa-arrow-right"></i> Verify Code
+                        </button>
+                    </div>
+
+                    <!-- STEP 2: Application form (shown after code verified) -->
+                    <div id="gateStep2" style="display:none">
+                        <div style="text-align:center;margin-bottom:1.5rem">
+                            <div style="width:56px;height:56px;border-radius:16px;background:rgba(94,194,19,.1);border:1.5px solid rgba(94,194,19,.3);display:flex;align-items:center;justify-content:center;font-size:1.375rem;color:var(--green);margin:0 auto .875rem">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <h3 style="font-size:1.125rem;font-weight:900;color:var(--green);margin-bottom:.35rem">Code Verified!</h3>
+                            <p style="color:var(--text-3);font-size:.875rem">Now submit your X handle and Telegram username for admin review</p>
+                        </div>
+                        <div id="gateAppErr" style="display:none;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:.75rem 1rem;font-size:.8375rem;color:#f87171;margin-bottom:1rem"></div>
+                        <div style="margin-bottom:.875rem">
+                            <label style="display:block;font-size:.8125rem;font-weight:700;color:var(--text-2);margin-bottom:.4rem"><i class="fab fa-x-twitter"></i> X (Twitter) Handle</label>
+                            <input type="text" id="xHandleInput" placeholder="@yourhandle" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;color:var(--text);font-family:'Outfit',sans-serif;font-size:.9375rem;outline:none">
+                        </div>
+                        <div style="margin-bottom:1.25rem">
+                            <label style="display:block;font-size:.8125rem;font-weight:700;color:var(--text-2);margin-bottom:.4rem"><i class="fab fa-telegram"></i> Telegram Username</label>
+                            <input type="text" id="telegramInput" placeholder="@yourusername" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;color:var(--text);font-family:'Outfit',sans-serif;font-size:.9375rem;outline:none">
+                        </div>
+                        <button onclick="submitApplication()" style="width:100%;padding:.875rem;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--green-dark));color:#000;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.9375rem;font-weight:800">
+                            <i class="fas fa-paper-plane"></i> Submit Application
+                        </button>
+                    </div>
+
+                    <% } else if (appState === 'pending') { %>
+                    <div style="text-align:center;padding:1rem 0">
+                        <div style="width:64px;height:64px;border-radius:20px;background:rgba(245,158,11,.1);border:1.5px solid rgba(245,158,11,.3);display:flex;align-items:center;justify-content:center;font-size:1.75rem;color:#fbbf24;margin:0 auto 1.25rem">
+                            <i class="fas fa-hourglass-half"></i>
+                        </div>
+                        <h3 style="font-size:1.125rem;font-weight:900;color:#fbbf24;margin-bottom:.5rem">Application Pending</h3>
+                        <p style="color:var(--text-2);font-size:.9rem;line-height:1.65;margin-bottom:1.25rem">Your application is under review. Admin will approve or reject it shortly. Check back soon!</p>
+                        <% if (application) { %>
+                        <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:left">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:.5rem;font-size:.8375rem"><span style="color:var(--text-3)">X Handle</span><span style="color:var(--text-2);font-weight:700"><%= application.xHandle || '—' %></span></div>
+                            <div style="display:flex;justify-content:space-between;font-size:.8375rem"><span style="color:var(--text-3)">Telegram</span><span style="color:var(--text-2);font-weight:700"><%= application.telegramUsername || '—' %></span></div>
+                        </div>
+                        <% } %>
+                    </div>
+
+                    <% } else if (appState === 'rejected') { %>
+                    <div style="text-align:center;padding:1rem 0">
+                        <div style="width:64px;height:64px;border-radius:20px;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3);display:flex;align-items:center;justify-content:font-size:1.75rem;color:#f87171;margin:0 auto 1.25rem;display:flex;align-items:center;justify-content:center;font-size:1.75rem">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <h3 style="font-size:1.125rem;font-weight:900;color:#f87171;margin-bottom:.5rem">Application Rejected</h3>
+                        <% if (application && application.rejectionReason) { %>
+                        <p style="color:var(--text-2);font-size:.875rem;line-height:1.65;margin-bottom:1rem">Reason: <strong style="color:var(--text)"><%= application.rejectionReason %></strong></p>
+                        <% } else { %>
+                        <p style="color:var(--text-2);font-size:.875rem;line-height:1.65;margin-bottom:1rem">Your application was not approved at this time.</p>
+                        <% } %>
+                        <p style="color:var(--text-3);font-size:.8125rem">Contact support if you think this is a mistake.</p>
+                    </div>
+                    <% } %>
+
+                </div><!-- /gate card -->
+
+                <script>
+                var _gateQuestId = '<%= quest._id %>';
+                function verifyCode() {
+                    var code = document.getElementById('gateCodeInput').value.trim();
+                    if (!code) return;
+                    fetch('/api/quests/' + _gateQuestId + '/apply-code', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: code })
+                    }).then(function(r) { return r.json(); }).then(function(d) {
+                        if (d.success) {
+                            document.getElementById('gateStep1').style.display = 'none';
+                            document.getElementById('gateStep2').style.display = 'block';
+                        } else {
+                            var el = document.getElementById('gateCodeErr');
+                            el.textContent = d.message || 'Invalid code';
+                            el.style.display = 'block';
+                        }
+                    }).catch(function() {
+                        var el = document.getElementById('gateCodeErr');
+                        el.textContent = 'Network error. Please try again.';
+                        el.style.display = 'block';
+                    });
+                }
+                function submitApplication() {
+                    var x = document.getElementById('xHandleInput').value.trim();
+                    var tg = document.getElementById('telegramInput').value.trim();
+                    fetch('/api/quests/' + _gateQuestId + '/apply', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ xHandle: x, telegramUsername: tg })
+                    }).then(function(r) { return r.json(); }).then(function(d) {
+                        if (d.success) {
+                            window.location.reload();
+                        } else {
+                            var el = document.getElementById('gateAppErr');
+                            el.textContent = d.message || 'Error submitting application';
+                            el.style.display = 'block';
+                        }
+                    }).catch(function() {
+                        var el = document.getElementById('gateAppErr');
+                        el.textContent = 'Network error. Please try again.';
+                        el.style.display = 'block';
+                    });
+                }
+                document.getElementById('gateCodeInput') && document.getElementById('gateCodeInput').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') verifyCode();
+                });
+                </script>
+
+                <% } else if (userProgress) { %>
+                <!-- ══ PROGRESS ══ -->
+                <div class="qd-progress-card">
+                    <div class="qd-progress-top">
+                        <span class="qd-progress-label">Your Progress</span>
+                        <span class="qd-progress-pct" id="progPct"><%= userProgress.progress %>%</span>
+                    </div>
+                    <div class="qd-progress-bar">
+                        <div class="qd-progress-fill" id="progFill" style="width:0%"></div>
+                    </div>
+                    <div class="qd-progress-meta">
+                        <span><i class="fas fa-tasks" style="color:var(--green)"></i> <%= userProgress.tasksCompleted %>/<%= quest.tasks.length %> tasks done</span>
+                        <span><i class="fas fa-clock" style="color:var(--green)"></i> ~<%= quest.estimatedDuration %></span>
+                    </div>
+                    <div class="qd-info-row">
+                        <div class="qd-info-pill">
+                            <div class="qd-info-pill-val"><%= quest.totalParticipants %></div>
+                            <div class="qd-info-pill-lbl">Builders</div>
+                        </div>
+                        <div class="qd-info-pill">
+                            <div class="qd-info-pill-val"><%= quest.totalCompletions %></div>
+                            <div class="qd-info-pill-lbl">Completions</div>
+                        </div>
+                        <div class="qd-info-pill">
+                            <div class="qd-info-pill-val"><%= quest.tasks.length %></div>
+                            <div class="qd-info-pill-lbl">Tasks</div>
+                        </div>
+                        <% if (userProgress.timeSpentMinutes) { %>
+                        <div class="qd-info-pill">
+                            <div class="qd-info-pill-val"><%= userProgress.timeSpentMinutes %>m</div>
+                            <div class="qd-info-pill-lbl">Time Spent</div>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- ══ COUNTDOWN ══ -->
+                <% if (quest.endDate) { %>
+                <div id="questCountdown" class="qd-countdown">
+                    <div>
+                        <div class="qd-countdown-label"><i class="fas fa-clock"></i> Quest Ending In</div>
+                        <div id="countdownDisplay" class="qd-countdown-time">
+                            <span id="days">00</span>d <span id="hours">00</span>h <span id="minutes">00</span>m <span id="seconds">00</span>s
+                        </div>
+                        <div class="qd-countdown-sub">Ends: <%= new Date(quest.endDate).toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) %></div>
+                    </div>
+                    <div id="urgencyIndicator" class="qd-urgency"></div>
+                </div>
+                <% } else { %>
+                <div style="display:flex;align-items:center;gap:.75rem;padding:.875rem 1.25rem;border-radius:13px;background:rgba(94,194,19,0.05);border:1px solid rgba(94,194,19,0.2);">
+                    <i class="fas fa-infinity" style="color:var(--green);font-size:1.25rem"></i>
+                    <div>
+                        <div style="color:var(--green);font-weight:800;font-size:.875rem">No Time Limit</div>
+                        <div style="color:var(--text-3);font-size:.75rem">This quest is available indefinitely</div>
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- ══ XP BREAKDOWN ══ -->
+                <% if (userProgress.status === 'completed' && userProgress.xpBreakdown) { %>
+                <div class="card" style="border-color:rgba(94,194,19,0.3);background:linear-gradient(135deg,rgba(94,194,19,0.07),rgba(14,24,14,0.95));animation-delay:60ms">
+                    <div class="card-header">
+                        <h3><i class="fas fa-trophy"></i> XP Breakdown — Quest Complete!</h3>
+                    </div>
+                    <div class="xp-breakdown-grid">
+                        <div class="xp-breakdown-item" style="border-color:rgba(94,194,19,0.3)">
+                            <div class="xp-breakdown-lbl">Total XP Earned</div>
+                            <div class="xp-breakdown-val" style="font-size:2rem"><%= userProgress.xpBreakdown.totalXp %></div>
+                        </div>
+                        <% if (userProgress.leaderboardRank) { %>
+                        <div class="xp-breakdown-item">
+                            <div class="xp-breakdown-lbl">Your Rank</div>
+                            <div class="xp-breakdown-val">#<%= userProgress.leaderboardRank %></div>
+                        </div>
+                        <% } %>
+                        <div class="xp-breakdown-item">
+                            <div class="xp-breakdown-lbl">Task XP</div>
+                            <div class="xp-breakdown-val"><%= userProgress.xpBreakdown.taskXp %></div>
+                        </div>
+                        <div class="xp-breakdown-item">
+                            <div class="xd-breakdown-lbl">Completion XP</div>
+                            <div class="xp-breakdown-val"><%= userProgress.xpBreakdown.baseXp %></div>
+                        </div>
+                        <% if (userProgress.xpBreakdown.referralJoinBonus > 0) { %>
+                        <div class="xp-breakdown-item">
+                            <div class="xp-breakdown-lbl">Referral Join Bonus</div>
+                            <div class="xp-breakdown-val"><%= userProgress.xpBreakdown.referralJoinBonus %></div>
+                        </div>
+                        <% } %>
+                        <% if (userProgress.xpBreakdown.referralCompleteBonus > 0) { %>
+                        <div class="xp-breakdown-item">
+                            <div class="xp-breakdown-lbl">Referral Complete Bonus</div>
+                            <div class="xp-breakdown-val"><%= userProgress.xpBreakdown.referralCompleteBonus %></div>
+                        </div>
+                        <% } %>
+                        <% if (userProgress.xpBreakdown.winnerBonus > 0) { %>
+                        <div class="xp-breakdown-item winner">
+                            <div class="xp-breakdown-lbl">Winner Bonus</div>
+                            <div class="xp-breakdown-val"><%= userProgress.xpBreakdown.winnerBonus %></div>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- ══ QUEST DESCRIPTION ══ -->
+                <div class="card" style="animation-delay:80ms">
+                    <div class="card-header">
+                        <h3><i class="fas fa-info-circle"></i> About This Quest</h3>
+                    </div>
+                    <p style="color:var(--text-2);line-height:1.75;font-size:.9375rem"><%= quest.description %></p>
+                    <% if (quest.competitionConfig?.enabled) { %>
+                    <div style="margin-top:1rem;padding:0.875rem 1rem;border-radius:12px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.25);">
+                        <p style="color:#f87171;font-size:.8375rem;font-weight:700"><i class="fas fa-trophy" style="margin-right:.4rem"></i>Top <%= quest.competitionConfig.topWinnersCount %> completers earn an extra <%= quest.competitionConfig.winnerBonusXP %> XP winner bonus!</p>
+                    </div>
+                    <% } %>
+                    <% if (quest.referralConfig?.enabled) { %>
+                    <div style="margin-top:.75rem;padding:0.875rem 1rem;border-radius:12px;background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.25);">
+                        <p style="color:#c084fc;font-size:.8375rem;font-weight:700">
+                            <i class="fas fa-users" style="margin-right:.4rem"></i>
+                            Earn <%= quest.referralConfig.xpPerReferralJoin %> XP per referral who joins
+                            <% if (quest.referralConfig.xpPerReferralComplete > 0) { %> + <%= quest.referralConfig.xpPerReferralComplete %> XP per completion<% } %>!
+                        </p>
+                    </div>
+                    <% } %>
+                </div>
+
+                <!-- ══ TASKS ══ -->
+                <div class="card" style="animation-delay:100ms">
+                    <div class="card-header">
+                        <h3><i class="fas fa-list-check"></i> Tasks</h3>
+                        <span style="font-size:.78rem;font-weight:700;color:var(--text-3)"><%= userProgress.tasksCompleted %>/<%= quest.tasks.length %> done</span>
+                    </div>
+                    <div class="task-list">
+                    <% quest.tasks.forEach(function(task, index) {
+                        var taskProgress = userProgress.taskProgress.find(function(tp) { return tp.taskId.toString() === task._id.toString(); });
+                        var isCompleted = taskProgress && taskProgress.isCompleted;
+                        var isPending   = taskProgress && taskProgress.approvalStatus === 'pending';
+                        var isRejected  = taskProgress && taskProgress.approvalStatus === 'rejected';
+                        var isPreviousCompleted = index === 0 || userProgress.taskProgress[index - 1]?.isCompleted || (userProgress.taskProgress[index - 1]?.approvalStatus === 'pending');
+                        var isLocked = !isPreviousCompleted && !isCompleted && !isPending;
+                        var isActive = !isCompleted && !isLocked && !isPending;
+                        var taskXp = task.xpReward || 0;
+                        var cardClass = isCompleted ? 'task-card--completed' : isPending ? 'task-card--pending' : isLocked ? 'task-card--locked' : 'task-card--active';
+                    %>
+                    <div class="task-card <%= cardClass %>" style="animation-delay:<%= index * 50 %>ms">
+                        <div class="task-card-head">
+                            <div class="task-num <%= isCompleted ? 'task-num--done' : isPending ? 'task-num--pending' : isLocked ? 'task-num--locked' : 'task-num--active' %>">
+                                <% if (isCompleted) { %><i class="fas fa-check"></i>
+                                <% } else if (isPending) { %><i class="fas fa-hourglass-half"></i>
+                                <% } else if (isLocked) { %><i class="fas fa-lock"></i>
+                                <% } else { %><span style="font-size:.875rem;font-weight:900"><%= index + 1 %></span><% } %>
+                            </div>
+                            <span class="task-card-title">Task <%= index + 1 %>: <%= task.title %></span>
+                            <% if (taskXp > 0) { %>
+                            <span class="task-xp-badge <%= isCompleted ? 'task-xp-badge--done' : isPending ? 'task-xp-badge--pending' : isLocked ? 'task-xp-badge--locked' : 'task-xp-badge--active' %>">
+                                <i class="fas fa-bolt"></i> <%= taskXp %> XP
+                            </span>
+                            <% } %>
+                            <span class="task-status-chip <%= isCompleted ? 'chip--done' : isPending ? 'chip--pending' : isLocked ? 'chip--locked' : 'chip--active' %>">
+                                <%= isCompleted ? 'Done' : isPending ? 'In Review' : isRejected ? 'Rejected' : isLocked ? 'Locked' : 'Active' %>
+                            </span>
+                        </div>
+                        <div class="task-card-body">
+                            <p class="task-desc"><%= task.description %></p>
+                            <% if (isCompleted) { %>
+                            <div class="task-meta">
+                                <span><i class="fas fa-clock"></i> Completed <%= new Date(taskProgress.completedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) %></span>
+                                <% if (taskProgress.xpEarned > 0) { %>
+                                <span><i class="fas fa-bolt"></i> Earned <%= taskProgress.xpEarned %> XP</span>
+                                <% } %>
+                            </div>
+                            <% } else if (isPending) { %>
+                            <div class="task-meta" style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:.625rem .875rem">
+                                <span style="color:#f59e0b"><i class="fas fa-hourglass-half"></i> Submitted — pending admin review. XP will be credited once approved.</span>
+                            </div>
+                            <% } else if (isRejected) { %>
+                            <div class="task-meta" style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:.625rem .875rem;margin-bottom:.75rem">
+                                <span style="color:#ef4444"><i class="fas fa-times-circle"></i> Submission rejected. Please resubmit with correct proof.</span>
+                            </div>
+                            <div class="task-actions-row">
+                                <button type="button" class="task-action-btn task-action-btn--primary submit-task-btn"
+                                    data-task-id="<%= task._id %>"
+                                    data-quest-id="<%= quest._id %>"
+                                    data-task-title="<%= task.title.replace(/"/g, '&quot;') %>"
+                                    data-input-label="<%= (task.inputLabel || '').replace(/"/g, '&quot;') %>"
+                                    data-input-name="<%= (task.inputName || '').replace(/"/g, '&quot;') %>"
+                                    data-has-button="false"
+                                    data-twitter-target=""
+                                    data-task-type="<%= task.taskType || 'submission' %>"
+                                    data-poll-options="[]"
+                                    data-discord-guild-id="" data-discord-guild-name=""
+                                    data-telegram-chat-id="" data-telegram-chat-name=""
+                                    data-webhook-url=""
+                                    onclick="handleSubmitClick(this); return false;">
+                                    <i class="fas fa-redo"></i> Resubmit
+                                </button>
+                            </div>
+                            <% } else if (isLocked) { %>
+                            <div class="locked-notice">
+                                <i class="fas fa-info-circle"></i> Complete Task <%= index %> to unlock this task
+                            </div>
+                            <% } else { %>
+                            <div class="task-actions-row">
+                                <% if (task.buttonText && task.buttonLink) { %>
+                                <a href="<%= task.buttonLink %>" target="_blank" class="task-action-btn task-action-btn--secondary" onclick="trackTaskClick('<%= task._id %>')">
+                                    <i class="fas fa-external-link-alt"></i> <%= task.buttonText %>
+                                </a>
+                                <% } %>
+                                <button type="button" class="task-action-btn task-action-btn--primary submit-task-btn"
+                                    data-task-id="<%= task._id %>"
+                                    data-quest-id="<%= quest._id %>"
+                                    data-task-title="<%= task.title.replace(/"/g, '&quot;') %>"
+                                    data-input-label="<%= (task.inputLabel || '').replace(/"/g, '&quot;') %>"
+                                    data-input-name="<%= (task.inputName || '').replace(/"/g, '&quot;') %>"
+                                    data-has-button="<%= !!task.buttonLink %>"
+                                    data-twitter-target="<%= (task.twitterFollowTarget || '').replace(/"/g, '&quot;') %>"
+                                    data-task-type="<%= task.taskType || 'submission' %>"
+                                    data-poll-options="<%= encodeURIComponent(JSON.stringify(task.pollOptions || [])) %>"
+                                    data-discord-guild-id="<%= task.discordGuildId || '' %>"
+                                    data-discord-guild-name="<%= (task.discordGuildName || '').replace(/"/g, '&quot;') %>"
+                                    data-telegram-chat-id="<%= task.telegramChatId || '' %>"
+                                    data-telegram-chat-name="<%= (task.telegramChatName || '').replace(/"/g, '&quot;') %>"
+                                    data-webhook-url="<%= task.webhookUrl || '' %>"
+                                    onclick="handleSubmitClick(this); return false;">
+                                    <% if (task.taskType === 'poll') { %>
+                                    <i class="fas fa-poll"></i> Vote
+                                    <% } else if (task.taskType === 'discord_join') { %>
+                                    <i class="fab fa-discord"></i> Verify Discord
+                                    <% } else if (task.taskType === 'telegram_join') { %>
+                                    <i class="fab fa-telegram"></i> Verify Telegram
+                                    <% } else if (task.taskType === 'webhook') { %>
+                                    <i class="fas fa-shield-alt"></i> Verify
+                                    <% } else if (task.taskType === 'submission') { %>
+                                    <i class="fas fa-link"></i> Submit URL
+                                    <% } else if (task.taskType === 'image_upload') { %>
+                                    <i class="fas fa-upload"></i> Upload Proof
+                                    <% } else { %>
+                                    <i class="fas fa-paper-plane"></i> Submit Task
+                                    <% } %>
+                                </button>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+                    <% }); %>
+                    </div>
+                </div>
+
+                <!-- ══ RESOURCES ══ -->
+                <% if (quest.resources && quest.resources.length > 0) { %>
+                <div class="card" style="animation-delay:120ms">
+                    <div class="card-header"><h3><i class="fas fa-book-open"></i> Learning Resources</h3></div>
+                    <% quest.resources.forEach(function(resource) { %>
+                    <a href="<%= resource.url %>" target="_blank" class="resource-item">
+                        <div class="resource-icon">
+                            <i class="fas fa-<%= resource.type === 'video' ? 'video' : resource.type === 'code' ? 'code' : 'file-alt' %>"></i>
+                        </div>
+                        <div style="flex:1;min-width:0">
+                            <div class="resource-title"><%= resource.title %></div>
+                            <div class="resource-type"><%= resource.type %></div>
+                        </div>
+                        <i class="fas fa-arrow-up-right-from-square" style="color:var(--text-3);font-size:.75rem;flex-shrink:0"></i>
+                    </a>
+                    <% }); %>
+                </div>
+                <% } %>
+
+                <!-- ══ LEADERBOARD ══ -->
+                <% if (leaderboard && leaderboard.length > 0) { %>
+                <div class="card" style="animation-delay:140ms">
+                    <div class="card-header" style="flex-wrap:wrap;gap:.75rem">
+                        <div>
+                            <h3><i class="fas fa-ranking-star"></i> Leaderboard</h3>
+                            <p style="color:var(--text-3);font-size:.78rem;margin-top:2px"><%= leaderboard.length %> participants • ranked by total XP</p>
+                        </div>
+                        <div class="lb-search" style="flex:1;max-width:260px;min-width:160px">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="leaderboardSearch" placeholder="Search username..." onkeyup="filterLeaderboard()">
+                        </div>
+                    </div>
+
+                    <!-- Podium -->
+                    <div class="podium-row">
+                        <% for (let i = 0; i < Math.min(3, leaderboard.length); i++) {
+                            var e = leaderboard[i];
+                            var totalXp = e.xpBreakdown?.totalXp || e.xpEarned || 0;
+                        %>
+                        <div class="podium-box podium-box--<%= i+1 %>">
+                            <div class="podium-medal"><%= i===0?'🥇':i===1?'🥈':'🥉' %></div>
+                            <div style="width:44px;height:44px;border-radius:12px;margin:0 auto .5rem;overflow:hidden;background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.2);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--green);font-size:1rem;flex-shrink:0">
+                                <% if (e.userId?.profilePicture) { %><img src="<%= e.userId.profilePicture %>" style="width:100%;height:100%;object-fit:cover" alt=""><% } else { %><span><%= (e.userId?.username||'?').charAt(0).toUpperCase() %></span><% } %>
+                            </div>
+                            <div class="podium-name"><%= e.userId?.username || 'Anonymous' %></div>
+                            <div class="podium-xp"><%= totalXp.toLocaleString() %> XP</div>
+                            <div class="podium-time"><%= e.timeSpentMinutes %>m</div>
+                        </div>
+                        <% } %>
+                    </div>
+
+                    <!-- Scrollable list -->
+                    <div class="lb-list" id="leaderboardList">
+                    <% leaderboard.forEach(function(entry, idx) {
+                        var totalXp = entry.xpBreakdown?.totalXp || entry.xpEarned || 0;
+                        var isCurrentUser = entry.userId?._id?.toString() === user?._id?.toString();
+                        var rankClass = idx===0?'lb-rank--1':idx===1?'lb-rank--2':idx===2?'lb-rank--3':'lb-rank--x';
+                    %>
+                    <div class="lb-row <%= isCurrentUser?'lb-row--me':'' %> <%= entry.isWinner?'lb-row--win':'' %>"
+                         data-username="<%= (entry.userId?.username || 'Anonymous').toLowerCase() %>">
+                        <span class="lb-rank <%= rankClass %>">#<%= idx+1 %></span>
+                        <div style="width:34px;height:34px;border-radius:9px;flex-shrink:0;overflow:hidden;background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.15);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--green);font-size:.875rem">
+                            <% if (entry.userId?.profilePicture) { %><img src="<%= entry.userId.profilePicture %>" style="width:100%;height:100%;object-fit:cover" alt=""><% } else { %><span><%= (entry.userId?.username||'?').charAt(0).toUpperCase() %></span><% } %>
+                        </div>
+                        <div class="lb-name">
+                            <div class="lb-username">
+                                <%= entry.userId?.username || 'Anonymous' %>
+                                <% if (isCurrentUser) { %><span class="lb-you">YOU</span><% } %>
+                                <% if (entry.isWinner) { %><i class="fas fa-trophy" style="color:var(--green);font-size:.75rem"></i><% } %>
+                            </div>
+                            <div class="lb-meta">
+                                <%= entry.timeSpentMinutes %>m
+                                <% if (entry.completedAt) { %> • <%= Math.floor((Date.now()-new Date(entry.completedAt))/(1000*60*60*24)) %>d ago<% } else { %> • In progress<% } %>
+                            </div>
+                        </div>
+                        <div class="lb-xp">
+                            <div class="lb-xp-val"><%= totalXp.toLocaleString() %></div>
+                            <div class="lb-xp-lbl">XP</div>
+                        </div>
+                    </div>
+                    <% }); %>
+                    </div>
+
+                    <!-- My progress (if not completed) -->
+                    <% if (userProgress.status !== 'completed') { %>
+                    <div class="lb-my-progress">
+                        <div class="lb-my-progress-left">
+                            <strong>Your Progress:</strong> <%= userProgress.tasksCompleted %>/<%= quest.tasks.length %> tasks (<%= userProgress.progress %>%)
+                        </div>
+                        <div class="lb-my-progress-right"><i class="fas fa-fire" style="color:var(--green)"></i> Complete remaining tasks to join the leaderboard!</div>
+                    </div>
+                    <% } %>
+                </div>
+                <% } %>
+
+                <!-- ══ STATISTICS ══ -->
+                <div class="card" style="animation-delay:160ms">
+                    <div class="card-header"><h3><i class="fas fa-chart-bar"></i> Quest Statistics</h3></div>
+                    <div class="qd-stats-row">
+                        <div class="qd-stat-box">
+                            <div class="qd-stat-val"><%= quest.totalCompletions %></div>
+                            <div class="qd-stat-lbl">Completions</div>
+                        </div>
+                        <div class="qd-stat-box">
+                            <div class="qd-stat-val"><%= quest.averageCompletionTime || 0 %>m</div>
+                            <div class="qd-stat-lbl">Avg Time</div>
+                        </div>
+                        <div class="qd-stat-box">
+                            <div class="qd-stat-val"><%= quest.totalAttempts > 0 ? Math.round((quest.totalCompletions/quest.totalAttempts)*100) : 0 %>%</div>
+                            <div class="qd-stat-lbl">Success Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /content -->
+        </main>
+    </div>
+    <% } %>
+
+    <!-- ══ TASK SUBMISSION MODAL (only for approved quest participants) ══ -->
+    <% if (!quest.gated || !quest.memberApproval || appState === 'approved') { %>
+    <div id="taskModal" class="modal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3 id="taskModalTitle"><i class="fas fa-paper-plane"></i> Submit Task</h3>
+                    <p>Complete the form below to submit your task</p>
+                </div>
+                <button class="modal-close-btn" onclick="closeTaskModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="taskSubmitForm">
+                <div id="taskInputContainer"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeTaskModal()"><i class="fas fa-times"></i> Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Submit Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        /* ── Animate progress bar on load ── */
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const fill = document.getElementById('progFill');
+                if (fill) fill.style.width = '<%= userProgress ? userProgress.progress : 0 %>%';
+            }, 300);
+        });
+
+        let currentTaskId = null;
+        let currentQuestId = null;
+        let taskClickTracking = {};
+        let taskStartTime = {};
+        const userTwitterUsername = '<%= user.twitter || "" %>';
+
+        function handleSubmitClick(button) {
+            const taskId        = button.getAttribute('data-task-id');
+            const questId       = button.getAttribute('data-quest-id');
+            const taskTitle     = button.getAttribute('data-task-title');
+            const inputLabel    = button.getAttribute('data-input-label');
+            const inputName     = button.getAttribute('data-input-name');
+            const hasButton     = button.getAttribute('data-has-button') === 'true';
+            const twitterTarget = button.getAttribute('data-twitter-target');
+            const taskType      = button.getAttribute('data-task-type') || 'submission';
+            const pollOptions   = JSON.parse(decodeURIComponent(button.getAttribute('data-poll-options') || '%5B%5D'));
+            const discordGuildId   = button.getAttribute('data-discord-guild-id') || '';
+            const discordGuildName = button.getAttribute('data-discord-guild-name') || '';
+            const telegramChatId   = button.getAttribute('data-telegram-chat-id') || '';
+            const telegramChatName = button.getAttribute('data-telegram-chat-name') || '';
+            openTaskModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton, twitterTarget, taskType, pollOptions, discordGuildId, discordGuildName, telegramChatId, telegramChatName);
+        }
+
+        function trackTaskClick(taskId) {
+            taskClickTracking[taskId] = Date.now();
+            localStorage.setItem('taskClick_' + taskId, Date.now().toString());
+        }
+
+        function hasClickedTaskButton(taskId) {
+            const clickTime = taskClickTracking[taskId] || localStorage.getItem('taskClick_' + taskId);
+            if (!clickTime) return false;
+            return (Date.now() - parseInt(clickTime)) < 5 * 60 * 1000;
+        }
+
+        function startTaskTimer(taskId) { taskStartTime[taskId] = Date.now(); }
+        function getTaskTimeSpent(taskId) {
+            if (!taskStartTime[taskId]) return 0;
+            return Math.floor((Date.now() - taskStartTime[taskId]) / 1000);
+        }
+
+        const userDiscordConnected = <%= user.discordConnected ? 'true' : 'false' %>;
+        const userDiscordUsername  = '<%= user.discordUsername || "" %>';
+
+        function openTaskModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton, twitterFollowTarget, taskType, pollOptions, discordGuildId, discordGuildName, telegramChatId, telegramChatName) {
+            try {
+                currentTaskId = taskId;
+                currentQuestId = questId;
+                startTaskTimer(taskId);
+
+                // For button-based tasks that aren't special types, show warning if not clicked
+                const specialTypes = ['poll', 'discord_join', 'telegram_join', 'webhook'];
+                if (hasButton && !hasClickedTaskButton(taskId) && !specialTypes.includes(taskType)) {
+                    showWarningModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton, twitterFollowTarget, taskType, pollOptions, discordGuildId, discordGuildName, telegramChatId, telegramChatName);
+                    return;
+                }
+
+                const inputContainer = document.getElementById('taskInputContainer');
+
+                if (taskType === 'poll' && pollOptions && pollOptions.length > 0) {
+                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-poll"></i> Vote: ' + taskTitle;
+                    const optHtml = pollOptions.map(function(opt, i) {
+                        return '<label style="display:flex;align-items:center;gap:.75rem;padding:.875rem 1rem;border-radius:10px;border:1px solid rgba(168,85,247,.25);background:rgba(168,85,247,.04);cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor=\'rgba(168,85,247,.6)\'" onmouseout="this.style.borderColor=\'rgba(168,85,247,.25)\'">' +
+                            '<input type="radio" name="pollChoice" value="' + opt.text.replace(/"/g,'&quot;') + '" style="accent-color:#c084fc" ' + (i===0?'checked':'') + '>' +
+                            '<span style="color:var(--text);font-size:.9rem">' + opt.text + '</span>' +
+                            '<span style="margin-left:auto;color:var(--text-3);font-size:.75rem">' + (opt.votes||0) + ' votes</span>' +
+                            '</label>';
+                    }).join('');
+                    inputContainer.innerHTML = '<div style="display:flex;flex-direction:column;gap:.5rem">' + optHtml + '</div>' +
+                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+
+                } else if (taskType === 'discord_join') {
+                    document.getElementById('taskModalTitle').innerHTML = '<i class="fab fa-discord"></i> Discord Verification';
+                    const serverName = discordGuildName || 'the required Discord server';
+                    if (!userDiscordConnected) {
+                        inputContainer.innerHTML =
+                            '<div style="background:rgba(88,101,242,.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(88,101,242,.3);text-align:center">' +
+                            '<i class="fab fa-discord" style="color:#818cf8;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
+                            '<h4 style="color:#818cf8;margin-bottom:.75rem">Connect Discord First</h4>' +
+                            '<p style="color:var(--text-2);font-size:.875rem;margin-bottom:1.25rem">Connect your Discord account to verify you\'ve joined <strong>' + serverName + '</strong>.</p>' +
+                            '<a href="/auth/discord/connect" class="task-action-btn task-action-btn--primary" style="display:inline-flex;text-decoration:none"><i class="fab fa-discord"></i> Connect Discord</a>' +
+                            '</div>';
+                    } else {
+                        inputContainer.innerHTML =
+                            '<div style="background:rgba(88,101,242,.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(88,101,242,.3);text-align:center">' +
+                            '<i class="fab fa-discord" style="color:#818cf8;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
+                            '<h4 style="color:#818cf8;margin-bottom:.5rem">Discord Membership Check</h4>' +
+                            '<p style="color:var(--text-2);font-size:.875rem;margin-bottom:.5rem">Verifying <strong style="color:#818cf8">@' + userDiscordUsername + '</strong> is in <strong>' + serverName + '</strong></p>' +
+                            '<div style="background:rgba(255,255,255,.04);padding:.75rem;border-radius:10px;font-size:.8rem;color:var(--text-3)"><i class="fas fa-shield-alt" style="color:var(--green)"></i> Verified via Discord bot</div>' +
+                            '</div>' +
+                            '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+                    }
+
+                } else if (taskType === 'telegram_join') {
+                    document.getElementById('taskModalTitle').innerHTML = '<i class="fab fa-telegram"></i> Telegram Verification';
+                    const chatName = telegramChatName || 'the required Telegram group';
+                    inputContainer.innerHTML =
+                        '<div style="background:rgba(0,136,204,.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(0,136,204,.3);text-align:center">' +
+                        '<i class="fab fa-telegram" style="color:#38bdf8;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
+                        '<h4 style="color:#38bdf8;margin-bottom:.5rem">Telegram Membership Check</h4>' +
+                        '<p style="color:var(--text-2);font-size:.875rem;margin-bottom:.5rem">Checking your Telegram account is in <strong>' + chatName + '</strong>.</p>' +
+                        '<div style="background:rgba(255,255,255,.04);padding:.75rem;border-radius:10px;font-size:.8rem;color:var(--text-3)"><i class="fas fa-shield-alt" style="color:var(--green)"></i> Verified via Telegram bot</div>' +
+                        '</div>' +
+                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+
+                } else if (taskType === 'webhook') {
+                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-shield-alt"></i> Verify: ' + taskTitle;
+                    inputContainer.innerHTML =
+                        '<div style="background:rgba(251,146,60,.06);padding:1.5rem;border-radius:14px;border:1px solid rgba(251,146,60,.25);text-align:center">' +
+                        '<i class="fas fa-plug" style="color:#fb923c;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
+                        '<h4 style="color:#fb923c;margin-bottom:.5rem">External Verification</h4>' +
+                        '<p style="color:var(--text-2);font-size:.875rem">Click Verify to confirm you\'ve completed the required action.</p>' +
+                        '</div>' +
+                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+
+                } else if (taskType === 'submission') {
+                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-link"></i> Submit: ' + taskTitle;
+                    inputContainer.innerHTML =
+                        '<div style="background:rgba(94,194,19,.04);padding:1rem;border-radius:12px;border:1px solid rgba(94,194,19,.15);margin-bottom:.875rem;font-size:.82rem;color:var(--text-2)">' +
+                        '<i class="fas fa-info-circle" style="color:var(--green);margin-right:.35rem"></i>' +
+                        'Paste the URL of your submission below. Your admin will review and approve it.' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                        '<label><i class="fas fa-link" style="color:var(--green)"></i> Submission URL *</label>' +
+                        '<input type="url" id="taskInput" name="submissionUrl" placeholder="https://..." required style="width:100%;padding:.65rem .875rem;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(94,194,19,.2);color:var(--text);font-family:Outfit,sans-serif;font-size:.875rem">' +
+                        '<small style="color:var(--text-3);font-size:.75rem;margin-top:.3rem;display:block"><i class="fas fa-clock" style="color:#f59e0b"></i> Admin will review before XP is credited</small>' +
+                        '</div>' +
+                        '<input type="hidden" name="verification" value="' + generateVerificationCode(taskId) + '">';
+
+                } else if (taskType === 'image_upload') {
+                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-image"></i> Upload Proof: ' + taskTitle;
+                    inputContainer.innerHTML =
+                        '<div style="background:rgba(168,85,247,.04);padding:1rem;border-radius:12px;border:1px solid rgba(168,85,247,.2);margin-bottom:.875rem;font-size:.82rem;color:var(--text-2)">' +
+                        '<i class="fas fa-camera" style="color:#c084fc;margin-right:.35rem"></i>' +
+                        'Upload a screenshot or image as proof. Max 5MB. Admin will review before XP is credited.' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                        '<label><i class="fas fa-upload" style="color:#c084fc"></i> Proof Screenshot *</label>' +
+                        '<div id="imgUploadArea" style="border:2px dashed rgba(168,85,247,.3);border-radius:12px;padding:2rem 1rem;text-align:center;cursor:pointer;transition:border-color .2s;background:rgba(168,85,247,.03)"' +
+                        ' onclick="document.getElementById(\'imgFileInput\').click()" ondragover="event.preventDefault();this.style.borderColor=\'rgba(168,85,247,.7)\'" ondragleave="this.style.borderColor=\'rgba(168,85,247,.3)\'" ondrop="handleImgDrop(event)">' +
+                        '<i class="fas fa-cloud-upload-alt" style="font-size:2rem;color:rgba(168,85,247,.5);margin-bottom:.5rem;display:block"></i>' +
+                        '<p style="color:var(--text-3);font-size:.85rem;margin:0">Click or drag &amp; drop image here</p>' +
+                        '<p style="color:var(--text-3);font-size:.72rem;margin:.25rem 0 0">PNG, JPG, WEBP — max 5MB</p>' +
+                        '</div>' +
+                        '<input type="file" id="imgFileInput" accept="image/*" style="display:none" onchange="previewUploadedImg(this)">' +
+                        '<div id="imgPreviewWrap" style="display:none;margin-top:.75rem;border-radius:10px;overflow:hidden;border:1px solid rgba(168,85,247,.25)">' +
+                        '<img id="imgPreview" style="width:100%;max-height:200px;object-fit:cover;display:block">' +
+                        '<div style="padding:.4rem .75rem;background:rgba(168,85,247,.08);font-size:.72rem;color:#c084fc;display:flex;align-items:center;justify-content:space-between">' +
+                        '<span id="imgFileName"></span>' +
+                        '<button type="button" onclick="clearImgUpload()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.72rem;font-family:Outfit,sans-serif">✕ Remove</button>' +
+                        '</div></div>' +
+                        '<input type="hidden" id="imgBase64" name="imgBase64" value="">' +
+                        '</div>' +
+                        '<input type="hidden" name="verification" value="' + generateVerificationCode(taskId) + '">';
+
+                } else if (twitterFollowTarget) {
+                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-paper-plane"></i> Submit: ' + taskTitle;
+                    const userTwitterDisplay = userTwitterUsername ? '@' + userTwitterUsername : 'your connected X account';
+                    inputContainer.innerHTML =
+                        '<div style="background:rgba(29,161,242,0.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(29,161,242,0.25);text-align:center">' +
+                        '<i class="fab fa-x-twitter" style="color:#1DA1F2;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
+                        '<h4 style="color:#1DA1F2;margin-bottom:.75rem">X Follow Verification</h4>' +
+                        '<p style="color:var(--text-2);line-height:1.65;margin-bottom:1rem;font-size:.875rem">' +
+                        'We\'ll verify that <strong style="color:var(--green)">' + userTwitterDisplay + '</strong> follows <strong style="color:#1DA1F2">@' + twitterFollowTarget + '</strong></p>' +
+                        '<div style="background:rgba(255,255,255,0.04);padding:.875rem;border-radius:10px;font-size:.8rem;color:var(--text-3)">' +
+                        '<i class="fas fa-shield-alt" style="color:var(--green)"></i> Secure OAuth verification — no cheating possible</div></div>' +
+                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+
+                } else if (inputLabel && inputName) {
+                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-paper-plane"></i> Submit: ' + taskTitle;
+                    inputContainer.innerHTML =
+                        '<div class="form-group">' +
+                        '<label><i class="fas fa-edit"></i> ' + inputLabel + '</label>' +
+                        '<input type="text" id="taskInput" name="' + inputName + '" placeholder="Enter ' + inputLabel.toLowerCase() + '" required minlength="3">' +
+                        '<small><i class="fas fa-info-circle"></i> Provide accurate information</small>' +
+                        '</div>' +
+                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+
+                } else {
+                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-paper-plane"></i> Submit: ' + taskTitle;
+                    inputContainer.innerHTML =
+                        '<div style="background:rgba(94,194,19,0.06);padding:1.25rem;border-radius:13px;border:1px solid rgba(94,194,19,0.2);text-align:center">' +
+                        '<i class="fas fa-check-circle" style="color:var(--green);font-size:2rem;display:block;margin-bottom:.5rem"></i>' +
+                        '<p style="color:var(--text-2);font-size:.875rem">Click submit to complete this task</p>' +
+                        '</div>' +
+                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+                }
+
+                document.getElementById('taskModal').style.display = 'flex';
+                setTimeout(function() { const inp = document.getElementById('taskInput'); if (inp) inp.focus(); }, 100);
+            } catch (error) {
+                console.error('Error opening task modal:', error);
+                showToast('Error opening task modal. Please refresh and try again.','error');
+            }
+        }
+
+        function showWarningModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton, twitterFollowTarget, taskType, pollOptions, discordGuildId, discordGuildName, telegramChatId, telegramChatName) {
+            document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-triangle-exclamation" style="color:#fbbf24"></i> Action Required';
+            document.getElementById('taskInputContainer').innerHTML =
+                '<div style="background:rgba(251,191,36,0.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(251,191,36,0.3);text-align:center">' +
+                '<i class="fas fa-hand-pointer" style="color:#fbbf24;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
+                '<h4 style="color:#fbbf24;margin-bottom:.75rem">Complete the Task First!</h4>' +
+                '<p style="color:var(--text-2);line-height:1.65;margin-bottom:1rem;font-size:.875rem">Click the task button above and complete the required action before submitting.</p>' +
+                '<ol style="color:var(--text-2);text-align:left;font-size:.85rem;padding-left:1.5rem;margin:0;line-height:1.9">' +
+                '<li>Click the task action button</li><li>Complete the required action</li><li>Return and click "Submit Task"</li></ol>' +
+                '<button class="task-action-btn task-action-btn--secondary" onclick="closeTaskModal()" style="margin-top:1.25rem;width:100%">' +
+                '<i class="fas fa-arrow-left"></i> Got it, let me do the task</button></div>';
+            document.getElementById('taskModal').style.display = 'flex';
+            const footer = document.querySelector('.modal-footer');
+            if (footer) {
+                footer.style.display = 'none';
+                setTimeout(function() {
+                    footer.style.display = 'flex';
+                    // Replace submit with "I've Done It" that opens actual modal
+                    const submitBtn = footer.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.textContent = "I've Done It — Submit";
+                        submitBtn.onclick = function(e) {
+                            e.preventDefault();
+                            closeTaskModal();
+                            openTaskModal(taskId, questId, taskTitle, inputLabel, inputName, false, twitterFollowTarget, taskType, pollOptions, discordGuildId, discordGuildName, telegramChatId, telegramChatName);
+                        };
+                    }
+                }, 1000);
+            }
+        }
+
+        function generateVerificationCode(taskId) {
+            return btoa(taskId + ':' + Date.now()).substr(0, 20);
+        }
+
+        /* ── Image upload helpers ── */
+        function previewUploadedImg(input) {
+            if (!input.files || !input.files[0]) return;
+            var file = input.files[0];
+            if (file.size > 5 * 1024 * 1024) { showToast('Image too large — max 5MB', 'error'); input.value = ''; return; }
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imgPreview').src = e.target.result;
+                document.getElementById('imgFileName').textContent = file.name;
+                document.getElementById('imgPreviewWrap').style.display = 'block';
+                document.getElementById('imgUploadArea').style.display = 'none';
+                document.getElementById('imgBase64').value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        function handleImgDrop(e) {
+            e.preventDefault();
+            document.getElementById('imgUploadArea').style.borderColor = 'rgba(168,85,247,.3)';
+            var file = e.dataTransfer.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            var fakeInput = { files: [file] };
+            previewUploadedImg(fakeInput);
+        }
+        function clearImgUpload() {
+            document.getElementById('imgBase64').value = '';
+            document.getElementById('imgPreviewWrap').style.display = 'none';
+            document.getElementById('imgUploadArea').style.display = 'block';
+            document.getElementById('imgFileInput').value = '';
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').style.display = 'none';
+            document.getElementById('taskSubmitForm').reset();
+            currentTaskId = null; currentQuestId = null;
+        }
+
+        function filterLeaderboard() {
+            const filter = document.getElementById('leaderboardSearch').value.toLowerCase();
+            let visible = 0;
+            document.querySelectorAll('.lb-row').forEach(row => {
+                const match = row.getAttribute('data-username').includes(filter);
+                row.style.display = match ? 'flex' : 'none';
+                if (match) visible++;
+            });
+            const list = document.getElementById('leaderboardList');
+            let noMsg = document.getElementById('noResultsMsg');
+            if (visible === 0 && filter) {
+                if (!noMsg) {
+                    noMsg = document.createElement('div');
+                    noMsg.id = 'noResultsMsg';
+                    noMsg.style.cssText = 'text-align:center;padding:2rem;color:var(--text-3);font-size:.875rem';
+                    noMsg.innerHTML = '<i class="fas fa-search" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No users found for "' + filter + '"';
+                    list.appendChild(noMsg);
+                }
+            } else if (noMsg) noMsg.remove();
+        }
+
+        document.getElementById('taskSubmitForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!currentTaskId || !currentQuestId) { showToast('Error: Task information missing','error'); return; }
+            const timeSpent = getTaskTimeSpent(currentTaskId);
+            if (timeSpent < 5) { showToast('Please take a moment to review the task before submitting.','success'); return; }
+
+            // Block discord_join submission if user hasn't connected Discord
+            const activeBtn = document.querySelector('.submit-task-btn[data-task-id="' + currentTaskId + '"]');
+            if (activeBtn && activeBtn.getAttribute('data-task-type') === 'discord_join' && !userDiscordConnected) {
+                showToast('Connect your Discord account first','error');
+                return;
+            }
+
+            /* Validate image upload if task type requires it */
+            const activeBtn2 = document.querySelector('.submit-task-btn[data-task-id="' + currentTaskId + '"]');
+            const activeTaskType = activeBtn2 ? activeBtn2.getAttribute('data-task-type') : '';
+            if (activeTaskType === 'image_upload') {
+                const imgBase64 = document.getElementById('imgBase64');
+                if (!imgBase64 || !imgBase64.value) {
+                    showToast('Please upload a screenshot as proof', 'error');
+                    return;
+                }
+            }
+
+            const formData = new FormData(this);
+            const submitData = {
+                questId: currentQuestId, taskId: currentTaskId,
+                submissionUrl: formData.get('submissionUrl') || '',
+                submissionText: formData.get('submissionText') || '',
+                submissionData: {},
+                verification: formData.get('verification') || '',
+                timeSpent
+            };
+            /* For image uploads, embed base64 in submissionData */
+            const imgB64 = formData.get('imgBase64');
+            if (imgB64) submitData.submissionData.image = imgB64;
+            for (let [key, value] of formData.entries()) {
+                if (!['submissionUrl','submissionText','verification','imgBase64'].includes(key)) submitData.submissionData[key] = value;
+            }
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const orig = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/dashboard/quests/submit-task', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(submitData)
+                });
+                const data = await response.json();
+                if (data.success) {
+                    localStorage.removeItem('taskClick_' + currentTaskId);
+                    delete taskClickTracking[currentTaskId];
+                    delete taskStartTime[currentTaskId];
+                    closeTaskModal();
+                    if (data.isQuestCompleted) {
+                        let msg = 'Quest Completed! You earned ' + data.rewards.xp + ' XP';
+                        if (data.rewards.usdc > 0) msg += ' and $' + data.rewards.usdc + ' USDC';
+                        alert(msg);
+                    } else { showToast('Task submitted!','success'); }
+                    window.location.reload();
+                } else if (data.requiresConnection) {
+                    closeTaskModal();
+                    const parts = [];
+                    if (data.missingX)  parts.push('<a href="/auth/twitter" style="color:#5EC213;font-weight:700"><i class="fab fa-x-twitter"></i> Connect X</a>');
+                    if (data.missingTg) parts.push('<a href="https://t.me/onboard3bot" target="_blank" style="color:#1d9bf0;font-weight:700"><i class="fab fa-telegram"></i> Connect Telegram</a>');
+                    const banner = document.getElementById('connectionGateBanner');
+                    if (banner) {
+                        banner.innerHTML = '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:1.25rem 1.375rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap"><i class="fas fa-lock" style="color:#f87171;font-size:1.125rem;flex-shrink:0"></i><div style="flex:1"><p style="font-size:.875rem;font-weight:700;color:var(--text);margin-bottom:.35rem">Social connection required</p><p style="font-size:.8125rem;color:var(--text-2)">' + data.message + '</p></div><div style="display:flex;gap:.5rem;flex-wrap:wrap">' + parts.join('') + '</div></div>';
+                        banner.scrollIntoView({ behavior:'smooth', block:'center' });
+                    }
+                } else {
+                    if (data.requiresFollow && data.targetAccount) {
+                        if (confirm(`${data.message}\n\nOpen @${data.targetAccount}'s profile to follow them?`)) window.open(`https://x.com/${data.targetAccount}`, '_blank');
+                    } else if (data.requiresTwitterConnect) {
+                        if (confirm(`${data.message}\n\nConnect your X account now?`)) window.location.href = '/dashboard/connect-twitter?redirect=' + encodeURIComponent(window.location.pathname);
+                    } else { alert(data.message || 'Failed to submit task'); }
+                    submitBtn.innerHTML = orig; submitBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error submitting task. Please try again.','error');
+                submitBtn.innerHTML = orig; submitBtn.disabled = false;
+            }
+        });
+
+        document.getElementById('taskModal')?.addEventListener('click', function(e) { if (e.target === this) closeTaskModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('taskModal').style.display === 'flex') closeTaskModal(); });
+
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const me = document.querySelector('.lb-row--me');
+                if (me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 600);
+        });
+    </script>
+    <% } %>
+
+    <% if (quest.endDate) { %>
+    <script>
+    (function() {
+        const endDate = new Date('<%= quest.endDate %>').getTime();
+        function updateCountdown() {
+            const distance = endDate - Date.now();
+            const countdown = document.getElementById('questCountdown');
+            const urgency = document.getElementById('urgencyIndicator');
+            if (!countdown) return;
+            if (distance < 0) {
+                countdown.style.background = 'rgba(100,100,100,0.07)';
+                countdown.style.borderColor = 'rgba(100,100,100,0.2)';
+                document.getElementById('countdownDisplay').innerHTML = '<span style="color:#888">Quest Ended</span>';
+                if (urgency) { urgency.textContent = 'Finished'; urgency.style.cssText = 'background:rgba(100,100,100,0.15);color:#888;border:1px solid rgba(100,100,100,0.2)'; }
+                return;
+            }
+            const days    = Math.floor(distance / 86400000);
+            const hours   = Math.floor((distance % 86400000) / 3600000);
+            const minutes = Math.floor((distance % 3600000) / 60000);
+            const seconds = Math.floor((distance % 60000) / 1000);
+            document.getElementById('days').textContent    = String(days).padStart(2,'0');
+            document.getElementById('hours').textContent   = String(hours).padStart(2,'0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2,'0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2,'0');
+            if (!urgency) return;
+            const totalH = days * 24 + hours;
+            if (totalH < 1) {
+                urgency.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Final Hour!';
+                urgency.style.cssText = 'background:rgba(239,68,68,0.2);color:#f87171;border:1px solid rgba(239,68,68,0.4)';
+            } else if (totalH < 24) {
+                urgency.innerHTML = '<i class="fas fa-fire"></i> Ending Soon';
+                urgency.style.cssText = 'background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)';
+            } else if (days < 3) {
+                urgency.innerHTML = '<i class="fas fa-hourglass-half"></i> Few Days Left';
+                urgency.style.cssText = 'background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)';
+            } else {
+                urgency.innerHTML = '<i class="fas fa-clock"></i> Plenty of Time';
+                urgency.style.cssText = 'background:rgba(94,194,19,0.12);color:var(--green);border:1px solid rgba(94,194,19,0.25)';
+            }
+        }
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    })();
+    </script>
+    <% } %>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<% const currentPage = typeof locals.currentPage !== 'undefined' ? locals.currentPage : 'dashboard'; %>
+
+<!-- Top Navigation Bar -->
+<nav class="admin-navbar">
+    <div class="navbar-logo">
+        <h1>ONBOARD3</h1>
+        <span style="color: #888; font-size: 0.75rem; margin-left: 0.5rem;">Admin</span>
+    </div>
+
+    <div class="navbar-menu" id="navbarMenu">
+        <a class="menu-item <%= currentPage === 'dashboard' ? 'active' : '' %>" href="/admin/dashboard">
+            <i class="fas fa-chart-line"></i>
+            <span>Dashboard</span>
+        </a>
+        <a class="menu-item <%= currentPage === 'partners' ? 'active' : '' %>" href="/admin/partners">
+            <i class="fas fa-handshake"></i>
+            <span>Partners</span>
+        </a>
+        <a class="menu-item <%= currentPage === 'leaderboard' ? 'active' : '' %>" href="/admin/leaderboard">
+            <i class="fas fa-list-ol"></i>
+            <span>Leaderboard</span>
+        </a>
+    </div>
+
+    <button class="mobile-nav-toggle" onclick="toggleMobileNav()">
+        <i class="fas fa-bars"></i>
+    </button>
+</nav>
+
+<!-- Mobile Dropdown Menu -->
+<div class="mobile-dropdown" id="mobileDropdown">
+    <a class="menu-item <%= currentPage === 'dashboard' ? 'active' : '' %>" href="/admin/dashboard">
+        <i class="fas fa-chart-line"></i>
+        <span>Dashboard</span>
+    </a>
+    <a class="menu-item <%= currentPage === 'partners' ? 'active' : '' %>" href="/admin/partners">
+        <i class="fas fa-handshake"></i>
+        <span>Partners</span>
+    </a>
+    <a class="menu-item <%= currentPage === 'leaderboard' ? 'active' : '' %>" href="/admin/leaderboard">
+        <i class="fas fa-list-ol"></i>
+        <span>Leaderboard</span>
+    </a>
+</div>
+
+<style>
+    .admin-navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: rgba(15, 15, 15, 0.98);
+        border-bottom: 2px solid rgba(57, 255, 20, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem;
+        z-index: 1000;
+        backdrop-filter: blur(10px);
+    }
+    .navbar-logo { display: flex; align-items: center; }
+    .navbar-logo h1 { color: #39FF14; font-size: 1.5rem; margin: 0; }
+    .navbar-menu {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+        justify-content: center;
+    }
+    .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        color: #888;
+        text-decoration: none;
+        transition: all 0.3s;
+        cursor: pointer;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        border-bottom: 3px solid transparent;
+    }
+    .menu-item:hover { color: #39FF14; background: rgba(57, 255, 20, 0.05); }
+    .menu-item.active { color: #39FF14; background: rgba(57, 255, 20, 0.1); border-bottom-color: #39FF14; }
+    .mobile-nav-toggle {
+        display: none;
+        background: #39FF14;
+        border: none;
+        color: #000;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.25rem;
+        align-items: center;
+        justify-content: center;
+    }
+    .mobile-dropdown {
+        display: none;
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: rgba(15, 15, 15, 0.98);
+        border-bottom: 2px solid rgba(57, 255, 20, 0.2);
+        padding: 1rem;
+        z-index: 999;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .mobile-dropdown.active { display: flex; }
+    @media (max-width: 768px) {
+        .navbar-menu { display: none; }
+        .mobile-nav-toggle { display: flex; }
+    }
+</style>
+
+<script>
+    function toggleMobileNav() {
+        const dropdown = document.getElementById('mobileDropdown');
+        dropdown.classList.toggle('active');
+    }
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('mobileDropdown');
+        const toggle = document.querySelector('.mobile-nav-toggle');
+
+        if (dropdown && toggle && !dropdown.contains(e.target) && !toggle.contains(e.target)) {
+            dropdown.classList.remove('active');
+        }
+    });
+</script>

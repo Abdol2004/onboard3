@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONBOARD3 - Sign In</title>
+    <link rel="stylesheet" href="/css/head.css">
+    <link rel="stylesheet" href="/css/load.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        :root {
+            --green:       #5EC213;
+            --green-dark:  #45960E;
+            --green-light: #78E02A;
+            --bg:          #0F1610;
+            --bg-card:     rgba(20, 32, 20, 0.88);
+            --border:      rgba(94,194,19,0.16);
+            --text:        #E8F5E2;
+            --text-2:      #8AAF85;
+            --text-3:      #5A7A56;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0F1610;
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* ── BG DECORATIONS ── */
+        .bg-grid {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 56px 56px;
+            opacity: 0.5;
+        }
+        .scan-line {
+            position: fixed; left: 0; right: 0; height: 2px; z-index: 0;
+            background: linear-gradient(90deg, transparent, rgba(94,194,19,0.35), transparent);
+            animation: scanDown 6s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes scanDown {
+            0%   { top: -2px; opacity: 0; }
+            5%   { opacity: 1; }
+            95%  { opacity: 1; }
+            100% { top: 100vh; opacity: 0; }
+        }
+
+        /* ── PARTICLES ── */
+        .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        .particle {
+            position: absolute; background: var(--green); border-radius: 50%;
+            animation: particleFloat linear infinite; filter: blur(1px);
+        }
+        @keyframes particleFloat {
+            0%   { transform: translateY(0) scale(1); opacity: inherit; }
+            50%  { transform: translateY(-80px) translateX(15px) scale(1.3); }
+            100% { transform: translateY(-180px) translateX(-5px) scale(0.8); opacity: 0; }
+        }
+
+        /* ── LAYOUT ── */
+        .auth-wrapper {
+            display: flex; min-height: 100vh; position: relative; z-index: 1;
+        }
+
+        /* ══ LEFT PANEL ══ */
+        .auth-left {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            padding: 4rem 3.5rem;
+            position: relative; overflow: hidden;
+            background: linear-gradient(135deg, #0a1209 0%, #0f1a0e 40%, #0c1a0b 100%);
+            border-right: 1px solid var(--border);
+        }
+
+        /* big glow blobs */
+        .al-glow {
+            position: absolute; border-radius: 50%; pointer-events: none; filter: blur(90px);
+        }
+        .al-glow-1 {
+            width: 500px; height: 500px; top: -100px; left: -100px;
+            background: radial-gradient(circle, rgba(94,194,19,0.12), transparent 65%);
+            animation: blobFloat 14s ease-in-out infinite;
+        }
+        .al-glow-2 {
+            width: 380px; height: 380px; bottom: -80px; right: -60px;
+            background: radial-gradient(circle, rgba(94,194,19,0.08), transparent 65%);
+            animation: blobFloat 18s ease-in-out infinite reverse;
+        }
+        @keyframes blobFloat {
+            0%,100% { transform: translate(0,0) scale(1); }
+            50%      { transform: translate(30px, 20px) scale(1.12); }
+        }
+
+        /* left content */
+        .al-inner {
+            position: relative; z-index: 1; max-width: 460px;
+        }
+
+        .al-logo {
+            display: inline-flex; align-items: center; gap: 0.75rem;
+            text-decoration: none; margin-bottom: 3rem;
+        }
+        .al-logo-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: rgba(94,194,19,0.15); border: 1.5px solid rgba(94,194,19,0.35);
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .al-logo-icon img { width: 100%; height: 100%; object-fit: contain; }
+        .al-logo-text { font-size: 1.25rem; font-weight: 900; color: var(--text); letter-spacing: -0.5px; }
+
+        .al-heading {
+            font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 900; letter-spacing: -1.5px;
+            line-height: 1.12; color: var(--text); margin-bottom: 1.25rem;
+        }
+        .shimmer-text {
+            background: linear-gradient(90deg, var(--green) 0%, var(--green-light) 30%, #d0ffaa 50%, var(--green-light) 70%, var(--green) 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            animation: shimmer 3.5s linear infinite;
+        }
+        @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
+
+        .al-sub {
+            font-size: 1.0625rem; color: var(--text-2); line-height: 1.78; margin-bottom: 2.75rem;
+        }
+
+        /* feature pills */
+        .al-features {
+            display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2.75rem;
+        }
+        .al-feat {
+            display: flex; align-items: center; gap: 0.75rem;
+            font-size: 0.9375rem; font-weight: 600; color: var(--text-2);
+            animation: featSlide 0.6s ease both;
+        }
+        .al-feat:nth-child(1) { animation-delay: 0.1s; }
+        .al-feat:nth-child(2) { animation-delay: 0.2s; }
+        .al-feat:nth-child(3) { animation-delay: 0.3s; }
+        .al-feat:nth-child(4) { animation-delay: 0.4s; }
+        @keyframes featSlide {
+            from { opacity: 0; transform: translateX(-20px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .al-feat-icon {
+            width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+            background: rgba(94,194,19,0.1); border: 1px solid rgba(94,194,19,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.875rem; color: var(--green);
+        }
+
+        /* stats row */
+        .al-stats {
+            display: flex; gap: 0; padding: 1.25rem 1.5rem;
+            background: rgba(94,194,19,0.06); border: 1px solid var(--border);
+            border-radius: 18px; backdrop-filter: blur(12px);
+        }
+        .al-stat {
+            flex: 1; text-align: center; padding: 0.25rem 0;
+        }
+        .al-stat + .al-stat { border-left: 1px solid var(--border); }
+        .al-stat span {
+            display: block; font-size: 1.5rem; font-weight: 900; color: var(--green);
+            letter-spacing: -0.5px; filter: drop-shadow(0 0 10px rgba(94,194,19,0.5));
+        }
+        .al-stat small {
+            font-size: 0.72rem; font-weight: 700; color: var(--text-3);
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        /* ── Left panel — only show on wide screens ── */
+        @media (max-width: 900px) {
+            .auth-left { display: none; }
+        }
+
+        /* ══ RIGHT PANEL ══ */
+        .auth-right {
+            width: 520px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            padding: 3rem 2.5rem;
+            background: var(--bg);
+            position: relative;
+        }
+        @media (max-width: 900px) {
+            .auth-right { width: 100%; }
+        }
+
+        /* vertical glow line */
+        .auth-right::before {
+            content: ''; position: absolute; top: 10%; bottom: 10%; left: 0; width: 1px;
+            background: linear-gradient(to bottom, transparent, rgba(94,194,19,0.3), transparent);
+            pointer-events: none;
+        }
+        @media (max-width: 900px) {
+            .auth-right::before { display: none; }
+        }
+
+        /* ── AUTH BOX ── */
+        .auth-box {
+            width: 100%; max-width: 420px;
+            animation: boxIn 0.7s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        @keyframes boxIn {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* mobile logo (shows only when left panel hidden) */
+        .auth-mobile-logo {
+            display: none; text-decoration: none;
+            font-size: 1.5rem; font-weight: 900; color: var(--green);
+            letter-spacing: -0.5px; margin-bottom: 2rem;
+        }
+        @media (max-width: 900px) {
+            .auth-mobile-logo { display: block; text-align: center; }
+        }
+
+        .auth-header {
+            margin-bottom: 2.25rem;
+        }
+        .auth-header h2 {
+            font-size: clamp(1.625rem, 3vw, 2.1rem); font-weight: 900; letter-spacing: -1px;
+            color: var(--text); margin-bottom: 0.5rem;
+        }
+        .auth-header p { font-size: 0.9375rem; color: var(--text-2); }
+
+        /* ── TABS ── */
+        .auth-tabs {
+            display: flex; gap: 6px; margin-bottom: 2.25rem;
+            background: rgba(94,194,19,0.05); border: 1px solid var(--border);
+            padding: 5px; border-radius: 14px;
+        }
+        .auth-tab {
+            flex: 1; padding: 0.875rem 1rem;
+            background: transparent; border: none; border-radius: 10px;
+            color: var(--text-2); font-size: 0.9375rem; font-weight: 700; cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            font-family: 'Outfit', sans-serif; position: relative; overflow: hidden;
+        }
+        .auth-tab::after {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.15), transparent 65%);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .auth-tab:hover::after { opacity: 1; }
+        .auth-tab:hover:not(.active) { background: rgba(94,194,19,0.08); color: var(--green); }
+        .auth-tab.active {
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+            color: #000; font-weight: 800;
+            box-shadow: 0 4px 20px rgba(94,194,19,0.4);
+        }
+
+        /* ── ALERT ── */
+        .alert {
+            padding: 0.9rem 1.1rem; border-radius: 12px; margin-bottom: 1.5rem;
+            font-size: 0.875rem; font-weight: 500; display: none; line-height: 1.5;
+            animation: alertIn 0.3s ease both;
+        }
+        @keyframes alertIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .alert.show { display: block; }
+        .alert-success { background: rgba(94,194,19,0.1); border: 1px solid rgba(94,194,19,0.3); color: var(--green); }
+        .alert-error   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.3);  color: #f87171; }
+        .alert-warning { background: rgba(250,204,21,0.1); border: 1px solid rgba(250,204,21,0.3); color: #fde047; }
+
+        /* ── FORMS ── */
+        .auth-form { display: none; animation: formIn 0.35s ease both; }
+        .auth-form.active { display: block; }
+        @keyframes formIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group { margin-bottom: 1.375rem; }
+        .form-group label {
+            display: block; margin-bottom: 0.5rem;
+            font-size: 0.8125rem; font-weight: 700; color: var(--text-2);
+            letter-spacing: 0.3px; text-transform: uppercase;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+        .input-icon {
+            position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+            font-size: 0.875rem; color: var(--text-3); pointer-events: none;
+            transition: color 0.3s;
+        }
+        .input-wrap:focus-within .input-icon { color: var(--green); }
+
+        .form-group input {
+            width: 100%; padding: 0.925rem 1rem 0.925rem 2.75rem;
+            background: rgba(94,194,19,0.04); border: 1.5px solid var(--border);
+            border-radius: 13px; color: var(--text);
+            font-family: 'Outfit', sans-serif; font-size: 0.9375rem;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        .form-group input::placeholder { color: var(--text-3); }
+        .form-group input:focus {
+            outline: none; border-color: var(--green);
+            background: rgba(94,194,19,0.07);
+            box-shadow: 0 0 0 3px rgba(94,194,19,0.13), 0 0 20px rgba(94,194,19,0.08);
+        }
+
+        /* password toggle */
+        .pw-toggle {
+            position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer; color: var(--text-3);
+            font-size: 0.875rem; padding: 0; transition: color 0.2s;
+        }
+        .pw-toggle:hover { color: var(--green); }
+
+        /* forgot link */
+        .forgot-link {
+            display: block; text-align: right; color: var(--text-3); font-size: 0.8125rem;
+            font-weight: 600; text-decoration: none; margin-top: -0.75rem; margin-bottom: 1.5rem;
+            cursor: pointer; transition: color 0.2s;
+        }
+        .forgot-link:hover { color: var(--green); }
+
+        /* referral note */
+        .referral-note {
+            display: none; align-items: center; gap: 0.5rem; margin-top: 0.5rem;
+            background: rgba(94,194,19,0.08); border: 1px solid rgba(94,194,19,0.2);
+            border-radius: 10px; padding: 0.75rem 1rem;
+            font-size: 0.8125rem; color: var(--green); font-weight: 500;
+        }
+        .resend-link {
+            color: var(--green); font-weight: 700; text-decoration: none;
+            display: inline-block; margin-top: 0.4rem;
+        }
+        .resend-link:hover { text-decoration: underline; }
+
+        /* ── SUBMIT BUTTON ── */
+        .btn-submit {
+            width: 100%; padding: 1.05rem; margin-top: 0.5rem;
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+            color: #000; border: none; border-radius: 13px;
+            font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 800;
+            cursor: pointer; letter-spacing: 0.3px;
+            box-shadow: 0 6px 28px rgba(94,194,19,0.4);
+            transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+            position: relative; overflow: hidden;
+        }
+        .btn-submit::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%); transition: transform 0.55s;
+        }
+        .btn-submit:hover::before { transform: translateX(100%); }
+        .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 12px 44px rgba(94,194,19,0.58); }
+        .btn-submit:active { transform: translateY(-1px); }
+        .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+        /* ── DIVIDER / BOTTOM LINK ── */
+        .auth-divider {
+            text-align: center; margin-top: 1.75rem;
+            font-size: 0.8125rem; color: var(--text-3);
+        }
+        .auth-divider a { color: var(--green); font-weight: 700; text-decoration: none; cursor: pointer; }
+        .auth-divider a:hover { text-decoration: underline; }
+
+        /* ── FORGOT PASSWORD MODAL ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(6px); z-index: 1000;
+            display: none; align-items: center; justify-content: center; padding: 1rem;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #0f1a0e; border: 1px solid var(--border);
+            border-radius: 22px; padding: 2.25rem; max-width: 440px; width: 100%;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 40px rgba(94,194,19,0.08);
+            animation: modalIn 0.3s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(-24px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;
+        }
+        .modal-header h2 { font-size: 1.375rem; font-weight: 900; color: var(--green); letter-spacing: -0.5px; }
+        .modal-close {
+            background: none; border: none; cursor: pointer; color: var(--text-3);
+            font-size: 1.25rem; padding: 0.25rem; transition: color 0.2s;
+        }
+        .modal-close:hover { color: var(--text); }
+        .modal-body p { color: var(--text-2); font-size: 0.9375rem; line-height: 1.65; margin-bottom: 1.25rem; }
+        .back-to-login {
+            display: block; text-align: center; margin-top: 1rem;
+            color: var(--text-3); font-size: 0.875rem; cursor: pointer; transition: color 0.2s;
+        }
+        .back-to-login:hover { color: var(--green); }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="scan-line"></div>
+    <div class="particles" id="particles"></div>
+
+    <div class="auth-wrapper">
+
+        <!-- ══ LEFT PANEL ══ -->
+        <div class="auth-left">
+            <div class="al-glow al-glow-1"></div>
+            <div class="al-glow al-glow-2"></div>
+            <div class="al-inner">
+
+                <a href="/" class="al-logo">
+                    <div class="al-logo-icon"><img src="/img/logo.png" alt="ONBOARD3"></div>
+                    <span class="al-logo-text">ONBOARD3</span>
+                </a>
+
+                <h1 class="al-heading">
+                    Your gateway to<br>
+                    <span class="shimmer-text">Web3 education</span>
+                </h1>
+                <p class="al-sub">Complete quests, attend IRL events, and build your on-chain reputation — all in one place.</p>
+
+                <div class="al-features">
+                    <div class="al-feat">
+                        <div class="al-feat-icon"><i class="fas fa-bolt"></i></div>
+                        Quest-based learning with real rewards
+                    </div>
+                    <div class="al-feat">
+                        <div class="al-feat-icon"><i class="fas fa-users"></i></div>
+                        5,000+ active community members
+                    </div>
+                    <div class="al-feat">
+                        <div class="al-feat-icon"><i class="fas fa-calendar-check"></i></div>
+                        IRL events across campuses
+                    </div>
+                    <div class="al-feat">
+                        <div class="al-feat-icon"><i class="fas fa-coins"></i></div>
+                        $6.8K+ in rewards distributed
+                    </div>
+                </div>
+
+                <div class="al-stats">
+                    <div class="al-stat"><span>5K+</span><small>Members</small></div>
+                    <div class="al-stat"><span>20+</span><small>Quests</small></div>
+                    <div class="al-stat"><span>$6.8K</span><small>Distributed</small></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══ RIGHT PANEL ══ -->
+        <div class="auth-right">
+            <div class="auth-box">
+
+                <a href="/" class="auth-mobile-logo">ONBOARD3</a>
+
+                <div class="auth-header">
+                    <h2>Welcome back</h2>
+                    <p>Sign in to your account or create a new one</p>
+                </div>
+
+                <div id="alert" class="alert"></div>
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Login</button>
+                    <button class="auth-tab" data-tab="register">Register</button>
+                </div>
+
+                <!-- LOGIN FORM -->
+                <form id="loginForm" class="auth-form active">
+                    <div class="form-group">
+                        <label for="loginEmail">Email address</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="loginEmail" name="email" placeholder="you@example.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="loginPassword" name="password" placeholder="Your password" required>
+                            <button type="button" class="pw-toggle" onclick="togglePw('loginPassword',this)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <a class="forgot-link" onclick="openForgotPasswordModal()">Forgot password?</a>
+                    <button type="submit" class="btn-submit">Login &nbsp;<i class="fas fa-arrow-right"></i></button>
+                    <p class="auth-divider">Don't have an account? <a onclick="switchTab('register')">Sign up</a></p>
+                </form>
+
+                <!-- REGISTER FORM -->
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="registerUsername">Username</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-at input-icon"></i>
+                            <input type="text" id="registerUsername" name="username" placeholder="Choose a username" required minlength="3">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email address</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="registerEmail" name="email" placeholder="you@example.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="registerPassword" name="password" placeholder="Create a password" required minlength="6">
+                            <button type="button" class="pw-toggle" onclick="togglePw('registerPassword',this)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm password</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-shield-alt input-icon"></i>
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Repeat your password" required minlength="6">
+                            <button type="button" class="pw-toggle" onclick="togglePw('confirmPassword',this)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="referralCode">Onboard Code <span style="color:var(--text-3);font-weight:500">(optional)</span></label>
+                        <div class="input-wrap">
+                            <i class="fas fa-gift input-icon"></i>
+                            <input type="text" id="referralCode" name="referralCode" placeholder="Enter invite code" style="text-transform:uppercase;">
+                        </div>
+                        <div id="referralNote" class="referral-note">
+                            <i class="fas fa-gift"></i>
+                            <span>Your friend earns a point once you complete onboarding!</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">Create Account &nbsp;<i class="fas fa-rocket"></i></button>
+                    <p class="auth-divider">Already have an account? <a onclick="switchTab('login')">Log in</a></p>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
+    <div class="modal-overlay" id="forgotPasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-key" style="margin-right:.5rem;font-size:1.1rem"></i>Reset Password</h2>
+                <button class="modal-close" onclick="closeForgotPasswordModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Enter your email address and we'll send you a link to reset your password.</p>
+                <div id="forgotPasswordAlert" class="alert"></div>
+                <form id="forgotPasswordForm">
+                    <div class="form-group">
+                        <label for="forgotEmail">Email Address</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="forgotEmail" name="email" placeholder="you@example.com" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">Send Reset Link</button>
+                </form>
+                <a class="back-to-login" onclick="closeForgotPasswordModal()">← Back to Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ── Particles ── */
+        (function() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 28; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const size = Math.random() * 3 + 1.5;
+                p.style.cssText = [
+                    'left:' + Math.random() * 100 + '%',
+                    'bottom:' + (Math.random() * 40) + '%',
+                    'width:' + size + 'px',
+                    'height:' + size + 'px',
+                    'opacity:' + (Math.random() * 0.4 + 0.1),
+                    'animation-duration:' + (Math.random() * 8 + 7) + 's',
+                    'animation-delay:' + (Math.random() * 6) + 's'
+                ].join(';');
+                container.appendChild(p);
+            }
+        })();
+
+        /* ── Password visibility toggle ── */
+        function togglePw(id, btn) {
+            const inp = document.getElementById(id);
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+            } else {
+                inp.type = 'password';
+                btn.innerHTML = '<i class="fas fa-eye"></i>';
+            }
+        }
+
+        /* ── Tab switching ── */
+        const tabs  = document.querySelectorAll('.auth-tab');
+        const forms = document.querySelectorAll('.auth-form');
+
+        function switchTab(name) {
+            tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+            forms.forEach(f => f.classList.toggle('active', f.id === name + 'Form'));
+            hideAlert();
+        }
+
+        tabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+
+        /* ── URL params ── */
+        let unverifiedEmail = null;
+        const urlParams  = new URLSearchParams(window.location.search);
+        const refCode    = urlParams.get('ref');
+        const redirectUrl = urlParams.get('redirect');
+
+        if (refCode) {
+            switchTab('register');
+            const ri = document.getElementById('referralCode');
+            ri.value = refCode.toUpperCase();
+            document.getElementById('referralNote').style.display = 'flex';
+        }
+
+        document.getElementById('referralCode').addEventListener('input', function() {
+            document.getElementById('referralNote').style.display = this.value ? 'flex' : 'none';
+        });
+
+        /* ── Alerts ── */
+        function showAlert(msg, type, showResend) {
+            const el = document.getElementById('alert');
+            el.innerHTML = msg;
+            if (showResend && unverifiedEmail) {
+                el.innerHTML += '<br><a href="#" class="resend-link" onclick="resendVerification(event)">Resend verification email</a>';
+            }
+            el.className = 'alert alert-' + type + ' show';
+        }
+        function hideAlert() { document.getElementById('alert').className = 'alert'; }
+
+        async function resendVerification(e) {
+            e.preventDefault();
+            if (!unverifiedEmail) return;
+            try {
+                const r = await fetch('/auth/resend-verification', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email: unverifiedEmail }) });
+                const d = await r.json();
+                showAlert(d.message, d.success ? 'success' : 'error');
+            } catch { showAlert('An error occurred. Please try again.', 'error'); }
+        }
+
+        /* ── Login ── */
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('.btn-submit');
+            btn.disabled = true; btn.innerHTML = 'Signing in… <i class="fas fa-spinner fa-spin"></i>';
+            try {
+                const r = await fetch('/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email: document.getElementById('loginEmail').value, password: document.getElementById('loginPassword').value, redirect: redirectUrl }) });
+                const d = await r.json();
+                if (d.success) {
+                    showAlert('Login successful! Redirecting…', 'success');
+                    setTimeout(() => { window.location.href = d.redirectUrl || '/dashboard'; }, 1400);
+                } else {
+                    if (d.requiresVerification) { unverifiedEmail = d.email; showAlert(d.message, 'warning', true); }
+                    else showAlert(d.message, 'error');
+                    btn.disabled = false; btn.innerHTML = 'Login &nbsp;<i class="fas fa-arrow-right"></i>';
+                }
+            } catch { showAlert('An error occurred. Please try again.', 'error'); btn.disabled = false; btn.innerHTML = 'Login &nbsp;<i class="fas fa-arrow-right"></i>'; }
+        });
+
+        /* ── Register ── */
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('.btn-submit');
+            const pw  = document.getElementById('registerPassword').value;
+            const cpw = document.getElementById('confirmPassword').value;
+            if (pw !== cpw) { showAlert('Passwords do not match', 'error'); return; }
+            btn.disabled = true; btn.innerHTML = 'Creating account… <i class="fas fa-spinner fa-spin"></i>';
+            try {
+                const r = await fetch('/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: document.getElementById('registerUsername').value, email: document.getElementById('registerEmail').value, password: pw, confirmPassword: cpw, referralCode: document.getElementById('referralCode').value.trim().toUpperCase(), redirect: redirectUrl }) });
+                const d = await r.json();
+                if (d.success) {
+                    showAlert(d.message, 'success');
+                    document.getElementById('registerForm').reset();
+                    if (d.autoLogin && d.redirectUrl) { setTimeout(() => { window.location.href = d.redirectUrl; }, 1400); }
+                    else { setTimeout(() => { switchTab('login'); }, 2000); }
+                } else {
+                    showAlert(d.message, 'error');
+                    btn.disabled = false; btn.innerHTML = 'Create Account &nbsp;<i class="fas fa-rocket"></i>';
+                }
+            } catch { showAlert('An error occurred. Please try again.', 'error'); btn.disabled = false; btn.innerHTML = 'Create Account &nbsp;<i class="fas fa-rocket"></i>'; }
+        });
+
+        /* ── Forgot Password ── */
+        function openForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.add('active');
+            document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value || '';
+            hideFPAlert();
+        }
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.remove('active');
+            document.getElementById('forgotPasswordForm').reset();
+            hideFPAlert();
+        }
+        function showFPAlert(msg, type) {
+            const el = document.getElementById('forgotPasswordAlert');
+            el.textContent = msg; el.className = 'alert alert-' + type + ' show';
+        }
+        function hideFPAlert() { document.getElementById('forgotPasswordAlert').className = 'alert'; }
+
+        document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const r = await fetch('/auth/forgot-password', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email: document.getElementById('forgotEmail').value }) });
+                const d = await r.json();
+                if (d.success) { showFPAlert('Reset link sent! Check your email.', 'success'); document.getElementById('forgotPasswordForm').reset(); }
+                else showFPAlert(d.message, 'error');
+            } catch { showFPAlert('An error occurred. Please try again.', 'error'); }
+        });
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeForgotPasswordModal(); });
+        document.getElementById('forgotPasswordModal').addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) closeForgotPasswordModal(); });
+    </script>
+    <script src="/js/head.js"></script>
+</body>
+</html>

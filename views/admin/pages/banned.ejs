@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Banned Users — ONBOARD3 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'banned', admin:user }) %>
+
+<div class="a-main">
+    <div class="a-content">
+        <div class="a-page-header">
+            <div>
+                <h1><i class="fas fa-user-slash"></i> Banned Users</h1>
+                <p><%= items.length %> banned users</p>
+            </div>
+            
+        </div>
+
+        <div class="a-card">
+            <div class="a-table-wrap">
+                <table class="at">
+                    <thead><tr><th>User</th><th>Email</th><th>Reason</th><th>Banned On</th><th>Actions</th></tr></thead>
+                    <tbody id="bannedTableBody">
+                        <% if (items && items.length > 0) { %>
+                            <% items.forEach(u => { %>
+                        <tr>
+                            <td style="font-weight:700;color:var(--red)"><%= u.username %></td>
+                            <td style="color:var(--text-3);font-size:.8125rem"><%= u.email %></td>
+                            <td style="color:var(--text-2);font-size:.8125rem"><%= u.banReason || 'No reason given' %></td>
+                            <td style="color:var(--text-3);font-size:.8125rem"><%= u.bannedAt ? new Date(u.bannedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—' %></td>
+                            <td><form method="POST" action="/admin/users/<%= u._id %>/unban" onsubmit="return confirm('Unban this user?')"><button type="submit" class="a-btn a-btn-secondary a-btn-sm"><i class="fas fa-unlock"></i> Unban</button></form></td>
+                        </tr>
+                        <% }) %>
+                        <% } else { %>
+                        <tr><td colspan="5" style="text-align:center;padding:3rem;color:var(--text-3)">
+                            <i class="fas fa-user-slash" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>
+                            No banned users found
+                        </td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

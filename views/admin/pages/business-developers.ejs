@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Business Developers — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'business-developers', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content">
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-user-tie"></i> Business Developers</h1>
+        <p><%= bds.length %> total BD applications</p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:.25rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem">
+      <% ['all','pending','approved','rejected'].forEach(t => { %>
+      <a href="?status=<%= t %>" style="padding:.625rem 1.25rem;font-size:.875rem;font-weight:600;color:<%= (activeStatus||'all')===t?'var(--green)':'var(--text-3)' %>;border-bottom:2px solid <%= (activeStatus||'all')===t?'var(--green)':'transparent' %>;transition:color .15s">
+        <%= t.charAt(0).toUpperCase()+t.slice(1) %>
+        <span style="background:var(--surface-2);border-radius:20px;padding:.1rem .5rem;font-size:.7rem;margin-left:.25rem">
+          <%= counts[t] || 0 %>
+        </span>
+      </a>
+      <% }) %>
+    </div>
+
+    <div class="a-card">
+      <% if (!bds.length) { %>
+      <div style="text-align:center;padding:3rem;color:var(--text-3)">
+        <i class="fas fa-user-tie" style="font-size:2.5rem;margin-bottom:1rem;opacity:.4;display:block"></i>
+        <p>No Business Developer applications yet.</p>
+      </div>
+      <% } else { %>
+      <div class="a-table-wrap">
+        <table class="at">
+          <thead>
+            <tr>
+              <th>Developer</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Businesses</th>
+              <th>Commission</th>
+              <th>Earnings</th>
+              <th>Status</th>
+              <th>Applied</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% bds.forEach(bd => { %>
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:.625rem">
+                <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;color:#fff;flex-shrink:0">
+                  <%= bd.name.charAt(0).toUpperCase() %>
+                </div>
+                <div>
+                  <p style="font-weight:700;color:var(--text)"><%= bd.name %></p>
+                  <p style="font-size:.75rem;color:var(--text-3);font-family:monospace"><%= bd.referralCode %></p>
+                </div>
+              </div>
+            </td>
+            <td style="color:var(--text-3);font-size:.8125rem"><%= bd.email %></td>
+            <td style="color:var(--text-3);font-size:.8125rem"><%= bd.phone || '—' %></td>
+            <td style="color:var(--text-2);font-weight:600"><%= (bd.businesses||[]).length %></td>
+            <td style="color:var(--amber)">
+              <% if (bd.commissionRate !== null && bd.commissionRate !== undefined) { %>
+                <%= bd.commissionRate %>% <span style="color:var(--text-3);font-size:.75rem">(custom)</span>
+              <% } else { %>
+                <span style="color:var(--text-3)">Default</span>
+              <% } %>
+            </td>
+            <td>
+              <div style="color:var(--green);font-weight:700">$<%= (bd.totalEarned||0).toFixed(2) %></div>
+              <div style="color:var(--text-3);font-size:.75rem">$<%= (bd.pendingEarnings||0).toFixed(2) %> pending</div>
+            </td>
+            <td>
+              <span class="a-badge a-badge-<%= bd.status==='approved'?'success':bd.status==='pending'?'warning':'danger' %>">
+                <% if(bd.status==='approved'){ %><i class="fas fa-check"></i><% } else if(bd.status==='pending'){ %><i class="fas fa-clock"></i><% } else { %><i class="fas fa-times"></i><% } %>
+                <%= bd.status %>
+              </span>
+            </td>
+            <td style="color:var(--text-3);font-size:.8rem"><%= new Date(bd.createdAt).toLocaleDateString() %></td>
+            <td>
+              <div style="display:flex;gap:.375rem;flex-wrap:wrap">
+                <% if (bd.status === 'pending') { %>
+                <button class="a-btn a-btn-success" style="padding:.35rem .75rem;font-size:.75rem" onclick="approveBD('<%= bd._id %>')">
+                  <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="a-btn a-btn-danger" style="padding:.35rem .75rem;font-size:.75rem" onclick="rejectBD('<%= bd._id %>', '<%= bd.name %>')">
+                  <i class="fas fa-times"></i> Reject
+                </button>
+                <% } else if (bd.status === 'approved') { %>
+                <button class="a-btn a-btn-secondary" style="padding:.35rem .75rem;font-size:.75rem" onclick="setCommission('<%= bd._id %>', '<%= bd.name %>', <%= bd.commissionRate !== null && bd.commissionRate !== undefined ? bd.commissionRate : '' %>)">
+                  <i class="fas fa-percent"></i> Commission
+                </button>
+                <button class="a-btn a-btn-warning" style="padding:.35rem .75rem;font-size:.75rem" onclick="markPaid('<%= bd._id %>', '<%= bd.name %>', '<%= (bd.pendingEarnings||0).toFixed(2) %>')">
+                  <i class="fas fa-money-bill"></i> Mark Paid
+                </button>
+                <button class="a-btn a-btn-danger" style="padding:.35rem .75rem;font-size:.75rem" onclick="suspendBD('<%= bd._id %>')">
+                  <i class="fas fa-ban"></i> Suspend
+                </button>
+                <% } else if (bd.status === 'rejected' || bd.status === 'suspended') { %>
+                <button class="a-btn a-btn-success" style="padding:.35rem .75rem;font-size:.75rem" onclick="approveBD('<%= bd._id %>')">
+                  <i class="fas fa-rotate-left"></i> Re-approve
+                </button>
+                <% } %>
+                <button class="a-btn a-btn-secondary" style="padding:.35rem .75rem;font-size:.75rem" onclick="loginAsBD('<%= bd._id %>')">
+                  <i class="fas fa-right-to-bracket"></i> Login As
+                </button>
+                <button class="a-btn a-btn-danger" style="padding:.35rem .75rem;font-size:.75rem" onclick="deleteBD('<%= bd._id %>', '<%= bd.name %>')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:420px;margin:1rem">
+    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <h3 style="font-size:1rem;font-weight:800">Reject BD Application</h3>
+      <button onclick="closeRejectModal()" style="background:none;border:none;color:var(--text-3);font-size:1.125rem;cursor:pointer"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="rejectForm" method="POST">
+      <div style="padding:1.5rem">
+        <p style="color:var(--text-2);font-size:.875rem;margin-bottom:1rem">Rejecting <strong id="rejectName"></strong>. Provide a reason (optional):</p>
+        <textarea name="reason" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem;color:var(--text);font-size:.875rem;font-family:inherit;resize:vertical;min-height:80px;outline:none" placeholder="e.g. Insufficient experience, duplicate application..."></textarea>
+      </div>
+      <div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:.5rem;justify-content:flex-end">
+        <button type="button" onclick="closeRejectModal()" class="a-btn a-btn-secondary" style="padding:.5rem 1rem;font-size:.8125rem">Cancel</button>
+        <button type="submit" class="a-btn a-btn-danger" style="padding:.5rem 1rem;font-size:.8125rem"><i class="fas fa-times"></i> Reject</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Commission Modal -->
+<div id="commModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:380px;margin:1rem">
+    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <h3 style="font-size:1rem;font-weight:800">Custom Commission Rate</h3>
+      <button onclick="document.getElementById('commModal').style.display='none'" style="background:none;border:none;color:var(--text-3);font-size:1.125rem;cursor:pointer"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="commForm" method="POST">
+      <div style="padding:1.5rem">
+        <p style="color:var(--text-2);font-size:.875rem;margin-bottom:1rem">Set custom commission rate for <strong id="commName"></strong>. Leave blank to use global default.</p>
+        <div style="position:relative">
+          <input id="commRateInput" type="number" name="commissionRate" min="0" max="100" step="0.1" placeholder="e.g. 12"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 2.5rem .75rem 1rem;color:var(--text);font-size:.9375rem;outline:none">
+          <span style="position:absolute;right:.875rem;top:50%;transform:translateY(-50%);color:var(--text-3)">%</span>
+        </div>
+        <button type="button" onclick="document.getElementById('commRateInput').value=''" style="margin-top:.5rem;background:none;border:none;color:var(--text-3);font-size:.8rem;cursor:pointer;padding:0">
+          Reset to default
+        </button>
+      </div>
+      <div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:.5rem;justify-content:flex-end">
+        <button type="button" onclick="document.getElementById('commModal').style.display='none'" class="a-btn a-btn-secondary" style="padding:.5rem 1rem;font-size:.8125rem">Cancel</button>
+        <button type="submit" class="a-btn a-btn-primary" style="padding:.5rem 1rem;font-size:.8125rem"><i class="fas fa-save"></i> Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function approveBD(id) {
+  if (!confirm('Approve this BD? They will be able to log in.')) return;
+  fetch('/admin/business-developers/' + id + '/approve', { method: 'POST' })
+    .then(r => r.json()).then(d => { if (d.success) location.reload(); else alert(d.message); });
+}
+function suspendBD(id) {
+  if (!confirm('Suspend this BD? They will lose access.')) return;
+  fetch('/admin/business-developers/' + id + '/suspend', { method: 'POST' })
+    .then(r => r.json()).then(d => { if (d.success) location.reload(); else alert(d.message); });
+}
+function markPaid(id, name, amount) {
+  if (!confirm('Mark $' + amount + ' as paid to ' + name + '?')) return;
+  fetch('/admin/business-developers/' + id + '/mark-paid', { method: 'POST' })
+    .then(r => r.json()).then(d => { if (d.success) location.reload(); else alert(d.message); });
+}
+function loginAsBD(id) {
+  fetch('/admin/business-developers/' + id + '/login-as', { method: 'POST' })
+    .then(r => r.json()).then(d => { if (d.success) window.open(d.redirect, '_blank'); else alert(d.message); });
+}
+function deleteBD(id, name) {
+  if (!confirm('Permanently delete BD "' + name + '"? This cannot be undone.')) return;
+  fetch('/admin/business-developers/' + id + '/delete', { method: 'POST' })
+    .then(r => r.json()).then(d => { if (d.success) location.reload(); else alert(d.message); });
+}
+function rejectBD(id, name) {
+  document.getElementById('rejectName').textContent = name;
+  document.getElementById('rejectForm').action = '/admin/business-developers/' + id + '/reject';
+  document.getElementById('rejectModal').style.display = 'flex';
+}
+function closeRejectModal() { document.getElementById('rejectModal').style.display = 'none'; }
+
+function setCommission(id, name, current) {
+  document.getElementById('commName').textContent = name;
+  document.getElementById('commRateInput').value = current !== undefined && current !== '' ? current : '';
+  document.getElementById('commForm').action = '/admin/business-developers/' + id + '/commission';
+  document.getElementById('commModal').style.display = 'flex';
+}
+</script>
+</body>
+</html>

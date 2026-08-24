@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>BD Dashboard — ONBOARD3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+<div class="p-overlay" id="pOverlay" onclick="closeSidebar()"></div>
+<div class="p-layout">
+
+  <!-- Sidebar -->
+  <aside class="p-sidebar" id="pSidebar">
+    <div class="p-sb-head">
+      <img src="/img/logo.png" alt="ONBOARD3">
+      <div>
+        <div class="p-sb-head-text">ONBOARD3</div>
+        <div style="font-size:.65rem;color:var(--green);font-weight:700;letter-spacing:.08em">BD PORTAL</div>
+      </div>
+    </div>
+
+    <nav class="p-sb-nav">
+      <span class="p-nav-section">Overview</span>
+      <a href="#overview" class="p-nav-item active" onclick="showTab('overview',this)">
+        <i class="fas fa-chart-line"></i> Dashboard
+      </a>
+
+      <span class="p-nav-section">Businesses</span>
+      <a href="#businesses" class="p-nav-item" onclick="showTab('businesses',this)">
+        <i class="fas fa-building"></i> My Businesses
+      </a>
+      <a href="#new-business" class="p-nav-item" onclick="openModal('createBizModal')">
+        <i class="fas fa-plus-circle"></i> Add Business
+      </a>
+
+      <span class="p-nav-section">Earnings</span>
+      <a href="#earnings" class="p-nav-item" onclick="showTab('earnings',this)">
+        <i class="fas fa-wallet"></i> Commissions
+      </a>
+
+      <span class="p-nav-section">Account</span>
+      <a href="/business-developers/login" class="p-nav-item">
+        <i class="fas fa-arrow-left"></i> Back to site
+      </a>
+    </nav>
+
+    <div class="p-sb-foot">
+      <div class="p-sb-avatar"><%= bd.name.charAt(0).toUpperCase() %></div>
+      <div class="p-sb-info">
+        <div class="p-sb-name"><%= bd.name %></div>
+        <div class="p-sb-role">Business Developer</div>
+      </div>
+      <form method="POST" action="/business-developers/logout" style="margin-left:auto">
+        <button type="submit" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:1rem" title="Logout">
+          <i class="fas fa-right-from-bracket"></i>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Mobile topbar -->
+  <div class="p-topbar" id="pTopbar">
+    <button class="p-topbar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <span style="font-weight:900;font-size:.9375rem">BD Dashboard</span>
+    <span class="p-auth-badge bd-badge" style="margin-left:auto">BD</span>
+  </div>
+
+  <!-- Main -->
+  <main class="p-main">
+    <div class="p-content">
+
+      <!-- Flash messages -->
+      <% const urlParams = new URLSearchParams(typeof _queryString !== 'undefined' ? _queryString : ''); %>
+      <% const qs = (typeof _qs !== 'undefined') ? _qs : {}; %>
+
+      <!-- Overview tab -->
+      <div id="tab-overview" class="p-tab-content">
+        <div class="p-page-header">
+          <div>
+            <h1><i class="fas fa-chart-line" style="color:var(--green)"></i> Dashboard</h1>
+            <p>Welcome back, <%= bd.name %>. Here's your BD overview.</p>
+          </div>
+          <button class="p-btn p-btn-bd p-btn-sm" onclick="openModal('createBizModal')">
+            <i class="fas fa-plus"></i> Add Business
+          </button>
+        </div>
+
+        <div class="p-stats">
+          <div class="p-stat">
+            <div class="p-stat-label">Total Businesses</div>
+            <div class="p-stat-value v-green"><%= businesses.length %></div>
+            <div class="p-stat-sub"><%= businesses.filter(b=>b.status==='approved').length %> approved</div>
+          </div>
+          <div class="p-stat">
+            <div class="p-stat-label">Total Earned</div>
+            <div class="p-stat-value v-green">$<%= totalEarned.toFixed(2) %></div>
+            <div class="p-stat-sub">All time commissions</div>
+          </div>
+          <div class="p-stat">
+            <div class="p-stat-label">Pending Payout</div>
+            <div class="p-stat-value v-amber">$<%= pendingEarnings.toFixed(2) %></div>
+            <div class="p-stat-sub">Awaiting payment</div>
+          </div>
+          <div class="p-stat">
+            <div class="p-stat-label">Paid Out</div>
+            <div class="p-stat-value v-blue">$<%= paidEarnings.toFixed(2) %></div>
+            <div class="p-stat-sub">Already received</div>
+          </div>
+        </div>
+
+        <div class="p-card" style="margin-bottom:1.5rem">
+          <div class="p-card-title"><i class="fas fa-info-circle" style="color:var(--green)"></i> Your Referral Code</div>
+          <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1.25rem;font-size:1.125rem;font-weight:800;letter-spacing:.1em;color:var(--green);font-family:monospace">
+              <%= bd.referralCode %>
+            </div>
+            <button class="p-btn p-btn-secondary p-btn-sm" onclick="copyCode('<%= bd.referralCode %>')">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          <p style="color:var(--text-3);font-size:.8125rem;margin-top:.75rem">
+            Share this code to track businesses you bring in. Admin may use this for attribution.
+          </p>
+        </div>
+
+        <div class="p-card">
+          <div class="p-card-title"><i class="fas fa-building"></i> Recent Businesses</div>
+          <% if (!businesses.length) { %>
+          <div class="p-empty">
+            <i class="fas fa-building"></i>
+            <p>No businesses added yet.<br>Click "Add Business" to create your first one.</p>
+          </div>
+          <% } else { %>
+          <div class="p-table-wrap">
+            <table class="pt">
+              <thead>
+                <tr>
+                  <th>Business</th>
+                  <th>Username</th>
+                  <th>Status</th>
+                  <th>Balance</th>
+                  <th>Total Spent</th>
+                  <th>Added</th>
+                </tr>
+              </thead>
+              <tbody>
+              <% businesses.slice(0,5).forEach(biz => { %>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:.625rem">
+                    <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--blue),#1d4ed8);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;color:#fff;flex-shrink:0">
+                      <%= biz.name.charAt(0).toUpperCase() %>
+                    </div>
+                    <div>
+                      <div style="font-weight:700"><%= biz.name %></div>
+                      <div style="font-size:.75rem;color:var(--text-3)"><%= biz.industry %></div>
+                    </div>
+                  </div>
+                </td>
+                <td style="color:var(--text-2);font-family:monospace;font-size:.875rem">@<%= biz.username %></td>
+                <td>
+                  <span class="p-badge p-badge-<%= biz.status %>">
+                    <% if (biz.status==='approved') { %><i class="fas fa-check"></i><% } else if (biz.status==='pending') { %><i class="fas fa-clock"></i><% } else { %><i class="fas fa-times"></i><% } %>
+                    <%= biz.status %>
+                  </span>
+                </td>
+                <td style="color:var(--green);font-weight:700">$<%= (biz.balance||0).toFixed(2) %></td>
+                <td style="color:var(--text-2)">$<%= (biz.totalSpent||0).toFixed(2) %></td>
+                <td style="color:var(--text-3);font-size:.8rem"><%= new Date(biz.createdAt).toLocaleDateString() %></td>
+              </tr>
+              <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <% if (businesses.length > 5) { %>
+          <div style="text-align:center;margin-top:1rem">
+            <button class="p-btn p-btn-ghost p-btn-sm" onclick="showTab('businesses',null)">
+              View all <%= businesses.length %> businesses <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          <% } %>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Businesses tab -->
+      <div id="tab-businesses" class="p-tab-content" style="display:none">
+        <div class="p-page-header">
+          <div>
+            <h1><i class="fas fa-building" style="color:var(--green)"></i> My Businesses</h1>
+            <p><%= businesses.length %> businesses registered under your account</p>
+          </div>
+          <button class="p-btn p-btn-bd p-btn-sm" onclick="openModal('createBizModal')">
+            <i class="fas fa-plus"></i> Add Business
+          </button>
+        </div>
+
+        <% if (!businesses.length) { %>
+        <div class="p-card">
+          <div class="p-empty">
+            <i class="fas fa-building"></i>
+            <p>No businesses yet. Add your first business client.</p>
+          </div>
+        </div>
+        <% } else { %>
+        <div class="p-card">
+          <div class="p-table-wrap">
+            <table class="pt">
+              <thead>
+                <tr>
+                  <th>Business</th>
+                  <th>Username</th>
+                  <th>Status</th>
+                  <th>Balance</th>
+                  <th>Quests</th>
+                  <th>Bounties</th>
+                  <th>Total Spent</th>
+                  <th>Joined</th>
+                </tr>
+              </thead>
+              <tbody>
+              <% businesses.forEach(biz => { %>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:.625rem">
+                    <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--blue),#1d4ed8);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;color:#fff;flex-shrink:0">
+                      <%= biz.name.charAt(0).toUpperCase() %>
+                    </div>
+                    <div>
+                      <div style="font-weight:700"><%= biz.name %></div>
+                      <% if (biz.website) { %><a href="<%= biz.website %>" target="_blank" style="font-size:.75rem;color:var(--blue)"><i class="fas fa-link"></i> website</a><% } %>
+                    </div>
+                  </div>
+                </td>
+                <td style="font-family:monospace;color:var(--text-2);font-size:.875rem">@<%= biz.username %></td>
+                <td><span class="p-badge p-badge-<%= biz.status %>"><%= biz.status %></span></td>
+                <td style="color:var(--green);font-weight:700">$<%= (biz.balance||0).toFixed(2) %></td>
+                <td style="color:var(--text-2)"><%= (biz.quests||[]).length %></td>
+                <td style="color:var(--text-2)"><%= (biz.bounties||[]).length %></td>
+                <td style="color:var(--amber);font-weight:600">$<%= (biz.totalSpent||0).toFixed(2) %></td>
+                <td style="color:var(--text-3);font-size:.8rem"><%= new Date(biz.createdAt).toLocaleDateString() %></td>
+              </tr>
+              <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- Earnings tab -->
+      <div id="tab-earnings" class="p-tab-content" style="display:none">
+        <div class="p-page-header">
+          <div>
+            <h1><i class="fas fa-wallet" style="color:var(--green)"></i> Commission Earnings</h1>
+            <p>Track your referral commissions from business activity</p>
+          </div>
+        </div>
+
+        <div class="p-stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.5rem">
+          <div class="p-stat">
+            <div class="p-stat-label">Total Earned</div>
+            <div class="p-stat-value v-green">$<%= totalEarned.toFixed(2) %></div>
+          </div>
+          <div class="p-stat">
+            <div class="p-stat-label">Pending</div>
+            <div class="p-stat-value v-amber">$<%= pendingEarnings.toFixed(2) %></div>
+          </div>
+          <div class="p-stat">
+            <div class="p-stat-label">Paid</div>
+            <div class="p-stat-value v-blue">$<%= paidEarnings.toFixed(2) %></div>
+          </div>
+        </div>
+
+        <div class="p-card">
+          <div class="p-card-title"><i class="fas fa-list"></i> Commission History</div>
+          <% if (!earnings.length) { %>
+          <div class="p-empty">
+            <i class="fas fa-coins"></i>
+            <p>No commissions yet. Earnings are generated when your businesses create quests or bounties.</p>
+          </div>
+          <% } else { %>
+          <div class="p-table-wrap">
+            <table class="pt">
+              <thead>
+                <tr>
+                  <th>Business</th>
+                  <th>Type</th>
+                  <th>Gross Amount</th>
+                  <th>Rate</th>
+                  <th>Commission</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+              <% earnings.forEach(e => { %>
+              <tr>
+                <td style="font-weight:600"><%= e.businessId ? e.businessId.name : '—' %></td>
+                <td>
+                  <span class="p-badge p-badge-info">
+                    <% if (e.type==='quest_commission') { %><i class="fas fa-trophy"></i> Quest<% } else { %><i class="fas fa-coins"></i> Bounty<% } %>
+                  </span>
+                </td>
+                <td style="color:var(--text-2)">$<%= (e.grossAmount||0).toFixed(2) %></td>
+                <td style="color:var(--text-2)"><%= e.commissionRate %>%</td>
+                <td style="color:var(--green);font-weight:700">$<%= (e.commissionAmount||0).toFixed(2) %></td>
+                <td><span class="p-badge p-badge-<%= e.status %>"><%= e.status %></span></td>
+                <td style="color:var(--text-3);font-size:.8rem"><%= new Date(e.createdAt).toLocaleDateString() %></td>
+              </tr>
+              <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Create Business Modal -->
+<div class="p-modal-overlay" id="createBizModal">
+  <div class="p-modal">
+    <div class="p-modal-head">
+      <h3><i class="fas fa-building" style="color:var(--green)"></i> Create Business Account</h3>
+      <button class="p-modal-close" onclick="closeModal('createBizModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="/business-developers/create-business">
+      <div class="p-modal-body">
+        <div class="p-alert p-alert-info" style="margin-bottom:1.25rem">
+          <i class="fas fa-info-circle"></i>
+          The business will need admin approval before they can log in. Share the username and password with your client.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="p-form-group">
+            <label>Business Name <span style="color:var(--red)">*</span></label>
+            <input class="p-input" type="text" name="name" placeholder="Acme Corp" required>
+          </div>
+          <div class="p-form-group">
+            <label>Login Username <span style="color:var(--red)">*</span></label>
+            <input class="p-input" type="text" name="username" placeholder="acmecorp" required pattern="[a-zA-Z0-9_]+" title="Letters, numbers and underscores only">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="p-form-group">
+            <label>Password <span style="color:var(--red)">*</span></label>
+            <input class="p-input" type="password" name="password" placeholder="Strong password" required minlength="8">
+          </div>
+          <div class="p-form-group">
+            <label>Industry</label>
+            <select class="p-input" name="industry">
+              <option value="tech">Tech</option>
+              <option value="defi">DeFi</option>
+              <option value="nft">NFT</option>
+              <option value="gaming">Gaming</option>
+              <option value="social">Social</option>
+              <option value="infrastructure">Infrastructure</option>
+              <option value="dao">DAO</option>
+              <option value="other" selected>Other</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="p-form-group">
+            <label>Email</label>
+            <input class="p-input" type="email" name="email" placeholder="contact@business.com">
+          </div>
+          <div class="p-form-group">
+            <label>Website</label>
+            <input class="p-input" type="url" name="website" placeholder="https://...">
+          </div>
+        </div>
+        <div class="p-form-group">
+          <label>Description</label>
+          <textarea class="p-input" name="description" placeholder="What does this business do?"></textarea>
+        </div>
+      </div>
+      <div class="p-modal-foot">
+        <button type="button" class="p-btn p-btn-secondary p-btn-sm" onclick="closeModal('createBizModal')">Cancel</button>
+        <button type="submit" class="p-btn p-btn-bd p-btn-sm"><i class="fas fa-check"></i> Create Account</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+var activeTab = 'overview';
+
+function showTab(tab, el) {
+  document.querySelectorAll('.p-tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.p-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + tab).style.display = '';
+  if (el) el.classList.add('active');
+  activeTab = tab;
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function toggleSidebar() {
+  document.getElementById('pSidebar').classList.toggle('open');
+  document.getElementById('pOverlay').classList.toggle('active');
+}
+function closeSidebar() {
+  document.getElementById('pSidebar').classList.remove('open');
+  document.getElementById('pOverlay').classList.remove('active');
+}
+
+document.querySelectorAll('.p-modal-overlay').forEach(o => {
+  o.addEventListener('click', function(e) {
+    if (e.target === this) closeModal(this.id);
+  });
+});
+
+function copyCode(code) {
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = event.target.closest('button');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    setTimeout(() => btn.innerHTML = orig, 1500);
+  });
+}
+
+// Handle ?success / ?error in query string
+(function() {
+  const p = new URLSearchParams(location.search);
+  const msgs = {
+    'business_created': ['success', 'Business account created! Awaiting admin approval.'],
+    'username_taken':   ['error',   'That username is already taken. Choose another.'],
+    'name_username_password_required': ['error', 'Name, username and password are required.'],
+    'server_error':     ['error',   'Something went wrong. Please try again.']
+  };
+  const code = p.get('error') || p.get('success');
+  if (code && msgs[p.get('error')]) {
+    showFlash('error', msgs[p.get('error')][1]);
+  } else if (code && msgs[p.get('success')]) {
+    showFlash('success', msgs[p.get('success')][1]);
+  }
+})();
+
+function showFlash(type, msg) {
+  const div = document.createElement('div');
+  div.className = 'p-alert p-alert-' + type;
+  div.innerHTML = '<i class="fas fa-' + (type==='success'?'check':'exclamation') + '-circle"></i> ' + msg;
+  div.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:9999;max-width:380px';
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 4000);
+}
+</script>
+</body>
+</html>

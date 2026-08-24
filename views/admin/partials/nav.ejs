@@ -1,0 +1,214 @@
+<%
+const _navUser = (typeof admin !== 'undefined' ? admin : user) || {};
+const _ar = _navUser.adminRole || 'super_admin';
+const _perms = {
+  super_admin:  null,
+  operations:   ['overview','analytics','users','quests','bounties','events','withdrawals','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','leaderboard','business-developers','businesses','fund-requests','wallet-addresses','commission-settings','welcome-quest','platform-settings','settings','partners'],
+  community:    ['overview','analytics','users','applications','quest-applications','pathway-applications','support','ambassadors','banned','leaderboard'],
+  partnerships: ['overview','analytics','quests','bounties','projects','partners','business-developers','businesses','fund-requests','commission-settings'],
+  finance:      ['overview','analytics','withdrawals','fund-requests','wallet-addresses'],
+};
+function can(section) {
+  if (_ar === 'super_admin') return true;
+  const p = _perms[_ar];
+  return p ? p.includes(section) : false;
+}
+const roleLabel = { super_admin:'Super Admin', operations:'Operations', community:'Community', partnerships:'Partnerships', finance:'Finance' }[_ar] || 'Admin';
+const roleBadgeColor = { super_admin:'#5EC213', operations:'#60a5fa', community:'#a78bfa', partnerships:'#fbbf24', finance:'#10b981' }[_ar] || '#5EC213';
+%>
+
+<div class="a-overlay" id="aOverlay" onclick="closeSb()"></div>
+
+<aside class="a-sidebar" id="aSidebar">
+    <div class="a-sb-head">
+        <a href="/" class="a-sb-logo">
+            <div class="a-sb-logo-icon"><img src="/img/logo.png" alt="ONBOARD3"></div>
+            <span class="a-sb-logo-text">ONBOARD3</span>
+        </a>
+        <span class="a-admin-badge" style="background:<%=roleBadgeColor%>22;color:<%=roleBadgeColor%>;border-color:<%=roleBadgeColor%>44"><%=roleLabel.toUpperCase()%></span>
+    </div>
+
+    <nav class="a-sb-nav">
+        <span class="a-nav-label">Overview</span>
+        <a href="/admin" class="a-nav-item <%= page==='overview' ? 'active':'' %>">
+            <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        <% if (can('analytics')) { %>
+        <a href="/admin/analytics" class="a-nav-item <%= page==='analytics' ? 'active':'' %>">
+            <i class="fas fa-chart-bar"></i> Analytics
+        </a>
+        <% } %>
+
+        <% if (can('users') || can('quests') || can('bounties') || can('events') || can('withdrawals')) { %>
+        <span class="a-nav-label">Manage</span>
+        <% if (can('users')) { %>
+        <a href="/admin/users" class="a-nav-item <%= page==='users' ? 'active':'' %>">
+            <i class="fas fa-users"></i> Users
+        </a>
+        <% } %>
+        <% if (can('quests')) { %>
+        <a href="/admin/quests" class="a-nav-item <%= page==='quests' ? 'active':'' %>">
+            <i class="fas fa-trophy"></i> Quests
+        </a>
+        <% } %>
+        <% if (can('bounties')) { %>
+        <a href="/admin/bounties" class="a-nav-item <%= page==='bounties' ? 'active':'' %>">
+            <i class="fas fa-coins"></i> Bounties
+        </a>
+        <% } %>
+        <% if (can('events')) { %>
+        <a href="/admin/events" class="a-nav-item <%= page==='events' ? 'active':'' %>">
+            <i class="fas fa-calendar-alt"></i> Events
+        </a>
+        <% } %>
+        <% if (can('withdrawals')) { %>
+        <a href="/admin/withdrawals" class="a-nav-item <%= page==='withdrawals' ? 'active':'' %>">
+            <i class="fas fa-wallet"></i> Withdrawals
+        </a>
+        <% } %>
+        <% } %>
+
+        <% if (can('applications') || can('quest-applications') || can('pathway-applications') || can('support') || can('ambassadors') || can('projects') || can('banned') || can('leaderboard')) { %>
+        <span class="a-nav-label">Community</span>
+        <% if (can('applications')) { %>
+        <a href="/admin/applications" class="a-nav-item <%= page==='applications' ? 'active':'' %>">
+            <i class="fas fa-graduation-cap"></i> Applications
+        </a>
+        <% } %>
+        <% if (can('quest-applications')) { %>
+        <a href="/admin/quest-applications" class="a-nav-item <%= page==='quest-applications' ? 'active':'' %>">
+            <i class="fas fa-shield-halved"></i> Quest Applications
+        </a>
+        <% } %>
+        <% if (can('pathway-applications')) { %>
+        <a href="/admin/pathway-applications" class="a-nav-item <%= page==='pathway-applications' ? 'active':'' %>">
+            <i class="fas fa-map-signs"></i> Pathway Applications
+        </a>
+        <% } %>
+        <% if (can('support')) { %>
+        <a href="/admin/support" class="a-nav-item <%= page==='support' ? 'active':'' %>">
+            <i class="fas fa-headset"></i> Support Chat
+        </a>
+        <% } %>
+        <% if (can('ambassadors')) { %>
+        <a href="/admin/ambassadors" class="a-nav-item <%= page==='ambassadors' ? 'active':'' %>">
+            <i class="fas fa-building-columns"></i> Campus
+        </a>
+        <% } %>
+        <% if (can('projects')) { %>
+        <a href="/admin/projects" class="a-nav-item <%= page==='projects' ? 'active':'' %>">
+            <i class="fas fa-rocket"></i> Projects
+        </a>
+        <% } %>
+        <% if (can('banned')) { %>
+        <a href="/admin/banned" class="a-nav-item <%= page==='banned' ? 'active':'' %>">
+            <i class="fas fa-user-slash"></i> Banned Users
+        </a>
+        <% } %>
+        <% if (can('leaderboard')) { %>
+        <a href="/admin/leaderboard" class="a-nav-item">
+            <i class="fas fa-ranking-star"></i> Leaderboard
+        </a>
+        <% } %>
+        <% } %>
+
+        <% if (can('business-developers') || can('businesses') || can('fund-requests') || can('wallet-addresses') || can('commission-settings') || can('partners')) { %>
+        <span class="a-nav-label">Business</span>
+        <% if (can('business-developers')) { %>
+        <a href="/admin/business-developers" class="a-nav-item <%= page==='business-developers' ? 'active':'' %>">
+            <i class="fas fa-user-tie"></i> BD Accounts
+        </a>
+        <% } %>
+        <% if (can('businesses')) { %>
+        <a href="/admin/businesses" class="a-nav-item <%= page==='businesses' ? 'active':'' %>">
+            <i class="fas fa-building"></i> Businesses
+        </a>
+        <% } %>
+        <% if (can('fund-requests')) { %>
+        <a href="/admin/fund-requests" class="a-nav-item <%= page==='fund-requests' ? 'active':'' %>">
+            <i class="fas fa-file-invoice-dollar"></i> Fund Requests
+        </a>
+        <% } %>
+        <% if (can('wallet-addresses')) { %>
+        <a href="/admin/wallet-addresses" class="a-nav-item <%= page==='wallet-addresses' ? 'active':'' %>">
+            <i class="fas fa-wallet"></i> Wallet Addresses
+        </a>
+        <% } %>
+        <% if (can('commission-settings')) { %>
+        <a href="/admin/commission-settings" class="a-nav-item <%= page==='commission-settings' ? 'active':'' %>">
+            <i class="fas fa-percent"></i> Commissions
+        </a>
+        <% } %>
+        <% if (can('partners')) { %>
+        <a href="/admin/partners" class="a-nav-item <%= page==='partners' ? 'active':'' %>">
+            <i class="fas fa-handshake"></i> Partners
+        </a>
+        <% } %>
+        <% } %>
+
+        <% if (can('welcome-quest') || can('platform-settings') || can('settings') || _ar === 'super_admin') { %>
+        <span class="a-nav-label">Tools</span>
+        <% if (can('welcome-quest')) { %>
+        <a href="/admin/welcome-quest" class="a-nav-item <%= page==='welcome-quest' ? 'active':'' %>">
+            <i class="fas fa-gift"></i> Welcome Quest
+        </a>
+        <% } %>
+        <% if (can('platform-settings')) { %>
+        <a href="/admin/platform-settings" class="a-nav-item <%= page==='platform-settings' ? 'active':'' %>">
+            <i class="fas fa-sliders"></i> Platform Settings
+        </a>
+        <% } %>
+        <% if (can('settings')) { %>
+        <a href="/admin/settings" class="a-nav-item <%= page==='settings' ? 'active':'' %>">
+            <i class="fas fa-gear"></i> Settings
+        </a>
+        <% } %>
+        <% if (_ar === 'super_admin') { %>
+        <a href="/admin/team" class="a-nav-item <%= page==='team' ? 'active':'' %>">
+            <i class="fas fa-shield-halved"></i> Admin Team
+        </a>
+        <a href="/admin/bulkmail" class="a-nav-item <%= page==='bulkmail' ? 'active':'' %>">
+            <i class="fas fa-paper-plane"></i> Bulk Mail
+        </a>
+        <a href="/admin/stacks-wallets" class="a-nav-item <%= page==='stacks-wallets' ? 'active':'' %>">
+            <i class="fas fa-wallet" style="color:#f7931a"></i> Stacks Wallets
+        </a>
+        <% } %>
+        <% } %>
+    </nav>
+
+    <div class="a-sb-foot">
+        <div class="a-sb-avatar"><i class="fas fa-shield-halved" style="font-size:.875rem"></i></div>
+        <div class="a-sb-info">
+            <div class="a-sb-name"><%= _navUser.username || 'Admin' %></div>
+            <div class="a-sb-role" style="color:<%=roleBadgeColor%>"><%=roleLabel%></div>
+        </div>
+        <a href="/" class="a-sb-exit" title="Exit Admin"><i class="fas fa-right-from-bracket"></i></a>
+    </div>
+</aside>
+
+<!-- Mobile topbar -->
+<div class="a-topbar" id="aTopbar">
+    <button class="a-topbar-toggle" onclick="openSb()"><i class="fas fa-bars"></i></button>
+    <span style="font-size:.9375rem;font-weight:900;color:var(--text)">ONBOARD3</span>
+    <span class="a-admin-badge" style="background:<%=roleBadgeColor%>22;color:<%=roleBadgeColor%>"><%=roleLabel.toUpperCase()%></span>
+</div>
+
+<script>
+function openSb()  { document.getElementById('aSidebar').classList.add('open'); document.getElementById('aOverlay').classList.add('active'); }
+function closeSb() { document.getElementById('aSidebar').classList.remove('open'); document.getElementById('aOverlay').classList.remove('active'); }
+
+let _aToastTimer;
+function aToast(msg, type='success') {
+    const old = document.getElementById('_aToast'); if(old) old.remove(); clearTimeout(_aToastTimer);
+    const t = document.createElement('div');
+    t.id = '_aToast'; t.className = 'a-toast a-toast-' + type;
+    t.innerHTML = '<i class="fas fa-' + (type==='success'?'check-circle':'circle-xmark') + '"></i> ' + msg;
+    document.body.appendChild(t);
+    _aToastTimer = setTimeout(() => { t.style.animation='toastIn .3s ease reverse both'; setTimeout(()=>t.remove(),320); }, 4000);
+}
+
+function aConfirm(msg, fn) {
+    if (confirm(msg)) fn();
+}
+</script>

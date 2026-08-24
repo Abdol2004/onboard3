@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Overview — ONBOARD3 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'overview', admin:user }) %>
+
+<div class="a-main">
+    <div class="a-content">
+        <div class="a-page-header">
+            <div>
+                <h1><i class="fas fa-chart-line"></i> Dashboard Overview</h1>
+                <p>Platform statistics at a glance</p>
+            </div>
+            <a href="/admin/users" class="a-btn a-btn-primary"><i class="fas fa-users"></i> Manage Users</a>
+        </div>
+
+        <!-- Stats grid -->
+        <div class="a-stats">
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-users"></i></div>
+                <div class="a-stat-val"><%= stats.totalUsers.toLocaleString() %></div>
+                <div class="a-stat-lbl">Total Users</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="a-stat-val"><%= stats.verifiedUsers.toLocaleString() %></div>
+                <div class="a-stat-lbl">Verified Users</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-trophy"></i></div>
+                <div class="a-stat-val"><%= stats.activeQuests %></div>
+                <div class="a-stat-lbl">Active Quests</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                <div class="a-stat-val"><%= stats.upcomingEvents %></div>
+                <div class="a-stat-lbl">Upcoming Events</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-wallet"></i></div>
+                <div class="a-stat-val">$<%= stats.pendingWithdrawals %></div>
+                <div class="a-stat-lbl">Pending Withdrawals</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-graduation-cap"></i></div>
+                <div class="a-stat-val"><%= stats.pendingApplications %></div>
+                <div class="a-stat-lbl">Pending Applications</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-bolt"></i></div>
+                <div class="a-stat-val"><%= (stats.totalXpDistributed/1000).toFixed(1) %>k</div>
+                <div class="a-stat-lbl">XP Distributed</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-coins"></i></div>
+                <div class="a-stat-val">$<%= stats.totalUsdcDistributed.toFixed(2) %></div>
+                <div class="a-stat-lbl">USDC Distributed</div>
+            </div>
+        </div>
+
+        <!-- Two-col row: recent users + quest stats -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+            <div class="a-card" style="animation-delay:60ms">
+                <div class="a-card-header">
+                    <h2><i class="fas fa-user-plus"></i> Recent Signups</h2>
+                    <a href="/admin/users" class="a-btn a-btn-secondary a-btn-sm">View All</a>
+                </div>
+                <% recentUsers.forEach(u => { %>
+                <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem 0;border-bottom:1px solid var(--border-2)">
+                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--green-dark));display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:800;color:#000;flex-shrink:0">
+                        <%= u.username.charAt(0).toUpperCase() %>
+                    </div>
+                    <div style="flex:1;min-width:0">
+                        <p style="font-size:.875rem;font-weight:700;color:var(--text)"><%= u.username %></p>
+                        <p style="font-size:.72rem;color:var(--text-3)"><%= u.email %></p>
+                    </div>
+                    <div style="text-align:right">
+                        <span style="font-size:.72rem;font-weight:700;color:var(--green)"><%= u.xp || 0 %> XP</span>
+                        <p style="font-size:.68rem;color:var(--text-3)"><%= new Date(u.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></p>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+
+            <div class="a-card" style="animation-delay:100ms">
+                <div class="a-card-header">
+                    <h2><i class="fas fa-trophy"></i> Quest Performance</h2>
+                    <a href="/admin/quests" class="a-btn a-btn-secondary a-btn-sm">View All</a>
+                </div>
+                <% questStats.forEach(q => { %>
+                <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem 0;border-bottom:1px solid var(--border-2)">
+                    <div style="flex:1;min-width:0">
+                        <p style="font-size:.875rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><%= q.title %></p>
+                        <p style="font-size:.72rem;color:var(--text-3)"><%= q.totalParticipants %> participants</p>
+                    </div>
+                    <div style="text-align:right;flex-shrink:0">
+                        <span class="a-badge <%= q.isActive ? 'a-badge-success' : 'a-badge-neutral' %>"><%= q.isActive ? 'Active' : 'Ended' %></span>
+                        <p style="font-size:.68rem;color:var(--green);margin-top:2px"><%= q.totalCompletions %> done</p>
+                    </div>
+                </div>
+                <% }) %>
+                <% if (!questStats.length) { %>
+                <p style="color:var(--text-3);font-size:.875rem;text-align:center;padding:1.5rem">No quests yet</p>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Pending withdrawals alert -->
+        <% if (pendingWithdrawalList.length > 0) { %>
+        <div class="a-card" style="border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.03);animation-delay:140ms">
+            <div class="a-card-header">
+                <h2><i class="fas fa-clock" style="color:var(--amber)"></i> Pending Withdrawals</h2>
+                <a href="/admin/withdrawals" class="a-btn a-btn-warning a-btn-sm">Process All</a>
+            </div>
+            <div class="a-table-wrap">
+                <table class="at">
+                    <thead><tr><th>User</th><th>Amount</th><th>Wallet</th><th>Requested</th><th>Action</th></tr></thead>
+                    <tbody>
+                    <% pendingWithdrawalList.forEach(w => { %>
+                    <tr>
+                        <td style="font-weight:700;color:var(--text)"><%= w.userId?.username || 'Unknown' %></td>
+                        <td style="color:var(--amber);font-weight:800">$<%= w.amount %></td>
+                        <td style="font-family:monospace;font-size:.78rem;color:var(--text-3)"><%= w.userId?.walletAddress ? w.userId.walletAddress.substring(0,12)+'...' : '—' %></td>
+                        <td><%= new Date(w.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></td>
+                        <td><a href="/admin/withdrawals" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-check"></i> Review</a></td>
+                    </tr>
+                    <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</div>
+</body>
+</html>

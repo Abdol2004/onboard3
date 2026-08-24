@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <%- include('../partials/achievement-popup') %>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <!-- Include Sidebar -->
+    <% const currentPage = 'events'; %>
+    <%- include('../partials/sidebar', { user, currentPage }) %>
+
+    <div class="dashboard-container">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2><i class="fas fa-calendar-alt" style="color:var(--green);margin-right:.5rem"></i>Events</h2>
+                        <p>Join upcoming events, hackathons, and meetups</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- My Registered Events -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-check-circle"></i> My Registered Events</h3>
+                    </div>
+                    <div id="userRegisteredEventsContainer">
+                        <p style="color: #888; text-align: center; padding: 2rem;">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Upcoming Events -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-calendar"></i> Upcoming Events</h3>
+                    </div>
+                    <div id="activeEventsContainer">
+                        <p style="color: #888; text-align: center; padding: 2rem;">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Past Events -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-history"></i> Past Events</h3>
+                    </div>
+                    <div id="pastEventsContainer">
+                        <p style="color: #888; text-align: center; padding: 2rem;">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+   <script src="/js/eventList.js"></script>
+</body>
+</html>

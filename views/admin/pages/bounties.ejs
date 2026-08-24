@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Bounties — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'bounties', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content">
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-coins"></i> Bounty Management</h1>
+        <p><%= bounties.length %> bounties total</p>
+      </div>
+      <button onclick="openModal('createBountyModal')" class="a-btn a-btn-primary"><i class="fas fa-plus"></i> Create Bounty</button>
+    </div>
+
+    <div class="a-card">
+      <div class="a-table-wrap">
+        <table class="at">
+          <thead><tr><th>Title</th><th>Pool</th><th>Submissions</th><th>End Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+          <% bounties.forEach(function(b) { %>
+          <tr>
+            <td>
+              <p style="font-weight:700;color:var(--text);max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><%= b.title %></p>
+              <p style="font-size:.72rem;color:var(--text-3);text-transform:capitalize"><%= b.category %></p>
+            </td>
+            <td style="font-weight:800;color:#fbbf24"><%= (b.rewardPool||0).toLocaleString() %> <%= b.rewardToken||'USDC' %></td>
+            <td style="font-weight:700;color:var(--text)"><%= b.totalSubmissions||0 %></td>
+            <td style="font-size:.8125rem;color:var(--text-2)">
+              <%= b.endDate ? new Date(b.endDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—' %>
+            </td>
+            <td>
+              <span class="a-badge <%= b.status==='active'?'a-badge-success':b.status==='winners_announced'?'a-badge-warning':'a-badge-neutral' %>" style="text-transform:capitalize">
+                <%= b.status || 'draft' %>
+              </span>
+            </td>
+            <td>
+              <div style="display:flex;gap:.4rem">
+                <a href="/admin/bounties/<%= b._id %>" class="a-btn a-btn-secondary a-btn-sm"><i class="fas fa-eye"></i></a>
+                <form method="POST" action="/admin/bounties/<%= b._id %>/toggle">
+                  <button type="submit" class="a-btn <%= b.isActive?'a-btn-warning':'a-btn-success' %> a-btn-sm">
+                    <i class="fas fa-<%= b.isActive?'pause':'play' %>"></i>
+                  </button>
+                </form>
+                <form method="POST" action="/admin/bounties/<%= b._id %>/delete" onsubmit="return confirm('Delete this bounty and all submissions?')">
+                  <button type="submit" class="a-btn a-btn-danger a-btn-sm"><i class="fas fa-trash"></i></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          <% }); %>
+          <% if (!bounties.length) { %>
+          <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--text-3)"><i class="fas fa-coins" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No bounties yet</td></tr>
+          <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Bounty Modal -->
+<div class="a-modal-overlay" id="createBountyModal">
+  <div class="a-modal" style="max-width:700px;max-height:90vh;overflow-y:auto">
+    <div class="a-modal-header">
+      <h3><i class="fas fa-coins" style="color:#fbbf24"></i> Create New Bounty</h3>
+      <button class="a-modal-close" onclick="closeModal('createBountyModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="/admin/bounties/create">
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label>Title *</label>
+          <input type="text" name="title" class="a-input" required placeholder="Bounty title">
+        </div>
+        <div class="a-form-group">
+          <label>Short Description *</label>
+          <input type="text" name="shortDescription" class="a-input" required placeholder="One-liner">
+        </div>
+      </div>
+      <div class="a-form-group">
+        <label>Full Description *</label>
+        <textarea name="description" class="a-input" required placeholder="Detailed bounty description..." style="min-height:100px"></textarea>
+      </div>
+      <div class="a-form-group">
+        <label>Banner Image URL <span style="color:var(--text-3)">(optional)</span></label>
+        <input type="url" name="image" class="a-input" placeholder="https://...">
+      </div>
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label>Category</label>
+          <select name="category" class="a-input">
+            <option value="development">Development</option>
+            <option value="design">Design</option>
+            <option value="marketing">Marketing</option>
+            <option value="content">Content</option>
+            <option value="community">Community</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="a-form-group">
+          <label>Reward Token</label>
+          <select name="rewardToken" class="a-input">
+            <option value="USDC">USDC</option>
+            <option value="USDT">USDT</option>
+            <option value="ETH">ETH</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label>Reward Pool *</label>
+          <input type="number" name="rewardPool" class="a-input" min="0" step="0.01" placeholder="e.g. 500" required>
+        </div>
+        <div class="a-form-group">
+          <label>Max Submissions / User</label>
+          <input type="number" name="maxSubmissionsPerUser" class="a-input" min="1" value="1">
+        </div>
+      </div>
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label>Start Date <span style="color:var(--text-3)">(optional)</span></label>
+          <input type="datetime-local" name="startDate" class="a-input">
+        </div>
+        <div class="a-form-group">
+          <label>End Date <span style="color:var(--text-3)">(optional)</span></label>
+          <input type="datetime-local" name="endDate" class="a-input">
+        </div>
+      </div>
+
+      <!-- Reward Split Builder -->
+      <div style="background:rgba(251,191,36,.04);border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:1rem;margin-bottom:1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+          <h4 style="color:#fbbf24;font-size:.875rem;font-weight:800"><i class="fas fa-chart-pie"></i> Reward Split</h4>
+          <button type="button" onclick="addSplitRow()" class="a-btn a-btn-secondary" style="padding:.3rem .75rem;font-size:.75rem"><i class="fas fa-plus"></i> Add Place</button>
+        </div>
+        <div id="splitRows" style="display:flex;flex-direction:column;gap:.5rem"></div>
+        <p style="font-size:.72rem;color:var(--text-3);margin-top:.5rem">Percentages should add up to 100%. Amounts are auto-calculated.</p>
+      </div>
+
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:.5rem">
+        <button type="button" onclick="closeModal('createBountyModal')" class="a-btn a-btn-secondary">Cancel</button>
+        <button type="submit" class="a-btn a-btn-primary"><i class="fas fa-coins"></i> Create Bounty</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.a-modal-overlay').forEach(function(m) {
+  m.addEventListener('click', function(e) { if(e.target===m) m.classList.remove('open'); });
+});
+
+const labels = ['1st Place','2nd Place','3rd Place','4th Place','5th Place'];
+let splitCount = 0;
+function addSplitRow() {
+  splitCount++;
+  const idx = document.getElementById('splitRows').children.length;
+  const row = document.createElement('div');
+  row.style.cssText = 'display:grid;grid-template-columns:80px 1fr 100px 36px;gap:.5rem;align-items:center';
+  row.innerHTML =
+    '<input type="hidden" name="split_rank" value="' + splitCount + '">' +
+    '<input type="text" name="split_label" value="' + (labels[idx]||('#'+splitCount+' Place')) + '" class="a-input" style="padding:.45rem .65rem;font-size:.8rem">' +
+    '<input type="number" name="split_percentage" placeholder="%" min="0" max="100" step="0.1" class="a-input" style="padding:.45rem .65rem;font-size:.8rem">' +
+    '<button type="button" onclick="this.closest(\'div\').remove()" style="width:36px;height:36px;border-radius:8px;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3);cursor:pointer"><i class="fas fa-times"></i></button>';
+  document.getElementById('splitRows').appendChild(row);
+}
+// Start with 3 default rows
+addSplitRow(); addSplitRow(); addSplitRow();
+</script>
+</body>
+</html>

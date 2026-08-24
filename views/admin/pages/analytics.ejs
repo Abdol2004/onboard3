@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Analytics — ONBOARD3 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .an-chart-wrap { position:relative; width:100%; }
+        .an-chart-wrap canvas { width:100% !important; }
+        .an-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem; }
+        .an-grid-3 { display:grid; grid-template-columns:2fr 1fr; gap:1.5rem; margin-bottom:1.5rem; }
+        @media(max-width:768px){
+            .an-grid-2, .an-grid-3 { grid-template-columns:1fr; }
+        }
+        .an-table { width:100%; border-collapse:collapse; font-size:.825rem; }
+        .an-table th { text-align:left; padding:.5rem .75rem; color:var(--text-3); font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid var(--border-2); }
+        .an-table td { padding:.6rem .75rem; border-bottom:1px solid var(--border-2); vertical-align:middle; }
+        .an-table tr:last-child td { border-bottom:none; }
+        .an-avatar { width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,var(--green),var(--green-dark)); display:inline-flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:#000; flex-shrink:0; }
+        .an-badge { display:inline-block; padding:.2rem .55rem; border-radius:5px; font-size:.68rem; font-weight:700; text-transform:capitalize; }
+        .an-badge-verified { background:rgba(94,194,19,.18); color:#5ec213; }
+        .an-badge-unverified { background:rgba(255,255,255,.06); color:var(--text-3); }
+        .an-badge-pathway { background:rgba(94,194,19,.1); color:#5ec213; }
+    </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'analytics', admin:user }) %>
+
+<div class="a-main">
+    <div class="a-content">
+        <div class="a-page-header">
+            <div>
+                <h1><i class="fas fa-chart-bar"></i> Analytics</h1>
+                <p>Platform growth and user insights — last 30 days</p>
+            </div>
+            <a href="/admin/users" class="a-btn a-btn-primary"><i class="fas fa-users"></i> Manage Users</a>
+        </div>
+
+        <!-- Top stat cards -->
+        <div class="a-stats">
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-users"></i></div>
+                <div class="a-stat-val"><%= stats.totalUsers.toLocaleString() %></div>
+                <div class="a-stat-lbl">Total Users</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-user-plus"></i></div>
+                <div class="a-stat-val"><%= stats.usersToday %></div>
+                <div class="a-stat-lbl">New Today</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-calendar-week"></i></div>
+                <div class="a-stat-val"><%= stats.usersThisWeek %></div>
+                <div class="a-stat-lbl">New This Week</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="a-stat-val"><%= stats.verifiedPct %>%</div>
+                <div class="a-stat-lbl">Verified (<%= stats.verifiedUsers.toLocaleString() %>)</div>
+            </div>
+            <div class="a-stat">
+                <div class="a-stat-icon"><i class="fas fa-share-nodes"></i></div>
+                <div class="a-stat-val"><%= stats.usersWithReferrals %></div>
+                <div class="a-stat-lbl">Have Referrals</div>
+            </div>
+        </div>
+
+        <!-- Line chart: Daily signups -->
+        <div class="a-card" style="margin-bottom:1.5rem;animation-delay:40ms">
+            <div class="a-card-header">
+                <h2><i class="fas fa-chart-line"></i> Daily Signups — Last 30 Days</h2>
+            </div>
+            <div class="an-chart-wrap" style="height:260px">
+                <canvas id="signupChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Role distribution + Pathway doughnut -->
+        <div class="an-grid-2">
+            <div class="a-card" style="animation-delay:60ms">
+                <div class="a-card-header">
+                    <h2><i class="fas fa-layer-group"></i> Role Distribution</h2>
+                </div>
+                <div class="an-chart-wrap" style="height:240px">
+                    <canvas id="roleChart"></canvas>
+                </div>
+            </div>
+            <div class="a-card" style="animation-delay:80ms">
+                <div class="a-card-header">
+                    <h2><i class="fas fa-road"></i> Pathway Breakdown</h2>
+                </div>
+                <div class="an-chart-wrap" style="height:240px;display:flex;align-items:center;justify-content:center">
+                    <canvas id="pathwayChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- DAU line chart -->
+        <div class="a-card" style="margin-bottom:1.5rem;animation-delay:100ms">
+            <div class="a-card-header">
+                <h2><i class="fas fa-bolt"></i> Daily Active Users — Last 30 Days</h2>
+                <span style="font-size:.72rem;color:var(--text-3)">Based on last login or signup date</span>
+            </div>
+            <div class="an-chart-wrap" style="height:220px">
+                <canvas id="dauChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent 10 users table -->
+        <div class="a-card" style="animation-delay:120ms">
+            <div class="a-card-header">
+                <h2><i class="fas fa-user-clock"></i> Recent Signups</h2>
+                <a href="/admin/users" class="a-btn a-btn-secondary a-btn-sm">View All</a>
+            </div>
+            <div style="overflow-x:auto">
+                <table class="an-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>XP</th>
+                            <th>Pathway</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% recentUsers.forEach((u, i) => { %>
+                        <tr>
+                            <td style="color:var(--text-3);font-size:.72rem"><%= i + 1 %></td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:.5rem">
+                                    <div class="an-avatar"><%= u.username.charAt(0).toUpperCase() %></div>
+                                    <span style="font-weight:700;color:var(--text)"><%= u.username %></span>
+                                </div>
+                            </td>
+                            <td style="color:var(--text-3);font-size:.78rem"><%= u.email %></td>
+                            <td style="color:var(--green);font-weight:700"><%= (u.xp || 0).toLocaleString() %></td>
+                            <td>
+                                <% if (u.pathway) { %>
+                                    <span class="an-badge an-badge-pathway"><%= u.pathway.replace('_',' ') %></span>
+                                <% } else { %>
+                                    <span style="color:var(--text-3);font-size:.72rem">—</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <span class="an-badge <%= u.isVerified ? 'an-badge-verified' : 'an-badge-unverified' %>">
+                                    <%= u.isVerified ? 'Verified' : 'Unverified' %>
+                                </span>
+                            </td>
+                            <td style="color:var(--text-3);font-size:.78rem">
+                                <%= new Date(u.createdAt).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /.a-content -->
+</div><!-- /.a-main -->
+
+<script>
+(function() {
+    var LABELS    = <%- chartLabels %>;
+    var SIGNUPS   = <%- signupSeries %>;
+    var DAU       = <%- dauSeries %>;
+    var PATHWAYS  = <%- pathwayData %>;
+    var ROLES     = <%- roleData %>;
+
+    var GREEN       = '#5ec213';
+    var GREEN_LIGHT = 'rgba(94,194,19,.15)';
+    var GRID_COLOR  = 'rgba(255,255,255,.06)';
+    var TEXT_COLOR  = 'rgba(255,255,255,.45)';
+
+    var baseScales = {
+        x: {
+            ticks: { color: TEXT_COLOR, font: { size: 10 }, maxRotation: 45 },
+            grid:  { color: GRID_COLOR }
+        },
+        y: {
+            ticks: { color: TEXT_COLOR, font: { size: 10 } },
+            grid:  { color: GRID_COLOR },
+            beginAtZero: true
+        }
+    };
+
+    // ── Daily Signups line chart ──────────────────────────────────────────────
+    new Chart(document.getElementById('signupChart'), {
+        type: 'line',
+        data: {
+            labels: LABELS,
+            datasets: [{
+                label: 'Signups',
+                data: SIGNUPS,
+                borderColor: GREEN,
+                backgroundColor: GREEN_LIGHT,
+                borderWidth: 2,
+                tension: 0.35,
+                fill: true,
+                pointRadius: 3,
+                pointBackgroundColor: GREEN
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: baseScales
+        }
+    });
+
+    // ── Daily Active Users line chart ─────────────────────────────────────────
+    new Chart(document.getElementById('dauChart'), {
+        type: 'line',
+        data: {
+            labels: LABELS,
+            datasets: [{
+                label: 'Active Users',
+                data: DAU,
+                borderColor: 'rgba(94,194,19,.7)',
+                backgroundColor: 'rgba(94,194,19,.08)',
+                borderWidth: 2,
+                tension: 0.35,
+                fill: true,
+                pointRadius: 3,
+                pointBackgroundColor: GREEN,
+                borderDash: [4, 3]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: baseScales
+        }
+    });
+
+    // ── Role distribution bar chart ───────────────────────────────────────────
+    var roleLabels  = ROLES.map(function(r) { return r.role; });
+    var roleCounts  = ROLES.map(function(r) { return r.count; });
+    var roleColors  = [
+        'rgba(94,194,19,.75)',
+        'rgba(94,194,19,.60)',
+        'rgba(94,194,19,.45)',
+        'rgba(94,194,19,.30)',
+        'rgba(94,194,19,.18)'
+    ];
+    new Chart(document.getElementById('roleChart'), {
+        type: 'bar',
+        data: {
+            labels: roleLabels,
+            datasets: [{
+                label: 'Users',
+                data: roleCounts,
+                backgroundColor: roleColors.slice(0, roleLabels.length),
+                borderColor: GREEN,
+                borderWidth: 1,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: baseScales
+        }
+    });
+
+    // ── Pathway doughnut chart ────────────────────────────────────────────────
+    var pathwayLabels = PATHWAYS.map(function(p) { return p._id ? p._id.replace('_',' ') : 'none'; });
+    var pathwayCounts = PATHWAYS.map(function(p) { return p.count; });
+    var doughnutColors = [
+        'rgba(94,194,19,.85)',
+        'rgba(94,194,19,.60)',
+        'rgba(94,194,19,.40)',
+        'rgba(94,194,19,.25)',
+        'rgba(255,255,255,.12)'
+    ];
+    new Chart(document.getElementById('pathwayChart'), {
+        type: 'doughnut',
+        data: {
+            labels: pathwayLabels,
+            datasets: [{
+                data: pathwayCounts,
+                backgroundColor: doughnutColors.slice(0, pathwayLabels.length),
+                borderColor: 'rgba(255,255,255,.08)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '62%',
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: { color: TEXT_COLOR, font: { size: 11 }, padding: 10 }
+                }
+            }
+        }
+    });
+})();
+</script>
+</body>
+</html>

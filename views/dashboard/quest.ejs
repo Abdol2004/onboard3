@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quests — ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <%- include('../partials/achievement-popup') %>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        /* ── Quest banner ── */
+        .qcard-img {
+            width: 100%; height: 148px; border-radius: 13px; overflow: hidden;
+            margin-bottom: 0.25rem; position: relative; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* ── Partner logo: centered + large, not stretched ── */
+        .qcard-img--logo {
+            background: linear-gradient(135deg, #0d190d 0%, #111c11 60%, #0f1d0e 100%);
+        }
+        .qcard-img--logo::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at center, rgba(94,194,19,0.08) 0%, transparent 70%);
+        }
+        .qcard-logo-wrap {
+            position: relative; z-index: 1;
+            width: 88px; height: 88px; border-radius: 22px; overflow: hidden;
+            background: #fff; padding: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 0 0 1.5px rgba(255,255,255,0.15);
+            transition: transform 0.45s cubic-bezier(0.4,0,0.2,1), box-shadow 0.45s;
+        }
+        .qcard:hover .qcard-logo-wrap {
+            transform: scale(1.08);
+            box-shadow: 0 14px 44px rgba(0,0,0,0.6), 0 0 32px rgba(94,194,19,0.18), 0 0 0 2px rgba(94,194,19,0.3);
+        }
+        .qcard-logo-wrap img { width: 100%; height: 100%; object-fit: contain; border-radius: 12px; }
+
+        /* ONBOARD3 default logo — dark bg, no white box */
+        .qcard-logo-wrap--brand {
+            background: rgba(94,194,19,0.12);
+            border: 1.5px solid rgba(94,194,19,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 24px rgba(94,194,19,0.15);
+        }
+        .qcard:hover .qcard-logo-wrap--brand {
+            box-shadow: 0 14px 44px rgba(0,0,0,0.55), 0 0 40px rgba(94,194,19,0.28), 0 0 0 2px rgba(94,194,19,0.4);
+        }
+
+        /* Glow ring that pulses on card hover */
+        .qcard-img--logo::after {
+            content: '';
+            position: absolute; inset: 0; border-radius: 13px;
+            box-shadow: inset 0 0 40px rgba(94,194,19,0.04);
+            transition: box-shadow 0.4s;
+        }
+        .qcard:hover .qcard-img--logo::after {
+            box-shadow: inset 0 0 60px rgba(94,194,19,0.1);
+        }
+
+        /* ── Gradient fallback banners (no partner) ── */
+        .qcard-img--social   { background: linear-gradient(135deg, #1a1428, #0f2620); }
+        .qcard-img--dev      { background: linear-gradient(135deg, #0f1a2e, #0a1f18); }
+        .qcard-img--learning { background: linear-gradient(135deg, #0e1a14, #131f10); }
+        .qcard-img--community{ background: linear-gradient(135deg, #1a130e, #0f1a0a); }
+        .qcard-img--special  { background: linear-gradient(135deg, #1a0e1a, #0f1a14); }
+        .qcard-img--nft      { background: linear-gradient(135deg, #1a0e1a, #0f0a1a); }
+        .qcard-img-icon {
+            font-size: 3.25rem; opacity: 0.16; color: var(--green);
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+        @keyframes iconPulse { 0%,100%{opacity:.12} 50%{opacity:.22} }
+
+        /* ── List item logo avatar ── */
+        .qlist-logo {
+            width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+            overflow: hidden; background: #fff; padding: 3px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .qlist-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 6px; }
+        /* ONBOARD3 default — dark tinted bg instead of white */
+        .qlist-logo--brand {
+            background: rgba(94,194,19,0.1);
+            border-color: rgba(94,194,19,0.25);
+            box-shadow: none;
+        }
+
+        /* ── Quest grid ── */
+        .quest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.25rem;
+        }
+        @media (max-width: 700px) { .quest-grid { grid-template-columns: 1fr; } }
+
+        /* ── Quest card ── */
+        .qcard {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), border-color 0.3s, box-shadow 0.3s;
+            animation: cardIn 0.5s cubic-bezier(0.4,0,0.2,1) both;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .qcard:hover {
+            transform: translateY(-5px);
+            border-color: rgba(94,194,19,0.35);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.35), 0 0 0 1px rgba(94,194,19,0.1);
+        }
+        .qcard::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--green), var(--green-light), var(--green), transparent);
+            transition: left 0.5s cubic-bezier(0.4,0,0.2,1);
+        }
+        .qcard:hover::before { left: 0; }
+
+        /* ── Card top row ── */
+        .qcard-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+        .qcard-icon {
+            width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+            background: rgba(94,194,19,0.12); border: 1px solid rgba(94,194,19,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.125rem; color: var(--green);
+        }
+        .qcard-badges { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; }
+        .qbadge {
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.5px;
+            padding: 0.25rem 0.625rem; border-radius: 50px; white-space: nowrap;
+        }
+        .qbadge--xp  { background: rgba(94,194,19,0.15);  color: var(--green);  border: 1px solid rgba(94,194,19,0.3); }
+        .qbadge--usdc{ background: rgba(251,191,36,0.15);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+        .qbadge--easy  { background: rgba(94,194,19,0.12);  color: var(--green-light); border: 1px solid rgba(94,194,19,0.2); }
+        .qbadge--medium{ background: rgba(251,146,60,0.12);  color: #fb923c; border: 1px solid rgba(251,146,60,0.2); }
+        .qbadge--hard  { background: rgba(239,68,68,0.12);   color: #f87171;  border: 1px solid rgba(239,68,68,0.2); }
+        .qbadge--done  { background: rgba(94,194,19,0.18);  color: var(--green); border: 1px solid rgba(94,194,19,0.4); }
+        .qbadge--ended { background: rgba(100,100,100,0.15); color: #888;      border: 1px solid rgba(100,100,100,0.2); }
+        .qbadge--active{ background: rgba(251,146,60,0.15);  color: #fb923c; border: 1px solid rgba(251,146,60,0.25);
+                         animation: activePulse 2s ease-in-out infinite; }
+        @keyframes activePulse { 0%,100%{box-shadow:0 0 0 0 rgba(251,146,60,.3)} 50%{box-shadow:0 0 0 5px rgba(251,146,60,0)} }
+
+        /* ── Card body ── */
+        .qcard-title {
+            font-size: 1rem; font-weight: 800; color: var(--text);
+            letter-spacing: -0.3px; line-height: 1.35;
+        }
+        .qcard-desc {
+            font-size: 0.8375rem; color: var(--text-2); line-height: 1.65;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        /* ── Progress ── */
+        .qcard-progress-wrap { margin-top: auto; }
+        .qcard-progress-meta {
+            display: flex; justify-content: space-between; margin-bottom: 0.4rem;
+            font-size: 0.75rem; font-weight: 700;
+        }
+        .qcard-progress-meta .tasks { color: var(--text-3); }
+        .qcard-progress-meta .pct   { color: var(--green); }
+        .qcard-bar { height: 6px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
+        .qcard-bar-fill {
+            height: 100%; border-radius: 99px;
+            background: linear-gradient(90deg, var(--green-dark), var(--green));
+            box-shadow: 0 0 8px rgba(94,194,19,0.4);
+            transition: width 1s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        /* ── Card footer ── */
+        .qcard-foot {
+            display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+            padding-top: 0.875rem; border-top: 1px solid rgba(255,255,255,0.06);
+            margin-top: auto;
+        }
+        .qcard-meta { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+        .qcard-meta-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; font-weight: 600; color: var(--text-3); }
+        .qcard-meta-item i { font-size: 0.7rem; color: var(--text-3); }
+
+        .qcard-btn {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.55rem 1.1rem; border-radius: 9px; font-size: 0.8125rem; font-weight: 800;
+            border: none; cursor: pointer; font-family: 'Outfit', sans-serif;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1); white-space: nowrap; flex-shrink: 0;
+        }
+        .qcard-btn--start {
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+            color: #000; box-shadow: 0 3px 14px rgba(94,194,19,0.35);
+        }
+        .qcard-btn--start:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(94,194,19,0.5); }
+        .qcard-btn--view {
+            background: rgba(255,255,255,0.06); color: var(--text-2);
+            border: 1px solid var(--border);
+        }
+        .qcard-btn--view:hover { background: rgba(94,194,19,0.08); color: var(--text); border-color: rgba(94,194,19,0.3); }
+
+        /* ── Completed / Past compact list ── */
+        .qlist { display: flex; flex-direction: column; gap: 0.625rem; }
+        .qlist-item {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.875rem 1rem; border-radius: 12px;
+            background: rgba(255,255,255,0.025); border: 1px solid var(--border);
+            text-decoration: none; color: inherit;
+            transition: all 0.25s; cursor: pointer;
+        }
+        .qlist-item:hover { background: rgba(94,194,19,0.05); border-color: rgba(94,194,19,0.25); }
+        .qlist-icon { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; }
+        .qlist-icon--done { background: rgba(94,194,19,0.15); color: var(--green); }
+        .qlist-icon--past { background: rgba(100,100,100,0.12); color: #888; }
+        .qlist-body { flex: 1; min-width: 0; }
+        .qlist-title { font-size: 0.875rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .qlist-sub { font-size: 0.75rem; color: var(--text-3); margin-top: 1px; }
+        .qlist-right { flex-shrink: 0; text-align: right; }
+
+        /* ── Stats summary row ── */
+        .quest-stats-row {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+        }
+        .qs-box {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+            padding: 1.25rem; text-align: center;
+            animation: cardIn 0.5s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        .qs-val { font-size: 2rem; font-weight: 900; letter-spacing: -1px; color: var(--text); }
+        .qs-val span { color: var(--green); }
+        .qs-lbl { font-size: 0.72rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.25rem; }
+
+        /* ── Section header ── */
+        .section-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .section-row h3 {
+            font-size: 1rem; font-weight: 800; color: var(--text); letter-spacing: -0.2px;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .section-row h3 i { color: var(--green); font-size: 0.875rem; }
+        .section-count {
+            font-size: 0.78rem; font-weight: 700; color: var(--text-3);
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            padding: 0.25rem 0.7rem; border-radius: 50px;
+        }
+
+        /* ── Modals (keep original modal styles) ── */
+        .custom-modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.88); backdrop-filter: blur(8px);
+            z-index: 9999; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .custom-modal-overlay.show { display: flex; opacity: 1; }
+
+        .custom-modal {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 22px; padding: 2.5rem; max-width: 480px; width: 92%;
+            text-align: center;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 40px rgba(94,194,19,0.1);
+            animation: modalIn 0.35s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        @keyframes modalIn { from{opacity:0;transform:translateY(20px) scale(0.96)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+        .preview-modal {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 22px; padding: 2rem; max-width: 520px; width: 92%;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+            animation: modalIn 0.35s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        .preview-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+        .preview-modal-header h3 { font-size: 1.25rem; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+        .preview-modal-body { margin-bottom: 1.25rem; }
+        .preview-modal-body p { color: var(--text-2); font-size: 0.9375rem; line-height: 1.7; margin-bottom: 1rem; }
+        .preview-modal-stats { display: flex; gap: 0.625rem; flex-wrap: wrap; }
+        .preview-modal-footer { display: flex; gap: 0.75rem; justify-content: flex-end; }
+
+        .close-btn {
+            width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer;
+            background: rgba(255,255,255,0.07); border: 1px solid var(--border);
+            color: var(--text-2); font-size: 1rem; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .close-btn:hover { background: rgba(255,255,255,0.12); color: var(--text); transform: rotate(90deg); }
+
+        /* modal states */
+        .modal-loading, .modal-success, .modal-error {
+            display: flex; flex-direction: column; align-items: center; gap: 1.25rem;
+        }
+        .loading-spinner {
+            width: 60px; height: 60px; border: 3px solid rgba(94,194,19,0.2);
+            border-top-color: var(--green); border-radius: 50%; animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .modal-loading h3, .modal-success h3 { font-size: 1.375rem; font-weight: 800; color: var(--green); }
+        .modal-error h3 { font-size: 1.375rem; font-weight: 800; color: #f87171; }
+        .modal-loading p, .modal-success p, .modal-error p { color: var(--text-2); font-size: 0.9rem; }
+
+        .success-icon { width: 72px; height: 72px; background: rgba(94,194,19,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: popIn 0.5s ease; }
+        .success-icon i { font-size: 2.5rem; color: var(--green); }
+        @keyframes popIn { 0%{transform:scale(0)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
+        .error-icon { width: 72px; height: 72px; background: rgba(239,68,68,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .error-icon i { font-size: 2.5rem; color: #f87171; }
+
+        .quest-info { background: rgba(94,194,19,0.07); border: 1px solid rgba(94,194,19,0.2); border-radius: 12px; padding: 1rem; width: 100%; text-align: left; }
+        .quest-info-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+        .quest-info-item:last-child { margin-bottom: 0; }
+        .quest-info-label { color: var(--text-2); font-size: 0.875rem; }
+        .quest-info-value { color: var(--green); font-weight: 700; font-size: 0.9rem; }
+
+        .modal-progress { width: 100%; height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+        .modal-progress-fill { height: 100%; background: linear-gradient(90deg, var(--green-dark), var(--green)); width: 0%; transition: width 2s ease; }
+
+        .modal-btn {
+            padding: 0.8rem 1.75rem; border: none; border-radius: 11px;
+            font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: all 0.25s;
+            font-family: 'Outfit', sans-serif;
+        }
+        .modal-btn-primary {
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+            color: #000; box-shadow: 0 4px 16px rgba(94,194,19,0.35);
+        }
+        .modal-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(94,194,19,0.5); }
+        .modal-btn-secondary {
+            background: rgba(255,255,255,0.07); color: var(--text-2); border: 1px solid var(--border);
+        }
+        .modal-btn-secondary:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+
+        @media (max-width: 600px) {
+            .quest-stats-row { grid-template-columns: 1fr 1fr; }
+            .preview-modal-footer { flex-direction: column; }
+            .modal-btn { width: 100%; }
+        }
+
+        /* ── Empty state ── */
+        .quest-empty {
+            text-align: center; padding: 3rem 1rem;
+            display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+        }
+        .quest-empty-icon { font-size: 2.5rem; color: var(--text-3); }
+        .quest-empty p { color: var(--text-3); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <% const currentPage = 'quests'; %>
+    <%- include('../partials/sidebar', { user, currentPage }) %>
+
+    <div class="dashboard-container">
+        <main class="main-content">
+
+            <!-- Header -->
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2><i class="fas fa-trophy" style="color:var(--green);margin-right:.5rem"></i>Quests</h2>
+                        <p>Complete quests to earn XP and unlock rewards</p>
+                    </div>
+                    <div class="header-stats">
+                        <div class="stat-badge">
+                            <i class="fas fa-bolt" style="color:var(--green)"></i>
+                            <span><%= (user.xp || 0).toLocaleString() %> XP</span>
+                        </div>
+                        <div class="stat-badge">
+                            <i class="fas fa-check-double" style="color:var(--green)"></i>
+                            <span><%= completedCount %> Completed</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+
+                <%
+                const missingX  = !user.twitterConnected;
+                const missingTg = !user.telegramConnected;
+                const isGated   = false;
+                %>
+
+                <% if (isGated) { %>
+                <!-- ══ HARD GATE — completely replaces quest content ══ -->
+                <div style="min-height:60vh;display:flex;align-items:center;justify-content:center;padding:2rem 0">
+                    <div style="max-width:520px;width:100%;text-align:center;animation:cardIn .6s ease both">
+
+                        <!-- Lock icon -->
+                        <div style="width:80px;height:80px;border-radius:22px;background:rgba(239,68,68,0.1);border:1.5px solid rgba(239,68,68,0.3);display:flex;align-items:center;justify-content:center;font-size:2rem;color:#f87171;margin:0 auto 1.5rem;box-shadow:0 0 32px rgba(239,68,68,0.15)">
+                            <i class="fas fa-lock"></i>
+                        </div>
+
+                        <h2 style="font-size:1.5rem;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:.625rem">Quests are locked</h2>
+                        <p style="font-size:.9375rem;color:var(--text-2);line-height:1.7;margin-bottom:2rem">
+                            Connect your <strong style="color:var(--text)">X account</strong> and <strong style="color:var(--text)">Telegram</strong> to unlock all quests and start earning XP and USDC rewards. Both are free and take under 2 minutes.
+                        </p>
+
+                        <!-- Step cards -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.75rem;text-align:left">
+
+                            <!-- X card -->
+                            <div style="padding:1.25rem;border-radius:16px;background:<%=missingX?'rgba(255,255,255,0.03)':'rgba(94,194,19,0.07)'%>;border:1.5px solid <%=missingX?'rgba(255,255,255,0.1)':'rgba(94,194,19,0.3)'%>">
+                                <div style="display:flex;align-items:center;gap:.625rem;margin-bottom:.75rem">
+                                    <div style="width:34px;height:34px;border-radius:9px;background:<%=missingX?'rgba(255,255,255,.07)':'rgba(94,194,19,.15)'%>;display:flex;align-items:center;justify-content:center;color:<%=missingX?'var(--text)':'var(--green)'%>;font-size:.9375rem">
+                                        <i class="fab fa-x-twitter"></i>
+                                    </div>
+                                    <span style="font-weight:800;font-size:.9rem;color:<%=missingX?'var(--text)':'var(--green)'%>">X Account</span>
+                                    <% if (!missingX) { %><i class="fas fa-check-circle" style="color:var(--green);margin-left:auto"></i><% } %>
+                                </div>
+                                <% if (missingX) { %>
+                                <a href="/auth/twitter/connect" style="display:block;width:100%;padding:.6rem;border-radius:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:var(--text);text-decoration:none;font-size:.8125rem;font-weight:700;text-align:center;transition:all .25s" onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
+                                    <i class="fab fa-x-twitter" style="margin-right:.3rem"></i> Sign in with X
+                                </a>
+                                <p style="font-size:.7rem;color:var(--text-3);margin-top:.5rem">You'll be redirected to X to authorize</p>
+                                <% } else { %>
+                                <p style="font-size:.78rem;color:var(--green);font-weight:700"><i class="fas fa-check"></i> @<%= user.twitter %> linked</p>
+                                <% } %>
+                            </div>
+
+                            <!-- Telegram card -->
+                            <div style="padding:1.25rem;border-radius:16px;background:<%=missingTg?'rgba(255,255,255,0.03)':'rgba(94,194,19,0.07)'%>;border:1.5px solid <%=missingTg?'rgba(255,255,255,0.1)':'rgba(94,194,19,0.3)'%>">
+                                <div style="display:flex;align-items:center;gap:.625rem;margin-bottom:.75rem">
+                                    <div style="width:34px;height:34px;border-radius:9px;background:<%=missingTg?'rgba(29,161,242,.1)':'rgba(94,194,19,.15)'%>;display:flex;align-items:center;justify-content:center;color:<%=missingTg?'#1d9bf0':'var(--green)'%>;font-size:.9375rem">
+                                        <i class="fab fa-telegram"></i>
+                                    </div>
+                                    <span style="font-weight:800;font-size:.9rem;color:<%=missingTg?'var(--text)':'var(--green)'%>">Telegram</span>
+                                    <% if (!missingTg) { %><i class="fas fa-check-circle" style="color:var(--green);margin-left:auto"></i><% } %>
+                                </div>
+                                <% if (missingTg) { %>
+                                <a href="https://t.me/onboard3bot?start=connect_<%= user._id %>" target="_blank" id="tgBotLink" onclick="startTgPolling()" style="display:block;width:100%;padding:.6rem;border-radius:9px;background:rgba(29,161,242,.1);border:1px solid rgba(29,161,242,.3);color:#1d9bf0;text-decoration:none;font-size:.8125rem;font-weight:700;text-align:center;transition:all .25s" onmouseover="this.style.background='rgba(29,161,242,.18)'" onmouseout="this.style.background='rgba(29,161,242,.1)'">
+                                    <i class="fab fa-telegram" style="margin-right:.3rem"></i> Open Bot
+                                </a>
+                                <p id="tgPollStatus" style="font-size:.7rem;color:var(--text-3);margin-top:.5rem">Start the bot — page auto-refreshes when connected</p>
+                                <% } else { %>
+                                <p style="font-size:.78rem;color:var(--green);font-weight:700"><i class="fas fa-check"></i> <%= user.telegram || 'Connected' %></p>
+                                <% } %>
+                            </div>
+
+                        </div>
+
+                        <% if (missingTg) { %>
+                        <p style="font-size:.8125rem;color:var(--text-3);margin-bottom:1rem">
+                            After connecting Telegram, click the button below to refresh
+                        </p>
+                        <% } %>
+                        <button onclick="window.location.reload()" style="display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.75rem;border-radius:11px;background:linear-gradient(135deg,var(--green),var(--green-dark));color:#000;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:800;box-shadow:0 4px 16px rgba(94,194,19,.35)">
+                            <i class="fas fa-rotate-right"></i> Refresh to check status
+                        </button>
+                    </div>
+                </div>
+
+                <script>
+
+                /* Auto-poll connection status after user opens Telegram bot */
+                let _tgPollTimer = null;
+                function startTgPolling() {
+                    if (_tgPollTimer) return;
+                    const status = document.getElementById('tgPollStatus');
+                    let dots = 0;
+                    _tgPollTimer = setInterval(async () => {
+                        dots = (dots + 1) % 4;
+                        if (status) status.textContent = 'Checking connection' + '.'.repeat(dots);
+                        try {
+                            const r = await fetch('/dashboard/settings/connection-status');
+                            const d = await r.json();
+                            if (d.telegramConnected) {
+                                clearInterval(_tgPollTimer);
+                                if (status) status.textContent = 'Connected! Refreshing...';
+                                showToast('Telegram connected! Unlocking quests...', 'success');
+                                setTimeout(() => window.location.reload(), 1200);
+                            }
+                        } catch(_) {}
+                    }, 3000);
+                    // Stop polling after 3 minutes
+                    setTimeout(() => { clearInterval(_tgPollTimer); _tgPollTimer = null; if(status) status.textContent = 'Start the bot — page auto-refreshes when connected'; }, 180000);
+                }
+                </script>
+                <% } %>
+
+                <%
+                /* ── Helper: resolve quest image + partner logo ── */
+                function questImage(quest) {
+                    if (quest.image) return { logo: quest.image, isPartner: true };
+                    const t = (quest.title || '').toLowerCase();
+                    const partners = [
+                        { key: 'eyecoin', img: '/img/partners/eyecoin.jpg' },
+                        { key: 'ginox',   img: '/img/partners/ginox.jpg'   },
+                        { key: 'twin3',   img: '/img/partners/twin3.jpg'   },
+                        { key: 'aix',     img: '/img/partners/aixpay.jpg'  },
+                        { key: 'tuition', img: '/img/partners/tuition.jpg' }
+                    ];
+                    for (const p of partners) {
+                        if (t.includes(p.key)) return { logo: p.img, isPartner: true };
+                    }
+                    return { logo: '/img/logo.png', isPartner: false };
+                }
+                const catIcon = { development:'fa-code', social:'fa-share-nodes', learning:'fa-graduation-cap', community:'fa-users', special:'fa-star', nft:'fa-image' };
+                const catClass = { development:'dev', social:'social', learning:'learning', community:'community', special:'special', nft:'nft' };
+                %>
+
+                <!-- JS-populated gate banner (shown when startQuest returns requiresConnection) -->
+                <div id="questGateBanner" style="display:none;margin-bottom:1rem"></div>
+
+                <!-- ══ SPECIAL CAMPAIGNS ══ -->
+                <% if (specialCampaigns && specialCampaigns.length > 0) { %>
+                <div class="card" style="animation-delay:0ms;border-color:rgba(245,158,11,.2);background:linear-gradient(135deg,rgba(15,15,15,.95) 0%,rgba(20,15,5,.95) 100%)">
+                    <div class="section-row">
+                        <h3 style="color:#fbbf24"><i class="fas fa-star" style="color:#fbbf24"></i> Special Campaigns</h3>
+                        <span class="section-count"><%= specialCampaigns.length %></span>
+                    </div>
+                    <div class="quest-grid">
+                        <% specialCampaigns.forEach((quest, qi) => { %>
+                        <%
+                          var spImg = quest.image || (quest.sponsors && quest.sponsors.length > 0 && quest.sponsors[0].logo ? quest.sponsors[0].logo : '/img/logo.png');
+                          var spStatusColor = quest.appStatus === 'approved' ? '#6ee7b7' : quest.appStatus === 'pending' ? '#fbbf24' : quest.appStatus === 'rejected' ? '#f87171' : 'rgba(255,255,255,.5)';
+                          var spStatusLabel = quest.appStatus === 'approved' ? 'Joined' : quest.appStatus === 'pending' ? 'Pending Approval' : quest.appStatus === 'rejected' ? 'Rejected' : 'Enter Code to Join';
+                          var spStatusIcon = quest.appStatus === 'approved' ? 'fa-check-circle' : quest.appStatus === 'pending' ? 'fa-hourglass-half' : quest.appStatus === 'rejected' ? 'fa-times-circle' : 'fa-lock';
+                        %>
+                        <a href="/dashboard/quests/<%= quest._id %>" class="qcard" style="animation-delay:<%= qi * 60 %>ms;border-color:rgba(245,158,11,.2);background:rgba(20,12,0,.6)">
+                            <div class="qcard-img qcard-img--logo" style="background:linear-gradient(135deg,#1a1200,#120d00)">
+                                <% if (quest.sponsors && quest.sponsors.length > 0) { %>
+                                <div style="display:flex;gap:.5rem;align-items:center;z-index:1;position:relative">
+                                    <% quest.sponsors.forEach(function(sp) { %>
+                                    <% if (sp.logo) { %>
+                                    <div style="width:44px;height:44px;border-radius:10px;overflow:hidden;background:#fff;padding:4px;box-shadow:0 4px 16px rgba(0,0,0,.5)">
+                                        <img src="<%= sp.logo %>" alt="<%= sp.name %>" style="width:100%;height:100%;object-fit:contain;border-radius:6px">
+                                    </div>
+                                    <% } else { %>
+                                    <div style="width:44px;height:44px;border-radius:10px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:900;color:#fbbf24"><%= sp.name.substring(0,3).toUpperCase() %></div>
+                                    <% } %>
+                                    <% }); %>
+                                </div>
+                                <% } else { %>
+                                <div class="qcard-logo-wrap" style="background:rgba(245,158,11,.12);border:1.5px solid rgba(245,158,11,.3)">
+                                    <img src="<%= spImg %>" alt="<%= quest.title %>">
+                                </div>
+                                <% } %>
+                            </div>
+                            <div class="qcard-top">
+                                <div class="qcard-icon" style="background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3);color:#fbbf24"><i class="fas fa-star"></i></div>
+                                <div class="qcard-badges">
+                                    <span class="qbadge" style="background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.35);color:#fbbf24">SPECIAL CAMPAIGN</span>
+                                    <span class="qbadge" style="background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.3);color:#fbbf24"><i class="fas fa-trophy"></i> $500 Prize</span>
+                                    <span class="qbadge" style="background:rgba(100,100,100,.1);border-color:rgba(100,100,100,.2);color:var(--text-3)"><i class="fas fa-users"></i> <%= quest.totalParticipants || 0 %> raiders</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="qcard-title"><%= quest.title %></div>
+                                <div class="qcard-desc"><%= quest.shortDescription %></div>
+                            </div>
+                            <div class="qcard-foot">
+                                <div class="qcard-meta">
+                                    <span class="qcard-meta-item" style="color:<%= spStatusColor %>"><i class="fas <%= spStatusIcon %>"></i> <%= spStatusLabel %></span>
+                                </div>
+                                <span class="qcard-btn" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#fbbf24"><i class="fas fa-arrow-right"></i> View</span>
+                            </div>
+                        </a>
+                        <% }); %>
+                    </div>
+                </div>
+                <% } %>
+
+                <% if (!isGated) { %>
+                <!-- Stats Summary -->
+                <div class="quest-stats-row">
+                    <div class="qs-box" style="animation-delay:0ms">
+                        <div class="qs-val"><span><%= completedCount %></span></div>
+                        <div class="qs-lbl">Completed</div>
+                    </div>
+                    <div class="qs-box" style="animation-delay:60ms">
+                        <div class="qs-val"><span><%= activeQuests.length %></span></div>
+                        <div class="qs-lbl">In Progress</div>
+                    </div>
+                    <div class="qs-box" style="animation-delay:120ms">
+                        <div class="qs-val"><span><%= availableQuests.length %></span></div>
+                        <div class="qs-lbl">Available</div>
+                    </div>
+                </div>
+
+                <!-- ══ ACTIVE QUESTS ══ -->
+                <% if (activeQuests && activeQuests.length > 0) { %>
+                <div class="card" style="animation-delay:60ms">
+                    <div class="section-row">
+                        <h3><i class="fas fa-fire"></i> In Progress</h3>
+                        <span class="section-count"><%= activeQuests.length %></span>
+                    </div>
+                    <div class="quest-grid">
+                        <% activeQuests.forEach((quest, qi) => {
+                            const qimg = questImage(quest);
+                            const icon = catIcon[quest.category] || 'fa-trophy';
+                            const cls  = catClass[quest.category] || 'learning';
+                        %>
+                        <a href="/dashboard/quests/<%= quest._id %>" class="qcard" style="animation-delay:<%= qi * 60 %>ms">
+                            <div class="qcard-img qcard-img--logo">
+                                <div class="qcard-logo-wrap <%= !qimg.isPartner ? 'qcard-logo-wrap--brand' : '' %>">
+                                    <img src="<%= qimg.logo %>" alt="<%= quest.title %>" loading="lazy">
+                                </div>
+                            </div>
+                            <div class="qcard-top">
+                                <div class="qcard-icon"><i class="fas fa-rocket"></i></div>
+                                <div class="qcard-badges">
+                                    <span class="qbadge qbadge--active">In Progress</span>
+                                    <span class="qbadge qbadge--xp"><i class="fas fa-bolt"></i> <%= quest.baseXpReward || quest.xpReward || 0 %> XP</span>
+                                    <% if (quest.usdcReward > 0) { %>
+                                    <span class="qbadge qbadge--usdc"><i class="fas fa-coins"></i> <%= quest.usdcReward %> USDC</span>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="qcard-title"><%= quest.title %></div>
+                                <div class="qcard-desc"><%= quest.shortDescription %></div>
+                            </div>
+                            <div class="qcard-progress-wrap">
+                                <div class="qcard-progress-meta">
+                                    <span class="tasks"><i class="fas fa-tasks"></i> <%= quest.userProgress.tasksCompleted %>/<%= quest.tasks.length %> tasks</span>
+                                    <span class="pct"><%= quest.userProgress.progress %>%</span>
+                                </div>
+                                <div class="qcard-bar">
+                                    <div class="qcard-bar-fill" style="width:<%= quest.userProgress.progress %>%"></div>
+                                </div>
+                            </div>
+                            <div class="qcard-foot">
+                                <div class="qcard-meta">
+                                    <span class="qcard-meta-item"><i class="fas fa-signal"></i> <%= quest.difficulty %></span>
+                                    <span class="qcard-meta-item"><i class="fas fa-clock"></i> <%= quest.estimatedDuration %></span>
+                                </div>
+                                <span class="qcard-btn qcard-btn--view"><i class="fas fa-arrow-right"></i> Continue</span>
+                            </div>
+                        </a>
+                        <% }); %>
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- ══ AVAILABLE QUESTS ══ -->
+                <div class="card" style="animation-delay:120ms">
+                    <div class="section-row">
+                        <h3><i class="fas fa-trophy"></i> Available Quests</h3>
+                        <span class="section-count"><%= availableQuests.length %> available</span>
+                    </div>
+
+                    <% if (availableQuests && availableQuests.length > 0) { %>
+                    <div class="quest-grid">
+                        <% availableQuests.forEach((quest, qi) => {
+                            const diffClass = quest.difficulty === 'Easy' ? 'easy' : quest.difficulty === 'Hard' ? 'hard' : 'medium';
+                            const qimg2 = questImage(quest);
+                            const icon2 = catIcon[quest.category] || 'fa-trophy';
+                            const cls2  = catClass[quest.category] || 'learning';
+                        %>
+                        <div class="qcard" style="animation-delay:<%= qi * 50 %>ms"
+                             onclick="showQuestModal('<%= quest._id %>', `<%= quest.title.replace(/`/g, '\\`') %>`, `<%= quest.shortDescription.replace(/`/g, '\\`') %>`, <%= quest.xpReward %>, <%= quest.usdcReward %>, '<%= quest.difficulty %>', '<%= quest.estimatedDuration %>')">
+                            <div class="qcard-img qcard-img--logo">
+                                <div class="qcard-logo-wrap <%= !qimg2.isPartner ? 'qcard-logo-wrap--brand' : '' %>">
+                                    <img src="<%= qimg2.logo %>" alt="<%= quest.title %>" loading="lazy">
+                                </div>
+                            </div>
+                            <div class="qcard-top">
+                                <div class="qcard-icon"><i class="fas fa-trophy"></i></div>
+                                <div class="qcard-badges">
+                                    <span class="qbadge qbadge--xp"><i class="fas fa-bolt"></i> <%= quest.xpReward %> XP</span>
+                                    <% if (quest.usdcReward > 0) { %>
+                                    <span class="qbadge qbadge--usdc"><i class="fas fa-coins"></i> <%= quest.usdcReward %> USDC</span>
+                                    <% } %>
+                                    <span class="qbadge qbadge--<%= diffClass %>"><%= quest.difficulty %></span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="qcard-title"><%= quest.title %></div>
+                                <div class="qcard-desc"><%= quest.shortDescription %></div>
+                            </div>
+                            <div class="qcard-foot">
+                                <div class="qcard-meta">
+                                    <span class="qcard-meta-item"><i class="fas fa-clock"></i> <%= quest.estimatedDuration %></span>
+                                    <span class="qcard-meta-item"><i class="fas fa-tasks"></i> <%= quest.tasks?.length || 0 %> tasks</span>
+                                </div>
+                                <button class="qcard-btn qcard-btn--start" onclick="event.stopPropagation(); startQuest('<%= quest._id %>')">
+                                    <i class="fas fa-rocket"></i> Start
+                                </button>
+                            </div>
+                        </div>
+                        <% }); %>
+                    </div>
+                    <% } else { %>
+                    <div class="quest-empty">
+                        <div class="quest-empty-icon"><i class="fas fa-trophy"></i></div>
+                        <p>No quests available right now. Check back soon!</p>
+                    </div>
+                    <% } %>
+                </div>
+
+                <!-- ══ COMPLETED QUESTS ══ -->
+                <% if (completedQuests && completedQuests.length > 0) { %>
+                <div class="card" style="animation-delay:180ms">
+                    <div class="section-row">
+                        <h3><i class="fas fa-check-circle"></i> Completed</h3>
+                        <span class="section-count"><%= completedQuests.length %> done</span>
+                    </div>
+                    <div class="qlist">
+                        <% completedQuests.forEach((quest, qi) => {
+                            const cqimg = questImage(quest);
+                        %>
+                        <a href="/dashboard/quests/<%= quest._id %>" class="qlist-item" style="animation-delay:<%= qi * 40 %>ms">
+                            <div class="qlist-logo <%= !cqimg.isPartner ? 'qlist-logo--brand' : '' %>">
+                                <img src="<%= cqimg.logo %>" alt="<%= quest.title %>">
+                            </div>
+                            <div class="qlist-body">
+                                <div class="qlist-title"><%= quest.title %></div>
+                                <div class="qlist-sub">Completed <%= new Date(quest.userProgress.completedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></div>
+                            </div>
+                            <div class="qlist-right">
+                                <span class="qbadge qbadge--done"><i class="fas fa-check"></i> Done</span>
+                            </div>
+                        </a>
+                        <% }); %>
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- ══ PAST QUESTS ══ -->
+                <% if (pastQuests && pastQuests.length > 0) { %>
+                <div class="card" style="animation-delay:240ms">
+                    <div class="section-row">
+                        <h3><i class="fas fa-history"></i> Past Quests</h3>
+                        <span class="section-count"><%= pastQuests.length %> ended</span>
+                    </div>
+                    <div class="qlist">
+                        <% pastQuests.forEach((quest, qi) => {
+                            const pqimg = questImage(quest);
+                        %>
+                        <div class="qlist-item" style="cursor:pointer;animation-delay:<%= qi * 40 %>ms" onclick="window.location.href='/dashboard/quests/<%= quest._id %>'">
+                            <div class="qlist-logo <%= !pqimg.isPartner ? 'qlist-logo--brand' : '' %>" style="opacity:0.8">
+                                <img src="<%= pqimg.logo %>" alt="<%= quest.title %>">
+                            </div>
+                            <div class="qlist-body">
+                                <div class="qlist-title"><%= quest.title %></div>
+                                <div class="qlist-sub">Ended <%= new Date(quest.endDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></div>
+                            </div>
+                            <div class="qlist-right">
+                                <% if (quest.userProgress && quest.userProgress.status === 'completed') { %>
+                                    <span class="qbadge qbadge--done">Completed</span>
+                                <% } else if (quest.userProgress && quest.userProgress.status === 'in_progress') { %>
+                                    <span class="qbadge qbadge--medium"><%= quest.userProgress.progress %>%</span>
+                                <% } else { %>
+                                    <span class="qbadge qbadge--ended">Ended</span>
+                                <% } %>
+                            </div>
+                        </div>
+                        <% }); %>
+                    </div>
+                </div>
+                <% } %>
+
+            </div><!-- /content -->
+        </main>
+    </div>
+
+                <% } %><!-- /!isGated -->
+
+    <!-- ══ QUEST PREVIEW MODAL ══ -->
+    <div id="questModal" class="custom-modal-overlay">
+        <div class="preview-modal">
+            <div class="preview-modal-header">
+                <h3 id="modalTitle">Quest Preview</h3>
+                <button class="close-btn" onclick="closeQuestModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="preview-modal-body">
+                <p id="modalDescription"></p>
+                <div id="modalStats" class="preview-modal-stats"></div>
+            </div>
+            <div class="preview-modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeQuestModal()">Cancel</button>
+                <button id="modalStartBtn" class="modal-btn modal-btn-primary"><i class="fas fa-rocket"></i> Start Quest</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ START QUEST MODAL ══ -->
+    <div id="customModal" class="custom-modal-overlay">
+        <div class="custom-modal">
+            <div id="loadingState" class="modal-loading">
+                <div class="loading-spinner"></div>
+                <h3>Starting Quest...</h3>
+                <p>Preparing your adventure</p>
+            </div>
+            <div id="successState" class="modal-success" style="display:none">
+                <div class="success-icon"><i class="fas fa-rocket"></i></div>
+                <h3>Quest Started!</h3>
+                <p>Complete all tasks to earn your rewards.</p>
+                <div class="quest-info">
+                    <div class="quest-info-item" id="successUSDCContainer" style="display:none">
+                        <span class="quest-info-label">Bonus Reward</span>
+                        <span class="quest-info-value" id="successUSDC">0 USDC</span>
+                    </div>
+                    <div class="quest-info-item">
+                        <span class="quest-info-label">Difficulty</span>
+                        <span class="quest-info-value" id="successDifficulty">Medium</span>
+                    </div>
+                </div>
+                <div class="modal-progress"><div class="modal-progress-fill" id="successProgress"></div></div>
+                <button class="modal-btn modal-btn-primary" id="continueBtn" style="width:100%"><i class="fas fa-arrow-right"></i> Go to Quest</button>
+            </div>
+            <div id="errorState" class="modal-error" style="display:none">
+                <div class="error-icon"><i class="fas fa-triangle-exclamation"></i></div>
+                <h3>Something went wrong</h3>
+                <p id="errorMessage">Failed to start quest. Please try again.</p>
+                <button class="modal-btn modal-btn-secondary" onclick="closeCustomModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestId = null;
+        let currentQuestData = {};
+
+        function showQuestModal(id, title, desc, xp, usdc, difficulty, duration) {
+            currentQuestId = id;
+            currentQuestData = { id, title, desc, xp, usdc, difficulty, duration };
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalDescription').textContent = desc;
+            const stats = `
+                <span style="background:rgba(94,194,19,0.1);padding:.5rem 1rem;border-radius:8px;color:var(--green);font-weight:600;font-size:.8rem"><i class="fas fa-bolt"></i> ${xp} XP</span>
+                ${usdc > 0 ? `<span style="background:rgba(251,191,36,0.1);padding:.5rem 1rem;border-radius:8px;color:#fbbf24;font-weight:600;font-size:.8rem"><i class="fas fa-coins"></i> ${usdc} USDC</span>` : ''}
+                <span style="background:rgba(255,255,255,0.05);padding:.5rem 1rem;border-radius:8px;color:var(--text-2);font-weight:600;font-size:.8rem">${difficulty}</span>
+                <span style="background:rgba(255,255,255,0.05);padding:.5rem 1rem;border-radius:8px;color:var(--text-2);font-weight:600;font-size:.8rem"><i class="fas fa-clock"></i> ${duration}</span>
+            `;
+            document.getElementById('modalStats').innerHTML = stats;
+            document.getElementById('modalStartBtn').onclick = () => startQuest(id);
+            document.getElementById('questModal').classList.add('show');
+        }
+
+        function closeQuestModal() {
+            document.getElementById('questModal').classList.remove('show');
+            currentQuestId = null;
+        }
+
+        async function startQuest(questId) {
+            closeQuestModal();
+            showCustomModal('loading');
+            try {
+                const response = await fetch('/dashboard/quests/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ questId })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setTimeout(() => showCustomModal('success', questId), 1000);
+                } else if (data.requiresConnection) {
+                    // Social connection required — show gate banner instead of generic error
+                    closeCustomModal();
+                    const parts = [];
+                    if (data.missingX)  parts.push('<a href="/auth/twitter" style="color:#5EC213;font-weight:700;text-decoration:none"><i class="fab fa-x-twitter"></i> Connect X</a>');
+                    if (data.missingTg) parts.push('<a href="https://t.me/onboard3bot" target="_blank" style="color:#1d9bf0;font-weight:700;text-decoration:none"><i class="fab fa-telegram"></i> Connect Telegram</a>');
+                    const gate = document.getElementById('questGateBanner');
+                    if (gate) {
+                        gate.style.display = 'block';
+                        gate.innerHTML = '<div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:1.25rem 1.375rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap"><i class="fas fa-lock" style="color:#f87171;font-size:1.125rem;flex-shrink:0"></i><div style="flex:1"><p style="font-weight:800;color:var(--text);margin-bottom:.25rem;font-size:.9rem">Social accounts required</p><p style="font-size:.8125rem;color:var(--text-2)">' + data.message + '</p></div><div style="display:flex;gap:.625rem;flex-wrap:wrap">' + parts.join('') + '</div></div>';
+                        gate.scrollIntoView({ behavior:'smooth', block:'center' });
+                    }
+                } else {
+                    setTimeout(() => showCustomModal('error', null, data.message || 'Failed to start quest'), 800);
+                }
+            } catch (error) {
+                console.error('Error starting quest:', error);
+                setTimeout(() => showCustomModal('error', null, 'Network error. Please check your connection.'), 800);
+            }
+        }
+
+        function showCustomModal(state, questId = null, errorMsg = null) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('successState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            modal.classList.add('show');
+            if (state === 'loading') {
+                document.getElementById('loadingState').style.display = 'flex';
+            } else if (state === 'success') {
+                document.getElementById('successState').style.display = 'flex';
+                const usdcValue = currentQuestData.usdc || 0;
+                const difficultyValue = currentQuestData.difficulty || 'Medium';
+                document.getElementById('successDifficulty').textContent = difficultyValue;
+                if (usdcValue > 0) {
+                    document.getElementById('successUSDCContainer').style.display = 'flex';
+                    document.getElementById('successUSDC').textContent = `${usdcValue} USDC`;
+                } else {
+                    document.getElementById('successUSDCContainer').style.display = 'none';
+                }
+                setTimeout(() => { document.getElementById('successProgress').style.width = '100%'; }, 100);
+                document.getElementById('continueBtn').onclick = () => { window.location.href = `/dashboard/quests/${questId}`; };
+            } else if (state === 'error') {
+                document.getElementById('errorState').style.display = 'flex';
+                if (errorMsg) document.getElementById('errorMessage').textContent = errorMsg;
+            }
+        }
+
+        function closeCustomModal() {
+            document.getElementById('customModal').classList.remove('show');
+            setTimeout(() => { document.getElementById('successProgress').style.width = '0%'; }, 300);
+        }
+
+        document.getElementById('questModal')?.addEventListener('click', function(e) { if (e.target === this) closeQuestModal(); });
+        document.getElementById('customModal')?.addEventListener('click', function(e) { if (e.target === this) closeCustomModal(); });
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                document.body.style.overflow = mutation.target.classList.contains('show') ? 'hidden' : '';
+            });
+        });
+        const questModal = document.getElementById('questModal');
+        const customModal = document.getElementById('customModal');
+        if (questModal) observer.observe(questModal, { attributes: true, attributeFilter: ['class'] });
+        if (customModal) observer.observe(customModal, { attributes: true, attributeFilter: ['class'] });
+
+        /* Handle OAuth redirect results */
+        (function() {
+            const p = new URLSearchParams(window.location.search);
+            if (p.get('twitter_connected') === '1') {
+                showToast('X account connected! Quests are now unlocked.', 'success');
+                history.replaceState({}, '', window.location.pathname);
+            }
+            if (p.get('discord_connected') === '1') {
+                showToast('Discord connected! You can now verify Discord tasks.', 'success');
+                history.replaceState({}, '', window.location.pathname);
+            }
+            const err = p.get('error');
+            if (err) {
+                const msgs = {
+                    twitter_denied:          'X authorization was cancelled.',
+                    twitter_failed:          'X connection failed. Please try again.',
+                    twitter_already_linked:  'This X account is already linked to another ONBOARD3 user.',
+                    twitter_invalid_state:   'Session expired. Please try again.',
+                    twitter_session_expired: 'Session expired. Please try again.',
+                    discord_denied:          'Discord authorization was cancelled.',
+                    discord_failed:          'Discord connection failed. Please try again.',
+                    discord_already_linked:  'This Discord account is already linked to another ONBOARD3 user.',
+                    discord_not_configured:  'Discord integration is not configured yet.',
+                    discord_session_expired: 'Session expired. Please try again.'
+                };
+                showToast(msgs[err] || 'Connection error. Please try again.', 'error');
+                history.replaceState({}, '', window.location.pathname);
+            }
+        })();
+
+        /* Animate progress bars after load */
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.querySelectorAll('.qcard-bar-fill').forEach(bar => {
+                    const w = bar.style.width;
+                    bar.style.width = '0%';
+                    setTimeout(() => { bar.style.width = w; }, 100);
+                });
+            }, 200);
+        });
+    </script>
+</body>
+</html>

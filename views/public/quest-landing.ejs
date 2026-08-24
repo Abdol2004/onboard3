@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= quest.title %> — ONBOARD3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0f0a;
+      --surface: #111811;
+      --surface2: #161e16;
+      --border: rgba(255,255,255,0.07);
+      --border-green: rgba(57,255,20,0.2);
+      --green: #39FF14;
+      --green-dim: rgba(57,255,20,0.12);
+      --text: #f0f4f0;
+      --text-2: #9ca89c;
+      --text-3: #5c685c;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Back button */
+    .back-btn {
+      position: fixed;
+      top: 1.25rem;
+      left: 1.25rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: .875rem;
+      font-weight: 600;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: .5rem .875rem;
+      border-radius: 8px;
+      transition: all .2s;
+    }
+    .back-btn:hover { color: var(--green); border-color: var(--border-green); }
+
+    /* Hero */
+    .hero {
+      padding: 4rem 1.5rem 2rem;
+      text-align: center;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .special-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green);
+      background: var(--green-dim);
+      border: 1px solid var(--border-green);
+      padding: .3rem .9rem;
+      border-radius: 50px;
+      margin-bottom: 1.25rem;
+    }
+    .hero-title {
+      font-size: clamp(2rem, 6vw, 3.25rem);
+      font-weight: 900;
+      color: var(--green);
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 40px rgba(57,255,20,0.2);
+    }
+    .hero-desc {
+      color: var(--text-2);
+      font-size: 1.0625rem;
+      max-width: 600px;
+      margin: 0 auto 1.5rem;
+    }
+    .participant-count {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .875rem;
+      font-weight: 600;
+      color: var(--text-2);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: .4rem 1rem;
+      border-radius: 50px;
+      margin-bottom: 1.5rem;
+    }
+    .participant-count i { color: var(--green); }
+
+    /* Countdown */
+    .countdown-wrap {
+      margin: 1.25rem auto;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .cd-unit {
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border-green);
+      border-radius: 12px;
+      padding: .75rem 1.25rem;
+      min-width: 68px;
+    }
+    .cd-num {
+      font-size: 1.75rem;
+      font-weight: 900;
+      color: var(--green);
+      display: block;
+      line-height: 1;
+    }
+    .cd-label {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-top: .25rem;
+      display: block;
+    }
+    .countdown-msg {
+      font-size: .875rem;
+      color: var(--text-3);
+      margin-bottom: .5rem;
+    }
+
+    /* Sponsors */
+    .sponsors-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin: 1.25rem 0;
+    }
+    .sponsor-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: .35rem .875rem;
+      font-size: .8125rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .sponsor-pill img {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .sponsor-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--text-3);
+    }
+
+    /* Main content area */
+    .main-wrap {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 1.25rem 3rem;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: 1.0625rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: .3rem .8rem;
+      border-radius: 50px;
+    }
+    .badge-green  { color: var(--green); background: var(--green-dim); border: 1px solid var(--border-green); }
+    .badge-yellow { color: var(--yellow); background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.25); }
+    .badge-red    { color: var(--red);    background: rgba(239,68,68,.1);  border: 1px solid rgba(239,68,68,.25); }
+    .badge-blue   { color: var(--blue);   background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.25); }
+
+    /* Form elements */
+    .form-group { margin-bottom: 1rem; }
+    .form-label {
+      display: block;
+      font-size: .8125rem;
+      font-weight: 700;
+      color: var(--text-2);
+      margin-bottom: .4rem;
+      letter-spacing: .5px;
+    }
+    .form-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .75rem 1rem;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: .9375rem;
+      transition: border-color .2s;
+      outline: none;
+    }
+    .form-input:focus { border-color: var(--green); }
+    .form-input::placeholder { color: var(--text-3); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      padding: .75rem 1.5rem;
+      border-radius: 10px;
+      font-family: 'Outfit', sans-serif;
+      font-size: .9375rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all .2s;
+      text-decoration: none;
+    }
+    .btn-green {
+      background: var(--green);
+      color: #000;
+    }
+    .btn-green:hover { background: #4dff2a; transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--green); color: var(--green); }
+    .btn-full { width: 100%; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* Steps */
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-bottom: 1rem;
+    }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #000;
+      font-size: .75rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-title { font-size: .9375rem; font-weight: 700; color: var(--text); }
+
+    /* Error / success messages */
+    .msg {
+      padding: .75rem 1rem;
+      border-radius: 8px;
+      font-size: .875rem;
+      font-weight: 600;
+      margin-top: .75rem;
+      display: none;
+    }
+    .msg.show { display: block; }
+    .msg-error   { background: rgba(239,68,68,.1);    border: 1px solid rgba(239,68,68,.25);   color: #f87171; }
+    .msg-success { background: rgba(57,255,20,.08);   border: 1px solid rgba(57,255,20,.2);    color: var(--green); }
+
+    /* Tasks */
+    .task-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.125rem;
+      margin-bottom: .75rem;
+    }
+    .task-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .task-title-wrap { flex: 1; }
+    .task-title { font-size: .9375rem; font-weight: 700; color: var(--text); margin-bottom: .25rem; }
+    .task-desc  { font-size: .8125rem; color: var(--text-2); }
+    .task-xp {
+      font-size: .75rem;
+      font-weight: 800;
+      color: var(--green);
+      background: var(--green-dim);
+      border: 1px solid var(--border-green);
+      border-radius: 6px;
+      padding: .15rem .5rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .task-footer {
+      display: flex;
+      align-items: center;
+      gap: .625rem;
+      margin-top: .875rem;
+    }
+    .task-type-icon { color: var(--text-3); font-size: .8125rem; }
+
+    /* Leaderboard */
+    .lb-row {
+      display: flex;
+      align-items: center;
+      gap: .875rem;
+      padding: .75rem 1rem;
+      border-radius: 10px;
+      margin-bottom: .375rem;
+      background: var(--surface2);
+      border: 1px solid transparent;
+      transition: border-color .2s;
+    }
+    .lb-row:hover { border-color: var(--border); }
+    .lb-row.lb-current { border-color: var(--border-green); background: rgba(57,255,20,.04); }
+    .lb-rank {
+      font-size: .8125rem;
+      font-weight: 900;
+      color: var(--text-3);
+      width: 24px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .lb-rank.top3 { color: var(--yellow); }
+    .lb-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--border);
+    }
+    .lb-name { flex: 1; font-size: .9rem; font-weight: 700; color: var(--text); }
+    .lb-xp   { font-size: .8125rem; font-weight: 800; color: var(--green); }
+
+    /* Info sections */
+    .info-section { margin-bottom: 2rem; }
+    .info-section h3 {
+      font-size: 1.125rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+    .how-steps { display: flex; flex-direction: column; gap: .625rem; }
+    .how-step {
+      display: flex;
+      align-items: flex-start;
+      gap: .875rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .875rem 1rem;
+    }
+    .how-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--green-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--green);
+      font-size: .9rem;
+      flex-shrink: 0;
+    }
+    .how-text h4 { font-size: .9rem; font-weight: 700; color: var(--text); margin-bottom: .15rem; }
+    .how-text p  { font-size: .8125rem; color: var(--text-2); }
+
+    /* Bullet list */
+    .bullet-list { list-style: none; padding: 0; }
+    .bullet-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: .625rem;
+      padding: .5rem 0;
+      font-size: .9rem;
+      color: var(--text-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .bullet-list li:last-child { border-bottom: none; }
+    .bullet-list li i { color: var(--green); margin-top: .2rem; flex-shrink: 0; }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.5rem 0;
+    }
+
+    /* Task submission modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.75);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--text-2);
+      font-size: .875rem;
+      transition: all .2s;
+    }
+    .modal-close:hover { color: var(--red); border-color: rgba(239,68,68,.3); }
+    .modal-title { font-size: 1.0625rem; font-weight: 800; color: var(--text); margin-bottom: 1rem; }
+
+    /* Application info display */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .875rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label { color: var(--text-3); font-weight: 600; }
+    .info-row .value { color: var(--text); font-weight: 700; }
+
+    /* Daily task notice */
+    .daily-notice {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      background: rgba(57,255,20,.05);
+      border: 1px solid var(--border-green);
+      border-radius: 12px;
+      padding: .875rem 1rem;
+      margin-top: 1.25rem;
+      font-size: .875rem;
+      color: var(--text-2);
+    }
+    .daily-notice i { color: var(--green); font-size: 1rem; }
+
+    /* Sponsor section footer */
+    .sponsor-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .sponsor-section h4 { font-size: .875rem; font-weight: 700; color: var(--text-2); margin-bottom: 1rem; }
+    .sponsor-logos {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .sponsor-logo-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .375rem;
+    }
+    .sponsor-logo-circle {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      font-weight: 800;
+      color: var(--green);
+      overflow: hidden;
+    }
+    .sponsor-logo-circle img { width: 100%; height: 100%; object-fit: cover; }
+    .sponsor-logo-name { font-size: .75rem; font-weight: 600; color: var(--text-2); }
+
+    @media (max-width: 640px) {
+      .hero { padding: 3.5rem 1rem 1.5rem; }
+      .card { padding: 1.25rem; }
+      .countdown-wrap { gap: .5rem; }
+      .cd-unit { padding: .6rem .875rem; min-width: 56px; }
+    }
+  </style>
+</head>
+<body>
+
+<a href="/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
+
+<!-- HERO SECTION -->
+<div class="hero">
+  <div class="special-badge"><i class="fas fa-star"></i> Special Quest</div>
+  <h1 class="hero-title">APEX RAIDERS CAMPAIGN</h1>
+
+  <!-- Countdown (only show if quest not started yet) -->
+  <% var now = new Date(); var startDate = new Date(quest.startDate); %>
+  <% if (startDate > now) { %>
+  <div class="countdown-msg">Campaign launches in</div>
+  <div class="countdown-wrap" id="countdownWrap">
+    <div class="cd-unit"><span class="cd-num" id="cdDays">--</span><span class="cd-label">Days</span></div>
+    <div class="cd-unit"><span class="cd-num" id="cdHours">--</span><span class="cd-label">Hours</span></div>
+    <div class="cd-unit"><span class="cd-num" id="cdMins">--</span><span class="cd-label">Mins</span></div>
+    <div class="cd-unit"><span class="cd-num" id="cdSecs">--</span><span class="cd-label">Secs</span></div>
+  </div>
+  <% } %>
+
+  <!-- Sponsors row -->
+  <% if (quest.sponsors && quest.sponsors.length > 0) { %>
+  <div class="sponsors-row">
+    <% quest.sponsors.forEach(function(sp, si) { %>
+    <% if (si > 0) { %><div class="sponsor-dot"></div><% } %>
+    <div class="sponsor-pill">
+      <% if (sp.logo) { %>
+      <img src="<%= sp.logo %>" alt="<%= sp.name %>" onerror="this.style.display='none'">
+      <% } %>
+      <%= sp.name %>
+    </div>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <p class="hero-desc"><%= quest.shortDescription %></p>
+
+  <div class="participant-count">
+    <i class="fas fa-shield-halved"></i>
+    <strong><%= participantCount %></strong> Raiders Enrolled
+  </div>
+</div>
+
+<!-- MAIN CARD -->
+<div class="main-wrap">
+
+  <!-- STATE: public (not logged in) -->
+  <% if (state === 'public') { %>
+  <div class="card">
+    <div class="card-title">Join the Campaign</div>
+    <p style="color:var(--text-2);font-size:.9rem;margin-bottom:1.25rem">You need an access code to join this quest. Log in or sign up, then enter your code to apply.</p>
+    <ul class="bullet-list" style="margin-bottom:1.25rem">
+      <li><i class="fas fa-check-circle"></i> Complete daily social raiding tasks</li>
+      <li><i class="fas fa-check-circle"></i> Climb the leaderboard and earn XP</li>
+      <li><i class="fas fa-check-circle"></i> Top raiders win bonus rewards</li>
+      <li><i class="fas fa-check-circle"></i> Hosted by Eyecoin, Ginox &amp; StxBuzz</li>
+    </ul>
+    <a href="/auth?redirect=/q/<%= quest.slug %>" class="btn btn-green btn-full">
+      <i class="fas fa-right-to-bracket"></i> Login or Sign Up to Join
+    </a>
+  </div>
+  <% } %>
+
+  <!-- STATE: code_entry (logged in, no application) -->
+  <% if (state === 'code_entry') { %>
+  <div class="card">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-title">Enter Your Access Code</div>
+    </div>
+    <p style="color:var(--text-2);font-size:.875rem;margin-bottom:1rem">Enter the code you received to unlock your application.</p>
+    <div class="form-group">
+      <label class="form-label">Access Code</label>
+      <input type="text" id="codeInput" class="form-input" placeholder="e.g. APRAI2526" autocomplete="off" style="text-transform:uppercase;letter-spacing:2px;font-weight:700">
+    </div>
+    <button class="btn btn-green btn-full" id="verifyCodeBtn" onclick="verifyCode()">
+      <i class="fas fa-key"></i> Verify Code
+    </button>
+    <div class="msg msg-error" id="codeError"><i class="fas fa-circle-xmark"></i> Invalid code. Please check and try again.</div>
+    <div class="msg msg-success" id="codeOk"><i class="fas fa-check-circle"></i> Code verified! Complete your application below.</div>
+  </div>
+
+  <!-- Step 2: Application form (hidden until code verified) -->
+  <div class="card" id="step2" style="display:none">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-title">Complete Your Application</div>
+    </div>
+    <p style="color:var(--text-2);font-size:.875rem;margin-bottom:1.25rem">Your application will be reviewed by admin. You'll gain access once approved.</p>
+    <div class="form-group">
+      <label class="form-label">X (Twitter) Handle</label>
+      <input type="text" id="xHandleInput" class="form-input" placeholder="@yourhandle">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Telegram Username</label>
+      <input type="text" id="telegramInput" class="form-input" placeholder="@yourusername">
+    </div>
+    <button class="btn btn-green btn-full" id="applyBtn" onclick="submitApplication()">
+      <i class="fas fa-paper-plane"></i> Submit Application
+    </button>
+    <div class="msg msg-error" id="applyError"></div>
+    <div class="msg msg-success" id="applyOk"><i class="fas fa-check-circle"></i> Application submitted! We'll review and notify you.</div>
+  </div>
+  <% } %>
+
+  <!-- STATE: pending -->
+  <% if (state === 'pending') { %>
+  <div class="card">
+    <div style="margin-bottom:1rem"><span class="badge badge-yellow"><i class="fas fa-clock"></i> Under Review</span></div>
+    <h3 style="font-size:1.125rem;font-weight:800;color:var(--text);margin-bottom:.5rem">Application Submitted</h3>
+    <p style="color:var(--text-2);font-size:.9rem;margin-bottom:1.25rem">Your application has been submitted and is under admin review. You'll be notified once approved.</p>
+    <% if (application) { %>
+    <div class="info-row"><span class="label">X Handle</span><span class="value"><%= application.xHandle || '—' %></span></div>
+    <div class="info-row"><span class="label">Telegram</span><span class="value"><%= application.telegramUsername || '—' %></span></div>
+    <div class="info-row"><span class="label">Submitted</span><span class="value"><%= new Date(application.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></span></div>
+    <% } %>
+  </div>
+  <% } %>
+
+  <!-- STATE: rejected -->
+  <% if (state === 'rejected') { %>
+  <div class="card">
+    <div style="margin-bottom:1rem"><span class="badge badge-red"><i class="fas fa-circle-xmark"></i> Not Approved</span></div>
+    <h3 style="font-size:1.125rem;font-weight:800;color:var(--text);margin-bottom:.5rem">Application Not Approved</h3>
+    <p style="color:var(--text-2);font-size:.9rem;margin-bottom:1rem">Unfortunately your application was not approved at this time.</p>
+    <% if (application && application.rejectionReason) { %>
+    <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:.875rem 1rem;font-size:.875rem;color:#f87171">
+      <strong>Reason:</strong> <%= application.rejectionReason %>
+    </div>
+    <% } %>
+  </div>
+  <% } %>
+
+  <!-- STATE: approved -->
+  <% if (state === 'approved') { %>
+  <div class="card" style="border-color:var(--border-green)">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1rem">
+      <span class="badge badge-green"><i class="fas fa-shield-halved"></i> Approved Member</span>
+      <span style="font-size:.8125rem;color:var(--text-2)">Welcome, <%= user ? user.username : 'Raider' %>!</span>
+    </div>
+
+    <% if (quest.tasks && quest.tasks.length > 0) { %>
+    <div class="card-title" style="margin-bottom:.875rem">Today's Tasks</div>
+    <% quest.tasks.forEach(function(task) { %>
+    <%
+      var tId = task._id ? task._id.toString() : '';
+      var tStatus = taskProgress[tId] || 'none';
+      var isCompleted = tStatus === 'approved' || tStatus === 'auto';
+      var isPending   = tStatus === 'pending';
+      // task type icon
+      var tIcon = 'fa-check';
+      if (task.taskType === 'social')        tIcon = 'fa-share-nodes';
+      else if (task.taskType === 'submission') tIcon = 'fa-upload';
+      else if (task.taskType === 'daily')      tIcon = 'fa-calendar-day';
+      else if (task.taskType === 'external')   tIcon = 'fa-link';
+      else if (task.taskType === 'discord_join') tIcon = 'fa-discord';
+      else if (task.taskType === 'telegram_join') tIcon = 'fa-telegram';
+      else if (task.taskType === 'image_upload')  tIcon = 'fa-image';
+    %>
+    <div class="task-item">
+      <div class="task-header">
+        <div class="task-title-wrap">
+          <div class="task-title"><i class="fas <%= tIcon %> task-type-icon"></i> <%= task.title %></div>
+          <% if (task.description) { %><div class="task-desc"><%= task.description %></div><% } %>
+        </div>
+        <% if (task.xpReward) { %><div class="task-xp">+<%= task.xpReward %> XP</div><% } %>
+      </div>
+      <div class="task-footer">
+        <% if (isCompleted) { %>
+        <span class="badge badge-green" style="font-size:.72rem"><i class="fas fa-check"></i> Completed</span>
+        <% } else if (isPending) { %>
+        <span class="badge badge-yellow" style="font-size:.72rem"><i class="fas fa-clock"></i> Under Review</span>
+        <% } else { %>
+        <button class="btn btn-outline" style="font-size:.8125rem;padding:.5rem 1rem" onclick="openTaskModal('<%= tId %>','<%= task.title.replace(/'/g, "&#39;") %>')">
+          <i class="fas fa-arrow-up-from-bracket"></i> Submit
+        </button>
+        <% if (task.buttonLink) { %>
+        <a href="<%= task.buttonLink %>" target="_blank" class="btn btn-outline" style="font-size:.8125rem;padding:.5rem 1rem">
+          <i class="fas fa-external-link-alt"></i> <%= task.buttonText || 'Open' %>
+        </a>
+        <% } %>
+        <% } %>
+      </div>
+    </div>
+    <% }) %>
+    <% } else { %>
+    <div style="text-align:center;padding:2rem 1rem;color:var(--text-2)">
+      <i class="fas fa-calendar-plus" style="font-size:2rem;color:var(--text-3);display:block;margin-bottom:.75rem"></i>
+      <div style="font-weight:700;color:var(--text);margin-bottom:.25rem">No tasks yet</div>
+      <div style="font-size:.875rem">Admin adds new tasks daily. Check back tomorrow!</div>
+    </div>
+    <% } %>
+
+    <div class="daily-notice">
+      <i class="fas fa-rotate"></i>
+      New tasks are added daily — check back every day to stay on top of the leaderboard!
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:1rem"><i class="fas fa-ranking-star" style="color:var(--green)"></i> Leaderboard</div>
+    <% if (leaderboard && leaderboard.length > 0) { %>
+    <% leaderboard.forEach(function(entry, idx) { %>
+    <%
+      var isMe = user && entry.userId && entry.userId._id && entry.userId._id.toString() === user._id.toString();
+      var entryUsername = entry.userId ? entry.userId.username : 'Unknown';
+      var entryPic = entry.userId && entry.userId.profilePicture ? entry.userId.profilePicture : '/img/default-avatar.png';
+      var entryXp = entry.xpBreakdown ? (entry.xpBreakdown.totalXp || 0) : 0;
+    %>
+    <div class="lb-row <%= isMe ? 'lb-current' : '' %>">
+      <div class="lb-rank <%= idx < 3 ? 'top3' : '' %>">#<%= idx + 1 %></div>
+      <img src="<%= entryPic %>" alt="<%= entryUsername %>" class="lb-avatar" onerror="this.src='/img/default-avatar.png'">
+      <div class="lb-name"><%= entryUsername %><%= isMe ? ' (You)' : '' %></div>
+      <div class="lb-xp"><%= entryXp.toLocaleString() %> XP</div>
+    </div>
+    <% }) %>
+    <% } else { %>
+    <div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.875rem">
+      <i class="fas fa-trophy" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>
+      No rankings yet. Be the first!
+    </div>
+    <% } %>
+  </div>
+  <% } %>
+
+  <!-- INFO SECTIONS (visible to all) -->
+  <hr class="divider">
+
+  <div class="info-section">
+    <h3><i class="fas fa-circle-info" style="color:var(--green);margin-right:.5rem"></i> What is Apex Raiders?</h3>
+    <div class="card" style="color:var(--text-2);font-size:.9rem;line-height:1.8">
+      <p style="margin-bottom:.75rem">Apex Raiders is a competitive social raiding campaign where members complete daily tasks across X (Twitter), Telegram, and other platforms for <strong style="color:var(--text)">Eyecoin, Ginox, and StxBuzz</strong>.</p>
+      <p>The more tasks you complete and the better your submissions, the higher you rank. Top raiders earn bonus XP and rewards at the end of the campaign.</p>
+    </div>
+  </div>
+
+  <div class="info-section">
+    <h3><i class="fas fa-list-ol" style="color:var(--green);margin-right:.5rem"></i> How It Works</h3>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-icon"><i class="fas fa-key"></i></div>
+        <div class="how-text"><h4>Get Your Code</h4><p>Receive your access code from the Eyecoin, Ginox, or StxBuzz communities.</p></div>
+      </div>
+      <div class="how-step">
+        <div class="how-icon"><i class="fas fa-file-pen"></i></div>
+        <div class="how-text"><h4>Apply</h4><p>Enter your code and submit your X handle and Telegram username.</p></div>
+      </div>
+      <div class="how-step">
+        <div class="how-icon"><i class="fas fa-shield-check"></i></div>
+        <div class="how-text"><h4>Get Approved</h4><p>Admin reviews your application. Once approved, you unlock all quest tasks.</p></div>
+      </div>
+      <div class="how-step">
+        <div class="how-icon"><i class="fas fa-bolt"></i></div>
+        <div class="how-text"><h4>Complete Daily Tasks</h4><p>New tasks are added every day. Complete them all to maximize your XP.</p></div>
+      </div>
+      <div class="how-step">
+        <div class="how-icon"><i class="fas fa-trophy"></i></div>
+        <div class="how-text"><h4>Rank Up &amp; Win</h4><p>Quality submissions earn extra XP from admin. Top 10 raiders win bonus rewards.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sponsor section -->
+  <div class="sponsor-section">
+    <h4>HOSTED IN PARTNERSHIP WITH</h4>
+    <div class="sponsor-logos">
+      <% (quest.sponsors || []).forEach(function(sp) { %>
+      <div class="sponsor-logo-item">
+        <div class="sponsor-logo-circle">
+          <% if (sp.logo) { %>
+          <img src="<%= sp.logo %>" alt="<%= sp.name %>" onerror="this.style.display='none';this.parentElement.innerHTML='<%= sp.name.charAt(0) %>'">
+          <% } else { %>
+          <%= sp.name.charAt(0) %>
+          <% } %>
+        </div>
+        <div class="sponsor-logo-name"><%= sp.name %></div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+
+</div>
+
+<!-- TASK SUBMISSION MODAL -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeTaskModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-title" id="modalTaskTitle">Submit Task</div>
+    <p style="color:var(--text-2);font-size:.875rem;margin-bottom:1.25rem">Provide your submission link or proof below.</p>
+    <input type="hidden" id="modalTaskId">
+    <div class="form-group">
+      <label class="form-label">Submission Link or Text</label>
+      <input type="text" id="modalSubmissionUrl" class="form-input" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Additional Notes (optional)</label>
+      <input type="text" id="modalSubmissionText" class="form-input" placeholder="Any context or notes">
+    </div>
+    <div class="msg msg-error" id="modalError"></div>
+    <div class="msg msg-success" id="modalOk"><i class="fas fa-check-circle"></i> Submitted! Under review.</div>
+    <button class="btn btn-green btn-full" id="modalSubmitBtn" onclick="submitTask()">
+      <i class="fas fa-paper-plane"></i> Submit
+    </button>
+  </div>
+</div>
+
+<script>
+var QUEST_ID = '<%= quest._id %>';
+var USER_ID  = '<%= user ? user._id : "" %>';
+
+// ── Countdown timer ──────────────────────────────────────────────
+(function() {
+  var target = new Date('2026-08-24T00:00:00Z').getTime();
+  function tick() {
+    var diff = target - Date.now();
+    if (diff <= 0) {
+      var w = document.getElementById('countdownWrap');
+      if (w) w.style.display = 'none';
+      return;
+    }
+    var d = Math.floor(diff / 86400000);
+    var h = Math.floor((diff % 86400000) / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    var s = Math.floor((diff % 60000) / 1000);
+    var pad = function(n) { return n < 10 ? '0'+n : ''+n; };
+    var el = function(id, v) { var e = document.getElementById(id); if (e) e.textContent = pad(v); };
+    el('cdDays', d); el('cdHours', h); el('cdMins', m); el('cdSecs', s);
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
+// ── Code verification ─────────────────────────────────────────────
+function verifyCode() {
+  var code = (document.getElementById('codeInput').value || '').trim();
+  if (!code) return;
+  var btn = document.getElementById('verifyCodeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+  document.getElementById('codeError').classList.remove('show');
+  document.getElementById('codeOk').classList.remove('show');
+
+  fetch('/api/quests/' + QUEST_ID + '/apply-code', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: code })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-key"></i> Verify Code';
+    if (data.success) {
+      document.getElementById('codeOk').classList.add('show');
+      document.getElementById('step2').style.display = 'block';
+      document.getElementById('step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      document.getElementById('codeError').classList.add('show');
+    }
+  })
+  .catch(function() {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-key"></i> Verify Code';
+    document.getElementById('codeError').classList.add('show');
+  });
+}
+
+// ── Submit application ────────────────────────────────────────────
+function submitApplication() {
+  var xHandle  = (document.getElementById('xHandleInput').value || '').trim();
+  var telegram = (document.getElementById('telegramInput').value || '').trim();
+  var btn      = document.getElementById('applyBtn');
+  var errEl    = document.getElementById('applyError');
+  var okEl     = document.getElementById('applyOk');
+  errEl.classList.remove('show');
+  okEl.classList.remove('show');
+  if (!xHandle && !telegram) {
+    errEl.innerHTML = '<i class="fas fa-circle-xmark"></i> Please fill in at least one field.';
+    errEl.classList.add('show');
+    return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+  fetch('/api/quests/' + QUEST_ID + '/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ xHandle: xHandle, telegramUsername: telegram })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Application';
+    if (data.success) {
+      okEl.classList.add('show');
+      setTimeout(function() { location.reload(); }, 2000);
+    } else {
+      errEl.innerHTML = '<i class="fas fa-circle-xmark"></i> ' + (data.message || 'Error submitting');
+      errEl.classList.add('show');
+    }
+  })
+  .catch(function() {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Application';
+    errEl.innerHTML = '<i class="fas fa-circle-xmark"></i> Network error. Please try again.';
+    errEl.classList.add('show');
+  });
+}
+
+// ── Task modal ────────────────────────────────────────────────────
+var _currentTaskId = null;
+function openTaskModal(taskId, taskTitle) {
+  _currentTaskId = taskId;
+  document.getElementById('modalTaskId').value    = taskId;
+  document.getElementById('modalTaskTitle').textContent = 'Submit: ' + taskTitle;
+  document.getElementById('modalSubmissionUrl').value   = '';
+  document.getElementById('modalSubmissionText').value  = '';
+  document.getElementById('modalError').classList.remove('show');
+  document.getElementById('modalOk').classList.remove('show');
+  document.getElementById('modalSubmitBtn').disabled = false;
+  document.getElementById('modalSubmitBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
+  document.getElementById('taskModal').classList.add('open');
+}
+function closeTaskModal() {
+  document.getElementById('taskModal').classList.remove('open');
+  _currentTaskId = null;
+}
+// Close on overlay click
+document.getElementById('taskModal').addEventListener('click', function(e) {
+  if (e.target === this) closeTaskModal();
+});
+
+function submitTask() {
+  var taskId   = _currentTaskId;
+  var url      = (document.getElementById('modalSubmissionUrl').value  || '').trim();
+  var text     = (document.getElementById('modalSubmissionText').value || '').trim();
+  var btn      = document.getElementById('modalSubmitBtn');
+  var errEl    = document.getElementById('modalError');
+  var okEl     = document.getElementById('modalOk');
+  errEl.classList.remove('show');
+  okEl.classList.remove('show');
+
+  if (!url && !text) {
+    errEl.innerHTML = '<i class="fas fa-circle-xmark"></i> Please provide a submission link or text.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+  fetch('/dashboard/quests/submit-task', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      questId: QUEST_ID,
+      taskId:  taskId,
+      submissionUrl:  url,
+      submissionText: text
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
+    if (data.success) {
+      okEl.classList.add('show');
+      setTimeout(function() { location.reload(); }, 2000);
+    } else {
+      errEl.innerHTML = '<i class="fas fa-circle-xmark"></i> ' + (data.message || 'Error submitting task');
+      errEl.classList.add('show');
+    }
+  })
+  .catch(function() {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
+    errEl.innerHTML = '<i class="fas fa-circle-xmark"></i> Network error. Please try again.';
+    errEl.classList.add('show');
+  });
+}
+
+// Enter key for code input
+document.getElementById('codeInput') && document.getElementById('codeInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') verifyCode();
+});
+</script>
+</body>
+</html>

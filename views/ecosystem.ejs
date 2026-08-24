@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecosystem - ONBOARD3</title>
+    <link rel="stylesheet" href="/css/head.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/ecosystem.css">
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <div class="logo-icon"><img src="./img/logo.png" alt="" style="max-height:100%;max-width:100%;object-fit:contain;"></div>
+                <span class="logo-text">ONBOARD3</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/events" class="nav-link">Events</a></li>
+                <li><a href="/ecosystem" class="nav-link active">Ecosystem</a></li>
+                <li><a href="/partner" class="nav-link">Partner</a></li>
+            </ul>
+            <div class="nav-cta">
+                <a href="/auth" class="btn btn-primary">Get Started</a>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-menu">
+            <br>
+            <li><a href="/" class="mobile-nav-link">Home</a></li>
+            <li><a href="/about" class="mobile-nav-link">About</a></li>
+            <li><a href="/events" class="mobile-nav-link">Events</a></li>
+            <li><a href="/ecosystem" class="mobile-nav-link active">Ecosystem</a></li>
+            <li><a href="/partner" class="mobile-nav-link">Partner</a></li>
+        </ul>
+        <div class="mobile-cta">
+            <a href="/auth" class="btn btn-primary">Get Started</a>
+        </div>
+    </div>
+
+    <!-- ═══════════ PAGE HEADER ═══════════ -->
+    <div class="page-header">
+        <div class="page-header-inner">
+            <div class="page-badge"><i class="fas fa-network-wired"></i> Full Ecosystem</div>
+            <h1>The ONBOARD3<br>Ecosystem</h1>
+            <p>One interconnected network — from your first lesson to your first paycheck in Web3.</p>
+            <div class="header-actions">
+                <a href="/auth" class="btn btn-primary"><i class="fas fa-rocket"></i> Get Onboarded</a>
+                <a href="#diagram" class="btn btn-outline"><i class="fas fa-sitemap"></i> Explore the Map</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ ECOSYSTEM DIAGRAM ═══════════ -->
+    <section class="section" id="diagram">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label reveal-up">How It Connects</span>
+                <h2 class="section-title reveal-up" style="--d:80ms">The <span class="gradient-text">Ecosystem Map</span></h2>
+                <p class="section-sub reveal-up" style="--d:160ms">Four pillars. One mission. Every layer feeds the next.</p>
+            </div>
+
+            <!-- ══ ORBITAL DIAGRAM ══ -->
+            <div class="eco-canvas reveal-up" style="--d:220ms">
+
+                <svg class="eco-svg" viewBox="0 0 1000 500" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs>
+                        <filter id="dot-glow">
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <linearGradient id="lg-tl" x1="500" y1="240" x2="240" y2="110" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#5EC213" stop-opacity="0.6"/>
+                            <stop offset="100%" stop-color="#5EC213" stop-opacity="0.1"/>
+                        </linearGradient>
+                        <linearGradient id="lg-tr" x1="500" y1="240" x2="760" y2="110" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#5EC213" stop-opacity="0.6"/>
+                            <stop offset="100%" stop-color="#5EC213" stop-opacity="0.1"/>
+                        </linearGradient>
+                        <linearGradient id="lg-bc" x1="500" y1="310" x2="500" y2="400" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#5EC213" stop-opacity="0.6"/>
+                            <stop offset="100%" stop-color="#5EC213" stop-opacity="0.1"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Outer orbit ring -->
+                    <ellipse cx="500" cy="250" rx="220" ry="140" stroke="rgba(94,194,19,0.08)" stroke-width="1" stroke-dasharray="3 9"/>
+
+                    <!-- Paths: hub outward -->
+                    <path id="dp-tl" d="M 445,195 C 400,175 330,150 255,118" stroke="url(#lg-tl)" stroke-width="1.5" stroke-dasharray="5 7"/>
+                    <path id="dp-tr" d="M 555,195 C 600,175 670,150 745,118" stroke="url(#lg-tr)" stroke-width="1.5" stroke-dasharray="5 7"/>
+                    <path id="dp-bc" d="M 500,315 C 500,348 500,372 500,396" stroke="url(#lg-bc)" stroke-width="1.5" stroke-dasharray="5 7"/>
+
+                    <!-- Animated flow dots: hub → TL -->
+                    <circle r="4" fill="#78E02A" filter="url(#dot-glow)">
+                        <animateMotion dur="2.6s" repeatCount="indefinite" rotate="auto">
+                            <mpath href="#dp-tl"/>
+                        </animateMotion>
+                    </circle>
+                    <circle r="3" fill="#5EC213" opacity="0.5" filter="url(#dot-glow)">
+                        <animateMotion dur="2.6s" begin="1.3s" repeatCount="indefinite" rotate="auto">
+                            <mpath href="#dp-tl"/>
+                        </animateMotion>
+                    </circle>
+
+                    <!-- hub → TR -->
+                    <circle r="4" fill="#78E02A" filter="url(#dot-glow)">
+                        <animateMotion dur="2.6s" begin="0.85s" repeatCount="indefinite" rotate="auto">
+                            <mpath href="#dp-tr"/>
+                        </animateMotion>
+                    </circle>
+                    <circle r="3" fill="#5EC213" opacity="0.5" filter="url(#dot-glow)">
+                        <animateMotion dur="2.6s" begin="2.15s" repeatCount="indefinite" rotate="auto">
+                            <mpath href="#dp-tr"/>
+                        </animateMotion>
+                    </circle>
+
+                    <!-- hub → BC -->
+                    <circle r="4" fill="#78E02A" filter="url(#dot-glow)">
+                        <animateMotion dur="1.8s" begin="0.4s" repeatCount="indefinite" rotate="auto">
+                            <mpath href="#dp-bc"/>
+                        </animateMotion>
+                    </circle>
+                    <circle r="3" fill="#5EC213" opacity="0.5" filter="url(#dot-glow)">
+                        <animateMotion dur="1.8s" begin="1.3s" repeatCount="indefinite" rotate="auto">
+                            <mpath href="#dp-bc"/>
+                        </animateMotion>
+                    </circle>
+
+                    <!-- Node halos -->
+                    <circle cx="500" cy="250" r="72" stroke="rgba(94,194,19,0.18)" stroke-width="1.5" fill="none"/>
+                    <circle cx="500" cy="250" r="88" stroke="rgba(94,194,19,0.07)" stroke-width="1" fill="none" stroke-dasharray="4 10"/>
+                </svg>
+
+                <!-- ── HUB ── -->
+                <div class="eco-hub">
+                    <div class="eco-hub-ring"></div>
+                    <img src="./img/logo.png" alt="ONBOARD3" class="eco-hub-logo">
+                    <div class="eco-hub-name">ONBOARD3</div>
+                    <div class="eco-hub-tag">Core Platform</div>
+                </div>
+
+                <!-- ── ENTRY HUB (top-left) ── -->
+                <div class="eco-card eco-card--tl reveal-up" style="--d:300ms">
+                    <div class="eco-card-head">
+                        <div class="eco-card-icon"><i class="fas fa-door-open"></i></div>
+                        <div>
+                            <div class="eco-card-title">Entry Hub</div>
+                            <div class="eco-card-sub">Where it starts</div>
+                        </div>
+                    </div>
+                    <div class="eco-card-items">
+                        <span><i class="fas fa-circle"></i> Onboarding</span>
+                        <span><i class="fas fa-circle"></i> Skill Training</span>
+                        <span><i class="fas fa-circle"></i> Learn to Earn</span>
+                    </div>
+                </div>
+
+                <!-- ── COMMUNITY (top-right) ── -->
+                <div class="eco-card eco-card--tr reveal-up" style="--d:380ms">
+                    <div class="eco-card-head">
+                        <div class="eco-card-icon"><i class="fas fa-users"></i></div>
+                        <div>
+                            <div class="eco-card-title">Community</div>
+                            <div class="eco-card-sub">Where you belong</div>
+                        </div>
+                    </div>
+                    <div class="eco-card-items">
+                        <span><i class="fas fa-circle"></i> Campus Events</span>
+                        <span><i class="fas fa-circle"></i> Exclusive Chat</span>
+                        <span><i class="fas fa-circle"></i> Identity System</span>
+                    </div>
+                </div>
+
+                <!-- ── OPPORTUNITIES (bottom-center) ── -->
+                <div class="eco-card eco-card--bc reveal-up" style="--d:460ms">
+                    <div class="eco-card-head">
+                        <div class="eco-card-icon"><i class="fas fa-bolt"></i></div>
+                        <div>
+                            <div class="eco-card-title">Opportunities</div>
+                            <div class="eco-card-sub">Where you earn</div>
+                        </div>
+                    </div>
+                    <div class="eco-card-items eco-card-items--row">
+                        <span><i class="fas fa-circle"></i> Quests</span>
+                        <span><i class="fas fa-circle"></i> Bounties</span>
+                        <span><i class="fas fa-circle"></i> Academy</span>
+                        <span><i class="fas fa-circle"></i> Agency</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ ROADMAP ═══════════ -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label reveal-up">Progress</span>
+                <h2 class="section-title reveal-up" style="--d:80ms">Our <span class="gradient-text">Roadmap</span></h2>
+                <p class="section-sub reveal-up" style="--d:160ms">The journey to onboard the next million Web3 builders.</p>
+            </div>
+            <div class="roadmap-list">
+                <div class="roadmap-item reveal-up" style="--d:0ms">
+                    <div class="roadmap-left">
+                        <div class="roadmap-dot done"><i class="fas fa-check"></i></div>
+                        <div class="roadmap-line"></div>
+                    </div>
+                    <div class="roadmap-content">
+                        <div class="roadmap-phase">Phase 1 · Q4 2025</div>
+                        <h3>Foundation</h3>
+                        <ul>
+                            <li><i class="fas fa-circle"></i> Launch ONBOARD3 platform</li>
+                            <li><i class="fas fa-circle"></i> Onboard first members</li>
+                            <li><i class="fas fa-circle"></i> Establish core curriculum</li>
+                            <li><i class="fas fa-circle"></i> Build Web3 protocol partnerships</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="roadmap-item reveal-up" style="--d:100ms">
+                    <div class="roadmap-left">
+                        <div class="roadmap-dot current"><i class="fas fa-rocket"></i></div>
+                        <div class="roadmap-line"></div>
+                    </div>
+                    <div class="roadmap-content">
+                        <div class="roadmap-phase">Phase 2 · Q1 2026</div>
+                        <h3>Growth &amp; Expansion</h3>
+                        <ul>
+                            <li><i class="fas fa-circle"></i> Introduce gamified system</li>
+                            <li><i class="fas fa-circle"></i> Scale to 30,000+ active members</li>
+                            <li><i class="fas fa-circle"></i> Host first IRL meetup events</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="roadmap-item reveal-up" style="--d:200ms">
+                    <div class="roadmap-left">
+                        <div class="roadmap-dot"><i class="fas fa-globe"></i></div>
+                        <div class="roadmap-line"></div>
+                    </div>
+                    <div class="roadmap-content">
+                        <div class="roadmap-phase">Phase 3 · Q2–Q3 2026</div>
+                        <h3>Ecosystem Development</h3>
+                        <ul>
+                            <li><i class="fas fa-circle"></i> Launch project incubator</li>
+                            <li><i class="fas fa-circle"></i> Launch ONBOARD3 Academy</li>
+                            <li><i class="fas fa-circle"></i> Launch ONBOARD3 Agency</li>
+                            <li><i class="fas fa-circle"></i> Launch Bounty Platform</li>
+                            <li><i class="fas fa-circle"></i> Expand to multiple regions</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="roadmap-item reveal-up" style="--d:300ms">
+                    <div class="roadmap-left">
+                        <div class="roadmap-dot"><i class="fas fa-trophy"></i></div>
+                        <div class="roadmap-line"></div>
+                    </div>
+                    <div class="roadmap-content">
+                        <div class="roadmap-phase">Phase 4 · Q4 2026 &amp; Beyond</div>
+                        <h3>The ONBOARD3 Era</h3>
+                        <ul>
+                            <li><i class="fas fa-circle"></i> Launch ONBOARD3 NFT collection</li>
+                            <li><i class="fas fa-circle"></i> Host ONBOARD3 Summit — our biggest Web3 event</li>
+                            <li><i class="fas fa-circle"></i> Campus chapters in 10+ African cities</li>
+                            <li><i class="fas fa-circle"></i> Verified on-chain credential (proof of skill)</li>
+                            <li><i class="fas fa-circle"></i> Live placements via top Web3 protocol partnerships</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ PROJECTS ═══════════ -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label reveal-up">Why Us</span>
+                <h2 class="section-title reveal-up" style="--d:80ms">Built <span class="gradient-text">Different</span></h2>
+                <p class="section-sub reveal-up" style="--d:160ms">Most Web3 communities teach. We activate.</p>
+            </div>
+            <div class="diff-grid">
+                <div class="diff-card reveal-up" style="--d:0ms">
+                    <div class="diff-icon"><i class="fas fa-coins"></i></div>
+                    <h3>Earn from Day One</h3>
+                    <p>No waiting until you "finish the course." Complete simple quests — follow, retweet, fill a form — and earn real USD immediately. Skill is optional. Showing up is not.</p>
+                </div>
+                <div class="diff-card reveal-up" style="--d:100ms">
+                    <div class="diff-icon"><i class="fas fa-network-wired"></i></div>
+                    <h3>A Network, Not a Course</h3>
+                    <p>ONBOARD3 is a living community — IRL events, campus chapters, exclusive group chats, and an identity system that grows with you as you level up in Web3.</p>
+                </div>
+                <div class="diff-card reveal-up" style="--d:200ms">
+                    <div class="diff-icon"><i class="fas fa-briefcase"></i></div>
+                    <h3>Real Pipelines to Real Work</h3>
+                    <p>The Agency connects proven creators and builders directly to Web3 projects. The Academy turns learners into hires. We don't just teach — we place people.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ CTA ═══════════ -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-card reveal-up">
+                <div class="cta-glow"></div>
+                <h2>Ready to Join the<br><span class="gradient-text">ONBOARD3 Ecosystem?</span></h2>
+                <p>Thousands of builders are already learning, earning, and building. Your spot is waiting.</p>
+                <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+                    <a href="/auth" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Get Onboarded Now</a>
+                    <a href="https://t.me/onboard_3" target="_blank" class="btn btn-outline btn-lg"><i class="fab fa-telegram"></i> Join Telegram</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ FOOTER ═══════════ -->
+    <footer>
+        <div class="container">
+            <div class="footer-top">
+                <a href="/" class="footer-logo">
+                    <img src="./img/logo.png" alt="ONBOARD3" style="height:32px;object-fit:contain;mix-blend-mode:screen;">
+                    <span>ONBOARD3</span>
+                </a>
+                <div class="footer-links">
+                    <a href="/about">About</a>
+                    <a href="/events">Events</a>
+                    <a href="/ecosystem">Ecosystem</a>
+                    <a href="/partner">Partner</a>
+                </div>
+                <div class="footer-social">
+                    <a href="https://x.com/onboard3__" target="_blank" class="social-link" title="X / Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="https://t.me/onboard_3" target="_blank" class="social-link" title="Telegram"><i class="fab fa-telegram"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-tagline">© 2025 ONBOARD3 · Onboard. Educate. Build.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Project Modal -->
+    <div id="projectModal" class="project-modal">
+        <div class="modal-overlay" onclick="closeProjectModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Submit Your Project</h2>
+                <button class="modal-close" onclick="closeProjectModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="projectSubmissionForm" onsubmit="submitProject(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Project Name *</label>
+                            <input type="text" id="projectName" required placeholder="Your project name">
+                        </div>
+                        <div class="form-group">
+                            <label>Category *</label>
+                            <select id="category" required>
+                                <option value="">Select</option>
+                                <option>DeFi</option><option>NFT</option><option>DAO</option>
+                                <option>Gaming</option><option>Infrastructure</option>
+                                <option>Social</option><option>Education</option><option>AI</option><option>Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <textarea id="description" required placeholder="What problem does it solve?" rows="4"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Stage *</label>
+                            <select id="stage" required>
+                                <option value="">Select</option>
+                                <option>Idea</option><option>In Development</option><option>MVP</option><option>Live</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Team Size *</label>
+                            <input type="number" id="teamSize" required placeholder="e.g. 3" min="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Skills Needed *</label>
+                        <input type="text" id="skillsNeeded" required placeholder="e.g. Solidity, React, UI/UX">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Email *</label>
+                        <input type="email" id="contactEmail" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Website / GitHub</label>
+                        <input type="url" id="website" placeholder="https://...">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeProjectModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/head.js"></script>
+    <script>
+        // Navbar scroll
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Scroll reveal
+        const revealObs = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+        document.querySelectorAll('.reveal-up').forEach(el => revealObs.observe(el));
+
+        // Modal
+        function openProjectModal() {
+            document.getElementById('projectModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeProjectModal() {
+            document.getElementById('projectModal').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('projectSubmissionForm').reset();
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProjectModal(); });
+
+        async function submitProject(e) {
+            e.preventDefault();
+            try {
+                const res = await fetch('/api/projects/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        projectName: document.getElementById('projectName').value,
+                        category: document.getElementById('category').value,
+                        description: document.getElementById('description').value,
+                        stage: document.getElementById('stage').value,
+                        teamSize: parseInt(document.getElementById('teamSize').value),
+                        skillsNeeded: document.getElementById('skillsNeeded').value,
+                        contactEmail: document.getElementById('contactEmail').value,
+                        website: document.getElementById('website').value,
+                    })
+                });
+                const result = await res.json();
+                if (res.ok) { alert('Project submitted! We will review and reach out soon.'); closeProjectModal(); }
+                else { alert('Error: ' + (result.message || 'Failed to submit')); }
+            } catch { alert('Could not submit. Please try again.'); }
+        }
+    </script>
+</body>
+</html>

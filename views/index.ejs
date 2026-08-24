@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONBOARD3 — Learn. Earn. Build in Web3.</title>
+    <link rel="stylesheet" href="/css/head.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <script>(function(){var t=localStorage.getItem('onboard3-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    <div class="noise-overlay"></div>
+
+    <!-- ═══ NAVBAR ═══ -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <div class="logo-icon"><img src="./img/logo.png" alt="ONBOARD3" style="max-height:100%;max-width:100%;object-fit:contain;"></div>
+                <span class="logo-text">ONBOARD3</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link active">Home</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/events" class="nav-link">Events</a></li>
+                <li><a href="/ecosystem" class="nav-link">Ecosystem</a></li>
+                <li><a href="/partner" class="nav-link">Partner</a></li>
+            </ul>
+            <div class="nav-cta">
+                <a href="/auth" class="btn btn-primary">Get Started</a>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-menu">
+            <br>
+            <li><a href="/" class="mobile-nav-link active">Home</a></li>
+            <li><a href="/about" class="mobile-nav-link">About</a></li>
+            <li><a href="/events" class="mobile-nav-link">Events</a></li>
+            <li><a href="/ecosystem" class="mobile-nav-link">Ecosystem</a></li>
+            <li><a href="/partner" class="mobile-nav-link">Partner</a></li>
+        </ul>
+        <div class="mobile-cta">
+            <a href="/auth" class="btn btn-primary">Get Started</a>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ HERO ═══════════════════ -->
+    <section class="hero">
+        <div class="hero-bg-lines"></div>
+        <div class="hero-glow-1"></div>
+        <div class="hero-glow-2"></div>
+        <div class="container hero-container">
+
+            <!-- Left -->
+            <div class="hero-left">
+                <h1 class="reveal-up" style="--d:0ms">
+                    Build Your<br>
+                    <span class="gradient-text typed-wrap"><span id="typedText"></span></span><br>
+                    Career Here.
+                </h1>
+
+                <p class="hero-sub reveal-up" style="--d:120ms">
+                    The #1 platform training the next generation of Web3 Developers, Creators, and Community Builders — through quests, courses, and real rewards.
+                </p>
+
+                <div class="hero-cta reveal-up" style="--d:220ms">
+                    <a href="/auth" class="btn btn-primary btn-hero">
+                        <i class="fas fa-rocket"></i> Get Onboarded
+                    </a>
+                    <a href="/about" class="btn btn-ghost">
+                        How it works <i class="fas fa-arrow-right" style="font-size:.75rem"></i>
+                    </a>
+                </div>
+
+                <div class="hero-stats reveal-up" style="--d:320ms">
+                    <div class="hstat">
+                        <span class="hstat-num count-up" data-target="<%= totalSignups || 17000 %>">0</span>
+                        <span class="hstat-label">Builders</span>
+                    </div>
+                    <div class="hstat-divider"></div>
+                    <div class="hstat">
+                        <span class="hstat-num">$<%= totalUSDC || '50K+' %></span>
+                        <span class="hstat-label">USDC Paid Out</span>
+                    </div>
+                    <div class="hstat-divider"></div>
+                    <div class="hstat">
+                        <span class="hstat-num"><%= activeQuests || 50 %>+</span>
+                        <span class="hstat-label">Live Quests</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: UI Mockup -->
+            <div class="hero-right reveal-up" style="--d:100ms">
+                <div class="hero-visual">
+                    <div class="mock-card mock-quest float-a">
+                        <div class="mock-card-top">
+                            <div class="mock-badge-icon"><i class="fas fa-crosshairs"></i></div>
+                            <span class="mock-type">ACTIVE QUEST</span>
+                        </div>
+                        <div class="mock-card-title">Complete Web3 Intro</div>
+                        <div class="mock-card-meta">
+                            <span><i class="fas fa-tasks"></i> 4 tasks</span>
+                            <span><i class="fas fa-bolt"></i> 500 XP</span>
+                        </div>
+                        <div class="mock-progress-bar"><div class="mock-progress-fill" style="width:65%"></div></div>
+                        <div class="mock-progress-label">65% complete</div>
+                    </div>
+
+                    <div class="mock-notif float-b">
+                        <div class="mock-notif-icon"><i class="fas fa-bolt"></i></div>
+                        <div>
+                            <div class="mock-notif-title">+250 XP Earned</div>
+                            <div class="mock-notif-sub">Task completed</div>
+                        </div>
+                    </div>
+
+                    <div class="mock-card mock-rank float-c">
+                        <div class="mock-rank-label">YOUR RANK</div>
+                        <div class="mock-rank-name">Contributor</div>
+                        <div class="mock-rank-xp">12,400 XP</div>
+                        <div class="mock-rank-bar"><div class="mock-rank-fill" style="width:55%"></div></div>
+                        <div class="mock-rank-next">→ Captain at 25,000 XP</div>
+                    </div>
+
+                    <div class="mock-usdc float-d">
+                        <span>$0.30</span>
+                        <span class="mock-usdc-sub">USDC reward</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════ ECOSYSTEM PILLARS ═══════════════════ -->
+    <section class="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label reveal-up">What We Offer</span>
+                <h2 class="section-title reveal-up">The complete Web3<br><span class="highlight">ecosystem for builders.</span></h2>
+                <p class="section-sub reveal-up" style="color:var(--text-muted);font-size:.9375rem;max-width:520px;margin:0 auto">One platform. Four pathways. Everything you need to learn, earn, connect IRL, and build your future in Web3.</p>
+            </div>
+
+            <!-- Ecosystem flow line -->
+            <div class="eco-flow reveal-up">
+                <span>LEARN</span>
+                <i class="fas fa-arrow-right"></i>
+                <span>EARN</span>
+                <i class="fas fa-arrow-right"></i>
+                <span>IRL</span>
+                <i class="fas fa-arrow-right"></i>
+                <span>BUILD</span>
+            </div>
+
+            <div class="pillars-grid">
+
+                <!-- PILLAR 1: LEARN -->
+                <div class="pillar-card pillar-learn reveal-up" style="--d:0ms">
+                    <div class="pillar-head">
+                        <div class="pillar-icon pillar-icon--learn"><i class="fas fa-graduation-cap"></i></div>
+                        <div>
+                            <div class="pillar-label">01</div>
+                            <h3 class="pillar-name">Onboard3 <span>Learn</span></h3>
+                        </div>
+                    </div>
+                    <p class="pillar-tagline">Education + Career</p>
+                    <p class="pillar-idea">Learn → Build skills → Become job-ready → Find opportunities</p>
+                    <ul class="pillar-list">
+                        <li><i class="fas fa-circle-dot"></i> Web3 education &amp; Onboard3 Academy</li>
+                        <li><i class="fas fa-circle-dot"></i> Career pathways — AI, NFT, DeFi, Degen</li>
+                        <li><i class="fas fa-circle-dot"></i> Skills development &amp; workshops</li>
+                        <li><i class="fas fa-circle-dot"></i> Mentorship &amp; portfolio building</li>
+                        <li><i class="fas fa-circle-dot"></i> Web3 jobs &amp; career opportunities</li>
+                    </ul>
+                    <a href="/auth" class="pillar-cta pillar-cta--learn">Start Learning <i class="fas fa-arrow-right"></i></a>
+                </div>
+
+                <!-- PILLAR 2: EARN -->
+                <div class="pillar-card pillar-earn reveal-up" style="--d:80ms">
+                    <div class="pillar-head">
+                        <div class="pillar-icon pillar-icon--earn"><i class="fas fa-coins"></i></div>
+                        <div>
+                            <div class="pillar-label">02</div>
+                            <h3 class="pillar-name">Onboard3 <span>Earn</span></h3>
+                        </div>
+                    </div>
+                    <p class="pillar-tagline">Participate + Contribute</p>
+                    <p class="pillar-idea">Participate → Contribute → Earn</p>
+                    <ul class="pillar-list">
+                        <li><i class="fas fa-circle-dot"></i> Quests — tasks that pay in XP &amp; USDC</li>
+                        <li><i class="fas fa-circle-dot"></i> Bounties — creative briefs from Web3 brands</li>
+                        <li><i class="fas fa-circle-dot"></i> Project campaigns &amp; special missions</li>
+                        <li><i class="fas fa-circle-dot"></i> Rewards &amp; leaderboard prizes</li>
+                        <li><i class="fas fa-circle-dot"></i> Paid opportunities for top contributors</li>
+                    </ul>
+                    <a href="/auth" class="pillar-cta pillar-cta--earn">Start Earning <i class="fas fa-arrow-right"></i></a>
+                </div>
+
+                <!-- PILLAR 3: IRL -->
+                <div class="pillar-card pillar-irl reveal-up" style="--d:160ms">
+                    <div class="pillar-head">
+                        <div class="pillar-icon pillar-icon--irl"><i class="fas fa-map-location-dot"></i></div>
+                        <div>
+                            <div class="pillar-label">03</div>
+                            <h3 class="pillar-name">Onboard3 <span>IRL</span></h3>
+                        </div>
+                    </div>
+                    <p class="pillar-tagline">Online → Real World</p>
+                    <p class="pillar-idea">Learn online → Meet IRL → Join the ecosystem → Bring more people in</p>
+                    <ul class="pillar-list">
+                        <li><i class="fas fa-circle-dot"></i> Campus programs &amp; ambassador network</li>
+                        <li><i class="fas fa-circle-dot"></i> Campus tours &amp; university outreach</li>
+                        <li><i class="fas fa-circle-dot"></i> Conferences &amp; workshops</li>
+                        <li><i class="fas fa-circle-dot"></i> Meetups &amp; networking events</li>
+                        <li><i class="fas fa-circle-dot"></i> Regional &amp; community events</li>
+                    </ul>
+                    <a href="/auth" class="pillar-cta pillar-cta--irl">Join IRL <i class="fas fa-arrow-right"></i></a>
+                </div>
+
+                <!-- PILLAR 4: BUILD (coming soon) -->
+                <div class="pillar-card pillar-build reveal-up" style="--d:240ms">
+                    <div class="pillar-soon-badge">Coming Soon</div>
+                    <div class="pillar-head">
+                        <div class="pillar-icon pillar-icon--build"><i class="fas fa-hammer"></i></div>
+                        <div>
+                            <div class="pillar-label">04</div>
+                            <h3 class="pillar-name">Onboard3 <span>Build</span></h3>
+                        </div>
+                    </div>
+                    <p class="pillar-tagline">Builders + Creators</p>
+                    <p class="pillar-idea">Ideate → Build → Ship → Scale with the community</p>
+                    <ul class="pillar-list">
+                        <li><i class="fas fa-circle-dot"></i> Project incubation &amp; builder support</li>
+                        <li><i class="fas fa-circle-dot"></i> Hackathons &amp; build challenges</li>
+                        <li><i class="fas fa-circle-dot"></i> Developer &amp; creator programs</li>
+                        <li><i class="fas fa-circle-dot"></i> Product feedback &amp; community testing</li>
+                        <li><i class="fas fa-circle-dot"></i> Web3 project launchpad</li>
+                    </ul>
+                    <div class="pillar-cta pillar-cta--build" style="cursor:default;opacity:.6"><i class="fas fa-clock"></i> Launching Soon</div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <style>
+    .eco-flow {
+        display: flex; align-items: center; justify-content: center; gap: 1rem;
+        margin-bottom: 3rem; flex-wrap: wrap;
+    }
+    .eco-flow span {
+        font-size: .78rem; font-weight: 900; letter-spacing: 2px;
+        color: var(--text-muted); padding: .35rem 1rem; border-radius: 50px;
+        border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03);
+    }
+    .eco-flow i { color: rgba(255,255,255,.2); font-size: .75rem; }
+
+    .pillars-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.25rem;
+    }
+    @media (max-width: 1100px) { .pillars-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px)  { .pillars-grid { grid-template-columns: 1fr; } }
+
+    .pillar-card {
+        border-radius: 22px; padding: 1.75rem 1.5rem;
+        display: flex; flex-direction: column; gap: .875rem;
+        border: 1px solid rgba(255,255,255,.08);
+        background: rgba(15,22,15,.7);
+        position: relative; overflow: hidden;
+        transition: transform .3s cubic-bezier(.4,0,.2,1), box-shadow .3s, border-color .3s;
+    }
+    .pillar-card:hover { transform: translateY(-6px); }
+
+    .pillar-learn { border-color: rgba(94,194,19,.2); background: linear-gradient(160deg, rgba(94,194,19,.06) 0%, rgba(15,22,15,.9) 60%); }
+    .pillar-learn:hover { border-color: rgba(94,194,19,.45); box-shadow: 0 20px 60px rgba(94,194,19,.12); }
+
+    .pillar-earn { border-color: rgba(251,191,36,.2); background: linear-gradient(160deg, rgba(251,191,36,.06) 0%, rgba(15,22,15,.9) 60%); }
+    .pillar-earn:hover { border-color: rgba(251,191,36,.45); box-shadow: 0 20px 60px rgba(251,191,36,.12); }
+
+    .pillar-irl { border-color: rgba(96,165,250,.2); background: linear-gradient(160deg, rgba(96,165,250,.06) 0%, rgba(15,22,15,.9) 60%); }
+    .pillar-irl:hover { border-color: rgba(96,165,250,.45); box-shadow: 0 20px 60px rgba(96,165,250,.12); }
+
+    .pillar-build { border-color: rgba(251,146,60,.2); background: linear-gradient(160deg, rgba(251,146,60,.05) 0%, rgba(15,22,15,.9) 60%); opacity:.85; }
+    .pillar-build:hover { border-color: rgba(251,146,60,.4); box-shadow: 0 20px 60px rgba(251,146,60,.1); opacity:1; }
+
+    .pillar-head { display: flex; align-items: flex-start; gap: .875rem; }
+    .pillar-icon {
+        width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 1.125rem;
+    }
+    .pillar-icon--learn { background: rgba(94,194,19,.15);  color: #5ec213; border: 1px solid rgba(94,194,19,.3); }
+    .pillar-icon--earn  { background: rgba(251,191,36,.15); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+    .pillar-icon--irl   { background: rgba(96,165,250,.15); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+    .pillar-icon--build { background: rgba(251,146,60,.15); color: #fb923c; border: 1px solid rgba(251,146,60,.3); }
+
+    .pillar-label { font-size: .65rem; font-weight: 900; letter-spacing: 1.5px; color: rgba(255,255,255,.3); text-transform: uppercase; margin-bottom: .15rem; }
+    .pillar-name { font-size: .9375rem; font-weight: 900; color: #e8e8e8; letter-spacing: -.2px; }
+    .pillar-learn .pillar-name span { color: #5ec213; }
+    .pillar-earn  .pillar-name span { color: #fbbf24; }
+    .pillar-irl   .pillar-name span { color: #60a5fa; }
+    .pillar-build .pillar-name span { color: #fb923c; }
+
+    .pillar-tagline { font-size: .78rem; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: rgba(255,255,255,.35); }
+
+    .pillar-idea {
+        font-size: .78rem; color: rgba(255,255,255,.4); line-height: 1.55;
+        padding: .5rem .75rem; border-radius: 8px; background: rgba(255,255,255,.03);
+        border-left: 2px solid rgba(255,255,255,.1); font-style: italic;
+    }
+    .pillar-learn .pillar-idea { border-left-color: rgba(94,194,19,.4); }
+    .pillar-earn  .pillar-idea { border-left-color: rgba(251,191,36,.4); }
+    .pillar-irl   .pillar-idea { border-left-color: rgba(96,165,250,.4); }
+    .pillar-build .pillar-idea { border-left-color: rgba(251,146,60,.4); }
+
+    .pillar-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .5rem; flex: 1; }
+    .pillar-list li { display: flex; align-items: flex-start; gap: .5rem; font-size: .8125rem; color: rgba(255,255,255,.55); line-height: 1.5; }
+    .pillar-learn .pillar-list li i { color: #5ec213; font-size: .5rem; margin-top: .35rem; }
+    .pillar-earn  .pillar-list li i { color: #fbbf24; font-size: .5rem; margin-top: .35rem; }
+    .pillar-irl   .pillar-list li i { color: #60a5fa; font-size: .5rem; margin-top: .35rem; }
+    .pillar-build .pillar-list li i { color: #fb923c; font-size: .5rem; margin-top: .35rem; }
+
+    .pillar-cta {
+        display: inline-flex; align-items: center; gap: .4rem;
+        padding: .65rem 1.25rem; border-radius: 10px; font-size: .8125rem; font-weight: 800;
+        text-decoration: none; width: fit-content; margin-top: auto; transition: all .25s;
+    }
+    .pillar-cta--learn { background: rgba(94,194,19,.12);  color: #5ec213; border: 1px solid rgba(94,194,19,.3); }
+    .pillar-cta--earn  { background: rgba(251,191,36,.12); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+    .pillar-cta--irl   { background: rgba(96,165,250,.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+    .pillar-cta--build { background: rgba(251,146,60,.08); color: #fb923c; border: 1px solid rgba(251,146,60,.2); display:inline-flex;align-items:center;gap:.4rem;padding:.65rem 1.25rem;border-radius:10px;font-size:.8125rem;font-weight:800;width:fit-content; }
+    .pillar-cta--learn:hover { background: rgba(94,194,19,.22);  box-shadow: 0 4px 16px rgba(94,194,19,.2); }
+    .pillar-cta--earn:hover  { background: rgba(251,191,36,.22); box-shadow: 0 4px 16px rgba(251,191,36,.2); }
+    .pillar-cta--irl:hover   { background: rgba(96,165,250,.22); box-shadow: 0 4px 16px rgba(96,165,250,.2); }
+
+    .pillar-soon-badge {
+        position: absolute; top: 1rem; right: 1rem;
+        font-size: .65rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;
+        background: rgba(251,146,60,.15); color: #fb923c; border: 1px solid rgba(251,146,60,.3);
+        padding: .2rem .6rem; border-radius: 50px;
+    }
+    </style>
+
+    <!-- ═══════════════════ HOW IT WORKS ═══════════════════ -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label reveal-up">The Journey</span>
+                <h2 class="section-title reveal-up">Four steps to your<br><span class="highlight">Web3 career.</span></h2>
+            </div>
+            <div class="steps-row">
+                <div class="step-item reveal-up" style="--d:0ms">
+                    <div class="step-num">01</div>
+                    <div class="step-body">
+                        <h3>Sign Up</h3>
+                        <p>Create your profile, choose a pathway, and get your onboarding reward instantly.</p>
+                    </div>
+                </div>
+                <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
+                <div class="step-item reveal-up" style="--d:100ms">
+                    <div class="step-num">02</div>
+                    <div class="step-body">
+                        <h3>Learn</h3>
+                        <p>Complete structured quests and courses to level up your Web3 knowledge.</p>
+                    </div>
+                </div>
+                <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
+                <div class="step-item reveal-up" style="--d:200ms">
+                    <div class="step-num">03</div>
+                    <div class="step-body">
+                        <h3>Earn</h3>
+                        <p>Get paid in USDC and XP for every task you complete. Real money, real value.</p>
+                    </div>
+                </div>
+                <div class="step-arrow"><i class="fas fa-chevron-right"></i></div>
+                <div class="step-item reveal-up" style="--d:300ms">
+                    <div class="step-num">04</div>
+                    <div class="step-body">
+                        <h3>Build</h3>
+                        <p>Join projects, land bounties, and get matched with Web3 companies hiring now.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════ LIVE STATS ═══════════════════ -->
+    <section class="live-stats">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label reveal-up">Live Numbers</span>
+                <h2 class="section-title reveal-up">A community that's<br><span class="highlight">actually active.</span></h2>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card stat-card--big reveal-up" style="--d:0ms">
+                    <div class="sc-glow"></div>
+                    <div class="sc-icon"><i class="fas fa-users"></i></div>
+                    <div class="sc-num count-up" data-target="<%= totalSignups || 17000 %>">0</div>
+                    <div class="sc-label">Verified Builders</div>
+                    <div class="sc-sub">and growing every day</div>
+                </div>
+                <div class="stats-right">
+                    <div class="stat-card reveal-up" style="--d:80ms">
+                        <div class="sc-icon"><i class="fas fa-coins"></i></div>
+                        <div class="sc-num">$<%= totalUSDC || '50K+' %></div>
+                        <div class="sc-label">USDC Distributed</div>
+                    </div>
+                    <div class="stat-card reveal-up" style="--d:140ms">
+                        <div class="sc-icon"><i class="fas fa-crosshairs"></i></div>
+                        <div class="sc-num"><%= activeQuests || 50 %>+</div>
+                        <div class="sc-label">Active Quests</div>
+                    </div>
+                    <div class="stat-card reveal-up" style="--d:200ms">
+                        <div class="sc-icon"><i class="fas fa-check-double"></i></div>
+                        <div class="sc-num count-up" data-target="<%= questsCompleted || 500 %>">0</div>
+                        <div class="sc-label">Quests Completed</div>
+                    </div>
+                    <div class="stat-card reveal-up" style="--d:260ms">
+                        <div class="sc-icon"><i class="fas fa-globe"></i></div>
+                        <div class="sc-num">30+</div>
+                        <div class="sc-label">Countries</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════ PARTNERS ═══════════════════ -->
+    <section class="partners">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label reveal-up">Ecosystem</span>
+                <h2 class="section-title reveal-up">Backed by leading<br><span class="highlight">Web3 projects.</span></h2>
+            </div>
+            <div class="partner-logos reveal-up">
+                <div class="partner-logo"><img src="/img/partners/ginox.jpg" alt="Ginox"><span>Ginox</span></div>
+                <div class="partner-logo"><img src="/img/partners/aixpay.jpg" alt="Aixpay"><span>Aixpay</span></div>
+                <div class="partner-logo"><img src="/img/partners/eyecoin.jpg" alt="Eyecoin"><span>Eyecoin</span></div>
+                <div class="partner-logo"><img src="/img/partners/twin3.jpg" alt="Twin3"><span>Twin3</span></div>
+                <div class="partner-logo"><img src="/img/partners/tuition.jpg" alt="Tuition Onchain"><span>Tuition Onchain</span></div>
+                <div class="partner-logo"><img src="/img/partners/zeroauthdao.webp" alt="ZeroAuthDAO" style="object-fit:contain"><span>ZeroAuthDAO</span></div>
+            </div>
+            <div class="partner-cta reveal-up">
+                <a href="/partner" class="btn btn-outline">Become a Partner <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════ FINAL CTA ═══════════════════ -->
+    <section class="final-cta">
+        <div class="cta-bg-blur"></div>
+        <div class="container">
+            <div class="cta-inner reveal-up">
+                <span class="section-label">Ready?</span>
+                <h2>Your Web3 journey<br>starts <span class="gradient-text">right now.</span></h2>
+                <p>Join thousands of builders already learning, earning, and building on ONBOARD3. It's free to start.</p>
+                <div class="cta-btns">
+                    <a href="/auth" class="btn btn-primary btn-hero">
+                        <i class="fas fa-rocket"></i> Get Onboarded — It's Free
+                    </a>
+                    <a href="/partner" class="btn btn-ghost">Partner With Us</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════ FOOTER ═══════════════════ -->
+    <footer class="site-footer">
+        <div class="footer-glow"></div>
+        <div class="container">
+            <div class="footer-main">
+                <div class="footer-brand">
+                    <a href="/" class="footer-logo">
+                        <img src="./img/logo.png" alt="ONBOARD3" style="height:34px;object-fit:contain;mix-blend-mode:screen;">
+                        <span>ONBOARD3</span>
+                    </a>
+                    <p class="footer-desc">Onboarding the next generation of Web3 builders, creators, and developers.</p>
+                    <div class="footer-social">
+                        <a href="https://x.com/onboard3__" target="_blank" class="social-link" title="X / Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="https://t.me/onboard_3" target="_blank" class="social-link" title="Telegram"><i class="fab fa-telegram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-nav">
+                    <div class="footer-col">
+                        <h4>Platform</h4>
+                        <a href="/auth">Quests</a>
+                        <a href="/auth">Bounties</a>
+                        <a href="/events">Events</a>
+                        <a href="/ecosystem">Ecosystem</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Company</h4>
+                        <a href="/about">About</a>
+                        <a href="/partner">Partner</a>
+                        <a href="/contact">Contact</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copy">© 2025 ONBOARD3 · Onboard. Educate. Build.</p>
+                <div class="footer-bottom-links">
+                    <a href="/privacy">Privacy</a>
+                    <a href="/terms">Terms</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="./js/head.js"></script>
+    <script>
+    // ── Particle Canvas ─────────────────────────────────────
+    (function () {
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let pts = [];
+        function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+        resize(); window.addEventListener('resize', resize);
+        for (let i = 0; i < 70; i++) pts.push({
+            x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+            r: Math.random() * 1.6 + 0.3,
+            dx: (Math.random() - 0.5) * 0.3, dy: (Math.random() - 0.5) * 0.3,
+            o: Math.random() * 0.45 + 0.08,
+            pulse: Math.random() * Math.PI * 2
+        });
+        (function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const t = Date.now() * 0.001;
+            pts.forEach(p => {
+                const o = p.o + Math.sin(t + p.pulse) * 0.15;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(94,194,19,${Math.max(0,o)})`; ctx.fill();
+                p.x += p.dx; p.y += p.dy;
+                if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+            });
+            requestAnimationFrame(draw);
+        })();
+    })();
+
+    // ── Typed text ──────────────────────────────────────────
+    (function () {
+        const words = ['Web3', 'Builder', 'Creator'];
+        let wi = 0, ci = 0, del = false;
+        const el = document.getElementById('typedText');
+        function tick() {
+            const w = words[wi];
+            el.textContent = del ? w.slice(0, --ci) : w.slice(0, ++ci);
+            let d = del ? 40 : 90;
+            if (!del && ci === w.length) { d = 2000; del = true; }
+            else if (del && ci === 0) { del = false; wi = (wi + 1) % words.length; d = 350; }
+            setTimeout(tick, d);
+        }
+        tick();
+    })();
+
+    // ── Animated counters ───────────────────────────────────
+    document.querySelectorAll('.count-up').forEach(el => {
+        const target = parseInt(el.dataset.target, 10);
+        if (!target) return;
+        new IntersectionObserver(([e], obs) => {
+            if (!e.isIntersecting) return;
+            obs.disconnect();
+            let v = 0; const step = Math.ceil(target / 80);
+            const t = setInterval(() => {
+                v = Math.min(v + step, target);
+                el.textContent = v.toLocaleString() + '+';
+                if (v >= target) clearInterval(t);
+            }, 18);
+        }, { threshold: 0.5 }).observe(el);
+    });
+
+    // ── Scroll reveal ───────────────────────────────────────
+    const revObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); } });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal-up').forEach(el => revObs.observe(el));
+
+    // ── Navbar scroll ───────────────────────────────────────
+    window.addEventListener('scroll', () => {
+        document.getElementById('navbar').classList.toggle('scrolled', scrollY > 50);
+    });
+
+    // ── Tilt effect on bento cards ──────────────────────────
+    document.querySelectorAll('.bento-card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const r = card.getBoundingClientRect();
+            const x = (e.clientX - r.left) / r.width  - 0.5;
+            const y = (e.clientY - r.top)  / r.height - 0.5;
+            card.style.transform = `translateY(-4px) rotateX(${-y * 5}deg) rotateY(${x * 5}deg)`;
+        });
+        card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+    });
+
+    // ── Stat cards stagger entrance ─────────────────────────
+    document.querySelectorAll('.stat-card').forEach((card, i) => {
+        card.style.setProperty('--d', (i * 60) + 'ms');
+    });
+
+    </script>
+</body>
+</html>

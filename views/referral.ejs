@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referral Program - ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <%- include('partials/achievement-popup') %>
+    <style>
+        /* Referral specific styles */
+        .referral-link-container {
+            flex: 1;
+            min-width: 280px;
+            background: rgba(15, 22, 15, 0.5);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .referral-link-container label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .referral-input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .referral-input-group input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-size: 0.95rem;
+            padding: 0.5rem;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .referral-input-group input:focus {
+            outline: none;
+        }
+
+        .referral-code-input {
+            font-size: 1.5rem !important;
+            font-weight: 700 !important;
+            text-align: center !important;
+            letter-spacing: 2px !important;
+        }
+
+        /* Stats cards */
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem 1rem;
+        }
+
+        .stat-card i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Reward cards */
+        .reward-card {
+            background: rgba(94, 194, 19, 0.05);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .reward-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .reward-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(94, 194, 19, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .reward-icon i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .reward-info h4 {
+            color: var(--primary);
+            margin-bottom: 0.3rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .reward-info p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .reward-badge {
+            background: rgba(94, 194, 19, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Referral list item */
+        .referral-list-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            padding: 1.25rem;
+        }
+
+        .referral-number {
+            width: 40px;
+            height: 40px;
+            background: rgba(94, 194, 19, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .referral-user-info {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .referral-user-info h4 {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            font-size: 1rem;
+        }
+
+        .referral-user-info p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .referral-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .referral-xp-badge {
+            background: rgba(94, 194, 19, 0.1);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Scrollable leaderboard */
+        .leaderboard-scroll-container {
+            max-height: 600px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .leaderboard-scroll-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .leaderboard-scroll-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .leaderboard-scroll-container::-webkit-scrollbar-thumb {
+            background: rgba(94, 194, 19, 0.3);
+            border-radius: 10px;
+        }
+
+        .leaderboard-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(94, 194, 19, 0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--bg-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p:first-of-type {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .empty-state p:last-of-type {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .referral-link-container {
+                min-width: 100%;
+            }
+
+            .referral-input-group {
+                flex-direction: column;
+            }
+
+            .referral-input-group input {
+                width: 100%;
+                text-align: center;
+                font-size: 0.85rem !important;
+            }
+
+            .referral-code-input {
+                font-size: 1.2rem !important;
+            }
+
+            .stat-card i {
+                font-size: 2.5rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .reward-card {
+                padding: 1.25rem;
+            }
+
+            .reward-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .reward-icon {
+                width: 45px;
+                height: 45px;
+            }
+
+            .reward-icon i {
+                font-size: 1.25rem;
+            }
+
+            .referral-list-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+                padding: 1rem;
+            }
+
+            .referral-stats {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .leaderboard-scroll-container {
+                max-height: 500px;
+            }
+
+            .leaderboard-item {
+                padding: 1rem;
+            }
+
+            .rank-number {
+                font-size: 1.25rem !important;
+                min-width: 35px !important;
+            }
+
+            .user-info h4 {
+                font-size: 0.95rem;
+            }
+
+            .user-info p {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stat-card {
+                padding: 1rem 0.5rem;
+            }
+
+            .stat-value {
+                font-size: 1.75rem;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+
+            .reward-info h4 {
+                font-size: 0.9rem;
+            }
+
+            .reward-info p {
+                font-size: 0.8rem;
+            }
+
+            .reward-badge {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.75rem;
+            }
+
+            .referral-user-info h4 {
+                font-size: 0.9rem;
+            }
+
+            .referral-user-info p {
+                font-size: 0.75rem;
+            }
+
+            .referral-xp-badge {
+                font-size: 0.75rem;
+                padding: 0.35rem 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <!-- Include Sidebar -->
+    <% const currentPage = 'referral'; %>
+    <%- include('partials/sidebar', { user, currentPage }) %>
+
+    <div class="dashboard-container">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2>Onboarding Program 🎁</h2>
+                        <p>Invite builders and earn rewards</p>
+                    </div>
+                    <div class="header-stats">
+                        <div class="stat-badge">
+                            <i class="fas fa-users" style="color: var(--green);"></i>
+                            <span><%= user.referralStats.totalReferrals || 0 %> Onboarded</span>
+                        </div>
+                        <div class="stat-badge">
+                            <i class="fas fa-coins" style="color: var(--green);"></i>
+                            <span><%= user.referralStats.totalEarned || 0 %> XP Earned</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Referral Link Card -->
+                <div class="card xp-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-link"></i> Your Onboard Link</h3>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">Share your unique link with friends and earn rewards when they get onboard!</p>
+                    
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                        <div class="referral-link-container">
+                            <label>Onboard Link</label>
+                            <div class="referral-input-group">
+                                <input type="text" id="referralLink" value="<%= referralLink %>" readonly>
+                                <button onclick="copyReferralLink()" class="btn btn-primary" style="padding: 0.5rem 1.5rem; white-space: nowrap;">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="referral-link-container">
+                            <label>Your Onboard Code</label>
+                            <div class="referral-input-group">
+                                <input type="text" id="referralCode" value="<%= user.referralCode %>" readonly class="referral-code-input">
+                                <button onclick="copyReferralCode()" class="btn btn-secondary" style="padding: 0.5rem 1rem;">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Share Buttons -->
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button onclick="shareTwitter()" class="btn btn-secondary" style="flex: 1; min-width: 150px;">
+                            <i class="fab fa-twitter"></i> Twitter
+                        </button>
+                        <button onclick="shareTelegram()" class="btn btn-secondary" style="flex: 1; min-width: 150px;">
+                            <i class="fab fa-telegram"></i> Telegram
+                        </button>
+                        <button onclick="shareWhatsApp()" class="btn btn-secondary" style="flex: 1; min-width: 150px;">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Referral Stats -->
+                <div class="grid-3">
+                    <div class="card">
+                        <div class="stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="stat-value"><%= user.referralStats.totalReferrals || 0 %></div>
+                            <p class="stat-label">Total Onboarded</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="stat-card">
+                            <i class="fas fa-user-check"></i>
+                            <div class="stat-value"><%= user.referralStats.activeReferrals || 0 %></div>
+                            <p class="stat-label">Active Onboarders</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="stat-card">
+                            <i class="fas fa-coins"></i>
+                            <div class="stat-value"><%= user.referralStats.totalEarned || 0 %></div>
+                            <p class="stat-label">XP Earned</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral Rewards -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-gift"></i> Onboard Rewards</h3>
+                    </div>
+                    <div class="grid-2">
+                        <div class="reward-card">
+                            <div class="reward-header">
+                                <div class="reward-icon">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div class="reward-info">
+                                    <h4>Sign Up Bonus</h4>
+                                    <p>When your friend signs up</p>
+                                </div>
+                            </div>
+                            <span class="reward-badge">
+                                <i class="fas fa-star"></i> +50 XP
+                            </span>
+                        </div>
+
+                        <div class="reward-card">
+                            <div class="reward-header">
+                                <div class="reward-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="reward-info">
+                                    <h4>First Quest Bonus</h4>
+                                    <p>When they complete first quest</p>
+                                </div>
+                            </div>
+                            <span class="reward-badge">
+                                <i class="fas fa-star"></i> +100 XP
+                            </span>
+                        </div>
+
+                        <!-- <div class="reward-card">
+                            <div class="reward-header">
+                                <div class="reward-icon">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <div class="reward-info">
+                                    <h4>Course Admission</h4>
+                                    <p>When they get admitted to a course</p>
+                                </div>
+                            </div>
+                            <span class="reward-badge">
+                                <i class="fas fa-star"></i> +200 XP
+                            </span>
+                        </div> -->
+
+                        <!-- <div class="reward-card">
+                            <div class="reward-header">
+                                <div class="reward-icon">
+                                    <i class="fas fa-infinity"></i>
+                                </div>
+                                <div class="reward-info">
+                                    <h4>Lifetime Commission</h4>
+                                    <p>Earn from their activities</p>
+                                </div>
+                            </div>
+                            <span class="reward-badge">
+                                10% of their earnings
+                            </span>
+                        </div> -->
+                    </div>
+                </div>
+
+                <!-- Your Referrals List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-list"></i> Your Onboarded Users</h3>
+                        <span style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;"><%= referrals.length %> total</span>
+                    </div>
+                    
+                    <% if (referrals && referrals.length > 0) { %>
+                        <% referrals.forEach((referral, index) => { %>
+                        <div class="bounty-item">
+                            <div class="referral-list-item">
+                                <div class="referral-number"><%= index + 1 %></div>
+                                <div class="referral-user-info">
+                                    <h4><%= referral.username %></h4>
+                                    <p>Joined <%= new Date(referral.createdAt).toLocaleDateString() %></p>
+                                </div>
+                                <div class="referral-stats">
+                                    <span class="referral-xp-badge">
+                                        <i class="fas fa-star"></i> <%= referral.xp || 0 %> XP
+                                    </span>
+                                    <span class="status-badge <%= referral.isActive ? 'status-approved' : 'status-pending' %>">
+                                        <%= referral.isActive ? '✓ Active' : '⏳ Pending' %>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <p>Nobody is onboard yet</p>
+                            <p>Share your onboard link to start earning rewards!</p>
+                        </div>
+                    <% } %>
+                </div>
+
+                <!-- Referral Leaderboard -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3><i class="fas fa-ranking-star"></i> Top Onboarders</h3>
+                            <% if (topReferrers && topReferrers.length > 0) { %>
+                            <p style="font-size:.75rem;color:var(--text-3);margin-top:2px"><%= topReferrers.length %> top onboarders ranked by referrals</p>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <% if (topReferrers && topReferrers.length > 0) { %>
+
+                    <!-- Podium — top 3, icons only -->
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.875rem;margin-bottom:1.5rem">
+                        <% topReferrers.slice(0,3).forEach((r, i) => { %>
+                        <div style="text-align:center;padding:1.125rem .75rem;border-radius:15px;
+                            background:<%=i===0?'rgba(255,215,0,0.07)':i===1?'rgba(192,192,192,0.06)':'rgba(205,127,50,0.06)'%>;
+                            border:1px solid <%=i===0?'rgba(255,215,0,0.28)':i===1?'rgba(192,192,192,0.22)':'rgba(205,127,50,0.22)'%>;
+                            transition:transform .3s">
+                            <div style="font-size:1.375rem;color:<%=i===0?'#FFD700':i===1?'#C0C0C0':'#CD7F32'%>;margin-bottom:.5rem">
+                                <i class="fas fa-<%=i===0?'trophy':'medal'%>"></i>
+                            </div>
+                            <div style="font-size:.875rem;font-weight:700;color:var(--text);margin-bottom:.3rem;word-break:break-word"><%= r.username %></div>
+                            <div style="font-size:1.125rem;font-weight:900;color:var(--green)"><%= r.totalReferrals %></div>
+                            <div style="font-size:.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.25rem">Onboarded</div>
+                            <div style="font-size:.72rem;color:var(--text-3)"><i class="fas fa-bolt" style="color:var(--green);font-size:.65rem"></i> <%= (r.totalEarned||0).toLocaleString() %> XP</div>
+                        </div>
+                        <% }); %>
+                    </div>
+
+                    <!-- Scrollable full list -->
+                    <div class="lb-list">
+                        <% topReferrers.forEach((r, idx) => {
+                            const isMe = r.username === user.username;
+                            const rCls = idx===0?'lb-rank--1':idx===1?'lb-rank--2':idx===2?'lb-rank--3':'lb-rank--x';
+                        %>
+                        <div class="lb-row <%= isMe ? 'lb-row--me' : '' %>">
+                            <span class="lb-rank <%= rCls %>">#<%= idx+1 %></span>
+                            <div class="lb-name">
+                                <div class="lb-username">
+                                    <%= r.username %>
+                                    <% if (isMe) { %><span class="lb-you">YOU</span><% } %>
+                                </div>
+                                <div class="lb-meta">
+                                    <i class="fas fa-users" style="font-size:.65rem"></i> <%= r.totalReferrals %> onboarded
+                                </div>
+                            </div>
+                            <div class="lb-xp">
+                                <div class="lb-xp-val"><%= (r.totalEarned||0).toLocaleString() %></div>
+                                <div class="lb-xp-lbl">XP</div>
+                            </div>
+                        </div>
+                        <% }); %>
+                    </div>
+
+                    <% } else { %>
+                    <div style="text-align:center;padding:3rem 1rem">
+                        <i class="fas fa-users" style="font-size:2.5rem;color:var(--text-3);display:block;margin-bottom:.75rem"></i>
+                        <p style="color:var(--text-3);font-size:.875rem">No leaderboard data yet — start onboarding friends to appear here!</p>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const referralLink = '<%= referralLink %>';
+        const referralCode = '<%= user.referralCode %>';
+
+        function copyReferralLink() {
+            navigator.clipboard.writeText(referralLink).catch(() => {
+                const input = document.getElementById('referralLink');
+                input.select(); document.execCommand('copy');
+            });
+            showCopyToast('Referral link copied!');
+        }
+
+        function copyReferralCode() {
+            navigator.clipboard.writeText(referralCode).catch(() => {
+                const input = document.getElementById('referralCode');
+                input.select(); document.execCommand('copy');
+            });
+            showCopyToast('Referral code copied!');
+        }
+
+        function showCopyToast(msg) {
+            const t = document.createElement('div');
+            t.style.cssText = 'position:fixed;top:1.5rem;right:1.5rem;z-index:9999;padding:.875rem 1.25rem;border-radius:14px;background:rgba(14,22,14,.97);border:1px solid rgba(94,194,19,.4);color:#5EC213;font-family:Outfit,sans-serif;font-size:.9rem;font-weight:600;box-shadow:0 12px 40px rgba(0,0,0,.4);display:flex;align-items:center;gap:.5rem';
+            t.innerHTML = '<i class="fas fa-check-circle"></i> ' + msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2500);
+        }
+
+        function shareTwitter() {
+            const text = `I just joined @onboard3___ — the Web3 builder community! Use my referral code: ${referralCode} to get started.\n\n`;
+            const url = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(referralLink)}`;
+            window.open(url, '_blank');
+        }
+
+        function shareTelegram() {
+            const text = `I just joined ONBOARD3 — the Web3 builder community. Use my code ${referralCode} to sign up:`;
+            const url = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        function shareWhatsApp() {
+            const text = `I just joined ONBOARD3 — the Web3 builder community! Use my referral code ${referralCode} to sign up: ${referralLink}`;
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        async function handleLogout(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                try {
+                    const response = await fetch('/auth/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (response.ok) {
+                        window.location.href = '/auth';
+                    }
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

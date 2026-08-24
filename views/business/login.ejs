@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Business Login — ONBOARD3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+<div class="p-auth-wrap business-mode">
+  <div class="p-auth-box">
+    <div class="p-auth-logo">
+      <img src="/img/logo.png" alt="ONBOARD3">
+      <span class="p-auth-logo-text">ONBOARD3</span>
+      <span class="p-auth-badge biz-badge">BUSINESS</span>
+    </div>
+
+    <h1 class="p-auth-title">Business Portal</h1>
+    <p class="p-auth-sub">Sign in to manage your quests, bounties, and campaigns</p>
+
+    <% if (error) { %>
+    <div class="p-alert p-alert-error"><i class="fas fa-circle-exclamation"></i> <%= error %></div>
+    <% } %>
+
+    <div class="p-alert p-alert-info" style="margin-bottom:1.25rem">
+      <i class="fas fa-info-circle"></i>
+      New? <a href="/business/signup" style="color:inherit;font-weight:700;text-decoration:underline">Apply as a Business</a> — admin will review and approve your account.
+    </div>
+
+    <form method="POST" action="/business/login">
+      <div class="p-form-group">
+        <label for="username">Username</label>
+        <input class="p-input biz" type="text" id="username" name="username" placeholder="your_business" required autocomplete="username">
+      </div>
+      <div class="p-form-group">
+        <label for="password">Password</label>
+        <input class="p-input biz" type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="p-btn p-btn-biz" style="margin-top:.5rem">
+        <i class="fas fa-right-to-bracket"></i> Sign in
+      </button>
+    </form>
+
+    <div class="p-auth-footer">
+      Are you a Business Developer? <a href="/business-developers/login" class="biz">BD Portal →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

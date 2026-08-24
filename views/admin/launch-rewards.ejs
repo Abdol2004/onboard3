@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Launch Rewards — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#5EC213;--bg:#080c08;--card:#0f140f;--border:rgba(255,255,255,.08);--text:#f0f0f0;--t2:#aaa;--t3:#666}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:2rem}
+h1{font-size:1.5rem;font-weight:900;color:var(--text);margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem}
+h1 i{color:var(--green)}
+.back{color:var(--t2);text-decoration:none;font-size:.875rem;font-weight:700;display:inline-flex;align-items:center;gap:.4rem;margin-bottom:1rem}
+.back:hover{color:var(--green)}
+
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;text-align:center}
+.stat-val{font-size:1.75rem;font-weight:900;color:var(--green)}
+.stat-lbl{font-size:.72rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-top:.25rem}
+
+.actions{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.btn{padding:.75rem 1.5rem;border-radius:10px;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:800;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem}
+.btn-primary{background:var(--green);color:#000}
+.btn-primary:hover{opacity:.85}
+.btn-danger{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.btn-danger:hover{background:rgba(239,68,68,.25)}
+.btn-outline{background:rgba(255,255,255,.05);color:var(--t2);border:1px solid var(--border)}
+.btn-outline:hover{background:rgba(255,255,255,.1);color:var(--text)}
+
+.notice{padding:1rem 1.25rem;border-radius:12px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);color:#fbbf24;font-size:.85rem;margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:.75rem}
+.notice i{margin-top:2px;flex-shrink:0}
+
+.filter-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.filter-btn{padding:.4rem .9rem;border-radius:99px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--t2);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s}
+.filter-btn.active,.filter-btn:hover{background:rgba(94,194,19,.12);border-color:rgba(94,194,19,.3);color:var(--green)}
+
+.table-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+thead{background:rgba(255,255,255,.03)}
+th{padding:.75rem 1rem;text-align:left;font-size:.72rem;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+td{padding:.625rem 1rem;border-top:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+tr:hover td{background:rgba(255,255,255,.025)}
+
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:99px;font-size:.72rem;font-weight:800}
+.badge-sent{background:rgba(94,194,19,.15);color:var(--green);border:1px solid rgba(94,194,19,.3)}
+.badge-pending{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.25)}
+.badge-failed{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.25)}
+.badge-skipped{background:rgba(100,100,100,.1);color:#888;border:1px solid rgba(100,100,100,.2)}
+.badge-tier{background:rgba(255,255,255,.06);color:var(--t2);border:1px solid var(--border)}
+
+.amount{font-weight:800;color:var(--text)}
+.tx-link{color:var(--green);font-size:.72rem;text-decoration:none}
+.tx-link:hover{text-decoration:underline}
+.no-wallet{color:#666;font-size:.75rem}
+
+#progBar{height:6px;border-radius:99px;background:rgba(255,255,255,.06);margin-bottom:1rem;overflow:hidden;display:none}
+#progFill{height:100%;background:var(--green);width:0%;transition:width .5s}
+#statusMsg{font-size:.85rem;color:var(--t2);margin-bottom:1rem;display:none}
+</style>
+</head>
+<body>
+<a href="/admin" class="back"><i class="fas fa-arrow-left"></i> Admin</a>
+<h1><i class="fas fa-coins"></i> Launch Reward Distribution</h1>
+
+<% if (balance !== null) { %>
+<div class="notice">
+  <i class="fas fa-wallet"></i>
+  Treasury USDC balance: <strong style="color:#fbbf24">$<%= (balance||0).toFixed(2) %></strong>
+  &nbsp;·&nbsp; Need $<%= stats.totalOwed.toFixed(2) %> to pay pending rewards.
+  <% if ((balance||0) < stats.totalOwed) { %> <strong style="color:#f87171">⚠️ INSUFFICIENT FUNDS</strong><% } %>
+</div>
+<% } else { %>
+<div class="notice">
+  <i class="fas fa-key"></i>
+  Set <code>TREASURY_PRIVATE_KEY</code> in .env to enable automatic USDC transfers.
+</div>
+<% } %>
+
+<div class="stats-row">
+  <div class="stat-box"><div class="stat-val"><%= stats.total %></div><div class="stat-lbl">Total Recipients</div></div>
+  <div class="stat-box"><div class="stat-val" style="color:#fbbf24"><%= stats.pending %></div><div class="stat-lbl">Pending</div></div>
+  <div class="stat-box"><div class="stat-val" style="color:var(--green)"><%= stats.sent %></div><div class="stat-lbl">Sent</div></div>
+  <div class="stat-box"><div class="stat-val" style="color:#f87171"><%= stats.failed %></div><div class="stat-lbl">Failed</div></div>
+  <div class="stat-box"><div class="stat-val" style="color:#666"><%= stats.skipped %></div><div class="stat-lbl">No Wallet</div></div>
+  <div class="stat-box"><div class="stat-val">$<%= stats.totalOwed.toFixed(2) %></div><div class="stat-lbl">Pending $</div></div>
+  <div class="stat-box"><div class="stat-val" style="color:var(--green)">$<%= stats.totalSent.toFixed(2) %></div><div class="stat-lbl">Sent $</div></div>
+</div>
+
+<div class="actions">
+  <% if (stats.total === 0) { %>
+  <button class="btn btn-primary" onclick="seedRewards()"><i class="fas fa-database"></i> Seed Rewards (First Run)</button>
+  <% } else if (stats.pending > 0) { %>
+  <button class="btn btn-primary" onclick="confirmDistribute()"><i class="fas fa-paper-plane"></i> Distribute USDC to <%= stats.pending %> users</button>
+  <% } else { %>
+  <button class="btn btn-outline" disabled><i class="fas fa-check-circle"></i> All rewards distributed</button>
+  <% } %>
+  <button class="btn btn-outline" onclick="location.reload()"><i class="fas fa-rotate-right"></i> Refresh</button>
+  <% if (stats.failed > 0) { %>
+  <button class="btn btn-danger" onclick="retryFailed()"><i class="fas fa-redo"></i> Retry <%= stats.failed %> Failed</button>
+  <% } %>
+</div>
+
+<div id="progBar"><div id="progFill"></div></div>
+<div id="statusMsg"></div>
+
+<% if (rewards.length > 0) { %>
+<div class="filter-row">
+  <button class="filter-btn active" onclick="filter('all',this)">All (<%= rewards.length %>)</button>
+  <button class="filter-btn" onclick="filter('pending',this)">Pending (<%= stats.pending %>)</button>
+  <button class="filter-btn" onclick="filter('sent',this)">Sent (<%= stats.sent %>)</button>
+  <button class="filter-btn" onclick="filter('failed',this)">Failed (<%= stats.failed %>)</button>
+  <button class="filter-btn" onclick="filter('skipped_no_wallet',this)">No Wallet (<%= stats.skipped %>)</button>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>User</th>
+        <th>Amount</th>
+        <th>Tier</th>
+        <th>XP</th>
+        <th>Wallet</th>
+        <th>Status</th>
+        <th>TX</th>
+      </tr>
+    </thead>
+    <tbody id="rewardTable">
+    <% rewards.forEach((r, i) => { %>
+    <tr data-status="<%= r.status %>">
+      <td style="color:var(--t3)"><%= i+1 %></td>
+      <td>
+        <div style="font-weight:700">@<%= r.username %></div>
+        <% if (r.twitterHandle) { %><div style="font-size:.72rem;color:var(--t3)">@<%= r.twitterHandle %></div><% } %>
+      </td>
+      <td class="amount">$<%= r.amount.toFixed(2) %></td>
+      <td><span class="badge badge-tier"><%= r.tier %></span></td>
+      <td style="color:var(--t2)"><%= (r.xp||0).toLocaleString() %></td>
+      <td>
+        <% if (r.walletAddress) { %>
+          <span style="font-size:.72rem;color:var(--t2);font-family:monospace"><%= r.walletAddress.slice(0,8) %>...<%= r.walletAddress.slice(-4) %></span>
+        <% } else { %>
+          <span class="no-wallet">—</span>
+        <% } %>
+      </td>
+      <td>
+        <% if (r.status === 'sent') { %>
+          <span class="badge badge-sent"><i class="fas fa-check"></i> Sent</span>
+        <% } else if (r.status === 'pending') { %>
+          <span class="badge badge-pending"><i class="fas fa-clock"></i> Pending</span>
+        <% } else if (r.status === 'failed') { %>
+          <span class="badge badge-failed" title="<%= r.failReason || '' %>"><i class="fas fa-times"></i> Failed</span>
+        <% } else { %>
+          <span class="badge badge-skipped"><i class="fas fa-ban"></i> No Wallet</span>
+        <% } %>
+      </td>
+      <td>
+        <% if (r.txSignature) { %>
+          <a href="https://solscan.io/tx/<%= r.txSignature %>" target="_blank" class="tx-link"><%= r.txSignature.slice(0,8) %>...</a>
+        <% } else { %><span style="color:var(--t3)">—</span><% } %>
+      </td>
+    </tr>
+    <% }); %>
+    </tbody>
+  </table>
+</div>
+<% } else { %>
+<div style="text-align:center;padding:3rem;color:var(--t3)">
+  <i class="fas fa-coins" style="font-size:2.5rem;margin-bottom:1rem;display:block"></i>
+  <p>No rewards seeded yet. Click "Seed Rewards" to calculate and load the reward list.</p>
+</div>
+<% } %>
+
+<script>
+function filter(status, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#rewardTable tr').forEach(tr => {
+    tr.style.display = (status === 'all' || tr.dataset.status === status) ? '' : 'none';
+  });
+}
+
+async function seedRewards() {
+  if (!confirm('Seed reward list from DB? This calculates all rewards and stores them.')) return;
+  const msg = document.getElementById('statusMsg');
+  msg.style.display = '';
+  msg.textContent = 'Seeding rewards... (this may take 30-60s)';
+  const r = await fetch('/admin/api/launch-rewards/seed', { method: 'POST' });
+  const d = await r.json();
+  if (d.ok) { msg.textContent = '✅ Seeded! Reloading...'; setTimeout(() => location.reload(), 1500); }
+  else { msg.textContent = '❌ Error: ' + (d.error || 'unknown'); }
+}
+
+async function confirmDistribute() {
+  const n = <%= stats.pending %>;
+  const amt = '<%= stats.totalOwed.toFixed(2) %>';
+  if (!confirm(`Send USDC to ${n} users (total $${amt})?\n\nThis will execute real on-chain transactions. Make sure your treasury wallet is funded.`)) return;
+  startDistribute();
+}
+
+async function startDistribute() {
+  const bar = document.getElementById('progBar');
+  const fill = document.getElementById('progFill');
+  const msg = document.getElementById('statusMsg');
+  bar.style.display = '';
+  msg.style.display = '';
+  msg.textContent = 'Distributing USDC... Do not close this tab.';
+
+  const r = await fetch('/admin/api/launch-rewards/distribute', { method: 'POST' });
+  const d = await r.json();
+  if (!d.ok) { msg.textContent = '❌ ' + (d.error || 'Error starting distribution'); return; }
+
+  // Poll status
+  const poll = setInterval(async () => {
+    const sr = await fetch('/admin/api/launch-rewards/status');
+    const s = await sr.json();
+    const pct = s.total > 0 ? Math.round(((s.sent + s.failed + s.skipped) / s.total) * 100) : 0;
+    fill.style.width = pct + '%';
+    msg.textContent = `Distributing... ${s.sent} sent, ${s.failed} failed, ${s.skipped} skipped (${pct}%)`;
+    if (!s.distributing) {
+      clearInterval(poll);
+      msg.textContent = `✅ Done — ${s.sent} sent ($${s.totalSent.toFixed(2)}), ${s.failed} failed`;
+      setTimeout(() => location.reload(), 2000);
+    }
+  }, 3000);
+}
+
+async function retryFailed() {
+  if (!confirm('Retry all failed transactions?')) return;
+  // Reset failed → pending then distribute
+  await fetch('/admin/api/launch-rewards/retry-failed', { method: 'POST' });
+  startDistribute();
+}
+</script>
+</body>
+</html>

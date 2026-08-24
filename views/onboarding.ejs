@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --green:#5EC213; --green-dark:#45960E; --green-light:#78E02A;
+            --bg:#0F1610; --bg-card:rgba(18,28,18,0.94); --border:rgba(94,194,19,0.18);
+            --text:#E8F5E2; --text-2:#8AAF85; --text-3:#5A7A56;
+        }
+        body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+
+        /* BG */
+        .ob-bg { position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:52px 52px;opacity:.35; }
+        .ob-orb { position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0; }
+        .ob-orb-1 { width:500px;height:500px;top:-120px;right:-120px;background:radial-gradient(circle,rgba(94,194,19,.12),transparent 65%);animation:orbF 14s ease-in-out infinite; }
+        .ob-orb-2 { width:380px;height:380px;bottom:-80px;left:-80px;background:radial-gradient(circle,rgba(94,194,19,.08),transparent 65%);animation:orbF 18s ease-in-out infinite reverse; }
+        @keyframes orbF{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,20px)}}
+        .particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+        .particle{position:absolute;background:var(--green);border-radius:50%;animation:pFloat linear infinite;filter:blur(1px);}
+        @keyframes pFloat{0%{transform:translateY(0) scale(1);opacity:inherit}50%{transform:translateY(-80px) translateX(15px) scale(1.3)}100%{transform:translateY(-180px) translateX(-5px) scale(.8);opacity:0}}
+
+        /* Progress */
+        .ob-topbar { position:fixed;top:0;left:0;right:0;z-index:100;padding:0.875rem 1.5rem;display:flex;align-items:center;gap:1rem; }
+        .ob-progress-track { flex:1;height:4px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden; }
+        .ob-progress-fill { height:100%;background:linear-gradient(90deg,var(--green-dark),var(--green),var(--green-light));box-shadow:0 0 12px rgba(94,194,19,.6);transition:width .6s cubic-bezier(.4,0,.2,1); }
+        .ob-step-count { font-size:.78rem;font-weight:800;color:var(--text-3);white-space:nowrap; }
+
+        /* Layout */
+        .ob-wrap { position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 1.25rem 2rem; }
+        .ob-step { display:none;width:100%;max-width:660px;animation:stepIn .5s cubic-bezier(.4,0,.2,1) both; }
+        .ob-step.active { display:block; }
+        @keyframes stepIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+        /* Card */
+        .ob-card { background:var(--bg-card);border:1px solid var(--border);border-radius:24px;padding:2.25rem;backdrop-filter:blur(20px);box-shadow:0 24px 80px rgba(0,0,0,.4),0 0 0 1px rgba(94,194,19,.05); }
+        @media(max-width:500px){.ob-card{padding:1.5rem 1.25rem;border-radius:18px;}}
+
+        /* Typography */
+        .ob-eyebrow { font-size:.7rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:.75rem;display:flex;align-items:center;gap:.625rem; }
+        .ob-eyebrow::after { content:'';flex:1;height:1px;background:rgba(94,194,19,.2); }
+        .ob-h1 { font-size:clamp(1.625rem,4vw,2.375rem);font-weight:900;letter-spacing:-1.2px;line-height:1.12;color:var(--text);margin-bottom:.75rem; }
+        .ob-h1 span { color:var(--green); }
+        .ob-p { font-size:.9375rem;color:var(--text-2);line-height:1.75;margin-bottom:1.5rem; }
+
+        /* Logo */
+        .ob-logo { width:80px;height:80px;border-radius:20px;background:rgba(94,194,19,.12);border:2px solid rgba(94,194,19,.35);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 0 40px rgba(94,194,19,.2);margin:0 auto 1.5rem;animation:logoPop .7s cubic-bezier(.34,1.56,.64,1) both .2s; }
+        @keyframes logoPop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+        .ob-logo img { width:100%;height:100%;object-fit:contain; }
+
+        /* Stats row */
+        .ob-stats { display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.75rem; }
+        .ob-stat { text-align:center;padding:.875rem;border-radius:13px;background:rgba(94,194,19,.06);border:1px solid rgba(94,194,19,.15); }
+        .ob-stat-v { font-size:1.375rem;font-weight:900;color:var(--green);letter-spacing:-.5px; }
+        .ob-stat-l { font-size:.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-top:2px; }
+
+        /* Pathway cards */
+        .pathway-grid { display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.5rem; }
+        .pathway-card { display:flex;align-items:center;gap:1.125rem;padding:1.125rem 1.25rem;border-radius:16px;background:rgba(255,255,255,.025);border:2px solid var(--border);cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden; }
+        .pathway-card::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(94,194,19,.06),transparent);opacity:0;transition:opacity .3s; }
+        .pathway-card:hover { border-color:rgba(94,194,19,.4);transform:translateX(4px); }
+        .pathway-card:hover::before { opacity:1; }
+        .pathway-card.selected { border-color:var(--green);background:rgba(94,194,19,.08);box-shadow:0 0 0 3px rgba(94,194,19,.12),0 8px 30px rgba(94,194,19,.1); }
+        .pathway-card.selected::before { opacity:1; }
+        .pw-icon { width:50px;height:50px;border-radius:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.25rem;transition:transform .3s; }
+        .pathway-card:hover .pw-icon { transform:scale(1.12) rotate(-5deg); }
+        .pw-icon--jobs     { background:rgba(251,191,36,.15);color:#fbbf24; }
+        .pw-icon--ai       { background:rgba(168,85,247,.15);color:#c084fc; }
+        .pw-icon--building { background:rgba(59,130,246,.15);color:#60a5fa; }
+        .pw-body { flex:1;min-width:0; }
+        .pw-name { font-size:1rem;font-weight:800;color:var(--text);margin-bottom:.2rem;letter-spacing:-.2px; }
+        .pw-desc { font-size:.8125rem;color:var(--text-2);line-height:1.55; }
+        .pw-check { width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s;font-size:.7rem; }
+        .pathway-card.selected .pw-check { background:var(--green);border-color:var(--green);color:#000; }
+
+        /* Education cards */
+        .edu-grid { display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.5rem; }
+        @media(max-width:480px){.edu-grid{grid-template-columns:1fr;}}
+        .edu-card { padding:1.125rem;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid var(--border);transition:border-color .25s; }
+        .edu-card:hover { border-color:rgba(94,194,19,.25); }
+        .edu-icon { width:40px;height:40px;border-radius:11px;background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.2);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--green);margin-bottom:.75rem; }
+        .edu-title { font-size:.875rem;font-weight:800;color:var(--text);margin-bottom:.35rem; }
+        .edu-text  { font-size:.78rem;color:var(--text-2);line-height:1.65; }
+
+        /* Task list */
+        .ob-tasks { display:flex;flex-direction:column;gap:.625rem;margin-bottom:1.5rem; }
+        .ob-task { display:flex;align-items:center;gap:.875rem;padding:.875rem 1rem;border-radius:13px;background:rgba(255,255,255,.025);border:1px solid var(--border);transition:all .25s; }
+        .ob-task.done { background:rgba(94,194,19,.06);border-color:rgba(94,194,19,.3); }
+        .ob-task.done .ob-task-tick { background:var(--green);border-color:var(--green);color:#000; }
+        .ob-task-icon { width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.9rem; }
+        .ob-task-icon--x  { background:rgba(255,255,255,.08);color:var(--text); }
+        .ob-task-icon--tg { background:rgba(29,161,242,.15);color:#1d9bf0; }
+        .ob-task-icon--sol{ background:rgba(251,146,60,.15);color:#fb923c; }
+        .ob-task-icon--eye{ background:rgba(94,194,19,.12);color:var(--green); }
+        .ob-task-icon--share { background:rgba(168,85,247,.12);color:#c084fc; }
+        .ob-task-body { flex:1;min-width:0; }
+        .ob-task-t { font-size:.875rem;font-weight:700;color:var(--text); }
+        .ob-task-s { font-size:.72rem;color:var(--text-3);margin-top:1px; }
+        .ob-task-tick { width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s;font-size:.7rem;color:transparent; }
+        .ob-task-btn { font-size:.78rem;font-weight:800;padding:.45rem .9rem;border-radius:9px;border:none;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .25s;white-space:nowrap;flex-shrink:0; }
+        .ob-task-btn--go   { background:rgba(94,194,19,.12);color:var(--green);border:1px solid rgba(94,194,19,.3); }
+        .ob-task-btn--go:hover { background:rgba(94,194,19,.2); }
+        .ob-task-btn--done { background:rgba(94,194,19,.12);color:var(--green);border:1px solid rgba(94,194,19,.3);cursor:default; }
+
+        /* Post template */
+        .post-box { background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:13px;padding:1rem;margin-bottom:.75rem; }
+        .post-box-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem; }
+        .post-box-head span { font-size:.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:1px; }
+        .post-box-head button { font-size:.72rem;font-weight:800;padding:.3rem .7rem;border-radius:7px;border:1px solid rgba(94,194,19,.3);background:rgba(94,194,19,.08);color:var(--green);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s; }
+        .post-box-head button:hover { background:rgba(94,194,19,.18); }
+        .post-text { font-size:.8375rem;color:var(--text-2);line-height:1.7;word-break:break-word; }
+
+        /* Form */
+        .ob-form { display:flex;flex-direction:column;gap:.875rem;margin-bottom:1.5rem; }
+        .ob-input-wrap { position:relative; }
+        .ob-iicon { position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-size:.8rem;color:var(--text-3);pointer-events:none;transition:color .25s; }
+        .ob-input-wrap:focus-within .ob-iicon { color:var(--green); }
+        .ob-input { width:100%;padding:.875rem 1rem .875rem 2.75rem;background:rgba(94,194,19,.04);border:1.5px solid var(--border);border-radius:13px;color:var(--text);font-family:'Outfit',sans-serif;font-size:.9375rem;transition:all .3s; }
+        .ob-input::placeholder { color:var(--text-3); }
+        .ob-input:focus { outline:none;border-color:var(--green);background:rgba(94,194,19,.07);box-shadow:0 0 0 3px rgba(94,194,19,.12); }
+
+        /* PFP */
+        .pfp-row { display:flex;align-items:center;gap:1.125rem;margin-bottom:.25rem; }
+        .pfp-prev { width:68px;height:68px;border-radius:17px;flex-shrink:0;background:linear-gradient(135deg,var(--green),var(--green-dark));display:flex;align-items:center;justify-content:center;font-size:1.625rem;font-weight:900;color:#000;overflow:hidden;border:2px solid rgba(94,194,19,.35);box-shadow:0 4px 18px rgba(94,194,19,.28); }
+        .pfp-prev img { width:100%;height:100%;object-fit:cover;border-radius:15px; }
+        .pfp-upload { flex:1;padding:.875rem;border-radius:13px;border:2px dashed rgba(94,194,19,.3);background:rgba(94,194,19,.03);cursor:pointer;text-align:center;transition:all .25s;font-family:'Outfit',sans-serif; }
+        .pfp-upload:hover { border-color:var(--green);background:rgba(94,194,19,.07); }
+        .pfp-upload p { font-size:.875rem;font-weight:700;color:var(--text-2);margin-bottom:.2rem; }
+        .pfp-upload small { font-size:.72rem;color:var(--text-3); }
+
+        /* Reward */
+        .reward-wrap { text-align:center;padding:1.25rem 0; }
+        .reward-icon-ring { width:100px;height:100px;border-radius:50%;background:rgba(94,194,19,.12);border:2px solid rgba(94,194,19,.4);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:2.5rem;color:var(--green);box-shadow:0 0 40px rgba(94,194,19,.3);animation:rewardRing .7s cubic-bezier(.34,1.56,.64,1) both .3s; }
+        @keyframes rewardRing{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+        .reward-amount { font-size:clamp(2.5rem,8vw,3.5rem);font-weight:900;letter-spacing:-2px;color:var(--green);line-height:1;filter:drop-shadow(0 0 24px rgba(94,194,19,.55));animation:rPop .6s cubic-bezier(.34,1.56,.64,1) both .6s; }
+        @keyframes rPop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+        .reward-lbl { font-size:.9rem;color:var(--text-2);margin-top:.4rem;font-weight:600; }
+        .reward-stars { display:flex;justify-content:center;gap:.3rem;margin:.875rem 0;font-size:1.25rem;color:#fbbf24; }
+        .reward-stars i { animation:starPop .4s cubic-bezier(.34,1.56,.64,1) both; }
+        .reward-stars i:nth-child(2){animation-delay:.08s} .reward-stars i:nth-child(3){animation-delay:.16s} .reward-stars i:nth-child(4){animation-delay:.24s} .reward-stars i:nth-child(5){animation-delay:.32s}
+        @keyframes starPop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+
+        /* Buttons */
+        .ob-btn { width:100%;padding:1rem;border-radius:14px;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.9375rem;font-weight:800;letter-spacing:.2px;transition:all .35s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:center;gap:.6rem;position:relative;overflow:hidden; }
+        .ob-btn--primary { background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 100%);color:#000;box-shadow:0 6px 28px rgba(94,194,19,.4); }
+        .ob-btn--primary::before { content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);transform:translateX(-100%);transition:transform .55s; }
+        .ob-btn--primary:hover::before { transform:translateX(100%); }
+        .ob-btn--primary:hover { transform:translateY(-2px);box-shadow:0 12px 44px rgba(94,194,19,.58); }
+        .ob-btn--primary:disabled { opacity:.6;cursor:not-allowed;transform:none; }
+        .ob-btn--outline { background:transparent;color:var(--text-2);border:1.5px solid rgba(255,255,255,.1); }
+        .ob-btn--outline:hover { border-color:rgba(94,194,19,.3);color:var(--text); }
+        .ob-btn-row { display:flex;gap:.75rem;margin-top:.375rem; }
+        .ob-btn-row .ob-btn { flex:1; }
+        .ob-skip { text-align:center;margin-top:.875rem;font-size:.8rem;color:var(--text-3);cursor:pointer;transition:color .2s; }
+        .ob-skip:hover { color:var(--text-2); }
+
+        /* Notice box */
+        .ob-notice { display:flex;align-items:flex-start;gap:.75rem;padding:.875rem 1rem;border-radius:12px;background:rgba(94,194,19,.06);border:1px solid rgba(94,194,19,.2);margin-bottom:1.25rem; }
+        .ob-notice i { color:var(--green);font-size:.9rem;flex-shrink:0;margin-top:1px; }
+        .ob-notice-text { font-size:.8125rem;color:var(--text-2);line-height:1.65; }
+        .ob-notice-text strong { color:var(--green); }
+    </style>
+</head>
+<body>
+    <div class="ob-bg"></div>
+    <div class="ob-orb ob-orb-1"></div>
+    <div class="ob-orb ob-orb-2"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- Top progress bar -->
+    <div class="ob-topbar">
+        <div class="ob-progress-track"><div class="ob-progress-fill" id="progFill" style="width:0%"></div></div>
+        <div class="ob-step-count" id="stepCount">1 / 7</div>
+    </div>
+
+    <div class="ob-wrap">
+
+        <!-- ══ STEP 0: WELCOME ══ -->
+        <div class="ob-step active" id="step0">
+            <div class="ob-card" style="text-align:center">
+                <div class="ob-logo"><img src="/img/logo.png" alt="ONBOARD3"></div>
+                <div class="ob-eyebrow" style="justify-content:center">Welcome</div>
+                <h1 class="ob-h1">Hey <span><%= user.username %></span>,<br>you're officially in.</h1>
+                <p class="ob-p">ONBOARD3 is your gateway into Web3 — real quests, IRL events, community, and actual rewards. We're a movement, not just an app.</p>
+                <div class="ob-stats">
+                    <div class="ob-stat"><div class="ob-stat-v">5K+</div><div class="ob-stat-l">Builders</div></div>
+                    <div class="ob-stat"><div class="ob-stat-v">$6.8K</div><div class="ob-stat-l">Paid Out</div></div>
+                    <div class="ob-stat"><div class="ob-stat-v">20+</div><div class="ob-stat-l">Quests</div></div>
+                </div>
+                <button class="ob-btn ob-btn--primary" onclick="goStep(1)">
+                    <i class="fas fa-rocket"></i> Start My Journey
+                </button>
+            </div>
+        </div>
+
+        <!-- ══ STEP 1: PATHWAY ══ -->
+        <div class="ob-step" id="step1">
+            <div class="ob-card">
+                <div class="ob-eyebrow"><i class="fas fa-map-signs"></i> Your Path</div>
+                <h1 class="ob-h1">Choose your<br><span>main focus</span></h1>
+                <p class="ob-p" style="margin-bottom:1.25rem">Pick the path that fits your goals. This shapes your quests and community connections.</p>
+                <div class="pathway-grid">
+                    <div class="pathway-card" id="path-web3_jobs" onclick="selectPathway('web3_jobs')">
+                        <div class="pw-icon pw-icon--jobs"><i class="fas fa-briefcase"></i></div>
+                        <div class="pw-body">
+                            <div class="pw-name">Web3 Jobs</div>
+                            <div class="pw-desc">Land remote roles, freelance gigs, and full-time positions in Web3 worldwide.</div>
+                        </div>
+                        <div class="pw-check" id="chk-web3_jobs"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="pathway-card" id="path-ai" onclick="selectPathway('ai')">
+                        <div class="pw-icon pw-icon--ai"><i class="fas fa-microchip"></i></div>
+                        <div class="pw-body">
+                            <div class="pw-name">AI & Web3</div>
+                            <div class="pw-desc">Explore how artificial intelligence is reshaping blockchain and decentralized tech.</div>
+                        </div>
+                        <div class="pw-check" id="chk-ai"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="pathway-card" id="path-building" onclick="selectPathway('building')">
+                        <div class="pw-icon pw-icon--building"><i class="fas fa-code"></i></div>
+                        <div class="pw-body">
+                            <div class="pw-name">Building</div>
+                            <div class="pw-desc">Ship Web3 products, learn smart contracts, and build real on-chain applications.</div>
+                        </div>
+                        <div class="pw-check" id="chk-building"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="pathway-card" id="path-nft" onclick="selectPathway('nft')">
+                        <div class="pw-icon" style="background:rgba(236,72,153,.15);color:#f472b6"><i class="fas fa-image"></i></div>
+                        <div class="pw-body">
+                            <div class="pw-name">NFTs & Digital Assets</div>
+                            <div class="pw-desc">Explore NFT creation, collecting, trading, and the creator economy on-chain.</div>
+                        </div>
+                        <div class="pw-check" id="chk-nft"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="pathway-card" id="path-trading" onclick="selectPathway('trading')">
+                        <div class="pw-icon" style="background:rgba(16,185,129,.15);color:#10b981"><i class="fas fa-chart-line"></i></div>
+                        <div class="pw-body">
+                            <div class="pw-name">Trading</div>
+                            <div class="pw-desc">Master crypto trading, DeFi strategies, on-chain analysis, and portfolio management.</div>
+                        </div>
+                        <div class="pw-check" id="chk-trading"><i class="fas fa-check"></i></div>
+                    </div>
+                </div>
+
+                <!-- Application form (shown for <10k XP users) -->
+                <div id="pathwayAppForm" style="display:none;margin-top:1rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1.375rem">
+                    <div style="display:flex;align-items:center;gap:.625rem;margin-bottom:.875rem">
+                        <i class="fas fa-file-pen" style="color:var(--green)"></i>
+                        <div>
+                            <div style="font-size:.875rem;font-weight:800;color:var(--text)">Quick Application</div>
+                            <div style="font-size:.75rem;color:var(--text-3)">Users with 10,000+ XP get instant access. Help us understand you better.</div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:.875rem">
+                        <label style="font-size:.78rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.375rem">Why do you want to join this pathway?</label>
+                        <textarea id="appReason" rows="2" placeholder="e.g. I want to land a Web3 role and learn from experienced builders..." style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;padding:.625rem .875rem;font-size:.875rem;font-family:inherit;resize:none;outline:none"></textarea>
+                    </div>
+                    <div style="margin-bottom:1rem">
+                        <label style="font-size:.78rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.375rem">Share your background / experience</label>
+                        <textarea id="appExperience" rows="2" placeholder="e.g. 6 months in crypto, some Solidity basics, active in 3 Discord communities..." style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;padding:.625rem .875rem;font-size:.875rem;font-family:inherit;resize:none;outline:none"></textarea>
+                    </div>
+                    <div style="display:flex;gap:.75rem">
+                        <button class="ob-btn ob-btn--primary" style="flex:1" onclick="submitPathwayApplication()">
+                            <i class="fas fa-paper-plane"></i> Submit Application
+                        </button>
+                        <button onclick="hideAppForm()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text-2);border-radius:12px;padding:.75rem 1.25rem;cursor:pointer;font-size:.875rem">
+                            Back
+                        </button>
+                    </div>
+                </div>
+
+                <button class="ob-btn ob-btn--primary" id="pathBtn" onclick="confirmPathway()" disabled style="margin-top:.75rem">
+                    <i class="fas fa-arrow-right"></i> Continue
+                </button>
+            </div>
+        </div>
+
+        <!-- ══ STEP 2: WEB3 EDUCATION ══ -->
+        <div class="ob-step" id="step2">
+            <div class="ob-card">
+                <div class="ob-eyebrow"><i class="fas fa-book-open"></i> Web3 101</div>
+                <h1 class="ob-h1">A quick intro to<br><span>Web3</span></h1>
+                <p class="ob-p" style="margin-bottom:1.25rem">Before we get started, here's a quick crash course on what makes Web3 different from everything you know about the internet.</p>
+                <div class="edu-grid">
+                    <div class="edu-card">
+                        <div class="edu-icon"><i class="fas fa-globe"></i></div>
+                        <div class="edu-title">What is Web3?</div>
+                        <div class="edu-text">Web3 is the next generation of the internet — decentralized, owned by users, not corporations. No middlemen. No single point of control.</div>
+                    </div>
+                    <div class="edu-card">
+                        <div class="edu-icon"><i class="fas fa-wallet"></i></div>
+                        <div class="edu-title">Crypto Wallet</div>
+                        <div class="edu-text">A crypto wallet is your digital identity and bank in one. It stores your coins, tokens, and NFTs — and you control it with a private key. No password resets.</div>
+                    </div>
+                    <div class="edu-card">
+                        <div class="edu-icon"><i class="fas fa-link"></i></div>
+                        <div class="edu-title">Blockchain</div>
+                        <div class="edu-text">A blockchain is a public ledger — like a shared Google Sheet that nobody can secretly edit. Every transaction is permanently recorded and visible to all.</div>
+                    </div>
+                    <div class="edu-card">
+                        <div class="edu-icon"><i class="fas fa-coins"></i></div>
+                        <div class="edu-title">Tokens & USDC</div>
+                        <div class="edu-text">Tokens are digital assets on the blockchain. USDC is a stablecoin pegged to $1 — it's what ONBOARD3 pays you in. Stable value, real money.</div>
+                    </div>
+                </div>
+                <div class="ob-btn-row">
+                    <button class="ob-btn ob-btn--outline" onclick="goStep(1)"><i class="fas fa-arrow-left"></i></button>
+                    <button class="ob-btn ob-btn--primary" onclick="goStep(3)"><i class="fas fa-arrow-right"></i> Got It, Let's Go</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ STEP 3: JOIN ONBOARD3 COMMUNITY ══ -->
+        <%
+          var _taskMap = {};
+          obConfig.tasks.forEach(function(tk){ _taskMap[tk.taskId] = tk; });
+          function ob(id, field, fallback) { return (_taskMap[id] && _taskMap[id][field]) ? _taskMap[id][field] : fallback; }
+          var _step3 = obConfig.tasks.filter(function(tk){ return tk.step === 3; });
+          var _step4 = obConfig.tasks.filter(function(tk){ return tk.step === 4; });
+          var _step5 = obConfig.tasks.filter(function(tk){ return tk.step === 5; });
+        %>
+        <div class="ob-step" id="step3">
+            <div class="ob-card">
+                <div class="ob-eyebrow"><i class="fas fa-users"></i> Community</div>
+                <h1 class="ob-h1">Connect with<br><span>ONBOARD3</span></h1>
+                <p class="ob-p" style="margin-bottom:1.25rem">Join our channels to get quest drops, event announcements, and community updates first.</p>
+                <div class="ob-tasks">
+                    <% if (_taskMap['t-x1']) { %>
+                    <div class="ob-task" id="t-x1">
+                        <div class="ob-task-icon ob-task-icon--x"><i class="fab fa-x-twitter"></i></div>
+                        <div class="ob-task-body">
+                            <div class="ob-task-t"><%- ob('t-x1','title','Follow @onboard3___') %></div>
+                            <div class="ob-task-s"><%- ob('t-x1','subtitle','Our main X account — quest drops, updates & spaces') %></div>
+                        </div>
+                        <button class="ob-task-btn ob-task-btn--go" onclick="doTask('t-x1','<%- ob('t-x1','link','https://x.com/onboard3___') %>')"><%- ob('t-x1','btnLabel','Follow') %></button>
+                        <div class="ob-task-tick"><i class="fas fa-check"></i></div>
+                    </div>
+                    <% } %>
+                    <% if (_taskMap['t-x2']) { %>
+                    <div class="ob-task" id="t-x2">
+                        <div class="ob-task-icon ob-task-icon--x"><i class="fab fa-x-twitter"></i></div>
+                        <div class="ob-task-body">
+                            <div class="ob-task-t"><%- ob('t-x2','title','Follow @beebrain123') %></div>
+                            <div class="ob-task-s"><%- ob('t-x2','subtitle','Founder of ONBOARD3 — Web3 insights & alpha') %></div>
+                        </div>
+                        <button class="ob-task-btn ob-task-btn--go" onclick="doTask('t-x2','<%- ob('t-x2','link','https://x.com/beebrain123') %>')"><%- ob('t-x2','btnLabel','Follow') %></button>
+                        <div class="ob-task-tick"><i class="fas fa-check"></i></div>
+                    </div>
+                    <% } %>
+                    <% if (_taskMap['t-tg']) { %>
+                    <div class="ob-task" id="t-tg">
+                        <div class="ob-task-icon ob-task-icon--tg"><i class="fab fa-telegram"></i></div>
+                        <div class="ob-task-body">
+                            <div class="ob-task-t"><%- ob('t-tg','title','Join @onboard_3 on Telegram') %></div>
+                            <div class="ob-task-s"><%- ob('t-tg','subtitle','Our community hub — announcements, quests & giveaways') %></div>
+                        </div>
+                        <button class="ob-task-btn ob-task-btn--go" onclick="doTask('t-tg','<%- ob('t-tg','link','https://t.me/onboard_3') %>')"><%- ob('t-tg','btnLabel','Join') %></button>
+                        <div class="ob-task-tick"><i class="fas fa-check"></i></div>
+                    </div>
+                    <% } %>
+                </div>
+                <div class="ob-btn-row">
+                    <button class="ob-btn ob-btn--outline" onclick="goStep(2)"><i class="fas fa-arrow-left"></i></button>
+                    <button id="nextBtn3" class="ob-btn ob-btn--primary" onclick="requireStep(3,5)" <%= _step3.length === 0 ? '' : 'disabled style="opacity:.45;cursor:not-allowed"' %>>
+                        <i class="fas fa-arrow-right"></i> Done, Next Step
+                    </button>
+                </div>
+                <% if (_step3.length > 0) { %>
+                <p style="text-align:center;font-size:.78rem;color:var(--text-3);margin-top:.625rem">
+                    <i class="fas fa-lock" style="font-size:.7rem"></i> Complete all <%= _step3.length %> task<%= _step3.length !== 1 ? 's' : '' %> above to continue
+                </p>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- ══ STEP 5: PARTNER QUEST ══ -->
+        <div class="ob-step" id="step5">
+            <div class="ob-card">
+                <div class="ob-eyebrow"><i class="fas fa-eye"></i> <%- obConfig.step5Eyebrow %></div>
+                <h1 class="ob-h1">Discover<br><span><%- obConfig.step5Title %></span></h1>
+                <p class="ob-p" style="margin-bottom:1.125rem"><%- obConfig.step5Desc %></p>
+
+                <div class="ob-tasks" style="margin-bottom:1.125rem">
+                    <% if (_taskMap['t-eye-channel']) { %>
+                    <div class="ob-task" id="t-eye-channel">
+                        <div class="ob-task-icon ob-task-icon--tg"><i class="fab fa-telegram"></i></div>
+                        <div class="ob-task-body">
+                            <div class="ob-task-t"><%- ob('t-eye-channel','title','Join EyeCoin Channel') %></div>
+                            <div class="ob-task-s"><%- ob('t-eye-channel','subtitle','@geteyecoinann — official announcements') %></div>
+                        </div>
+                        <button class="ob-task-btn ob-task-btn--go" onclick="doTask('t-eye-channel','<%- ob('t-eye-channel','link','https://t.me/geteyecoinann') %>')"><%- ob('t-eye-channel','btnLabel','Join') %></button>
+                        <div class="ob-task-tick"><i class="fas fa-check"></i></div>
+                    </div>
+                    <% } %>
+                    <% if (_taskMap['t-eye-group']) { %>
+                    <div class="ob-task" id="t-eye-group">
+                        <div class="ob-task-icon ob-task-icon--tg"><i class="fab fa-telegram"></i></div>
+                        <div class="ob-task-body">
+                            <div class="ob-task-t"><%- ob('t-eye-group','title','Join EyeCoin Community Group') %></div>
+                            <div class="ob-task-s"><%- ob('t-eye-group','subtitle','@geteyecoinnow — find a team and start earning') %></div>
+                        </div>
+                        <button class="ob-task-btn ob-task-btn--go" onclick="doTask('t-eye-group','<%- ob('t-eye-group','link','https://t.me/geteyecoinnow') %>')"><%- ob('t-eye-group','btnLabel','Join') %></button>
+                        <div class="ob-task-tick"><i class="fas fa-check"></i></div>
+                    </div>
+                    <% } %>
+                    <% if (_taskMap['t-eye-x']) { %>
+                    <div class="ob-task" id="t-eye-x">
+                        <div class="ob-task-icon ob-task-icon--x"><i class="fab fa-x-twitter"></i></div>
+                        <div class="ob-task-body">
+                            <div class="ob-task-t"><%- ob('t-eye-x','title','Follow @eyecoinHQ on X') %></div>
+                            <div class="ob-task-s"><%- ob('t-eye-x','subtitle','Game updates, tournaments & community news') %></div>
+                        </div>
+                        <button class="ob-task-btn ob-task-btn--go" onclick="doTask('t-eye-x','<%- ob('t-eye-x','link','https://x.com/eyecoinHQ') %>')"><%- ob('t-eye-x','btnLabel','Follow') %></button>
+                        <div class="ob-task-tick"><i class="fas fa-check"></i></div>
+                    </div>
+                    <% } %>
+                </div>
+
+                <!-- Extra tasks (iOS, Android, etc.) injected by admin -->
+                <% var step5Extra = obConfig.extraTasks.filter(function(t){ return t.step === 5; }).sort(function(a,b){ return a.order-b.order; }); %>
+                <% if (step5Extra.length > 0) { %>
+                <div class="ob-tasks" style="margin-bottom:1.125rem">
+                  <% step5Extra.forEach(function(et, ei) { %>
+                  <div class="ob-task" id="t-extra5-<%= ei %>">
+                    <div class="ob-task-icon ob-task-icon--eye"><i class="fas fa-arrow-up-right-from-square"></i></div>
+                    <div class="ob-task-body">
+                      <div class="ob-task-t"><%- et.title %></div>
+                      <% if (et.subtitle) { %><div class="ob-task-s"><%- et.subtitle %></div><% } %>
+                    </div>
+                    <button class="ob-task-btn ob-task-btn--go" onclick="doTask('t-extra5-<%= ei %>','<%- et.link %>')"><%- et.btnLabel || 'Go' %></button>
+                    <div class="ob-task-tick"><i class="fas fa-check"></i></div>
+                  </div>
+                  <% }); %>
+                </div>
+                <% } %>
+
+                <!-- NFT Discovery -->
+                <div style="margin-bottom:1.25rem;padding:1rem;border-radius:14px;background:rgba(244,114,182,.06);border:1px solid rgba(244,114,182,.2)">
+                    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">
+                        <div style="width:28px;height:28px;border-radius:8px;background:rgba(244,114,182,.15);display:flex;align-items:center;justify-content:center;color:#f472b6;font-size:.85rem;flex-shrink:0"><i class="fas fa-image"></i></div>
+                        <div>
+                            <div style="font-size:.82rem;font-weight:800;color:#f472b6;letter-spacing:.3px">NFTs & Digital Assets</div>
+                            <div style="font-size:.72rem;color:var(--text-3)">Explore NFTs on Solana — the fastest NFT ecosystem</div>
+                        </div>
+                    </div>
+                    <div class="ob-tasks" style="margin-bottom:0">
+                        <div class="ob-task" id="t-nft-me">
+                            <div class="ob-task-icon" style="background:rgba(244,114,182,.12);color:#f472b6"><i class="fas fa-store"></i></div>
+                            <div class="ob-task-body">
+                                <div class="ob-task-t">Explore Magic Eden</div>
+                                <div class="ob-task-s">Solana's #1 NFT marketplace — browse, collect, trade</div>
+                            </div>
+                            <button class="ob-task-btn ob-task-btn--go" onclick="doTask('t-nft-me','https://magiceden.io')">Explore</button>
+                            <div class="ob-task-tick"><i class="fas fa-check"></i></div>
+                        </div>
+                        <div class="ob-task" id="t-nft-x">
+                            <div class="ob-task-icon ob-task-icon--x"><i class="fab fa-x-twitter"></i></div>
+                            <div class="ob-task-body">
+                                <div class="ob-task-t">Follow @MagicEden on X</div>
+                                <div class="ob-task-s">NFT drops, collections & Solana ecosystem news</div>
+                            </div>
+                            <button class="ob-task-btn ob-task-btn--go" onclick="doTask('t-nft-x','https://x.com/MagicEden')">Follow</button>
+                            <div class="ob-task-tick"><i class="fas fa-check"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EyeCoin group intro message -->
+                <div style="margin-bottom:1.25rem">
+                    <p style="font-size:.78rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:.625rem">Paste this in the EyeCoin group</p>
+                    <div class="post-box">
+                        <div class="post-box-head">
+                            <span><i class="fab fa-telegram"></i> Intro message</span>
+                            <button onclick="copyPost('eyePost')">Copy</button>
+                        </div>
+                        <div class="post-text" id="eyePost"></div>
+                    </div>
+                </div>
+
+                <div class="ob-btn-row">
+                    <button class="ob-btn ob-btn--outline" onclick="goStep(3)"><i class="fas fa-arrow-left"></i></button>
+                    <button class="ob-btn ob-btn--primary" onclick="goStep(6)"><i class="fas fa-arrow-right"></i> Next Step</button>
+                </div>
+                <p class="ob-skip" onclick="goStep(6)">Skip EyeCoin (optional)</p>
+            </div>
+        </div>
+
+        <!-- ══ STEP 6: IDENTITY ══ -->
+        <div class="ob-step" id="step6">
+            <div class="ob-card">
+                <div class="ob-eyebrow"><i class="fas fa-id-card"></i> Your Brand</div>
+                <h1 class="ob-h1">Build your<br><span>Web3 identity</span></h1>
+                <p class="ob-p" style="margin-bottom:1.125rem">Your profile is your Web3 brand. A strong identity opens doors to opportunities, teams, and collaborations.</p>
+
+                <!-- PFP + Cover tip -->
+                <div class="pfp-row" style="margin-bottom:1.25rem">
+                    <div class="pfp-prev" id="pfpPrev"><%= user.username.charAt(0).toUpperCase() %></div>
+                    <label class="pfp-upload" for="pfpFile">
+                        <p><i class="fas fa-camera" style="color:var(--green);margin-right:.4rem"></i> Upload Profile Picture</p>
+                        <small>JPG, PNG · Max 600KB · Square recommended</small>
+                    </label>
+                    <input type="file" id="pfpFile" accept="image/*" style="display:none" onchange="handlePfp(this)">
+                </div>
+
+                <div class="ob-notice" style="margin-bottom:1.25rem">
+                    <i class="fas fa-lightbulb"></i>
+                    <div class="ob-notice-text"><strong>Branding tip:</strong> Use the same PFP and a matching banner/cover image across X, Telegram, and ONBOARD3. Consistency builds recognition in Web3 communities.</div>
+                </div>
+
+                <div class="ob-form">
+                    <div class="ob-input-wrap">
+                        <i class="fab fa-x-twitter ob-iicon"></i>
+                        <input class="ob-input" type="text" id="ob_tw" placeholder="X handle (without @)" value="<%= user.twitter || '' %>">
+                    </div>
+                    <div class="ob-input-wrap">
+                        <i class="fas fa-pen ob-iicon"></i>
+                        <input class="ob-input" type="text" id="ob_bio" placeholder="One-liner bio — who are you in Web3?" value="<%= user.bio || '' %>">
+                    </div>
+                    <div class="ob-input-wrap">
+                        <i class="fab fa-github ob-iicon"></i>
+                        <input class="ob-input" type="text" id="ob_gh" placeholder="GitHub username (optional)" value="<%= user.github || '' %>">
+                    </div>
+                    <div class="ob-input-wrap">
+                        <i class="fas fa-wallet ob-iicon"></i>
+                        <input class="ob-input" type="text" id="ob_wallet" placeholder="Solana wallet address (for USDC rewards)" value="<%= user.walletAddress || '' %>" <%= user.walletAddress ? 'readonly style="opacity:.6;cursor:not-allowed"' : '' %>>
+                    </div>
+                </div>
+
+                <div class="ob-btn-row">
+                    <button class="ob-btn ob-btn--outline" onclick="goStep(5)"><i class="fas fa-arrow-left"></i></button>
+                    <button class="ob-btn ob-btn--primary" onclick="saveAndClaim()"><i class="fas fa-gift"></i> Save & Claim Reward</button>
+                </div>
+                <p style="text-align:center;font-size:.75rem;color:var(--text-3);margin-top:.625rem">Profile info helps you build your Web3 identity — highly recommended</p>
+            </div>
+        </div>
+
+        <!-- ══ STEP 7: REWARD ══ -->
+        <div class="ob-step" id="step7">
+            <div class="ob-card" style="text-align:center">
+                <div class="ob-eyebrow" style="justify-content:center"><i class="fas fa-trophy"></i> Reward</div>
+                <div class="reward-wrap">
+                    <div class="reward-icon-ring"><i class="fas fa-dollar-sign"></i></div>
+                    <p style="font-size:.78rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--text-3);margin-bottom:.5rem">Welcome Reward</p>
+                    <div class="reward-amount" id="rewardAmt">$0.00</div>
+                    <div class="reward-lbl">USDC · Added to your balance</div>
+                    <div class="reward-stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                </div>
+
+                <div id="pathwayBox" style="margin-bottom:1.5rem;padding:1rem;border-radius:14px;background:rgba(94,194,19,.06);border:1px solid rgba(94,194,19,.2)">
+                    <p style="font-size:.72rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--text-3);margin-bottom:.35rem">Your Pathway</p>
+                    <div id="pathwayBoxInner" style="font-size:1.0625rem;font-weight:800;color:var(--green);display:flex;align-items:center;justify-content:center;gap:.5rem"></div>
+                </div>
+
+                <p style="font-size:.875rem;color:var(--text-2);line-height:1.75;margin-bottom:1.5rem">You're now a certified ONBOARD3 builder. Complete quests, attend events, grow your XP, and unlock bigger rewards. The journey starts now.</p>
+
+                <button class="ob-btn ob-btn--primary" onclick="window.location.href='/dashboard'">
+                    <i class="fas fa-house"></i> Enter My Dashboard
+                </button>
+            </div>
+        </div>
+
+    </div><!-- /ob-wrap -->
+
+    <script>
+    /* ── Particles ── */
+    (function(){
+        const c=document.getElementById('particles');
+        for(let i=0;i<25;i++){
+            const p=document.createElement('div');p.className='particle';
+            const s=Math.random()*3+1.5;
+            p.style.cssText=`left:${Math.random()*100}%;bottom:${Math.random()*30}%;width:${s}px;height:${s}px;opacity:${Math.random()*.4+.1};animation-duration:${Math.random()*8+7}s;animation-delay:${Math.random()*6}s`;
+            c.appendChild(p);
+        }
+    })();
+
+    const TOTAL = 8;
+    let cur = 0;
+    let selectedPathway = null;
+    let pfpBase64 = null;
+    let rewardDone = false;
+
+    const pathwayMeta = {
+        web3_jobs: { icon:'fa-briefcase',  name:'Web3 Jobs',             color:'#fbbf24' },
+        ai:        { icon:'fa-microchip',  name:'AI & Web3',             color:'#c084fc' },
+        building:  { icon:'fa-code',       name:'Building',              color:'#60a5fa' },
+        nft:       { icon:'fa-image',      name:'NFTs & Digital Assets', color:'#f472b6' },
+        trading:   { icon:'fa-chart-line', name:'Trading',               color:'#10b981' }
+    };
+
+    /* ── Auto-generated posts ── */
+    const username = '<%= user.username %>';
+    const solPosts = [
+        `Just connected my Solana wallet on @onboard3___ and I'm officially a Web3 builder. My USDC rewards have a home now! #ONBOARD3 #Web3 #Solana`,
+        `GM Web3! Just set up my Solana wallet through @onboard3___. The journey into crypto begins! #ONBOARD3 #BuildingOnchain #Solana`,
+        `New era unlocked. Connected my Solana wallet on @onboard3___ — ready to hold, earn and build in Web3! Tag someone who needs to start their journey. #ONBOARD3 #Solana`,
+        `I just joined @onboard3___ and connected my Solana wallet. One step closer to full Web3 freedom. Who's next? #ONBOARD3 #Web3Journey #Solana`,
+        `Step 1 of my Web3 journey on @onboard3___: wallet connected — done! Ready to earn USDC and build on-chain. #ONBOARD3 #Crypto #Solana`
+    ];
+    const eyePosts = [
+        `Hey everyone! Just joined from @onboard3___ and I'm ready to find a team and start earning! Let's build together. #EyeCoin`,
+        `Jumping in from @onboard3___ — new here but motivated to grind! Anyone looking for a team member? #EyeCoin`,
+        `Just discovered @eyecoinHQ through @onboard3___ — loving the concept! Ready to join a team and start playing. #EyeCoin`,
+        `Sent here by @onboard3___ and I'm ready to compete! Looking for an active team — who's recruiting? #EyeCoin`,
+        `Onboarded via @onboard3___. I'm new to EyeCoin but not new to grinding. Ready to join a team and make money! #EyeCoin`
+    ];
+
+    function randPost(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    let chosenSolPost = randPost(solPosts);
+    let chosenEyePost = randPost(eyePosts);
+
+    /* ── Navigation ── */
+    function goStep(n) {
+        document.getElementById('step'+cur).classList.remove('active');
+        cur = n;
+        document.getElementById('step'+n).classList.add('active');
+        updateProgress();
+        window.scrollTo({top:0,behavior:'smooth'});
+        if (n === 4) initSolflare();
+        if (n === 5) initEyeCoin();
+        if (n === 7 && !rewardDone) completeOnboarding();
+    }
+
+    function updateProgress() {
+        const pct = (cur / (TOTAL - 1)) * 100;
+        document.getElementById('progFill').style.width = pct + '%';
+        document.getElementById('stepCount').textContent = (cur + 1) + ' / ' + TOTAL;
+    }
+
+    /* ── Pathway ── */
+    var userXp = <%= user.xp || 0 %>;
+    var XP_THRESHOLD = 10000;
+
+    function selectPathway(key) {
+        selectedPathway = key;
+        document.querySelectorAll('.pathway-card').forEach(c => c.classList.remove('selected'));
+        document.getElementById('path-'+key).classList.add('selected');
+        document.getElementById('pathBtn').disabled = false;
+        document.getElementById('pathwayAppForm').style.display = 'none';
+        document.getElementById('pathBtn').style.display = '';
+    }
+    async function confirmPathway() {
+        if (!selectedPathway) return;
+        if (userXp < XP_THRESHOLD) {
+            document.getElementById('pathwayAppForm').style.display = '';
+            document.getElementById('pathBtn').style.display = 'none';
+            return;
+        }
+        try { await fetch('/onboarding/pathway',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pathway:selectedPathway})}); } catch(_){}
+        goStep(2);
+    }
+    function hideAppForm() {
+        document.getElementById('pathwayAppForm').style.display = 'none';
+        document.getElementById('pathBtn').style.display = '';
+    }
+    async function submitPathwayApplication() {
+        var reason     = (document.getElementById('appReason').value || '').trim();
+        var experience = (document.getElementById('appExperience').value || '').trim();
+        if (!reason || !experience) { alert('Please fill in both fields before submitting.'); return; }
+        try {
+            await fetch('/onboarding/pathway', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ pathway: selectedPathway, reason, experience })
+            });
+        } catch(_) {}
+        goStep(2);
+    }
+
+    /* ── Tasks — track clicked state for gate checks ── */
+    const _clicked = {};
+    function doTask(id, url) {
+        _clicked[id] = true;
+        window.open(url, '_blank');
+        setTimeout(() => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.add('done');
+            const btn = el.querySelector('.ob-task-btn');
+            if (btn) { btn.className = 'ob-task-btn ob-task-btn--done'; btn.textContent = 'Done'; }
+            // Unlock Next button if all required tasks for this step are done
+            checkStepGate(cur);
+        }, 1800);
+    }
+
+    /* Required task IDs per step — driven by server config so removals take effect immediately */
+    const REQUIRED = {
+        3: <%- JSON.stringify(_step3.map(function(tk){ return tk.taskId; })) %>,
+        5: [],
+        6: []
+    };
+
+    function checkStepGate(step) {
+        const req = REQUIRED[step];
+        if (!req || req.length === 0) return;
+        const allDone = req.every(id => document.getElementById(id)?.classList.contains('done'));
+        const btn = document.getElementById('nextBtn' + step);
+        if (btn) {
+            btn.disabled = !allDone;
+            btn.style.opacity = allDone ? '1' : '0.45';
+            btn.style.cursor  = allDone ? 'pointer' : 'not-allowed';
+            if (allDone) btn.style.boxShadow = '0 6px 24px rgba(94,194,19,0.5)';
+        }
+    }
+
+    function requireStep(step, nextStep) {
+        const req = REQUIRED[step];
+        if (!req || req.length === 0) { goStep(nextStep); return; }
+        const pending = req.filter(id => !document.getElementById(id)?.classList.contains('done'));
+        if (pending.length > 0) {
+            showToast('Please complete all required tasks first', 'warning');
+            // Shake the pending tasks
+            pending.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.transition = 'all .1s';
+                    el.style.transform = 'translateX(8px)';
+                    el.style.borderColor = 'rgba(239,68,68,0.5)';
+                    setTimeout(() => { el.style.transform = 'translateX(-8px)'; }, 100);
+                    setTimeout(() => { el.style.transform = 'translateX(0)'; el.style.borderColor = ''; }, 200);
+                }
+            });
+            return;
+        }
+        goStep(nextStep);
+    }
+
+    // Global toast fallback if sidebar isn't loaded yet
+    if (!window.showToast) {
+        window.showToast = function(msg, type) {
+            const t = document.createElement('div');
+            t.style.cssText = 'position:fixed;top:1.5rem;right:1.5rem;z-index:99999;padding:.875rem 1.25rem;border-radius:14px;font-family:Outfit,sans-serif;font-size:.875rem;font-weight:600;color:#fbbf24;background:rgba(20,16,8,.97);border:1px solid rgba(251,191,36,.4);box-shadow:0 12px 40px rgba(0,0,0,.4)';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3500);
+        };
+    }
+
+    /* ── Solflare init ── */
+    function initSolflare() {
+        document.getElementById('solPost').textContent = chosenSolPost;
+    }
+    function shareWalletPost() {
+        const txt = encodeURIComponent(chosenSolPost);
+        window.open('https://x.com/intent/tweet?text=' + txt, '_blank');
+        setTimeout(() => {
+            const t = document.getElementById('t-sol-share');
+            if (t) {
+                t.classList.add('done');
+                const btn = document.getElementById('solShareBtn');
+                if (btn) { btn.className = 'ob-task-btn ob-task-btn--done'; btn.textContent = 'Shared'; }
+            }
+        }, 1800);
+    }
+
+    /* ── EyeCoin init ── */
+    function initEyeCoin() {
+        document.getElementById('eyePost').textContent = chosenEyePost;
+    }
+
+    /* ── Copy post ── */
+    function copyPost(id) {
+        const txt = document.getElementById(id).textContent;
+        navigator.clipboard.writeText(txt).catch(() => {});
+        event.target.textContent = 'Copied!';
+        setTimeout(() => event.target.textContent = 'Copy', 2000);
+    }
+
+    /* ── PFP ── */
+    function handlePfp(input) {
+        const file = input.files[0]; if (!file) return;
+        if (file.size > 620000) { showToast('Image too large. Max 600KB.', 'warning'); return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+            pfpBase64 = e.target.result;
+            const prev = document.getElementById('pfpPrev');
+            prev.innerHTML = `<img src="${pfpBase64}" alt="PFP">`;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    /* ── Save identity + go to reward ── */
+    async function saveAndClaim() {
+        const data = {
+            twitter: document.getElementById('ob_tw').value.trim(),
+            bio:     document.getElementById('ob_bio').value.trim(),
+            github:  document.getElementById('ob_gh').value.trim()
+        };
+        const w = document.getElementById('ob_wallet').value.trim();
+        if (w) data.walletAddress = w;
+        if (pfpBase64) data.profilePicture = pfpBase64;
+        try { await fetch('/onboarding/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); } catch(_){}
+        goStep(7);
+    }
+
+    /* ── Complete onboarding ── */
+    async function completeOnboarding() {
+        rewardDone = true;
+        try {
+            const r = await fetch('/onboarding/complete',{method:'POST',headers:{'Content-Type':'application/json'}});
+            const d = await r.json();
+            if (d.success) {
+                setTimeout(() => {
+                    animateReward(d.reward);
+                    showPathwayBox();
+                }, 500);
+            }
+        } catch(_) {
+            setTimeout(() => { animateReward(0.1); showPathwayBox(); }, 800);
+        }
+    }
+
+    function animateReward(target) {
+        const el = document.getElementById('rewardAmt');
+        const dur = 1400; const start = performance.now();
+        function tick(now) {
+            const t = Math.min(1,(now-start)/dur);
+            const ease = 1 - Math.pow(1-t,3);
+            el.textContent = '$' + (ease * target).toFixed(2);
+            if (t < 1) requestAnimationFrame(tick); else el.textContent = '$' + target.toFixed(2);
+        }
+        requestAnimationFrame(tick);
+    }
+
+    function showPathwayBox() {
+        if (!selectedPathway) return;
+        const m = pathwayMeta[selectedPathway];
+        document.getElementById('pathwayBoxInner').innerHTML = `<i class="fas ${m.icon}" style="color:${m.color}"></i> <span style="color:${m.color}">${m.name}</span>`;
+    }
+
+    updateProgress();
+    </script>
+</body>
+</html>

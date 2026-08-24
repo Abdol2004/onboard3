@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings — ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <%- include('partials/achievement-popup') %>
+    <style>
+        /* ── Toast notification ── */
+        .toast {
+            position: fixed; top: 1.5rem; right: 1.5rem; z-index: 9999;
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.875rem 1.25rem; border-radius: 14px; min-width: 280px;
+            font-size: 0.9rem; font-weight: 600;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            animation: toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+            backdrop-filter: blur(12px);
+        }
+        @keyframes toastIn { from{opacity:0;transform:translateX(120px)} to{opacity:1;transform:translateX(0)} }
+        .toast--success { background: rgba(18,28,18,0.97); border: 1px solid rgba(94,194,19,0.4); color: var(--green); }
+        .toast--error   { background: rgba(28,12,12,0.97); border: 1px solid rgba(239,68,68,0.4);  color: #f87171; }
+        .toast i { font-size: 1.1rem; flex-shrink: 0; }
+
+        /* ── Section header with icon ── */
+        .set-section {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 18px; overflow: hidden;
+            animation: cardIn 0.5s ease both;
+        }
+        .set-section-head {
+            display: flex; align-items: center; gap: 0.875rem;
+            padding: 1.375rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255,255,255,0.015);
+        }
+        .set-section-icon {
+            width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+            background: rgba(94,194,19,0.1); border: 1px solid rgba(94,194,19,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; color: var(--green);
+        }
+        .set-section-title { font-size: 1rem; font-weight: 800; color: var(--text); letter-spacing: -0.2px; }
+        .set-section-sub { font-size: 0.78rem; color: var(--text-3); margin-top: 1px; }
+        .set-section-body { padding: 1.5rem; }
+
+        /* ── Two-col form grid ── */
+        .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        @media (max-width: 700px) { .form-2col { grid-template-columns: 1fr; } }
+
+        /* ── Input with prefix icon ── */
+        .input-icon-wrap { position: relative; }
+        .input-icon-wrap .inp-icon {
+            position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+            font-size: 0.8rem; color: var(--text-3); pointer-events: none; transition: color 0.25s;
+        }
+        .input-icon-wrap:focus-within .inp-icon { color: var(--green); }
+        .input-icon-wrap input,
+        .input-icon-wrap textarea { padding-left: 2.75rem !important; }
+
+        /* ── Lock field ── */
+        .field-locked {
+            background: rgba(255,255,255,0.02) !important;
+            border-color: rgba(255,255,255,0.06) !important;
+            color: var(--text-3) !important; cursor: not-allowed !important;
+            font-style: italic;
+        }
+        .field-lock-note {
+            display: flex; align-items: center; gap: 0.4rem;
+            font-size: 0.75rem; color: var(--text-3); margin-top: 0.375rem;
+        }
+
+        /* ── Connection badge ── */
+        .conn-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.4rem 0.875rem; border-radius: 50px; font-size: 0.78rem; font-weight: 700;
+        }
+        .conn-badge--on  { background: rgba(94,194,19,0.12); color: var(--green); border: 1px solid rgba(94,194,19,0.3); }
+        .conn-badge--off { background: rgba(239,68,68,0.1);  color: #f87171;  border: 1px solid rgba(239,68,68,0.25); }
+
+        /* ── Toggle switch ── */
+        .toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.875rem 1rem; border-radius: 12px;
+            background: rgba(255,255,255,0.025); border: 1px solid var(--border);
+            transition: border-color 0.2s;
+            gap: 1.25rem;
+        }
+        .toggle-row:hover { border-color: rgba(94,194,19,0.2); }
+        .toggle-text { flex: 1; min-width: 0; }
+        .toggle-text strong { display: block; font-size: 0.875rem; font-weight: 700; color: var(--text); }
+        .toggle-text span { display: block; font-size: 0.75rem; color: var(--text-3); margin-top: 2px; }
+
+        .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute; inset: 0; cursor: pointer;
+            background: rgba(255,255,255,0.1); border-radius: 99px;
+            border: 1px solid var(--border);
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        .toggle-slider::before {
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: var(--text-3);
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        .toggle-switch input:checked + .toggle-slider { background: rgba(94,194,19,0.2); border-color: rgba(94,194,19,0.4); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); background: var(--green); box-shadow: 0 0 10px rgba(94,194,19,0.5); }
+
+        /* ── Wallet display ── */
+        .wallet-addr {
+            font-family: 'Courier New', monospace; font-size: 0.8375rem;
+            word-break: break-all; line-height: 1.6; color: var(--green);
+            background: rgba(94,194,19,0.06); border: 1px solid rgba(94,194,19,0.2);
+            padding: 0.875rem 1rem; border-radius: 12px;
+        }
+        .wallet-info-row {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 1rem; padding: 0.875rem 1rem;
+            background: rgba(255,255,255,0.025); border-radius: 12px; border: 1px solid var(--border);
+        }
+
+        /* ── Warning box ── */
+        .warn-box {
+            display: flex; align-items: flex-start; gap: 0.875rem;
+            padding: 1rem; border-radius: 13px;
+            background: rgba(251,191,36,0.07); border: 1px solid rgba(251,191,36,0.25);
+        }
+        .warn-box i { color: #fbbf24; flex-shrink: 0; margin-top: 1px; }
+        .warn-box-text { font-size: 0.8375rem; color: var(--text-2); line-height: 1.6; }
+        .warn-box-text strong { color: #fbbf24; }
+
+        /* ── Danger zone ── */
+        .danger-row {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 1rem;
+            padding: 1.125rem; border-radius: 13px;
+            background: rgba(239,68,68,0.04); border: 1px solid rgba(239,68,68,0.2);
+        }
+        .danger-row-text strong { display: block; font-size: 0.875rem; font-weight: 800; color: #f87171; }
+        .danger-row-text span { display: block; font-size: 0.75rem; color: var(--text-3); margin-top: 2px; }
+        .btn-danger { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.3); padding: 0.6rem 1.25rem; border-radius: 10px; font-size: 0.8375rem; font-weight: 700; cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.25s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-danger:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.5); }
+
+        .set-section:nth-child(1) { animation-delay:0ms }
+        .set-section:nth-child(2) { animation-delay:60ms }
+        .set-section:nth-child(3) { animation-delay:120ms }
+        .set-section:nth-child(4) { animation-delay:180ms }
+        .set-section:nth-child(5) { animation-delay:240ms }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <% const currentPage = 'settings'; %>
+    <%- include('partials/sidebar', { user, currentPage }) %>
+
+    <div class="dashboard-container">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2><i class="fas fa-gear" style="color:var(--green);margin-right:.5rem"></i>Settings</h2>
+                        <p>Manage your account, connections, and preferences</p>
+                    </div>
+                    <div class="header-stats">
+                        <div class="stat-badge">
+                            <i class="fas fa-bolt" style="color:var(--green)"></i>
+                            <span><%= (user.xp || 0).toLocaleString() %> XP</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+
+                <!-- ══ 1. ACCOUNT INFO ══ -->
+                <div class="set-section">
+                    <div class="set-section-head">
+                        <div class="set-section-icon"><i class="fas fa-user"></i></div>
+                        <div>
+                            <p class="set-section-title">Account Info</p>
+                            <p class="set-section-sub">Your public profile details</p>
+                        </div>
+                    </div>
+                    <div class="set-section-body">
+                        <!-- PFP Upload -->
+                        <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:1.5rem;padding:1.125rem;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid var(--border)">
+                            <div id="settingsPfpPreview" style="width:68px;height:68px;border-radius:17px;flex-shrink:0;background:linear-gradient(135deg,var(--green),var(--green-dark));display:flex;align-items:center;justify-content:center;font-size:1.625rem;font-weight:900;color:#000;overflow:hidden;border:2px solid rgba(94,194,19,0.35);box-shadow:0 4px 18px rgba(94,194,19,0.28)">
+                                <% if (user.profilePicture) { %>
+                                <img src="<%= user.profilePicture %>" style="width:100%;height:100%;object-fit:cover;border-radius:15px" alt="PFP">
+                                <% } else { %>
+                                <%= user.username.charAt(0).toUpperCase() %>
+                                <% } %>
+                            </div>
+                            <div style="flex:1">
+                                <p style="font-size:.875rem;font-weight:700;color:var(--text);margin-bottom:.25rem">Profile Picture</p>
+                                <p style="font-size:.75rem;color:var(--text-3);margin-bottom:.625rem">JPG, PNG or GIF · Max 600KB</p>
+                                <label for="pfpInput" style="display:inline-flex;align-items:center;gap:.45rem;padding:.5rem 1rem;border-radius:9px;background:rgba(94,194,19,0.1);border:1px solid rgba(94,194,19,0.25);color:var(--green);font-size:.8125rem;font-weight:700;cursor:pointer;transition:all .25s">
+                                    <i class="fas fa-camera"></i> Change Photo
+                                </label>
+                                <input type="file" id="pfpInput" accept="image/*" style="display:none" onchange="uploadPfp(this)">
+                            </div>
+                            <div id="pfpSpinner" style="display:none;color:var(--green)"><i class="fas fa-spinner fa-spin"></i></div>
+                        </div>
+
+                        <form id="profileForm">
+                            <div class="form-2col" style="margin-bottom:1.25rem">
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label>Username</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-at inp-icon"></i>
+                                        <input type="text" value="<%= user.username %>" readonly class="field-locked">
+                                    </div>
+                                    <p class="field-lock-note"><i class="fas fa-lock"></i> Cannot be changed</p>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label>Email Address</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-envelope inp-icon"></i>
+                                        <input type="email" value="<%= user.email %>" readonly class="field-locked">
+                                    </div>
+                                    <p class="field-lock-note"><i class="fas fa-lock"></i> Cannot be changed</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Bio <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+                                <textarea id="bio" name="bio" rows="3" placeholder="Tell the community about yourself..."><%= user.bio || '' %></textarea>
+                            </div>
+                            <div class="form-2col" style="margin-bottom:1.25rem">
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label>GitHub Username</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fab fa-github inp-icon"></i>
+                                        <input type="text" id="github" name="github" value="<%= user.github || '' %>" placeholder="yourusername">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label>X / Twitter Handle</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fab fa-x-twitter inp-icon"></i>
+                                        <% if (user.twitterConnected) { %>
+                                        <input type="text" value="@<%= user.twitter || '' %>" readonly class="field-locked">
+                                    </div>
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.4rem">
+                                        <p class="field-lock-note"><i class="fas fa-check-circle" style="color:var(--green)"></i> Verified via OAuth</p>
+                                        <span class="conn-badge conn-badge--on"><i class="fas fa-check"></i> Connected</span>
+                                    </div>
+                                    <% } else { %>
+                                        <input type="text" value="Not connected" readonly class="field-locked">
+                                    </div>
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.4rem;flex-wrap:wrap;gap:.5rem">
+                                        <p class="field-lock-note" style="color:#f87171"><i class="fas fa-triangle-exclamation"></i> Required to unlock quests</p>
+                                        <a href="/auth/twitter/connect" class="conn-badge conn-badge--off" style="text-decoration:none;cursor:pointer;padding:.4rem .875rem">
+                                            <i class="fab fa-x-twitter"></i> Sign in with X
+                                        </a>
+                                    </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-floppy-disk"></i> Save Changes
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ══ 2. WALLET ══ -->
+                <div class="set-section">
+                    <div class="set-section-head">
+                        <div class="set-section-icon"><i class="fas fa-wallet"></i></div>
+                        <div>
+                            <p class="set-section-title">Withdrawal Wallet</p>
+                            <p class="set-section-sub">Solana address for USDC payouts</p>
+                        </div>
+                        <div style="margin-left:auto">
+                            <% if (user.walletAddress) { %>
+                            <span class="conn-badge conn-badge--on"><i class="fas fa-check"></i> Connected</span>
+                            <% } else { %>
+                            <span class="conn-badge conn-badge--off"><i class="fas fa-times"></i> Not Set</span>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="set-section-body">
+                        <% if (user.walletAddress) { %>
+                        <div style="display:flex;flex-direction:column;gap:1rem">
+                            <div>
+                                <p class="form-group" style="margin-bottom:.4rem"><label>Connected Address</label></p>
+                                <div class="wallet-addr"><%= user.walletAddress %></div>
+                                <p class="field-lock-note"><i class="fas fa-lock"></i> Locked for security — contact support to change</p>
+                            </div>
+                            <div class="wallet-info-row">
+                                <div>
+                                    <p style="font-size:.75rem;color:var(--text-3);margin-bottom:.2rem">Available Balance</p>
+                                    <p style="font-size:1.5rem;font-weight:900;color:var(--green)">$<%= user.usdcBalance || 0 %> <span style="font-size:.875rem;font-weight:600">USDC</span></p>
+                                </div>
+                                <a href="/dashboard/withdrawal" class="btn btn-primary" style="text-decoration:none">
+                                    <i class="fas fa-arrow-up-from-bracket"></i> Withdraw
+                                </a>
+                            </div>
+                        </div>
+                        <% } else { %>
+                        <div style="display:flex;flex-direction:column;gap:1.25rem">
+                            <div class="warn-box">
+                                <i class="fas fa-triangle-exclamation"></i>
+                                <div class="warn-box-text">
+                                    <strong>Permanent action</strong> — Once set, your wallet address cannot be changed for security. Double-check before saving.
+                                </div>
+                            </div>
+                            <form id="walletForm">
+                                <div class="form-group" style="margin-bottom:1.25rem">
+                                    <label>Solana Wallet Address <span style="color:#f87171">*</span></label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-wallet inp-icon"></i>
+                                        <input type="text" id="walletAddress" name="walletAddress"
+                                            placeholder="Enter your Solana address (starts with a letter/number)"
+                                            required minlength="26"
+                                            style="font-family:'Courier New',monospace;font-size:.85rem">
+                                    </div>
+                                    <p class="field-lock-note" style="margin-top:.375rem"><i class="fas fa-info-circle"></i> This address will receive all your USDC rewards</p>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+                                    <div style="font-size:.8rem;color:var(--text-3)">
+                                        Current balance: <strong style="color:var(--green)">$<%= user.usdcBalance || 0 %> USDC</strong>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-link"></i> Connect Wallet
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- ══ 3. SECURITY ══ -->
+                <div class="set-section">
+                    <div class="set-section-head">
+                        <div class="set-section-icon"><i class="fas fa-lock"></i></div>
+                        <div>
+                            <p class="set-section-title">Security</p>
+                            <p class="set-section-sub">Update your password</p>
+                        </div>
+                    </div>
+                    <div class="set-section-body">
+                        <form id="passwordForm">
+                            <div class="form-2col" style="margin-bottom:1.25rem">
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label>Current Password</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-lock inp-icon"></i>
+                                        <input type="password" id="currentPassword" required placeholder="Current password">
+                                    </div>
+                                </div>
+                                <div></div>
+                            </div>
+                            <div class="form-2col" style="margin-bottom:1.5rem">
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label>New Password</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-key inp-icon"></i>
+                                        <input type="password" id="newPassword" required minlength="6" placeholder="Min. 6 characters">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label>Confirm New Password</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-shield-alt inp-icon"></i>
+                                        <input type="password" id="confirmPassword" required minlength="6" placeholder="Repeat new password">
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-key"></i> Update Password
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ══ 4. PREFERENCES ══ -->
+                <div class="set-section">
+                    <div class="set-section-head">
+                        <div class="set-section-icon"><i class="fas fa-sliders"></i></div>
+                        <div>
+                            <p class="set-section-title">Preferences</p>
+                            <p class="set-section-sub">Notifications and privacy</p>
+                        </div>
+                    </div>
+                    <div class="set-section-body">
+                        <form id="prefsForm">
+                            <p style="font-size:.78rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:.75rem">Notifications</p>
+                            <div style="display:flex;flex-direction:column;gap:.625rem;margin-bottom:1.5rem">
+                                <label class="toggle-row">
+                                    <div class="toggle-text">
+                                        <strong>New Quests</strong>
+                                        <span>Get notified when new quests are available</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" name="newQuests" <%= user.notifications?.newQuests ? 'checked' : '' %>>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                                <label class="toggle-row">
+                                    <div class="toggle-text">
+                                        <strong>Event Reminders</strong>
+                                        <span>Reminders for upcoming events you've registered for</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" name="eventReminders" <%= user.notifications?.eventReminders ? 'checked' : '' %>>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                                <label class="toggle-row">
+                                    <div class="toggle-text">
+                                        <strong>Submission Updates</strong>
+                                        <span>When your task submissions are approved or rejected</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" name="submissionUpdates" <%= user.notifications?.submissionUpdates ? 'checked' : '' %>>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                                <label class="toggle-row">
+                                    <div class="toggle-text">
+                                        <strong>Weekly Digest</strong>
+                                        <span>Weekly summary of your XP, rank, and activity</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" name="weeklyDigest" <%= user.notifications?.weeklyDigest ? 'checked' : '' %>>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                            </div>
+
+                            <p style="font-size:.78rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:.75rem">Privacy</p>
+                            <div style="display:flex;flex-direction:column;gap:.625rem;margin-bottom:1.5rem">
+                                <label class="toggle-row">
+                                    <div class="toggle-text">
+                                        <strong>Show on Leaderboard</strong>
+                                        <span>Display your profile on public quest leaderboards</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" name="showOnLeaderboard" <%= user.privacy?.showOnLeaderboard !== false ? 'checked' : '' %>>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                                <label class="toggle-row">
+                                    <div class="toggle-text">
+                                        <strong>Public Profile</strong>
+                                        <span>Let other members view your profile and achievements</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" name="publicProfile" <%= user.privacy?.publicProfile !== false ? 'checked' : '' %>>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                                <label class="toggle-row">
+                                    <div class="toggle-text">
+                                        <strong>Show USDC Earnings</strong>
+                                        <span>Display your total USDC earned on your public profile</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" name="showEarnings" <%= user.privacy?.showEarnings !== false ? 'checked' : '' %>>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                                <label class="toggle-row">
+                                    <div class="toggle-text">
+                                        <strong>Show Quest Count</strong>
+                                        <span>Display how many quests you've completed on your profile</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" name="showQuests" <%= user.privacy?.showQuests !== false ? 'checked' : '' %>>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-floppy-disk"></i> Save Preferences
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ══ 5. DANGER ZONE ══ -->
+                <div class="set-section" style="border-color:rgba(239,68,68,0.2)">
+                    <div class="set-section-head" style="border-bottom-color:rgba(239,68,68,0.15)">
+                        <div class="set-section-icon" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.25);color:#f87171"><i class="fas fa-triangle-exclamation"></i></div>
+                        <div>
+                            <p class="set-section-title">Account Actions</p>
+                            <p class="set-section-sub">Sign out or delete your account</p>
+                        </div>
+                    </div>
+                    <div class="set-section-body" style="display:flex;flex-direction:column;gap:.75rem">
+                        <div class="danger-row" style="background:rgba(94,194,19,0.03);border-color:rgba(94,194,19,0.15)">
+                            <div class="danger-row-text">
+                                <strong style="color:var(--text)">Sign Out</strong>
+                                <span>Sign out of your current session</span>
+                            </div>
+                            <button type="button" class="btn btn-outline" onclick="handleLogout(event)">
+                                <i class="fas fa-right-from-bracket"></i> Sign Out
+                            </button>
+                        </div>
+                        <div class="danger-row">
+                            <div class="danger-row-text">
+                                <strong>Delete Account</strong>
+                                <span>Permanently remove your account and all data</span>
+                            </div>
+                            <button type="button" class="btn-danger" onclick="confirmDelete()">
+                                <i class="fas fa-trash"></i> Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /content -->
+        </main>
+    </div>
+
+    <script>
+        /* ── Toast ── */
+        let _toastTimer;
+        /* ── Copy profile link with referral code ── */
+        async function copyMyProfileLink() {
+            const refCode = '<%= user.referralCode || "" %>';
+            const base    = window.location.origin + '/u/<%= user.username %>';
+            const link    = refCode ? base + '?ref=' + refCode : base;
+            try {
+                await navigator.clipboard.writeText(link);
+                showToast('Profile link copied! Anyone who signs up via your link earns you referral XP.');
+            } catch {
+                showToast('Your link: ' + link);
+            }
+        }
+
+        function showToast(msg, type = 'success') {
+            const old = document.getElementById('_toast');
+            if (old) old.remove();
+            clearTimeout(_toastTimer);
+            const t = document.createElement('div');
+            t.id = '_toast';
+            t.className = 'toast toast--' + type;
+            t.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'circle-xmark'}"></i> ${msg}`;
+            document.body.appendChild(t);
+            _toastTimer = setTimeout(() => {
+                t.style.animation = 'toastIn 0.3s ease reverse both';
+                setTimeout(() => t.remove(), 320);
+            }, 4000);
+        }
+
+        /* ── PFP upload ── */
+        async function uploadPfp(input) {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 620000) { showToast('Image too large — max 600KB', 'error'); return; }
+            const spinner = document.getElementById('pfpSpinner');
+            spinner.style.display = 'block';
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const b64 = e.target.result;
+                try {
+                    const r = await fetch('/dashboard/settings/avatar', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ profilePicture: b64 })
+                    });
+                    const d = await r.json();
+                    if (d.success) {
+                        const preview = document.getElementById('settingsPfpPreview');
+                        preview.innerHTML = `<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:15px" alt="PFP">`;
+                        showToast('Profile picture updated!', 'success');
+                    } else {
+                        showToast(d.message || 'Upload failed', 'error');
+                    }
+                } catch { showToast('Upload failed', 'error'); }
+                spinner.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        /* ── Profile form ── */
+        document.getElementById('profileForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type=submit]');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            try {
+                const r = await fetch('/dashboard/settings/profile', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bio: document.getElementById('bio').value,
+                        github: document.getElementById('github').value
+                    })
+                });
+                const d = await r.json();
+                showToast(d.message, d.success ? 'success' : 'error');
+            } catch { showToast('Error saving profile', 'error'); }
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Changes';
+        });
+
+        /* ── Wallet form ── */
+        const walletForm = document.getElementById('walletForm');
+        if (walletForm) {
+            walletForm.addEventListener('submit', async e => {
+                e.preventDefault();
+                const addr = document.getElementById('walletAddress').value.trim();
+                if (addr.length < 26) { showToast('Enter a valid Solana address (min. 26 chars)', 'error'); return; }
+                if (!confirm('Set wallet address permanently?\n\n' + addr + '\n\nThis cannot be changed later.')) return;
+                const btn = walletForm.querySelector('button[type=submit]');
+                btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+                try {
+                    const r = await fetch('/dashboard/settings/wallet', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ walletAddress: addr })
+                    });
+                    const d = await r.json();
+                    showToast(d.message, d.success ? 'success' : 'error');
+                    if (d.success) setTimeout(() => location.reload(), 1800);
+                } catch { showToast('Error connecting wallet', 'error'); }
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-link"></i> Connect Wallet';
+            });
+        }
+
+        /* ── Password form ── */
+        document.getElementById('passwordForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const np = document.getElementById('newPassword').value;
+            const cp = document.getElementById('confirmPassword').value;
+            if (np !== cp) { showToast('New passwords do not match', 'error'); return; }
+            const btn = e.target.querySelector('button[type=submit]');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            try {
+                const r = await fetch('/dashboard/settings/password', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        currentPassword: document.getElementById('currentPassword').value,
+                        newPassword: np
+                    })
+                });
+                const d = await r.json();
+                showToast(d.message, d.success ? 'success' : 'error');
+                if (d.success) document.getElementById('passwordForm').reset();
+            } catch { showToast('Error updating password', 'error'); }
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-key"></i> Update Password';
+        });
+
+        /* ── Preferences form ── */
+        document.getElementById('prefsForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const btn = e.target.querySelector('button[type=submit]');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            try {
+                const [rn, rp] = await Promise.all([
+                    fetch('/dashboard/settings/notifications', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ notifications: {
+                            newQuests: fd.get('newQuests') === 'on',
+                            eventReminders: fd.get('eventReminders') === 'on',
+                            submissionUpdates: fd.get('submissionUpdates') === 'on',
+                            weeklyDigest: fd.get('weeklyDigest') === 'on'
+                        }})
+                    }),
+                    fetch('/dashboard/settings/privacy', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ privacy: {
+                            showOnLeaderboard: fd.get('showOnLeaderboard') === 'on',
+                            publicProfile: fd.get('publicProfile') === 'on',
+                            showEarnings: fd.get('showEarnings') === 'on',
+                            showQuests:   fd.get('showQuests') === 'on'
+                        }})
+                    })
+                ]);
+                const dn = await rn.json();
+                showToast(dn.success ? 'Preferences saved!' : dn.message, dn.success ? 'success' : 'error');
+            } catch { showToast('Error saving preferences', 'error'); }
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Preferences';
+        });
+
+        /* ── Logout ── */
+        async function handleLogout(e) {
+            e.preventDefault();
+            if (!confirm('Sign out of your account?')) return;
+            try {
+                await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' });
+                window.location.href = '/auth';
+            } catch { window.location.href = '/auth'; }
+        }
+
+        /* ── Delete account ── */
+        function confirmDelete() {
+            if (!confirm('Delete your account permanently?\n\nThis cannot be undone. All your XP, quests, and rewards will be lost.')) return;
+            if (!confirm('Are you absolutely sure? Type "DELETE" in the next prompt to confirm.')) return;
+            const word = prompt('Type DELETE to confirm:');
+            if (word !== 'DELETE') { showToast('Account deletion cancelled', 'error'); return; }
+            showToast('Processing deletion...', 'error');
+        }
+    </script>
+</body>
+</html>

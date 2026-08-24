@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/css/(.*)",
+      "dest": "/public/css/$1",
+      "headers": { "cache-control": "public, max-age=31536000, immutable" }
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/public/js/$1",
+      "headers": { "cache-control": "public, max-age=31536000, immutable" }
+    },
+    {
+      "src": "/img/(.*)",
+      "dest": "/public/img/$1",
+      "headers": { "cache-control": "public, max-age=86400" }
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "/public/images/$1",
+      "headers": { "cache-control": "public, max-age=86400" }
+    },
+    {
+      "src": "/uploads/(.*)",
+      "dest": "/public/uploads/$1",
+      "headers": { "cache-control": "public, max-age=86400" }
+    },
+    {
+      "src": "/(favicon\\.ico|coming-soon\\.html)",
+      "dest": "/public/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "index.js"
+    }
+  ]
+}

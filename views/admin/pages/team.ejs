@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Admin Team — ONBOARD3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'team', admin:user }) %>
+<div class="a-main">
+  <div class="a-content">
+
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-shield-halved"></i> Admin Team</h1>
+        <p>Assign and manage admin roles for your team</p>
+      </div>
+    </div>
+
+    <!-- Role legend -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;margin-bottom:1.5rem">
+      <% const roleMeta = {
+        operations:   { label:'Operations', color:'#60a5fa', icon:'fa-bolt', desc:'Full platform access' },
+        community:    { label:'Community',  color:'#a78bfa', icon:'fa-users', desc:'User & community management' },
+        partnerships: { label:'Partnerships', color:'#fbbf24', icon:'fa-handshake', desc:'Business & BD access' },
+        finance:      { label:'Finance',    color:'#10b981', icon:'fa-coins', desc:'Financial data only' },
+      }; %>
+      <% Object.entries(roleMeta).forEach(([key, rm]) => { %>
+      <div class="a-card" style="padding:.875rem 1rem;border-color:<%=rm.color%>22">
+        <div style="display:flex;align-items:center;gap:.625rem;margin-bottom:.35rem">
+          <div style="width:30px;height:30px;border-radius:8px;background:<%=rm.color%>18;border:1px solid <%=rm.color%>33;display:flex;align-items:center;justify-content:center;color:<%=rm.color%>;font-size:.8rem">
+            <i class="fas <%=rm.icon%>"></i>
+          </div>
+          <span style="font-weight:800;font-size:.875rem;color:<%=rm.color%>"><%=rm.label%></span>
+        </div>
+        <p style="font-size:.75rem;color:var(--text-3);margin:0"><%=rm.desc%></p>
+      </div>
+      <% }) %>
+    </div>
+
+    <!-- Add admin member -->
+    <div class="a-card" style="margin-bottom:1.5rem">
+      <h3 style="font-size:1rem;font-weight:800;margin-bottom:1rem"><i class="fas fa-user-plus" style="color:var(--green);margin-right:.5rem"></i>Add Team Member</h3>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:200px;position:relative">
+          <label style="font-size:.75rem;font-weight:700;color:var(--text-3);display:block;margin-bottom:.4rem">Search user</label>
+          <input id="userSearch" type="text" placeholder="Username or email..." oninput="searchUsers(this.value)"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.65rem .875rem;color:var(--text);font-family:Outfit,sans-serif;font-size:.875rem;outline:none">
+          <div id="searchResults" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:rgba(10,18,10,.98);border:1px solid var(--border);border-radius:10px;z-index:100;overflow:hidden"></div>
+        </div>
+        <div style="min-width:180px">
+          <label style="font-size:.75rem;font-weight:700;color:var(--text-3);display:block;margin-bottom:.4rem">Role</label>
+          <select id="roleSelect" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.65rem .875rem;color:var(--text);font-family:Outfit,sans-serif;font-size:.875rem;outline:none">
+            <option value="operations">Operations</option>
+            <option value="community">Community</option>
+            <option value="partnerships">Partnerships</option>
+            <option value="finance">Finance</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+        </div>
+        <button onclick="assignRole()" style="padding:.65rem 1.5rem;background:var(--green);color:#000;border:none;border-radius:10px;font-family:Outfit,sans-serif;font-size:.875rem;font-weight:800;cursor:pointer;white-space:nowrap">
+          <i class="fas fa-check"></i> Assign Role
+        </button>
+      </div>
+      <div id="selectedUser" style="display:none;margin-top:.75rem;padding:.625rem .875rem;background:rgba(94,194,19,.06);border:1px solid rgba(94,194,19,.2);border-radius:8px;font-size:.8125rem;color:var(--green);font-weight:700"></div>
+    </div>
+
+    <!-- Current team -->
+    <div class="a-card" style="padding:0">
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border)">
+        <h3 style="font-size:1rem;font-weight:800;margin:0"><i class="fas fa-users" style="color:var(--green);margin-right:.5rem"></i>Current Team (<%= team.length %>)</h3>
+      </div>
+      <% if (!team.length) { %>
+      <div style="text-align:center;padding:3rem;color:var(--text-3)"><i class="fas fa-users" style="font-size:2rem;display:block;margin-bottom:.75rem"></i>No team members yet</div>
+      <% } else { %>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)">
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">Member</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">Role</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">Access</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">Added</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% team.forEach(member => {
+            const rm = { super_admin:{label:'Super Admin',color:'#5EC213',icon:'fa-shield-halved'}, operations:{label:'Operations',color:'#60a5fa',icon:'fa-bolt'}, community:{label:'Community',color:'#a78bfa',icon:'fa-users'}, partnerships:{label:'Partnerships',color:'#fbbf24',icon:'fa-handshake'}, finance:{label:'Finance',color:'#10b981',icon:'fa-coins'} }[member.adminRole || 'super_admin'] || {label:'Super Admin',color:'#5EC213',icon:'fa-shield-halved'};
+            const accessMap = { super_admin:'Full platform', operations:'Full platform', community:'Users, Applications, Support, Campus', partnerships:'Projects, BD, Businesses, Commissions', finance:'Withdrawals, Wallets, Fund Requests' };
+          %>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
+            <td style="padding:.875rem 1rem">
+              <div style="font-weight:800;font-size:.9375rem">@<%= member.username %></div>
+              <div style="font-size:.75rem;color:var(--text-3)"><%= member.email %></div>
+            </td>
+            <td style="padding:.875rem 1rem">
+              <span style="display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:800;padding:.3rem .75rem;border-radius:99px;background:<%=rm.color%>18;color:<%=rm.color%>;border:1px solid <%=rm.color%>33">
+                <i class="fas <%=rm.icon%>"></i> <%=rm.label%>
+              </span>
+            </td>
+            <td style="padding:.875rem 1rem;font-size:.8rem;color:var(--text-2)"><%= accessMap[member.adminRole || 'super_admin'] %></td>
+            <td style="padding:.875rem 1rem;font-size:.8rem;color:var(--text-3)"><%= new Date(member.createdAt).toLocaleDateString() %></td>
+            <td style="padding:.875rem 1rem">
+              <div style="display:flex;gap:.5rem;align-items:center">
+                <select onchange="changeRole('<%= member._id %>', this.value)" style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:7px;padding:.3rem .625rem;color:var(--text-2);font-family:Outfit,sans-serif;font-size:.75rem;cursor:pointer">
+                  <option value="operations"   <%=member.adminRole==='operations'   ?'selected':''%>>Operations</option>
+                  <option value="community"    <%=member.adminRole==='community'    ?'selected':''%>>Community</option>
+                  <option value="partnerships" <%=member.adminRole==='partnerships' ?'selected':''%>>Partnerships</option>
+                  <option value="finance"      <%=member.adminRole==='finance'      ?'selected':''%>>Finance</option>
+                  <option value="super_admin"  <%=(member.adminRole==='super_admin'||!member.adminRole)?'selected':''%>>Super Admin</option>
+                </select>
+                <button onclick="removeAdmin('<%= member._id %>', '<%= member.username %>')"
+                  style="padding:.3rem .625rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444;border-radius:7px;cursor:pointer;font-size:.75rem">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var _selectedUserId = null;
+var _searchTimer = null;
+
+function searchUsers(q) {
+  clearTimeout(_searchTimer);
+  var box = document.getElementById('searchResults');
+  if (!q.trim()) { box.style.display='none'; return; }
+  _searchTimer = setTimeout(function() {
+    fetch('/admin/team/search?q=' + encodeURIComponent(q))
+      .then(function(r){ return r.json(); })
+      .then(function(d) {
+        if (!d.users.length) { box.style.display='none'; return; }
+        box.innerHTML = d.users.map(function(u) {
+          var badge = u.isAdmin ? ' <span style="font-size:.65rem;background:rgba(94,194,19,.15);color:#5EC213;padding:.1rem .4rem;border-radius:5px">admin</span>' : '';
+          return '<div onclick="selectUser(\'' + u._id + '\',\'' + u.username + '\',\'' + (u.adminRole||'') + '\')" style="padding:.75rem 1rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);font-size:.875rem;color:var(--text)" onmouseover="this.style.background=\'rgba(255,255,255,.05)\'" onmouseout="this.style.background=\'\'">'
+            + '<strong>@' + u.username + '</strong>' + badge + '<div style="font-size:.72rem;color:var(--text-3)">' + u.email + '</div></div>';
+        }).join('');
+        box.style.display = 'block';
+      });
+  }, 300);
+}
+
+function selectUser(id, username, currentRole) {
+  _selectedUserId = id;
+  document.getElementById('userSearch').value = '@' + username;
+  document.getElementById('searchResults').style.display = 'none';
+  var sel = document.getElementById('selectedUser');
+  sel.style.display = 'block';
+  sel.textContent = '@' + username + ' selected' + (currentRole ? ' — current role: ' + currentRole.replace('_',' ') : ' — no admin access yet');
+  if (currentRole) document.getElementById('roleSelect').value = currentRole;
+}
+
+function assignRole() {
+  if (!_selectedUserId) { aToast('Select a user first', 'error'); return; }
+  var role = document.getElementById('roleSelect').value;
+  fetch('/admin/team/assign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: _selectedUserId, adminRole: role })
+  }).then(function(r){ return r.json(); }).then(function(d) {
+    if (d.success) { aToast(d.message); setTimeout(function(){ location.reload(); }, 1200); }
+    else aToast(d.message, 'error');
+  });
+}
+
+function changeRole(userId, newRole) {
+  fetch('/admin/team/assign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: userId, adminRole: newRole })
+  }).then(function(r){ return r.json(); }).then(function(d) {
+    if (d.success) aToast('Role updated to ' + newRole.replace('_',' '));
+    else aToast(d.message, 'error');
+  });
+}
+
+function removeAdmin(userId, username) {
+  if (!confirm('Remove admin access from @' + username + '?')) return;
+  fetch('/admin/team/remove', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: userId })
+  }).then(function(r){ return r.json(); }).then(function(d) {
+    if (d.success) { aToast(d.message); setTimeout(function(){ location.reload(); }, 1200); }
+    else aToast(d.message, 'error');
+  });
+}
+
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('userSearch').contains(e.target)) {
+    document.getElementById('searchResults').style.display = 'none';
+  }
+});
+</script>
+</body>
+</html>

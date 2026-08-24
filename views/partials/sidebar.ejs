@@ -1,0 +1,328 @@
+<!-- Sidebar overlay (mobile) -->
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar" id="sidebar">
+
+    <!-- Scan line animation -->
+    <div class="sb-scan"></div>
+
+    <!-- Head -->
+    <div class="sb-head">
+        <a href="/" class="sb-logo">
+            <div class="sb-logo-icon">
+                <img src="/img/logo.png" alt="ONBOARD3">
+            </div>
+            <span class="sb-logo-text">ONBOARD3</span>
+        </a>
+        <button class="sb-close-btn" id="sbClose" aria-label="Close sidebar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Nav body -->
+    <div class="sb-body">
+
+        <div class="sb-section">
+            <p class="sb-section-label">Overview</p>
+            <a href="/dashboard" class="sb-item <%= currentPage === 'dashboard' ? 'active' : '' %>">
+                <div class="sb-icon"><i class="fas fa-house"></i></div>
+                <span>Dashboard</span>
+            </a>
+            <a href="/dashboard/activity" class="sb-item <%= currentPage === 'activity' ? 'active' : '' %>">
+                <div class="sb-icon"><i class="fas fa-bolt"></i></div>
+                <span>Activity Feed</span>
+            </a>
+        </div>
+
+        <div class="sb-section">
+            <p class="sb-section-label sb-pillar-label sb-pillar-learn">LEARN</p>
+            <div class="sb-item sb-disabled">
+                <div class="sb-icon"><i class="fas fa-graduation-cap"></i></div>
+                <span>Academy</span>
+                <span class="sb-badge sb-badge--soon">Soon</span>
+            </div>
+            <div class="sb-item sb-disabled">
+                <div class="sb-icon"><i class="fas fa-book-open"></i></div>
+                <span>Courses</span>
+                <span class="sb-badge sb-badge--soon">Soon</span>
+            </div>
+        </div>
+
+        <div class="sb-section">
+            <p class="sb-section-label sb-pillar-label sb-pillar-earn">EARN</p>
+            <a href="/dashboard/quests" class="sb-item <%= currentPage === 'quests' ? 'active' : '' %>">
+                <div class="sb-icon"><i class="fas fa-trophy"></i></div>
+                <span>Quests</span>
+            </a>
+            <a href="/dashboard/bounties" class="sb-item <%= currentPage === 'bounties' ? 'active' : '' %>">
+                <div class="sb-icon"><i class="fas fa-coins"></i></div>
+                <span>Bounties</span>
+            </a>
+            <a href="/dashboard/referral" class="sb-item <%= currentPage === 'referral' ? 'active' : '' %>">
+                <div class="sb-icon"><i class="fas fa-users"></i></div>
+                <span>Referral</span>
+            </a>
+        </div>
+
+        <div class="sb-section">
+            <p class="sb-section-label sb-pillar-label sb-pillar-build">BUILD</p>
+            <div class="sb-item sb-disabled">
+                <div class="sb-icon"><i class="fas fa-hammer"></i></div>
+                <span>Projects</span>
+                <span class="sb-badge sb-badge--soon">Soon</span>
+            </div>
+            <div class="sb-item sb-disabled">
+                <div class="sb-icon"><i class="fas fa-rocket"></i></div>
+                <span>Launch</span>
+                <span class="sb-badge sb-badge--soon">Soon</span>
+            </div>
+        </div>
+
+        <div class="sb-section">
+            <p class="sb-section-label sb-pillar-label sb-pillar-onboard">ONBOARD</p>
+            <a href="/dashboard/events" class="sb-item <%= currentPage === 'events' ? 'active' : '' %>">
+                <div class="sb-icon"><i class="fas fa-calendar-alt"></i></div>
+                <span>Events</span>
+            </a>
+            <a href="/dashboard/partnership" class="sb-item sb-item--special <%= currentPage === 'partnership' ? 'active' : '' %>">
+                <div class="sb-icon"><i class="fas fa-handshake"></i></div>
+                <span>Partnership</span>
+            </a>
+        </div>
+
+        <div class="sb-section">
+            <p class="sb-section-label">Account</p>
+            <a href="/dashboard/settings" class="sb-item <%= currentPage === 'settings' ? 'active' : '' %>">
+                <div class="sb-icon"><i class="fas fa-gear"></i></div>
+                <span>Settings</span>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Notification Bell -->
+    <div style="padding:0 0.875rem 0.75rem;position:relative">
+        <button id="notifBtn" onclick="toggleNotifPanel()" style="width:100%;display:flex;align-items:center;gap:.75rem;padding:.7rem .875rem;border-radius:11px;background:rgba(255,255,255,.025);border:1px solid var(--border);cursor:pointer;font-family:'Outfit',sans-serif;color:var(--text-2);font-size:.875rem;font-weight:600;transition:all .25s;position:relative">
+            <div style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:.875rem;flex-shrink:0;position:relative">
+                <i class="fas fa-bell"></i>
+                <span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:.55rem;font-weight:900;min-width:16px;height:16px;border-radius:50%;padding:0 3px;display:none;align-items:center;justify-content:center;line-height:1"></span>
+            </div>
+            <span>Notifications</span>
+            <span id="notifCount" style="margin-left:auto;font-size:.72rem;font-weight:800;color:var(--text-3)"></span>
+        </button>
+
+        <!-- Notification panel -->
+        <div id="notifPanel" style="display:none;position:absolute;bottom:calc(100% + .5rem);left:.875rem;right:.875rem;background:rgba(10,18,10,0.98);border:1px solid var(--border);border-radius:16px;box-shadow:0 -12px 40px rgba(0,0,0,.5);z-index:2000;overflow:hidden;max-height:420px;display:flex;flex-direction:column;display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.875rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0">
+                <span style="font-size:.875rem;font-weight:800;color:var(--text)">Notifications</span>
+                <div style="display:flex;gap:.5rem">
+                    <button onclick="markAllRead()" style="font-size:.72rem;font-weight:700;color:var(--green);background:none;border:none;cursor:pointer;padding:.2rem .5rem;border-radius:6px;transition:background .2s" onmouseover="this.style.background='rgba(94,194,19,.1)'" onmouseout="this.style.background='none'">Mark all read</button>
+                    <button onclick="clearNotifs()" style="font-size:.72rem;font-weight:700;color:var(--text-3);background:none;border:none;cursor:pointer;padding:.2rem .5rem;border-radius:6px;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.05)'" onmouseout="this.style.background='none'">Clear</button>
+                </div>
+            </div>
+            <div id="notifList" style="overflow-y:auto;flex:1"></div>
+        </div>
+    </div>
+
+    <!-- Footer: user profile + logout -->
+    <div class="sb-foot">
+        <a href="/dashboard/profile" class="sb-user">
+            <div class="sb-avatar" style="<%= user.profilePicture ? 'padding:0;overflow:hidden;background:none' : '' %>">
+                <% if (user.profilePicture) { %>
+                <img src="<%= user.profilePicture %>" alt="<%= user.username %>" style="width:100%;height:100%;object-fit:cover;border-radius:10px">
+                <% } else { %>
+                <span><%= user.username.charAt(0).toUpperCase() %></span>
+                <% } %>
+            </div>
+            <div class="sb-user-info">
+                <p class="sb-uname"><%= user.username %></p>
+                <p class="sb-uxp"><%= (user.xp || 0).toLocaleString() %> XP</p>
+            </div>
+        </a>
+        <button class="sb-logout-btn" onclick="handleSbLogout()" title="Sign out">
+            <i class="fas fa-right-from-bracket"></i>
+        </button>
+    </div>
+
+</aside>
+
+<!-- ═══ MOBILE TOP BAR ═══ -->
+<div class="mob-bar">
+    <button class="mob-toggle" id="sbMobToggle" aria-label="Open menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    <a href="/" class="mob-logo">ONBOARD3</a>
+    <a href="/dashboard/profile" class="mob-avatar" style="<%= user.profilePicture ? 'padding:0;overflow:hidden;background:none' : '' %>">
+        <% if (user.profilePicture) { %>
+        <img src="<%= user.profilePicture %>" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:9px">
+        <% } else { %>
+        <span><%= user.username.charAt(0).toUpperCase() %></span>
+        <% } %>
+    </a>
+</div>
+
+<script>
+    const _sidebar   = document.getElementById('sidebar');
+    const _overlay   = document.getElementById('sbOverlay');
+    const _sbClose   = document.getElementById('sbClose');
+    const _mobToggle = document.getElementById('sbMobToggle');
+
+    /* ── Global toast (replaces all alert() calls sitewide) ── */
+    window.showToast = window.showToast || function(msg, type, dur) {
+        const old = document.getElementById('_gt'); if(old) old.remove();
+        type = type || 'success'; dur = dur || 4000;
+        const t = document.createElement('div'); t.id = '_gt';
+        const colors = { success:'rgba(14,22,14,.97);border:1px solid rgba(94,194,19,.4);color:#5EC213', error:'rgba(22,10,10,.97);border:1px solid rgba(239,68,68,.4);color:#f87171', info:'rgba(10,14,22,.97);border:1px solid rgba(96,165,250,.4);color:#60a5fa', warning:'rgba(20,16,8,.97);border:1px solid rgba(251,191,36,.4);color:#fbbf24' };
+        const icons = { success:'fa-check-circle', error:'fa-circle-xmark', info:'fa-circle-info', warning:'fa-triangle-exclamation' };
+        t.style.cssText = 'position:fixed;top:1.5rem;right:1.5rem;z-index:99999;display:flex;align-items:center;gap:.75rem;padding:.9rem 1.25rem;border-radius:14px;min-width:260px;max-width:380px;font-family:Outfit,sans-serif;font-size:.875rem;font-weight:600;box-shadow:0 12px 40px rgba(0,0,0,.4);backdrop-filter:blur(12px);animation:toastIn .35s cubic-bezier(.34,1.56,.64,1) both;background:' + (colors[type]||colors.success);
+        t.innerHTML = '<i class="fas ' + (icons[type]||icons.success) + '" style="font-size:1rem;flex-shrink:0"></i><span style="line-height:1.45">' + msg + '</span>';
+        if (!document.getElementById('_toastCSS')) { const s=document.createElement('style'); s.id='_toastCSS'; s.textContent='@keyframes toastIn{from{opacity:0;transform:translateX(80px)}to{opacity:1;transform:translateX(0)}}'; document.head.appendChild(s); }
+        document.body.appendChild(t);
+        setTimeout(()=>{ t.style.animation='toastIn .3s ease reverse both'; setTimeout(()=>t.remove(),320); }, dur);
+    };
+
+    /* Popup modal for confirmations / important messages */
+    window.showPopup = window.showPopup || function(opts) {
+        // opts: { title, message, type ('success'|'error'|'warning'|'info'), confirmText, onConfirm, cancelText }
+        const old = document.getElementById('_gpopup'); if(old) old.remove();
+        const colors = { success:'#5EC213', error:'#f87171', warning:'#fbbf24', info:'#60a5fa' };
+        const icons  = { success:'fa-check-circle', error:'fa-circle-xmark', warning:'fa-triangle-exclamation', info:'fa-circle-info' };
+        const col = colors[opts.type||'info'];
+        const ico = icons[opts.type||'info'];
+        const el = document.createElement('div'); el.id = '_gpopup';
+        el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);z-index:99998;display:flex;align-items:center;justify-content:center;padding:1rem;animation:toastIn .3s ease both';
+        el.innerHTML = '<div style="background:rgba(12,20,12,.98);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2rem;max-width:420px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.5);text-align:center">'
+            + '<div style="width:56px;height:56px;border-radius:16px;background:' + col + '18;border:1.5px solid ' + col + '44;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.5rem;color:' + col + '"><i class="fas ' + ico + '"></i></div>'
+            + '<h3 style="font-size:1.0625rem;font-weight:900;color:#E8F5E2;margin-bottom:.5rem;font-family:Outfit,sans-serif">' + (opts.title||'') + '</h3>'
+            + '<p style="font-size:.875rem;color:#8AAF85;line-height:1.65;margin-bottom:1.5rem;font-family:Outfit,sans-serif">' + (opts.message||'') + '</p>'
+            + '<div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">'
+            + (opts.cancelText ? '<button onclick="document.getElementById(\'_gpopup\').remove()" style="padding:.65rem 1.5rem;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#8AAF85;cursor:pointer;font-family:Outfit,sans-serif;font-size:.875rem;font-weight:700">' + opts.cancelText + '</button>' : '')
+            + '<button id="_gpopupOk" style="padding:.65rem 1.5rem;border-radius:10px;border:none;background:' + col + ';color:#000;cursor:pointer;font-family:Outfit,sans-serif;font-size:.875rem;font-weight:800">' + (opts.confirmText||'OK') + '</button>'
+            + '</div></div>';
+        document.body.appendChild(el);
+        el.querySelector('#_gpopupOk').addEventListener('click', () => { el.remove(); if(opts.onConfirm) opts.onConfirm(); });
+        el.addEventListener('click', e => { if(e.target===el) el.remove(); });
+    };
+
+    function openSb()  { _sidebar.classList.add('sb-open'); _overlay.classList.add('active'); document.body.style.overflow = 'hidden'; }
+    function closeSb() { _sidebar.classList.remove('sb-open'); _overlay.classList.remove('active'); document.body.style.overflow = ''; }
+
+    _mobToggle && _mobToggle.addEventListener('click', openSb);
+    _sbClose   && _sbClose.addEventListener('click', closeSb);
+    _overlay.addEventListener('click', closeSb);
+
+    document.querySelectorAll('.sb-item:not(.sb-disabled)').forEach(el => {
+        el.addEventListener('click', () => { if (window.innerWidth <= 900) closeSb(); });
+    });
+
+    /* ── Notification system ── */
+    let _notifOpen = false;
+    let _notifPollTimer = null;
+
+    async function loadNotifications() {
+        try {
+            const data = await fetch('/api/notifications').then(r => r.json());
+            if (!data.success) return;
+
+            const badge = document.getElementById('notifBadge');
+            const count = document.getElementById('notifCount');
+            const btn   = document.getElementById('notifBtn');
+
+            if (data.unreadCount > 0) {
+                badge.textContent = data.unreadCount > 9 ? '9+' : data.unreadCount;
+                badge.style.display = 'inline-flex';
+                btn.style.borderColor = 'rgba(94,194,19,0.4)';
+                count.textContent = data.unreadCount + ' new';
+                count.style.color = 'var(--green)';
+            } else {
+                badge.style.display = 'none';
+                btn.style.borderColor = 'var(--border)';
+                count.textContent = '';
+            }
+
+            renderNotifications(data.notifications);
+        } catch (_) {}
+    }
+
+    function renderNotifications(list) {
+        const el = document.getElementById('notifList');
+        if (!el) return;
+        if (!list || !list.length) {
+            el.innerHTML = '<div style="text-align:center;padding:2rem 1rem;color:var(--text-3);font-size:.8125rem"><i class="fas fa-bell-slash" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No notifications yet</div>';
+            return;
+        }
+        el.innerHTML = list.map(n => {
+            const ago = timeAgo(new Date(n.createdAt));
+            const bg  = n.read ? 'rgba(255,255,255,0.01)' : 'rgba(94,194,19,0.05)';
+            const border = n.read ? 'transparent' : 'rgba(94,194,19,0.15)';
+            const href = n.link ? 'onclick="window.location.href=\''+n.link+'\'"' : '';
+            return `<div style="display:flex;align-items:flex-start;gap:.75rem;padding:.875rem 1rem;background:${bg};border-bottom:1px solid rgba(255,255,255,.04);border-left:2px solid ${border};cursor:${n.link?'pointer':'default'};transition:background .2s"
+                ${href}
+                onmouseenter="this.style.background='rgba(94,194,19,0.07)'"
+                onmouseleave="this.style.background='${bg}'">
+                <div style="width:32px;height:32px;border-radius:9px;background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.2);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:${n.iconColor||'var(--green)'};flex-shrink:0;margin-top:1px">
+                    <i class="fas ${n.icon||'fa-bell'}"></i>
+                </div>
+                <div style="flex:1;min-width:0">
+                    <p style="font-size:.8125rem;font-weight:${n.read?'600':'800'};color:var(--text);margin-bottom:2px;line-height:1.4">${n.title}</p>
+                    <p style="font-size:.75rem;color:var(--text-2);line-height:1.55;margin-bottom:3px">${n.message}</p>
+                    <p style="font-size:.68rem;color:var(--text-3)">${ago}</p>
+                </div>
+                ${!n.read ? '<div style="width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:5px;box-shadow:0 0 6px rgba(94,194,19,.6)"></div>' : ''}
+            </div>`;
+        }).join('');
+    }
+
+    function timeAgo(date) {
+        const diff = Date.now() - date.getTime();
+        const m = Math.floor(diff/60000), h = Math.floor(diff/3600000), d = Math.floor(diff/86400000);
+        if (diff < 60000) return 'Just now';
+        if (m < 60) return m + 'm ago';
+        if (h < 24) return h + 'h ago';
+        return d + 'd ago';
+    }
+
+    function toggleNotifPanel() {
+        const panel = document.getElementById('notifPanel');
+        _notifOpen = !_notifOpen;
+        panel.style.display = _notifOpen ? 'flex' : 'none';
+        panel.style.flexDirection = 'column';
+        if (_notifOpen) loadNotifications();
+    }
+
+    async function markAllRead() {
+        await fetch('/api/notifications/read-all', { method:'POST' }).catch(()=>{});
+        loadNotifications();
+    }
+
+    async function clearNotifs() {
+        await fetch('/api/notifications/clear', { method:'DELETE' }).catch(()=>{});
+        loadNotifications();
+    }
+
+    // Close panel on outside click
+    document.addEventListener('click', function(e) {
+        if (_notifOpen && !document.getElementById('notifBtn').contains(e.target) &&
+            !document.getElementById('notifPanel').contains(e.target)) {
+            document.getElementById('notifPanel').style.display = 'none';
+            _notifOpen = false;
+        }
+    });
+
+    // Poll unread count every 30 seconds
+    loadNotifications();
+    _notifPollTimer = setInterval(loadNotifications, 30000);
+
+    function handleSbLogout() {
+        if (confirm('Sign out of your account?')) {
+            fetch('/auth/logout', { method: 'POST' })
+                .then(() => window.location.href = '/auth')
+                .catch(() => window.location.href = '/auth');
+        }
+    }
+
+    // Also expose as handleLogout for backward compat with other pages
+    window.handleLogout = function(e) { if(e) e.preventDefault(); handleSbLogout(); };
+</script>
+<%- include("./chat-widget") %>

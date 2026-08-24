@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Withdrawals — ONBOARD3 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'withdrawals', admin:user }) %>
+
+<div class="a-main">
+    <div class="a-content">
+        <div class="a-page-header">
+            <div>
+                <h1><i class="fas fa-wallet"></i> Withdrawals</h1>
+                <p>Review and process withdrawal requests</p>
+            </div>
+        </div>
+
+        <div class="a-stats" style="grid-template-columns:repeat(4,1fr)">
+            <div class="a-stat"><div class="a-stat-icon"><i class="fas fa-clock" style="color:var(--amber)"></i></div><div class="a-stat-val" style="color:var(--amber)"><%= stats.pending %></div><div class="a-stat-lbl">Pending</div></div>
+            <div class="a-stat"><div class="a-stat-icon"><i class="fas fa-check-circle"></i></div><div class="a-stat-val"><%= stats.completed %></div><div class="a-stat-lbl">Completed</div></div>
+            <div class="a-stat"><div class="a-stat-icon"><i class="fas fa-dollar-sign"></i></div><div class="a-stat-val">$<%= stats.pendingAmount.toFixed(2) %></div><div class="a-stat-lbl">Pending $</div></div>
+            <div class="a-stat"><div class="a-stat-icon"><i class="fas fa-coins"></i></div><div class="a-stat-val">$<%= stats.totalPaid.toFixed(2) %></div><div class="a-stat-lbl">Total Paid</div></div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div style="display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap">
+            <% ['all','pending','completed','rejected'].forEach(s => { %>
+            <a href="/admin/withdrawals?status=<%= s %>" class="a-btn <%= s===statusFilter?'a-btn-primary':'a-btn-secondary' %>" style="font-size:.8rem;padding:.5rem 1rem;text-transform:capitalize"><%= s %></a>
+            <% }) %>
+        </div>
+
+        <div class="a-card">
+            <div class="a-table-wrap">
+                <table class="at">
+                    <thead><tr><th>User</th><th>Amount</th><th>Wallet</th><th>Status</th><th>Requested</th><th>Actions</th></tr></thead>
+                    <tbody>
+                    <% withdrawals.forEach(w => { %>
+                    <tr>
+                        <td style="font-weight:700;color:var(--text)"><%= w.user?.username || 'Unknown' %></td>
+                        <td style="font-size:1rem;font-weight:900;color:var(--amber)">$<%= (w.amount||0).toFixed(2) %></td>
+                        <td style="font-family:monospace;font-size:.78rem;color:var(--text-3)"><%= w.walletAddress ? w.walletAddress.substring(0,16)+'...' : (w.user?.walletAddress ? w.user.walletAddress.substring(0,16)+'...' : '—') %></td>
+                        <td>
+                            <span class="a-badge <%= w.status==='completed'?'a-badge-success':w.status==='pending'?'a-badge-warning':'a-badge-danger' %>">
+                                <%= w.status %>
+                            </span>
+                        </td>
+                        <td style="color:var(--text-3);font-size:.8125rem"><%= new Date(w.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></td>
+                        <td>
+                            <% if (w.status === 'pending') { %>
+                            <div style="display:flex;gap:.4rem">
+                                <form method="POST" action="/admin/withdrawals/<%= w._id %>/approve">
+                                    <button type="submit" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-check"></i> Approve</button>
+                                </form>
+                                <form method="POST" action="/admin/withdrawals/<%= w._id %>/reject" onsubmit="return confirm('Reject this withdrawal?')">
+                                    <button type="submit" class="a-btn a-btn-danger a-btn-sm"><i class="fas fa-times"></i> Reject</button>
+                                </form>
+                            </div>
+                            <% } else { %>
+                            <span style="font-size:.75rem;color:var(--text-3)">Processed</span>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% }) %>
+                    <% if (!withdrawals.length) { %>
+                    <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--text-3)"><i class="fas fa-wallet" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No withdrawals found</td></tr>
+                    <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

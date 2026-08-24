@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Campus Ambassadors — ONBOARD3 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'ambassadors', admin:user }) %>
+
+<div class="a-main">
+    <div class="a-content">
+        <div class="a-page-header">
+            <div>
+                <h1><i class="fas fa-building-columns"></i> Campus Ambassadors</h1>
+                <p><%= items.length %> applications</p>
+            </div>
+            
+        </div>
+
+        <div class="a-card">
+            <div class="a-table-wrap">
+                <table class="at">
+                    <thead><tr><th>Applicant</th><th>Institution</th><th>City</th><th>Status</th><th>Applied</th><th>Actions</th></tr></thead>
+                    <tbody id="ambassadorsTableBody">
+                        <% if (items && items.length > 0) { %>
+                            <% items.forEach(a => { %>
+                        <tr>
+                            <td style="font-weight:700;color:var(--text)"><%= a.userId?.username || a.name %></td>
+                            <td style="color:var(--text-2)"><%= a.institutionName || '—' %></td>
+                            <td style="color:var(--text-3)"><%= a.city || '—' %></td>
+                            <td><span class="a-badge <%= a.status==='approved'?'a-badge-success':a.status==='rejected'?'a-badge-danger':'a-badge-warning' %>"><%= a.status %></span></td>
+                            <td style="color:var(--text-3);font-size:.8125rem"><%= new Date(a.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></td>
+                            <td><div style="display:flex;gap:.4rem">
+                                <% if (a.status==='pending') { %>
+                                <form method="POST" action="/admin/ambassadors/<%= a._id %>/approve"><button type="submit" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-check"></i></button></form>
+                                <form method="POST" action="/admin/ambassadors/<%= a._id %>/reject" onsubmit="return confirm('Reject?')"><button type="submit" class="a-btn a-btn-danger a-btn-sm"><i class="fas fa-times"></i></button></form>
+                                <% } %>
+                            </div></td>
+                        </tr>
+                        <% }) %>
+                        <% } else { %>
+                        <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--text-3)">
+                            <i class="fas fa-building-columns" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>
+                            No campus ambassadors found
+                        </td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

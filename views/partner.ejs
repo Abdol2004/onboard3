@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partner With Us - ONBOARD3</title>
+    <link rel="stylesheet" href="/css/head.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/partner.css">
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+    <div class="particles" id="particles"></div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <div class="logo-icon"><img src="./img/logo.png" alt="" style="max-height:100%;max-width:100%;object-fit:contain;"></div>
+                <span class="logo-text">ONBOARD3</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/events" class="nav-link">Events</a></li>
+                <li><a href="/ecosystem" class="nav-link">Ecosystem</a></li>
+                <li><a href="/partner" class="nav-link active">Partner</a></li>
+            </ul>
+            <div class="nav-cta">
+                <a href="/auth" class="btn btn-primary">Get Started</a>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-menu">
+            <br>
+            <li><a href="/" class="mobile-nav-link">Home</a></li>
+            <li><a href="/about" class="mobile-nav-link">About</a></li>
+            <li><a href="/events" class="mobile-nav-link">Events</a></li>
+            <li><a href="/ecosystem" class="mobile-nav-link">Ecosystem</a></li>
+            <li><a href="/partner" class="mobile-nav-link active">Partner</a></li>
+        </ul>
+        <div class="mobile-cta">
+            <a href="/auth" class="btn btn-primary">Get Started</a>
+        </div>
+    </div>
+
+    <!-- ═══════════ PAGE HEADER ═══════════ -->
+    <div class="page-header">
+        <div class="page-header-inner">
+            <div class="page-badge"><i class="fas fa-handshake"></i> Build With Us</div>
+            <h1>Partner with<br><span class="gradient-text shimmer-text">ONBOARD3</span></h1>
+            <p>Reach thousands of Web3-curious students through education, events, and real engagement — not ads. Real humans. Real actions. Real results.</p>
+            <div class="header-actions">
+                <a href="#partnership-types" class="btn btn-primary"><i class="fas fa-rocket"></i> See How We Collaborate</a>
+                <a href="https://x.com/onboard3___" target="_blank" rel="noopener" class="btn btn-outline"><i class="fab fa-x-twitter"></i> DM Us on X</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ STATS STRIP ═══════════ -->
+    <div class="stats-strip" id="statsStrip">
+        <div class="container">
+            <div class="stats-inner" id="statsInner">
+                <div class="stat-item">
+                    <div class="stat-top"><span class="stat-num" id="s-members">–</span><span class="stat-plus" id="s-members-plus"></span></div>
+                    <span class="stat-label">Total Members</span>
+                </div>
+                <div class="stat-div"></div>
+                <div class="stat-item">
+                    <div class="stat-top"><span class="stat-num" id="s-attendees">–</span></div>
+                    <span class="stat-label">Event Attendees</span>
+                </div>
+                <div class="stat-div"></div>
+                <div class="stat-item">
+                    <div class="stat-top"><span class="stat-num" id="s-events">–</span></div>
+                    <span class="stat-label">Events Hosted</span>
+                </div>
+                <div class="stat-div"></div>
+                <div class="stat-item">
+                    <div class="stat-top"><span class="stat-num" id="s-quests">–</span></div>
+                    <span class="stat-label">Quests Completed</span>
+                </div>
+                <div class="stat-div"></div>
+                <div class="stat-item">
+                    <div class="stat-top"><span class="stat-num" id="s-active-quests">–</span></div>
+                    <span class="stat-label">Live Quests</span>
+                </div>
+                <div class="stat-div"></div>
+                <div class="stat-item">
+                    <div class="stat-top"><span class="stat-dollar">$</span><span class="stat-num" id="s-rewards">–</span></div>
+                    <span class="stat-label">Rewards Distributed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ TRUSTED BY ═══════════ -->
+    <div class="trusted-strip">
+        <div class="container">
+            <div class="trusted-inner">
+                <span class="trusted-label">Trusted By</span>
+                <div class="trusted-logos">
+                    <div class="trusted-logo">
+                        <img src="/img/partners/eyecoin.jpg" alt="Eyecoin">
+                        <span>Eyecoin</span>
+                    </div>
+                    <div class="trusted-div"></div>
+                    <div class="trusted-logo">
+                        <img src="/img/partners/ginox.jpg" alt="Ginox">
+                        <span>Ginox</span>
+                    </div>
+                    <div class="trusted-div"></div>
+                    <div class="trusted-logo">
+                        <img src="/img/partners/twin3.jpg" alt="Twin3">
+                        <span>Twin3</span>
+                    </div>
+                    <div class="trusted-div"></div>
+                    <div class="trusted-logo">
+                        <img src="/img/partners/aixpay.jpg" alt="Aixpay">
+                        <span>Aixpay</span>
+                    </div>
+                    <div class="trusted-div"></div>
+                    <div class="trusted-logo">
+                        <img src="/img/partners/tuition.jpg" alt="Tuition Onchain">
+                        <span>Tuition Onchain</span>
+                    </div>
+                    <div class="trusted-div"></div>
+                    <div class="trusted-logo">
+                        <img src="/img/partners/zeroauthdao.webp" alt="ZeroAuthDAO" style="object-fit:contain">
+                        <span>ZeroAuthDAO</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ PARTNERSHIP TYPES ═══════════ -->
+    <section class="section" id="partnership-types">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label reveal-up">5 Ways to Collaborate</span>
+                <h2 class="section-title reveal-up" style="--d:80ms">Choose Your <span class="gradient-text">Partnership Path</span></h2>
+                <p class="section-sub reveal-up" style="--d:160ms">Every collaboration is customized. Pick the format that matches your goals — or combine them.</p>
+            </div>
+
+            <div class="ptype-grid">
+
+                <!-- ── QUEST ── -->
+                <div class="ptype-card reveal-up" style="--d:0ms">
+                    <div class="ptype-glow"></div>
+                    <div class="ptype-top">
+                        <div class="ptype-icon-wrap">
+                            <div class="ptype-icon-ring"></div>
+                            <div class="ptype-icon"><i class="fas fa-scroll"></i></div>
+                        </div>
+                        <span class="ptype-badge ptype-badge--hot">Most Popular</span>
+                    </div>
+                    <h3 class="ptype-title">Via Quest</h3>
+                    <p class="ptype-desc">Your protocol gets a dedicated quest on the ONBOARD3 platform. Users learn about your product step by step — follow, interact, explore — and earn XP for every completed task. You get genuinely onboarded users, not just clicks.</p>
+                    <div class="ptype-benefits">
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Verified user actions — no bots, no fakes</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Structured educational onboarding tasks</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Custom quest design with your branding</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Real-time completion analytics & reports</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>XP-incentivized — sky-high completion rates</span></div>
+                    </div>
+                    <a href="#partner-form" class="ptype-cta">Design a Quest <i class="fas fa-arrow-right"></i></a>
+                </div>
+
+                <!-- ── EVENTS ── -->
+                <div class="ptype-card reveal-up" style="--d:80ms">
+                    <div class="ptype-glow"></div>
+                    <div class="ptype-top">
+                        <div class="ptype-icon-wrap">
+                            <div class="ptype-icon-ring"></div>
+                            <div class="ptype-icon"><i class="fas fa-map-pin"></i></div>
+                        </div>
+                    </div>
+                    <h3 class="ptype-title">Via Events</h3>
+                    <p class="ptype-desc">Co-host IRL campus meetups or city-wide virtual events with ONBOARD3. We bring the audience, curriculum, and energy. You bring your brand and vision. Together we create unforgettable Web3 experiences students actually remember.</p>
+                    <div class="ptype-benefits">
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Direct IRL access to Web3-curious students</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Live brand presence — booths, banners, talks</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Event logistics handled by our team</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Social amplification before, during & after</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Post-event report: reach, photos, metrics</span></div>
+                    </div>
+                    <a href="#partner-form" class="ptype-cta">Host an Event <i class="fas fa-arrow-right"></i></a>
+                </div>
+
+                <!-- ── BOUNTY ── -->
+                <div class="ptype-card reveal-up" style="--d:160ms">
+                    <div class="ptype-glow"></div>
+                    <div class="ptype-top">
+                        <div class="ptype-icon-wrap">
+                            <div class="ptype-icon-ring"></div>
+                            <div class="ptype-icon"><i class="fas fa-coins"></i></div>
+                        </div>
+                    </div>
+                    <h3 class="ptype-title">Via Bounty</h3>
+                    <p class="ptype-desc">List real bounties for real work on ONBOARD3. Whether you need content creation, UX feedback, beta testing, community building, or translation — our vetted community delivers quality. Pay for results, not promises.</p>
+                    <div class="ptype-benefits">
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Content creation: threads, videos, articles</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Beta testers & UX feedback collectors</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Community growth & Discord/Telegram mods</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Translation into African languages</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>All submissions verified before payout</span></div>
+                    </div>
+                    <a href="#partner-form" class="ptype-cta">Launch Bounties <i class="fas fa-arrow-right"></i></a>
+                </div>
+
+                <!-- ── ACADEMY ── -->
+                <div class="ptype-card reveal-up" style="--d:240ms">
+                    <div class="ptype-glow"></div>
+                    <div class="ptype-top">
+                        <div class="ptype-icon-wrap">
+                            <div class="ptype-icon-ring"></div>
+                            <div class="ptype-icon"><i class="fas fa-graduation-cap"></i></div>
+                        </div>
+                    </div>
+                    <h3 class="ptype-title">Via Academy</h3>
+                    <p class="ptype-desc">Sponsor a branded learning track inside ONBOARD3 Academy. Our team designs a full curriculum around your protocol — from beginner explainers to advanced use cases. Learners graduate knowing your product inside out and ready to use it.</p>
+                    <div class="ptype-benefits">
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Full curriculum designed around your protocol</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Your brand embedded in every lesson module</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Certified graduates — verifiable proof of learning</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Talent pipeline: graduates become contributors</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Track performance: completions, engagement rate</span></div>
+                    </div>
+                    <a href="#partner-form" class="ptype-cta">Sponsor a Track <i class="fas fa-arrow-right"></i></a>
+                </div>
+
+                <!-- ── AGENCY (wide) ── -->
+                <div class="ptype-card ptype-card--wide reveal-up" style="--d:320ms">
+                    <div class="ptype-glow"></div>
+                    <div class="ptype-top">
+                        <div class="ptype-icon-wrap">
+                            <div class="ptype-icon-ring"></div>
+                            <div class="ptype-icon"><i class="fas fa-briefcase"></i></div>
+                        </div>
+                    </div>
+                    <h3 class="ptype-title">Via Agency</h3>
+                    <p class="ptype-desc">Get matched with ONBOARD3-trained Web3 creators, marketers, and builders. No cold recruiting. No noise. We've already vetted them — our Agency connects you directly with Africa's most active Web3-native talent, ready to work and ready to ship.</p>
+                    <div class="ptype-benefits ptype-benefits--row">
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Web3 content creators & KOLs</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Community managers & Discord mods</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Solidity devs & smart contract builders</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>UI/UX designers for dApps & Web3 products</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Marketing & growth specialists</span></div>
+                        <div class="ptype-benefit"><i class="fas fa-check-circle"></i><span>Pre-screened, matched fast — within 48hrs</span></div>
+                    </div>
+                    <a href="#partner-form" class="ptype-cta">Access Talent <i class="fas fa-arrow-right"></i></a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ PROOF SECTION ═══════════ -->
+    <section class="proof-section">
+
+        <div class="proof-header">
+            <span class="section-label reveal-up">Real. Not Rendered.</span>
+            <h2 class="section-title reveal-up" style="--d:80ms">We Show Up <span class="gradient-text">In the Field</span></h2>
+            <p class="section-sub reveal-up" style="--d:160ms">These aren't stock photos. These are our events, our people, our results.</p>
+        </div>
+
+        <!-- Dual marquee -->
+        <div class="marquee-wrap">
+            <div class="marquee-row marquee-fwd">
+                <div class="marquee-track">
+                    <div class="marquee-item"><img src="/img/proof/ev1.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev3.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev5.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev7.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev2.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev4.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev6.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev8.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev9.jpg" alt="ONBOARD3 Event"></div>
+                    <!-- duplicate for seamless loop -->
+                    <div class="marquee-item"><img src="/img/proof/ev1.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev3.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev5.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev7.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev2.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev4.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev6.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev8.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev9.jpg" alt="ONBOARD3 Event"></div>
+                </div>
+            </div>
+            <div class="marquee-row marquee-rev">
+                <div class="marquee-track">
+                    <div class="marquee-item"><img src="/img/proof/ev9.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev6.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev4.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev8.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev2.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev7.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev1.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev5.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev3.jpg" alt="ONBOARD3 Event"></div>
+                    <!-- duplicate -->
+                    <div class="marquee-item"><img src="/img/proof/ev9.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev6.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev4.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev8.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev2.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev7.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev1.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev5.jpg" alt="ONBOARD3 Event"></div>
+                    <div class="marquee-item"><img src="/img/proof/ev3.jpg" alt="ONBOARD3 Event"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Partner chat cards -->
+        <div class="container">
+            <div class="proof-grid">
+
+                <!-- ── EYECOIN ── -->
+                <div class="tchat-card reveal-up" style="--d:0ms">
+                    <div class="tchat-header">
+                        <div class="tchat-avatar tchat-avatar--img">
+                            <img src="/img/partners/eyecoin.jpg" alt="Eyecoin">
+                        </div>
+                        <div class="tchat-info">
+                            <span class="tchat-name">Eyecoin</span>
+                            <span class="tchat-tag"><i class="fas fa-circle"></i> Quest Partner</span>
+                        </div>
+                        <div class="tchat-tg"><i class="fab fa-telegram"></i></div>
+                    </div>
+                    <div class="tchat-body">
+                        <div class="tbubble tbubble-r">
+                            bro how many ppl finished the quest? 👀
+                            <span class="tbubble-time">10:14 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-l">
+                            <span class="tbubble-sender">ONBOARD3</span>
+                            400+ verified in under 48hrs. zero bots, all real
+                            <span class="tbubble-time">10:17</span>
+                        </div>
+                        <div class="tbubble tbubble-r">
+                            ngl that's actually crazy 😭🔥
+                            <span class="tbubble-time">10:18 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-r tchat-highlight">
+                            these users are built diff. we're running another one next month fr
+                            <span class="tbubble-time">10:19 <i class="fas fa-check-double"></i></span>
+                        </div>
+                    </div>
+                    <div class="tchat-foot">
+                        <span><i class="fas fa-bolt"></i> 400+ completions</span>
+                        <span><i class="fas fa-calendar-alt"></i> Q1 2025</span>
+                    </div>
+                </div>
+
+                <!-- ── GINOX ── -->
+                <div class="tchat-card reveal-up" style="--d:80ms">
+                    <div class="tchat-header">
+                        <div class="tchat-avatar tchat-avatar--img">
+                            <img src="/img/partners/ginox.jpg" alt="Ginox">
+                        </div>
+                        <div class="tchat-info">
+                            <span class="tchat-name">Ginox</span>
+                            <span class="tchat-tag"><i class="fas fa-circle"></i> Event + Quest Partner</span>
+                        </div>
+                        <div class="tchat-tg"><i class="fab fa-telegram"></i></div>
+                    </div>
+                    <div class="tchat-body">
+                        <div class="tbubble tbubble-r">
+                            bro the turnout was insane, we didn't expect this at all 😭
+                            <span class="tbubble-time">19:02 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-l">
+                            <span class="tbubble-sender">ONBOARD3</span>
+                            300+ registered, 180 showed up. ginox was everywhere — shirts, stage, banner
+                            <span class="tbubble-time">19:05</span>
+                        </div>
+                        <div class="tbubble tbubble-r">
+                            the branded merch was a W lowkey 🤝 everyone looked clean
+                            <span class="tbubble-time">19:07 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-r tchat-highlight">
+                            when's the next one?? we're 100% in again
+                            <span class="tbubble-time">19:08 <i class="fas fa-check-double"></i></span>
+                        </div>
+                    </div>
+                    <div class="tchat-foot">
+                        <span><i class="fas fa-map-pin"></i> Kwara State Campus</span>
+                        <span><i class="fas fa-users"></i> 180+ attended</span>
+                    </div>
+                </div>
+
+                <!-- ── AIXPAY ── -->
+                <div class="tchat-card reveal-up" style="--d:160ms">
+                    <div class="tchat-header">
+                        <div class="tchat-avatar tchat-avatar--img">
+                            <img src="/img/partners/aixpay.jpg" alt="Aixpay">
+                        </div>
+                        <div class="tchat-info">
+                            <span class="tchat-name">Aixpay</span>
+                            <span class="tchat-tag"><i class="fas fa-circle"></i> Quest Partner</span>
+                        </div>
+                        <div class="tchat-tg"><i class="fab fa-telegram"></i></div>
+                    </div>
+                    <div class="tchat-body">
+                        <div class="tbubble tbubble-r">
+                            how many actually did the wallet setup + first tx?
+                            <span class="tbubble-time">14:33 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-l">
+                            <span class="tbubble-sender">ONBOARD3</span>
+                            612. all confirmed on-chain, no skips
+                            <span class="tbubble-time">14:36</span>
+                        </div>
+                        <div class="tbubble tbubble-r">
+                            612?? bro that's more than our last 3 campaigns combined 😭
+                            <span class="tbubble-time">14:37 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-r tchat-highlight">
+                            drop the payout breakdown, let's settle this today 🔥
+                            <span class="tbubble-time">14:38 <i class="fas fa-check-double"></i></span>
+                        </div>
+                    </div>
+                    <div class="tchat-foot">
+                        <span><i class="fas fa-wallet"></i> 612 verified wallets</span>
+                        <span><i class="fas fa-calendar-alt"></i> Q1 2025</span>
+                    </div>
+                </div>
+
+                <!-- ── TWIN3 ── -->
+                <div class="tchat-card reveal-up" style="--d:240ms">
+                    <div class="tchat-header">
+                        <div class="tchat-avatar tchat-avatar--img">
+                            <img src="/img/partners/twin3.jpg" alt="Twin3">
+                        </div>
+                        <div class="tchat-info">
+                            <span class="tchat-name">Twin3</span>
+                            <span class="tchat-tag"><i class="fas fa-circle"></i> Quest Partner</span>
+                        </div>
+                        <div class="tchat-tg"><i class="fab fa-telegram"></i></div>
+                    </div>
+                    <div class="tchat-body">
+                        <div class="tbubble tbubble-l">
+                            <span class="tbubble-sender">ONBOARD3</span>
+                            final numbers just came in — 94% completion rate. community held strong 💪
+                            <span class="tbubble-time">09:21</span>
+                        </div>
+                        <div class="tbubble tbubble-r">
+                            94%?? bro we're usually lucky to hit 60 😭
+                            <span class="tbubble-time">09:23 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-r">
+                            these guys actually care, it shows
+                            <span class="tbubble-time">09:24 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-r tchat-highlight">
+                            q2 campaign — bigger budget, we're doubling it. let's lock in 🤝
+                            <span class="tbubble-time">09:25 <i class="fas fa-check-double"></i></span>
+                        </div>
+                    </div>
+                    <div class="tchat-foot">
+                        <span><i class="fas fa-chart-line"></i> 94% completion rate</span>
+                        <span><i class="fas fa-repeat"></i> Returning partner</span>
+                    </div>
+                </div>
+
+                <!-- ── ZEROAUTHDAO ── -->
+                <div class="tchat-card reveal-up" style="--d:280ms">
+                    <div class="tchat-header">
+                        <div class="tchat-avatar tchat-avatar--img">
+                            <img src="/img/partners/zeroauthdao.webp" alt="ZeroAuthDAO" style="object-fit:contain;background:#0a0a0a">
+                        </div>
+                        <div class="tchat-info">
+                            <span class="tchat-name">ZeroAuthDAO</span>
+                            <span class="tchat-tag"><i class="fas fa-circle"></i> Bounty Partner</span>
+                        </div>
+                        <div class="tchat-tg"><i class="fab fa-telegram"></i></div>
+                    </div>
+                    <div class="tchat-body">
+                        <div class="tbubble tbubble-r">
+                            we went live with the bounty — how's the submission rate looking?
+                            <span class="tbubble-time">14:02 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-l">
+                            <span class="tbubble-sender">ONBOARD3</span>
+                            already 10+ verified submissions. community showed up fast 🔥
+                            <span class="tbubble-time">14:05</span>
+                        </div>
+                        <div class="tbubble tbubble-r">
+                            onboard3 ppl are actually serious builders, not just clout chasers
+                            <span class="tbubble-time">14:07 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-r tchat-highlight">
+                            integrating onboard3 into our bounty flow was the right call 💯
+                            <span class="tbubble-time">14:09 <i class="fas fa-check-double"></i></span>
+                        </div>
+                    </div>
+                    <div class="tchat-foot">
+                        <span><i class="fas fa-coins"></i> Bounty Integration</span>
+                        <span><i class="fas fa-link"></i> On-chain submissions</span>
+                    </div>
+                </div>
+
+                <!-- ── TUITION ONCHAIN ── -->
+                <div class="tchat-card reveal-up" style="--d:320ms">
+                    <div class="tchat-header">
+                        <div class="tchat-avatar tchat-avatar--img">
+                            <img src="/img/partners/tuition.jpg" alt="Tuition Onchain">
+                        </div>
+                        <div class="tchat-info">
+                            <span class="tchat-name">Tuition Onchain</span>
+                            <span class="tchat-tag"><i class="fas fa-circle"></i> Space Collab</span>
+                        </div>
+                        <div class="tchat-tg"><i class="fab fa-telegram"></i></div>
+                    </div>
+                    <div class="tchat-body">
+                        <div class="tbubble tbubble-r">
+                            guys the space was 🔥🔥 just checked — still trending in the replies
+                            <span class="tbubble-time">22:41 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-l">
+                            <span class="tbubble-sender">ONBOARD3</span>
+                            crowd was live, the convos actually hit different. real energy
+                            <span class="tbubble-time">22:43</span>
+                        </div>
+                        <div class="tbubble tbubble-r">
+                            fr fr. our communities vibed so well together, wasn't expecting that
+                            <span class="tbubble-time">22:44 <i class="fas fa-check-double"></i></span>
+                        </div>
+                        <div class="tbubble tbubble-r tchat-highlight">
+                            it was super! let's do a part 2, but bigger this time 🚀
+                            <span class="tbubble-time">22:46 <i class="fas fa-check-double"></i></span>
+                        </div>
+                    </div>
+                    <div class="tchat-foot">
+                        <span><i class="fab fa-twitter"></i> X Space Collab</span>
+                        <span><i class="fas fa-microphone"></i> Live community event</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ HOW IT WORKS ═══════════ -->
+    <section class="section how-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label reveal-up">The Process</span>
+                <h2 class="section-title reveal-up" style="--d:80ms">How It <span class="gradient-text">Works</span></h2>
+                <p class="section-sub reveal-up" style="--d:160ms">From first contact to live campaign — we move fast.</p>
+            </div>
+            <div class="how-track">
+                <div class="how-step reveal-up" style="--d:0ms">
+                    <div class="how-num-wrap">
+                        <div class="how-num">01</div>
+                        <div class="how-num-ring"></div>
+                    </div>
+                    <div class="how-content">
+                        <h4>Fill the Form</h4>
+                        <p>Tell us about your project, your goals, and which partnership path interests you.</p>
+                    </div>
+                </div>
+                <div class="how-line"></div>
+                <div class="how-step reveal-up" style="--d:120ms">
+                    <div class="how-num-wrap">
+                        <div class="how-num">02</div>
+                        <div class="how-num-ring"></div>
+                    </div>
+                    <div class="how-content">
+                        <h4>Intro Call</h4>
+                        <p>Our team reaches out within 48 hours. We align on goals, format, timeline, and deliverables.</p>
+                    </div>
+                </div>
+                <div class="how-line"></div>
+                <div class="how-step reveal-up" style="--d:240ms">
+                    <div class="how-num-wrap">
+                        <div class="how-num">03</div>
+                        <div class="how-num-ring"></div>
+                    </div>
+                    <div class="how-content">
+                        <h4>Build Together</h4>
+                        <p>We design your quest, event, bounty, or track — with your input every step of the way.</p>
+                    </div>
+                </div>
+                <div class="how-line"></div>
+                <div class="how-step reveal-up" style="--d:360ms">
+                    <div class="how-num-wrap">
+                        <div class="how-num">04</div>
+                        <div class="how-num-ring"></div>
+                    </div>
+                    <div class="how-content">
+                        <h4>Launch &amp; Report</h4>
+                        <p>Go live with our full audience. Get detailed analytics and a post-campaign impact report.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ PARTNER FORM ═══════════ -->
+    <section class="section form-section" id="partner-form">
+        <div class="container">
+            <div class="form-wrapper reveal-up">
+                <div class="form-glow"></div>
+                <div class="form-header">
+                    <div class="page-badge" style="margin-bottom:1.25rem;"><i class="fab fa-x-twitter"></i> Reach Out on X</div>
+                    <h2>Let's Build <span class="gradient-text">Together</span></h2>
+                    <p>DM us directly on X to kick off your partnership. We respond fast.</p>
+                </div>
+
+                <div style="text-align:center;padding:2rem 0 1rem">
+                    <a href="https://x.com/onboard3___" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:.875rem;background:#000;color:#fff;padding:1.125rem 2.5rem;border-radius:50px;font-size:1.125rem;font-weight:800;text-decoration:none;transition:opacity .2s;border:1px solid #333" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                        <i class="fab fa-x-twitter" style="font-size:1.25rem"></i>
+                        DM us @onboard3___
+                    </a>
+                    <p style="margin-top:1.25rem;color:var(--text-muted, #94a3b8);font-size:.9375rem">
+                        Tell us your project, goals, and what you're looking for — we'll get back to you quickly.
+                    </p>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.5rem">
+                    <% [['fas fa-bolt','Fast Response','We typically reply within a few hours'],['fas fa-handshake','Custom Deals','Every partnership is tailored to your goals'],['fas fa-rocket','Quick Launch','From first message to live campaign in days']].forEach(function(i){ %>
+                    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.25rem;text-align:center">
+                        <i class="<%= i[0] %>" style="font-size:1.5rem;margin-bottom:.75rem;display:block;color:#10b981"></i>
+                        <div style="font-weight:700;margin-bottom:.375rem"><%= i[1] %></div>
+                        <div style="font-size:.8125rem;color:#94a3b8"><%= i[2] %></div>
+                    </div>
+                    <% }) %>
+                </div>
+
+                <!-- Hidden original form kept for SEO / backup — not displayed -->
+                <form id="partnerForm" style="display:none">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Project / Company Name <span class="req">*</span></label>
+                            <input type="text" name="projectName" id="projectName" placeholder="Your project or company" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Email <span class="req">*</span></label>
+                            <input type="email" name="email" id="email" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Website or Twitter Handle</label>
+                            <input type="text" name="website" id="website" placeholder="https:// or @handle">
+                        </div>
+                        <div class="form-group">
+                            <label>Telegram Username</label>
+                            <input type="text" name="telegram" id="telegram" placeholder="@yourusername">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Partnership Type <span class="req">*</span></label>
+                        <div class="type-selector">
+                            <label class="type-option">
+                                <input type="radio" name="partnershipType" value="quest" required>
+                                <div class="type-opt-card"><i class="fas fa-scroll"></i><span>Quest</span></div>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="partnershipType" value="events">
+                                <div class="type-opt-card"><i class="fas fa-map-pin"></i><span>Events</span></div>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="partnershipType" value="bounty">
+                                <div class="type-opt-card"><i class="fas fa-coins"></i><span>Bounty</span></div>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="partnershipType" value="academy">
+                                <div class="type-opt-card"><i class="fas fa-graduation-cap"></i><span>Academy</span></div>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="partnershipType" value="agency">
+                                <div class="type-opt-card"><i class="fas fa-briefcase"></i><span>Agency</span></div>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="partnershipType" value="multiple">
+                                <div class="type-opt-card"><i class="fas fa-layer-group"></i><span>Multiple</span></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>What are you looking for? <span class="req">*</span></label>
+                        <textarea name="description" id="description" placeholder="Tell us about your project and what you'd like to achieve through this partnership..." rows="5" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Budget Range (Optional)</label>
+                            <select name="budget" id="budget">
+                                <option value="">Prefer not to say</option>
+                                <option value="under500">Under $500</option>
+                                <option value="500-2000">$500 – $2,000</option>
+                                <option value="2000-5000">$2,000 – $5,000</option>
+                                <option value="5000+">$5,000+</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Timeline</label>
+                            <select name="timeline" id="timeline">
+                                <option value="">No specific timeline</option>
+                                <option value="asap">ASAP</option>
+                                <option value="2weeks">Within 2 weeks</option>
+                                <option value="1month">Within 1 month</option>
+                                <option value="flexible">Flexible</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span id="submitText"><i class="fas fa-paper-plane"></i> Send Partnership Request</span>
+                        <span id="submitSpinner" style="display:none;"><i class="fas fa-spinner fa-spin"></i> Sending...</span>
+                    </button>
+
+                    <div id="formSuccess" class="form-success" style="display:none;">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>Request Sent!</strong>
+                            <span>Our team will reach out within 48 hours. You can also reach us directly on <a href="https://t.me/onboard_3" target="_blank">Telegram</a>.</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ FOOTER ═══════════ -->
+    <footer>
+        <div class="container">
+            <div class="footer-top">
+                <a href="/" class="footer-logo">
+                    <img src="./img/logo.png" alt="ONBOARD3" style="height:32px;object-fit:contain;mix-blend-mode:screen;">
+                    <span>ONBOARD3</span>
+                </a>
+                <div class="footer-links">
+                    <a href="/about">About</a>
+                    <a href="/events">Events</a>
+                    <a href="/ecosystem">Ecosystem</a>
+                    <a href="/partner">Partner</a>
+                </div>
+                <div class="footer-social">
+                    <a href="https://x.com/onboard3__" target="_blank" class="social-link" title="X / Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="https://t.me/onboard_3" target="_blank" class="social-link" title="Telegram"><i class="fab fa-telegram"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-tagline">© 2025 ONBOARD3 · Onboard. Educate. Build.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="./js/head.js"></script>
+    <script>
+        // Navbar scroll
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Scroll reveal
+        const revealObs = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+        }, { threshold: 0.08, rootMargin: '0px 0px -50px 0px' });
+        document.querySelectorAll('.reveal-up').forEach(el => revealObs.observe(el));
+
+        // Stat counter
+        function animateCount(el, target, formatter) {
+            if (target === 0) { el.textContent = formatter ? formatter(0) : '0'; return; }
+            let cur = 0, step = Math.max(1, Math.ceil(target / 55));
+            const t = setInterval(() => {
+                cur = Math.min(cur + step, target);
+                el.textContent = formatter ? formatter(cur) : cur.toLocaleString();
+                if (cur >= target) clearInterval(t);
+            }, 22);
+        }
+
+        function fmtNum(n) {
+            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+            if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+            return n.toLocaleString();
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/public/stats');
+                const d = await res.json();
+                if (!d.success) return;
+
+                const map = [
+                    { el: 's-members',      val: d.totalMembers,     plus: 's-members-plus', showPlus: d.totalMembers > 0 },
+                    { el: 's-attendees',    val: d.totalAttendees },
+                    { el: 's-events',       val: d.totalEvents },
+                    { el: 's-quests',       val: d.questsCompleted },
+                    { el: 's-active-quests',val: d.activeQuests },
+                    { el: 's-rewards',      val: 6800, fmt: (n) => n >= 1000 ? (n/1000).toFixed(1)+'K' : n.toFixed(2) },
+                ];
+
+                const strip = document.getElementById('statsStrip');
+                const done = { triggered: false };
+
+                const obs = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting && !done.triggered) {
+                        done.triggered = true;
+                        map.forEach(({ el, val, plus, showPlus, fmt }) => {
+                            const node = document.getElementById(el);
+                            if (!node) return;
+                            if (plus && showPlus) document.getElementById(plus).textContent = '+';
+                            animateCount(node, val, fmt || fmtNum);
+                        });
+                        obs.disconnect();
+                    }
+                }, { threshold: 0.3 });
+                obs.observe(strip);
+            } catch (e) {
+                console.error('Stats load failed', e);
+            }
+        }
+        loadStats();
+
+        // Floating particles
+        (function() {
+            const c = document.getElementById('particles');
+            if (!c) return;
+            for (let i = 0; i < 35; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const size = Math.random() * 4 + 2;
+                p.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${size}px;height:${size}px;animation-delay:${Math.random()*12}s;animation-duration:${Math.random()*12+10}s;opacity:${Math.random()*0.45+0.08};`;
+                c.appendChild(p);
+            }
+        })();
+
+        // Type selector visual state
+        document.querySelectorAll('.type-option input').forEach(r => {
+            r.addEventListener('change', () => {
+                document.querySelectorAll('.type-opt-card').forEach(c => c.classList.remove('selected'));
+                if (r.checked) r.parentElement.querySelector('.type-opt-card').classList.add('selected');
+            });
+        });
+
+        // Form submit
+        document.getElementById('partnerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            document.getElementById('submitText').style.display = 'none';
+            document.getElementById('submitSpinner').style.display = 'inline-flex';
+            btn.disabled = true;
+
+            const selected = document.querySelector('input[name="partnershipType"]:checked');
+            if (!selected) {
+                alert('Please select a partnership type.');
+                document.getElementById('submitText').style.display = 'inline-flex';
+                document.getElementById('submitSpinner').style.display = 'none';
+                btn.disabled = false;
+                return;
+            }
+
+            const payload = {
+                projectName: document.getElementById('projectName').value,
+                email: document.getElementById('email').value,
+                website: document.getElementById('website').value,
+                telegram: document.getElementById('telegram').value,
+                partnershipType: selected.value,
+                description: document.getElementById('description').value,
+                budget: document.getElementById('budget').value,
+                timeline: document.getElementById('timeline').value,
+            };
+
+            try {
+                const res = await fetch('/api/partnership/public-inquiry', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('submitSpinner').style.display = 'none';
+                    document.getElementById('formSuccess').style.display = 'flex';
+                    this.reset();
+                    document.querySelectorAll('.type-opt-card').forEach(c => c.classList.remove('selected'));
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (err) {
+                document.getElementById('submitText').style.display = 'inline-flex';
+                document.getElementById('submitSpinner').style.display = 'none';
+                btn.disabled = false;
+                alert(err.message || 'Something went wrong. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Onboarding Quest — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'welcome-quest', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content" style="max-width:900px">
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-person-walking-arrow-right"></i> Onboarding Quest</h1>
+        <p>Edit the tasks shown during user onboarding — community, wallet, and partner steps</p>
+      </div>
+    </div>
+
+    <% const saved = typeof query !== 'undefined' && query && query.saved; %>
+    <% const err   = typeof query !== 'undefined' && query && query.error; %>
+    <% if (saved) { %><div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:.875rem 1rem;color:#6ee7b7;font-size:.875rem;margin-bottom:1.25rem"><i class="fas fa-check-circle"></i> Saved.</div><% } %>
+    <% if (err) { %><div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:.875rem 1rem;color:#f87171;font-size:.875rem;margin-bottom:1.25rem"><i class="fas fa-circle-xmark"></i> Error saving.</div><% } %>
+
+    <%
+      function stepTasks(n) {
+        return config.tasks.filter(function(t){ return t.step === n; }).sort(function(a,b){ return a.order-b.order; });
+      }
+    %>
+
+    <!-- ── Welcome Back Reset ── -->
+    <div class="a-card" style="margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+      <div>
+        <div style="font-weight:800;font-size:.9375rem;margin-bottom:.25rem"><i class="fas fa-rotate-left" style="color:#f87171;margin-right:.5rem"></i>Reset Onboarding for All Users</div>
+        <div style="font-size:.8rem;color:var(--text-3)">Forces every user (including old members) to redo onboarding — each earns <strong style="color:#5EC213">$10 USDC</strong> on completion</div>
+      </div>
+      <button onclick="resetOnboarding()" class="a-btn" style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:#f87171;white-space:nowrap"><i class="fas fa-rotate-left"></i> Reset All</button>
+    </div>
+
+    <!-- ── Step 3: Community ── -->
+    <div class="a-card" style="animation-delay:0ms">
+      <div class="a-card-header">
+        <h2><i class="fas fa-users" style="color:#1d9bf0"></i> Step 3 — Community Tasks</h2>
+        <span style="font-size:.78rem;color:var(--text-3)">All 3 required before user can proceed</span>
+      </div>
+      <% stepTasks(3).forEach(function(task) { %>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.125rem;margin-bottom:.875rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem">
+          <div style="font-size:.7rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3)">Task ID: <code style="color:var(--green);background:rgba(94,194,19,.08);padding:.1rem .4rem;border-radius:5px"><%= task.taskId %></code></div>
+          <form method="POST" action="/admin/welcome-quest/task/<%= task.taskId %>/delete" onsubmit="return confirm('Remove task \'' + '<%= task.title %>'.replace(/'/g,'') + '\'?')">
+            <button type="submit" class="a-btn a-btn-sm" style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:#f87171"><i class="fas fa-trash"></i></button>
+          </form>
+        </div>
+        <form method="POST" action="/admin/welcome-quest/task/<%= task.taskId %>">
+          <div class="a-form-row">
+            <div class="a-form-group"><label>Title</label><input type="text" name="title" class="a-input" value="<%= task.title %>" required></div>
+            <div class="a-form-group"><label>Subtitle</label><input type="text" name="subtitle" class="a-input" value="<%= task.subtitle %>"></div>
+          </div>
+          <div class="a-form-row" style="margin-bottom:0">
+            <div class="a-form-group" style="margin-bottom:0"><label>Link URL</label><input type="text" name="link" class="a-input" value="<%= task.link %>" placeholder="https://..."></div>
+            <div class="a-form-group" style="margin-bottom:0"><label>Button Label</label><input type="text" name="btnLabel" class="a-input" value="<%= task.btnLabel %>"></div>
+            <div style="display:flex;align-items:flex-end;padding-bottom:.1rem"><button type="submit" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-floppy-disk"></i> Save</button></div>
+          </div>
+        </form>
+      </div>
+      <% }); %>
+    </div>
+
+    <!-- ── Step 5: Partner / Eyecoin ── -->
+    <div class="a-card" style="animation-delay:120ms">
+      <div class="a-card-header">
+        <h2><i class="fas fa-eye" style="color:var(--green)"></i> Step 5 — Partner Quest (EyeCoin)</h2>
+        <span style="font-size:.78rem;color:var(--text-3)">Optional step — users can skip</span>
+      </div>
+
+      <!-- Step header editing -->
+      <form method="POST" action="/admin/welcome-quest/step5-header" style="margin-bottom:1.25rem">
+        <div style="background:rgba(94,194,19,.04);border:1px solid rgba(94,194,19,.15);border-radius:12px;padding:1rem">
+          <div style="font-size:.72rem;font-weight:800;color:var(--green);margin-bottom:.75rem;letter-spacing:.5px">STEP HEADER</div>
+          <div class="a-form-row" style="margin-bottom:.625rem">
+            <div class="a-form-group" style="margin-bottom:0"><label>Step Title (partner name)</label><input type="text" name="step5Title" class="a-input" value="<%= config.step5Title %>"></div>
+            <div class="a-form-group" style="margin-bottom:0"><label>Eyebrow Label</label><input type="text" name="step5Eyebrow" class="a-input" value="<%= config.step5Eyebrow %>"></div>
+          </div>
+          <div class="a-form-group" style="margin-bottom:.625rem"><label>Step Description</label><textarea name="step5Desc" class="a-input" rows="2" style="resize:vertical"><%= config.step5Desc %></textarea></div>
+          <button type="submit" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-floppy-disk"></i> Save Header</button>
+        </div>
+      </form>
+
+      <% stepTasks(5).forEach(function(task) { %>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.125rem;margin-bottom:.875rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem">
+          <div style="font-size:.7rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3)">Task ID: <code style="color:var(--green);background:rgba(94,194,19,.08);padding:.1rem .4rem;border-radius:5px"><%= task.taskId %></code></div>
+          <form method="POST" action="/admin/welcome-quest/task/<%= task.taskId %>/delete" onsubmit="return confirm('Remove task \'' + '<%= task.title %>'.replace(/'/g,'') + '\'?')">
+            <button type="submit" class="a-btn a-btn-sm" style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:#f87171"><i class="fas fa-trash"></i></button>
+          </form>
+        </div>
+        <form method="POST" action="/admin/welcome-quest/task/<%= task.taskId %>">
+          <div class="a-form-row">
+            <div class="a-form-group"><label>Title</label><input type="text" name="title" class="a-input" value="<%= task.title %>" required></div>
+            <div class="a-form-group"><label>Subtitle</label><input type="text" name="subtitle" class="a-input" value="<%= task.subtitle %>"></div>
+          </div>
+          <div class="a-form-row" style="margin-bottom:0">
+            <div class="a-form-group" style="margin-bottom:0"><label>Link URL</label><input type="text" name="link" class="a-input" value="<%= task.link %>" placeholder="https://..."></div>
+            <div class="a-form-group" style="margin-bottom:0"><label>Button Label</label><input type="text" name="btnLabel" class="a-input" value="<%= task.btnLabel %>"></div>
+            <div style="display:flex;align-items:flex-end;padding-bottom:.1rem"><button type="submit" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-floppy-disk"></i> Save</button></div>
+          </div>
+        </form>
+      </div>
+      <% }); %>
+
+      <!-- Extra tasks for step 5 -->
+      <% var extra5 = config.extraTasks.filter(function(t){ return t.step === 5; }); %>
+      <div style="margin-top:.875rem;margin-bottom:.875rem">
+        <div style="font-size:.72rem;font-weight:800;color:var(--green);letter-spacing:.5px;margin-bottom:.625rem">EXTRA TASKS (iOS App, Android App, etc.)</div>
+        <% extra5.forEach(function(et) { %>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.875rem 1rem;margin-bottom:.5rem;display:flex;align-items:center;gap:.75rem">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.875rem;font-weight:800;color:var(--text)"><%= et.title %></div>
+            <div style="font-size:.75rem;color:var(--text-3)"><%= et.link %></div>
+          </div>
+          <span style="font-size:.75rem;font-weight:700;background:rgba(94,194,19,.1);color:var(--green);padding:.2rem .6rem;border-radius:6px"><%= et.btnLabel %></span>
+          <form method="POST" action="/admin/welcome-quest/extra-task/<%= et._id %>/delete" onsubmit="return confirm('Remove this task?')">
+            <button type="submit" class="a-btn a-btn-sm" style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:#f87171"><i class="fas fa-trash"></i></button>
+          </form>
+        </div>
+        <% }); %>
+        <% if (extra5.length === 0) { %><div style="font-size:.8125rem;color:var(--text-3);padding:.5rem 0">No extra tasks yet.</div><% } %>
+      </div>
+      <form method="POST" action="/admin/welcome-quest/extra-task">
+        <input type="hidden" name="step" value="5">
+        <div style="background:rgba(94,194,19,.03);border:1px dashed rgba(94,194,19,.25);border-radius:12px;padding:1rem">
+          <div style="font-size:.72rem;font-weight:800;color:var(--green);letter-spacing:.5px;margin-bottom:.75rem">ADD EXTRA TASK (e.g. iOS App, Android App)</div>
+          <div class="a-form-row">
+            <div class="a-form-group"><label>Title</label><input type="text" name="title" class="a-input" placeholder="Download EyeCoin for iOS" required></div>
+            <div class="a-form-group"><label>Subtitle</label><input type="text" name="subtitle" class="a-input" placeholder="App Store"></div>
+          </div>
+          <div class="a-form-row" style="margin-bottom:0">
+            <div class="a-form-group" style="margin-bottom:0"><label>Link URL</label><input type="url" name="link" class="a-input" placeholder="https://apps.apple.com/..." required></div>
+            <div class="a-form-group" style="margin-bottom:0"><label>Button Label</label><input type="text" name="btnLabel" class="a-input" placeholder="Download"></div>
+            <div style="display:flex;align-items:flex-end;padding-bottom:.1rem"><button type="submit" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-plus"></i> Add</button></div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+</body>
+<script>
+function resetOnboarding() {
+  if (!confirm('This will reset onboarding for ALL users — they will each earn $10 USDC when they complete it again. Are you sure?')) return;
+  fetch('/admin/welcome-quest/reset-all', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) aToast('Reset complete — ' + d.updated.toLocaleString() + ' users will redo onboarding');
+      else aToast('Error: ' + (d.message || 'failed'), 'error');
+    });
+}
+</script>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ONBOARD3 — Coming Soon</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--green:#5EC213;--text:#f0f0f0;--text-2:#aaa;--bg:#050a05}
+    body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;overflow:hidden}
+
+    .glow{position:fixed;top:50%;left:50%;width:800px;height:800px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(94,194,19,.07) 0%,transparent 65%);pointer-events:none;z-index:0}
+    .grid-bg{position:fixed;inset:0;background-image:linear-gradient(rgba(94,194,19,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(94,194,19,.03) 1px,transparent 1px);background-size:60px 60px;z-index:0}
+
+    .cs-wrap{position:relative;z-index:1;max-width:520px;width:100%;text-align:center;transition:opacity .4s}
+    .cs-logo{font-size:1.5rem;font-weight:900;color:var(--green);letter-spacing:3px;margin-bottom:3rem}
+    .cs-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(94,194,19,.08);border:1px solid rgba(94,194,19,.2);color:var(--green);font-size:.78rem;font-weight:700;padding:.4rem 1rem;border-radius:99px;margin-bottom:1.75rem;letter-spacing:.04em}
+    .cs-badge span{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.4s ease infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+    h1{font-size:clamp(2rem,6vw,3rem);font-weight:900;line-height:1.15;margin-bottom:1rem}
+    h1 span{color:var(--green)}
+    .cs-sub{font-size:1rem;color:var(--text-2);line-height:1.7;margin-bottom:2.5rem}
+
+    .cs-countdown{display:flex;gap:1rem;justify-content:center;margin-bottom:2.75rem;flex-wrap:wrap}
+    .cs-unit{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:.875rem 1.25rem;min-width:72px;transition:border-color .3s}
+    .cs-unit-val{font-size:2rem;font-weight:900;color:var(--text);line-height:1}
+    .cs-unit-lbl{font-size:.65rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.1em;margin-top:.3rem}
+
+    .cs-socials{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+    .cs-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.5rem;border-radius:10px;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:700;text-decoration:none;transition:opacity .15s}
+    .cs-btn:hover{opacity:.85}
+    .cs-btn-x{background:#000;color:#fff;border:1px solid #333}
+    .cs-btn-tg{background:#229ED9;color:#fff}
+    .cs-foot{font-size:.75rem;color:rgba(255,255,255,.2)}
+
+    /* ── LAUNCH OVERLAY ── */
+    #launch-overlay{position:fixed;inset:0;background:#050a05;z-index:999;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem}
+    #launch-overlay.show{display:flex}
+    .lo-logo{font-size:2rem;font-weight:900;color:var(--green);letter-spacing:4px;margin-bottom:2rem;animation:fadeUp .6s ease both}
+    .lo-title{font-size:clamp(2.5rem,8vw,4.5rem);font-weight:900;line-height:1.1;margin-bottom:1rem;animation:fadeUp .6s .15s ease both}
+    .lo-title .hi{color:var(--green)}
+    .lo-sub{font-size:1.1rem;color:var(--text-2);max-width:420px;line-height:1.7;margin-bottom:2.5rem;animation:fadeUp .6s .3s ease both}
+    .lo-pills{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center;margin-bottom:2.5rem;animation:fadeUp .6s .45s ease both}
+    .lo-pill{background:rgba(94,194,19,.12);border:1px solid rgba(94,194,19,.25);color:var(--green);font-size:.82rem;font-weight:700;padding:.45rem 1.1rem;border-radius:99px}
+    .lo-cta{display:inline-flex;align-items:center;gap:.6rem;background:var(--green);color:#000;font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:800;padding:.9rem 2.5rem;border-radius:12px;text-decoration:none;animation:fadeUp .6s .6s ease both;border:none;cursor:pointer}
+    .lo-counter{margin-top:1.5rem;font-size:.85rem;color:var(--text-2);animation:fadeUp .6s .75s ease both}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+    /* confetti canvas */
+    #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:1000}
+
+    @media(max-width:420px){
+      .cs-countdown{gap:.5rem}
+      .cs-unit{padding:.75rem .875rem;min-width:60px}
+      .cs-unit-val{font-size:1.6rem}
+    }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="grid-bg"></div>
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Coming Soon -->
+  <div class="cs-wrap" id="cs-main">
+    <div class="cs-logo">ONBOARD3</div>
+    <div class="cs-badge"><span></span> LAUNCHING TODAY</div>
+    <h1>We go <span>LIVE at 10AM</span></h1>
+    <p class="cs-sub">The new ONBOARD3 drops in hours. Earn rewards, level up, build on-chain. Complete onboarding tasks and get paid in USDC — stay ready.</p>
+
+    <div class="cs-countdown" id="countdown">
+      <div class="cs-unit"><div class="cs-unit-val" id="cd-h">00</div><div class="cs-unit-lbl">Hours</div></div>
+      <div class="cs-unit"><div class="cs-unit-val" id="cd-m">00</div><div class="cs-unit-lbl">Mins</div></div>
+      <div class="cs-unit"><div class="cs-unit-val" id="cd-s">00</div><div class="cs-unit-lbl">Secs</div></div>
+    </div>
+
+    <div class="cs-socials">
+      <a href="https://x.com/onboard3___" class="cs-btn cs-btn-x" target="_blank"><i class="fa-brands fa-x-twitter"></i> Follow on X</a>
+      <a href="https://t.me/onboard_3" class="cs-btn cs-btn-tg" target="_blank"><i class="fa-brands fa-telegram"></i> Join Telegram</a>
+    </div>
+    <div class="cs-foot">ONBOARD3 · Web3 Builder Hub · onboard3.app</div>
+  </div>
+
+  <!-- LAUNCH CELEBRATION OVERLAY -->
+  <div id="launch-overlay">
+    <div class="lo-logo">ONBOARD3</div>
+    <div class="lo-title">We Are<br><span class="hi">LIVE 🎉</span></div>
+    <p class="lo-sub">The wait is over. Complete onboarding tasks, earn XP, and get rewarded in USDC. <strong style="color:var(--text)">$1,000 in rewards</strong> are being distributed based on your activity.</p>
+    <div class="lo-pills">
+      <span class="lo-pill">💰 Earn USDC</span>
+      <span class="lo-pill">⚡ Complete Tasks</span>
+      <span class="lo-pill">🏆 Climb Ranks</span>
+      <span class="lo-pill">🖼️ Collect NFTs</span>
+      <span class="lo-pill">🌐 Build On-Chain</span>
+    </div>
+    <button class="lo-cta" onclick="goLive()"><i class="fas fa-rocket"></i> Enter ONBOARD3</button>
+    <div class="lo-counter" id="auto-redirect">Redirecting in <span id="redir-sec">8</span>s...</div>
+  </div>
+
+  <script>
+    // Target: Aug 24 2026 10:00 WAT (UTC+1)
+    var target = new Date('2026-08-24T10:00:00+01:00').getTime();
+    var launched = false;
+
+    function goLive() {
+      window.location.href = '/';
+    }
+
+    function startCelebration() {
+      if (launched) return;
+      launched = true;
+
+      // Fade out coming-soon
+      var cs = document.getElementById('cs-main');
+      cs.style.opacity = '0';
+
+      setTimeout(function() {
+        cs.style.display = 'none';
+        var overlay = document.getElementById('launch-overlay');
+        overlay.classList.add('show');
+        startConfetti();
+
+        // Auto-redirect countdown
+        var sec = 8;
+        var interval = setInterval(function() {
+          sec--;
+          var el = document.getElementById('redir-sec');
+          if (el) el.textContent = sec;
+          if (sec <= 0) { clearInterval(interval); goLive(); }
+        }, 1000);
+
+        // Tell server to disable coming soon mode
+        fetch('/api/launch-now', { method: 'POST' }).catch(function(){});
+      }, 400);
+    }
+
+    function tick() {
+      var now  = Date.now();
+      var diff = Math.max(0, target - now);
+      var h    = Math.floor(diff / 3600000);
+      var m    = Math.floor((diff % 3600000) / 60000);
+      var s    = Math.floor((diff % 60000) / 1000);
+      var hEl = document.getElementById('cd-h');
+      var mEl = document.getElementById('cd-m');
+      var sEl = document.getElementById('cd-s');
+      if (hEl) hEl.textContent = String(h).padStart(2,'0');
+      if (mEl) mEl.textContent = String(m).padStart(2,'0');
+      if (sEl) sEl.textContent = String(s).padStart(2,'0');
+      if (diff === 0) startCelebration();
+    }
+    tick();
+    setInterval(tick, 1000);
+
+    // ── CONFETTI ──
+    function startConfetti() {
+      var canvas = document.getElementById('confetti-canvas');
+      var ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      var colors = ['#5EC213','#39FF14','#fff','#fbbf24','#a78bfa','#38bdf8'];
+      var pieces = [];
+      for (var i = 0; i < 180; i++) {
+        pieces.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          w: Math.random() * 10 + 5,
+          h: Math.random() * 5 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * 360,
+          vx: (Math.random() - 0.5) * 3,
+          vy: Math.random() * 4 + 2,
+          vr: (Math.random() - 0.5) * 8,
+        });
+      }
+
+      var frame;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(function(p) {
+          ctx.save();
+          ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+          ctx.rotate(p.rot * Math.PI / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+          p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+          if (p.y > canvas.height + 20) { p.y = -20; p.x = Math.random() * canvas.width; }
+        });
+        frame = requestAnimationFrame(draw);
+      }
+      draw();
+      // Stop confetti after 10s
+      setTimeout(function() { cancelAnimationFrame(frame); ctx.clearRect(0,0,canvas.width,canvas.height); }, 10000);
+    }
+  </script>
+</body>
+</html>

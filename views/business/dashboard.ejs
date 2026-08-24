@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title><%= business.name %> — ONBOARD3 Business</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="p-overlay" id="pOverlay" onclick="closeSidebar()"></div>
+<div class="p-layout">
+
+  <!-- Sidebar -->
+  <aside class="p-sidebar" id="pSidebar">
+    <div class="p-sb-head">
+      <img src="/img/logo.png" alt="ONBOARD3">
+      <div>
+        <div class="p-sb-head-text">ONBOARD3</div>
+        <div style="font-size:.65rem;color:var(--green);font-weight:700;letter-spacing:.08em">BUSINESS</div>
+      </div>
+    </div>
+
+    <nav class="p-sb-nav">
+      <span class="p-nav-section">Overview</span>
+      <a href="#" class="p-nav-item active" onclick="showSection('overview',this);closeSidebar()">
+        <i class="fas fa-gauge"></i> Dashboard
+      </a>
+
+      <span class="p-nav-section">Campaigns</span>
+      <a href="#" class="p-nav-item" onclick="showSection('quests',this);closeSidebar()">
+        <i class="fas fa-trophy"></i> Quests
+      </a>
+      <a href="#" class="p-nav-item" onclick="showSection('applications',this);closeSidebar()">
+        <i class="fas fa-user-check"></i> Applications
+      </a>
+      <a href="#" class="p-nav-item" onclick="showSection('bounties',this);closeSidebar()">
+        <i class="fas fa-coins"></i> Bounties
+      </a>
+
+      <span class="p-nav-section">Finance</span>
+      <a href="#" class="p-nav-item" onclick="showSection('wallet',this);closeSidebar()">
+        <i class="fas fa-wallet"></i> Wallet & Funding
+      </a>
+      <a href="#" class="p-nav-item" onclick="showSection('transactions',this);closeSidebar()">
+        <i class="fas fa-receipt"></i> Transactions
+      </a>
+
+      <span class="p-nav-section">Insights</span>
+      <a href="#" class="p-nav-item" onclick="showSection('analytics',this);closeSidebar()">
+        <i class="fas fa-chart-bar"></i> Analytics
+      </a>
+    </nav>
+
+    <div class="p-sb-foot">
+      <div class="p-sb-avatar"><%= business.name.charAt(0).toUpperCase() %></div>
+      <div class="p-sb-info">
+        <div class="p-sb-name"><%= business.name %></div>
+        <div class="p-sb-role">@<%= business.username %></div>
+      </div>
+      <form method="POST" action="/business/logout" style="margin-left:auto">
+        <button type="submit" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:1rem" title="Logout">
+          <i class="fas fa-right-from-bracket"></i>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Mobile topbar -->
+  <div class="p-topbar">
+    <button class="p-topbar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <span style="font-weight:900;font-size:.9375rem"><%= business.name %></span>
+    <span class="p-auth-badge bd-badge" style="margin-left:auto">BIZ</span>
+  </div>
+
+  <!-- Main -->
+  <main class="p-main">
+    <div class="p-content">
+
+      <!-- ── OVERVIEW ── -->
+      <div id="sec-overview" class="p-section">
+        <div class="p-page-header">
+          <div>
+            <h1><i class="fas fa-gauge" style="color:var(--green)"></i> Dashboard</h1>
+            <p>Welcome, <%= business.name %>. Here's a snapshot of your activity.</p>
+          </div>
+          <button class="p-btn p-btn-bd p-btn-sm" onclick="showSection('wallet',null);openModal('fundModal')">
+            <i class="fas fa-plus"></i> Fund Account
+          </button>
+        </div>
+
+        <div style="background:linear-gradient(135deg,#0d1f14,#0a1a0f);border:1px solid rgba(16,185,129,.25);border-radius:var(--radius);padding:1.75rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+          <div>
+            <div style="font-size:.75rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.375rem">Available Balance</div>
+            <div style="font-size:2.5rem;font-weight:900;color:#fff">$<%= (business.balance||0).toFixed(2) %></div>
+            <div style="font-size:.8125rem;color:var(--text-2);margin-top:.375rem">
+              Total funded: $<%= (business.totalFunded||0).toFixed(2) %> &nbsp;·&nbsp; Total spent: $<%= (business.totalSpent||0).toFixed(2) %>
+            </div>
+          </div>
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+            <button class="p-btn p-btn-bd p-btn-sm" onclick="openModal('fundModal')">
+              <i class="fas fa-arrow-up-from-bracket"></i> Fund Account
+            </button>
+            <button class="p-btn p-btn-secondary p-btn-sm" onclick="showSection('quests',null);openModal('questModal')">
+              <i class="fas fa-trophy"></i> Create Quest
+            </button>
+            <button class="p-btn p-btn-secondary p-btn-sm" onclick="showSection('bounties',null);openModal('bountyModal')">
+              <i class="fas fa-coins"></i> Create Bounty
+            </button>
+          </div>
+        </div>
+
+        <div class="p-stats">
+          <div class="p-stat">
+            <div class="p-stat-label">Active Quests</div>
+            <div class="p-stat-value v-green"><%= quests.filter(q=>q.isActive).length %></div>
+            <div class="p-stat-sub"><%= quests.length %> total</div>
+          </div>
+          <div class="p-stat">
+            <div class="p-stat-label">Active Bounties</div>
+            <div class="p-stat-value v-green"><%= bounties.filter(b=>b.isActive).length %></div>
+            <div class="p-stat-sub"><%= bounties.length %> total</div>
+          </div>
+          <div class="p-stat">
+            <div class="p-stat-label">Quest Completions</div>
+            <div class="p-stat-value v-green"><%= totalQuestCompletions %></div>
+            <div class="p-stat-sub">Across all quests</div>
+          </div>
+          <div class="p-stat">
+            <div class="p-stat-label">Bounty Submissions</div>
+            <div class="p-stat-value v-green"><%= totalBountySubmissions %></div>
+            <div class="p-stat-sub">Across all bounties</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;flex-wrap:wrap">
+          <div class="p-card">
+            <div class="p-card-title"><i class="fas fa-trophy" style="color:var(--green)"></i> Recent Quests</div>
+            <% if (!quests.length) { %>
+            <div class="p-empty" style="padding:1.5rem"><i class="fas fa-trophy" style="font-size:1.5rem;margin-bottom:.5rem"></i><p style="font-size:.875rem">No quests yet</p></div>
+            <% } else { %>
+            <% quests.slice(0,3).forEach(q => { %>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-weight:600;font-size:.875rem"><%= q.title %></div>
+                <div style="font-size:.75rem;color:var(--text-3)">Pool: $<%= (q.usdcReward||0).toFixed(2) %></div>
+              </div>
+              <span class="p-badge <%= q.approvalStatus==='pending'?'p-badge-warning':q.approvalStatus==='rejected'?'p-badge-danger':q.isActive?'p-badge-active':'p-badge-draft' %>"><%= q.approvalStatus==='pending'?'Pending Review':q.approvalStatus==='rejected'?'Rejected':q.isActive?'Live':'Inactive' %></span>
+            </div>
+            <% }) %>
+            <% } %>
+          </div>
+          <div class="p-card">
+            <div class="p-card-title"><i class="fas fa-coins" style="color:var(--green)"></i> Recent Bounties</div>
+            <% if (!bounties.length) { %>
+            <div class="p-empty" style="padding:1.5rem"><i class="fas fa-coins" style="font-size:1.5rem;margin-bottom:.5rem"></i><p style="font-size:.875rem">No bounties yet</p></div>
+            <% } else { %>
+            <% bounties.slice(0,3).forEach(b => { %>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-weight:600;font-size:.875rem"><%= b.title %></div>
+                <div style="font-size:.75rem;color:var(--text-3)">Pool: $<%= (b.rewardPool||0).toFixed(2) %></div>
+              </div>
+              <span class="p-badge <%= b.approvalStatus==='pending'?'p-badge-warning':'p-badge-'+b.status %>"><%= b.approvalStatus==='pending'?'Pending Review':b.status %></span>
+            </div>
+            <% }) %>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── QUESTS ── -->
+      <div id="sec-quests" class="p-section" style="display:none">
+        <div class="p-page-header">
+          <div>
+            <h1><i class="fas fa-trophy" style="color:var(--green)"></i> Quests</h1>
+            <p>Create and manage quests that community members can complete</p>
+          </div>
+          <button class="p-btn p-btn-bd p-btn-sm" onclick="openModal('questModal')">
+            <i class="fas fa-plus"></i> Create Quest
+          </button>
+        </div>
+        <%
+          var gatedQuests = quests.filter(function(q){ return q.gated && q.accessCode; });
+        %>
+        <% if (gatedQuests.length) { %>
+        <% gatedQuests.forEach(function(gq) { %>
+        <div style="background:linear-gradient(135deg,#0d1f14,#091508);border:1px solid rgba(16,185,129,.35);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+          <div>
+            <div style="font-size:.7rem;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.375rem"><i class="fas fa-lock"></i> Campaign Access Code — <%= gq.title %></div>
+            <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+              <span id="codeDisplay_<%= gq._id %>" style="font-size:1.75rem;font-weight:900;color:#fff;letter-spacing:.12em;font-family:monospace"><%= gq.accessCode %></span>
+              <button onclick="var el=document.getElementById('codeDisplay_<%= gq._id %>');navigator.clipboard.writeText(el.textContent.trim()).then(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> Copied!';setTimeout(()=>this.innerHTML='<i class=\'fas fa-copy\'></i> Copy',1600)}).catch(()=>{})" style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);color:var(--green);border-radius:8px;padding:.35rem .85rem;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <div style="font-size:.75rem;color:var(--text-3);margin-top:.375rem">Share this code with raiders. Only people with this code can apply.</div>
+          </div>
+          <button class="p-btn p-btn-bd p-btn-sm" onclick="goToApplications()">
+            <i class="fas fa-user-check"></i> Review Applicants
+          </button>
+        </div>
+        <% }); %>
+        <% } %>
+        <% if (!quests.length) { %>
+        <div class="p-card"><div class="p-empty"><i class="fas fa-trophy"></i><p>No quests yet. Create your first quest to start engaging the community.</p></div></div>
+        <% } else { %>
+        <div class="p-card">
+          <div class="p-table-wrap">
+            <table class="pt">
+              <thead><tr><th>Quest</th><th>Type</th><th>Pool</th><th>Status</th><th>End Date</th><th>Access Code</th><th>Actions</th></tr></thead>
+              <tbody>
+              <% quests.forEach(q => { %>
+              <tr>
+                <td>
+                  <div style="font-weight:700"><%= q.title %></div>
+                  <div style="font-size:.75rem;color:var(--text-3)"><%= q.category %> · <%= q.difficulty %></div>
+                </td>
+                <td><span class="p-badge p-badge-info" style="text-transform:capitalize;font-size:.7rem"><%= (q.questType||'standard').replace('_',' ') %></span></td>
+                <td style="color:var(--green);font-weight:700">$<%= (q.usdcReward||0).toFixed(2) %></td>
+                <td>
+                  <% if(q.approvalStatus==='pending'){ %>
+                  <span class="p-badge p-badge-warning">Pending Review</span>
+                  <% } else if(q.approvalStatus==='rejected'){ %>
+                  <span class="p-badge p-badge-danger" title="<%= q.approvalNote ? 'Reason: '+q.approvalNote : '' %>">Rejected</span>
+                  <% if(q.approvalNote){ %><div style="font-size:.7rem;color:#ef4444;margin-top:.2rem;max-width:140px;word-break:break-word"><%= q.approvalNote %></div><% } %>
+                  <% } else if(q.approvalStatus==='approved' && !q.isActive){ %>
+                  <span class="p-badge p-badge-info">Approved - Not live</span>
+                  <% } else if(q.rewardsDistributed){ %>
+                  <span class="p-badge p-badge-approved">Distributed</span>
+                  <% } else if(q.endDate && new Date()>new Date(q.endDate)){ %>
+                  <span class="p-badge p-badge-draft">Ended</span>
+                  <% } else if(q.isActive){ %>
+                  <span class="p-badge p-badge-active">Live</span>
+                  <% } else { %>
+                  <span class="p-badge p-badge-draft">Inactive</span>
+                  <% } %>
+                </td>
+                <td style="color:var(--text-2);font-size:.8rem"><%= q.endDate ? new Date(q.endDate).toLocaleDateString() : 'No end' %></td>
+                <td>
+                  <% if (q.gated && q.accessCode) { %>
+                  <div style="display:flex;align-items:center;gap:.4rem">
+                    <code style="font-size:.75rem;font-weight:800;color:var(--green);background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:6px;padding:.2rem .5rem;letter-spacing:.04em"><%= q.accessCode %></code>
+                    <button onclick="navigator.clipboard.writeText('<%= q.accessCode %>').then(()=>this.innerHTML='<i class=\'fas fa-check\'></i>').catch(()=>{})" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:.75rem;padding:.1rem" title="Copy code"><i class="fas fa-copy"></i></button>
+                  </div>
+                  <% } else { %>
+                  <span style="color:var(--text-3);font-size:.75rem">—</span>
+                  <% } %>
+                </td>
+                <td>
+                  <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+                    <button class="p-btn p-btn-ghost p-btn-sm" onclick="openQuestManager('<%= q._id %>','<%= q.title.replace(/'/g,`\\'`) %>')">
+                      <i class="fas fa-sliders"></i> Manage
+                    </button>
+                    <% if (q.gated && q.memberApproval) { %>
+                    <button class="p-btn p-btn-ghost p-btn-sm" onclick="openApplications('<%= q._id %>','<%= q.title.replace(/'/g,`\\'`) %>')" style="color:var(--amber);border-color:rgba(245,158,11,.35)">
+                      <i class="fas fa-user-check"></i> Applicants
+                    </button>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- ── APPLICATIONS ── -->
+      <div id="sec-applications" class="p-section" style="display:none">
+        <div class="p-page-header">
+          <div>
+            <h1><i class="fas fa-user-check" style="color:var(--green)"></i> Applications</h1>
+            <p>Approve or reject people who applied to your gated campaigns</p>
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <select id="appSectionQuestFilter" onchange="loadSectionApplications()" style="font-size:.8125rem;padding:.4rem .75rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif">
+              <% quests.filter(function(q){return q.gated && q.memberApproval;}).forEach(function(q){ %>
+              <option value="<%= q._id %>"><%= q.title %></option>
+              <% }); %>
+            </select>
+            <select id="appSectionStatusFilter" onchange="loadSectionApplications()" style="font-size:.8125rem;padding:.4rem .75rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif">
+              <option value="">All</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <button class="p-btn p-btn-bd p-btn-sm" onclick="loadSectionApplications()"><i class="fas fa-refresh"></i> Refresh</button>
+          </div>
+        </div>
+        <% var gatedApprovalQuests = quests.filter(function(q){return q.gated && q.memberApproval;}); %>
+        <% if (!gatedApprovalQuests.length) { %>
+        <div class="p-card"><div class="p-empty"><i class="fas fa-user-check"></i><p>No gated quests with member approval enabled.</p></div></div>
+        <% } else { %>
+        <div class="p-card">
+          <div id="appSectionWrap">
+            <div style="text-align:center;padding:2rem;color:var(--text-3);font-size:.875rem"><i class="fas fa-spinner fa-spin"></i> Loading applications...</div>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- ── BOUNTIES ── -->
+      <div id="sec-bounties" class="p-section" style="display:none">
+        <div class="p-page-header">
+          <div>
+            <h1><i class="fas fa-coins" style="color:var(--green)"></i> Bounties</h1>
+            <p>Create competitive bounties with prize pools for top performers</p>
+          </div>
+          <button class="p-btn p-btn-bd p-btn-sm" onclick="openModal('bountyModal')">
+            <i class="fas fa-plus"></i> Create Bounty
+          </button>
+        </div>
+        <% if (!bounties.length) { %>
+        <div class="p-card"><div class="p-empty"><i class="fas fa-coins"></i><p>No bounties yet. Create your first bounty to attract top talent.</p></div></div>
+        <% } else { %>
+        <div class="p-card">
+          <div class="p-table-wrap">
+            <table class="pt">
+              <thead><tr><th>Bounty</th><th>Pool</th><th>Submissions</th><th>Status</th><th>End Date</th></tr></thead>
+              <tbody>
+              <% bounties.forEach(b => { %>
+              <tr>
+                <td>
+                  <div style="font-weight:700"><%= b.title %></div>
+                  <div style="font-size:.75rem;color:var(--text-3)"><%= b.category %></div>
+                </td>
+                <td style="color:var(--green);font-weight:700">$<%= (b.rewardPool||0).toFixed(2) %></td>
+                <td style="color:var(--text-2)"><%= b.totalSubmissions || 0 %></td>
+                <td><span class="p-badge <%= b.approvalStatus==='pending'?'p-badge-warning':'p-badge-'+b.status %>"><%= b.approvalStatus==='pending'?'Pending Review':b.status %></span></td>
+                <td style="color:var(--text-2);font-size:.8rem"><%= b.endDate ? new Date(b.endDate).toLocaleDateString() : 'No end' %></td>
+              </tr>
+              <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- ── WALLET ── -->
+      <div id="sec-wallet" class="p-section" style="display:none">
+        <div class="p-page-header">
+          <div>
+            <h1><i class="fas fa-wallet" style="color:var(--green)"></i> Wallet & Funding</h1>
+            <p>Manage your account balance and fund requests</p>
+          </div>
+          <button class="p-btn p-btn-bd p-btn-sm" onclick="openModal('fundModal')">
+            <i class="fas fa-arrow-up-from-bracket"></i> Request Funding
+          </button>
+        </div>
+
+        <div style="background:linear-gradient(135deg,#0d1f14,#0a1a0f);border:1px solid rgba(16,185,129,.25);border-radius:var(--radius);padding:2rem;margin-bottom:1.5rem">
+          <div style="font-size:.75rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.375rem">Available Balance</div>
+          <div style="font-size:3rem;font-weight:900;color:#fff;margin-bottom:.5rem">$<%= (business.balance||0).toFixed(2) %></div>
+          <div style="display:flex;gap:2rem;flex-wrap:wrap">
+            <div><span style="color:var(--text-3);font-size:.8125rem">Total Funded</span><br><span style="font-size:1.125rem;font-weight:700;color:var(--green)">$<%= (business.totalFunded||0).toFixed(2) %></span></div>
+            <div><span style="color:var(--text-3);font-size:.8125rem">Total Spent</span><br><span style="font-size:1.125rem;font-weight:700;color:var(--amber)">$<%= (business.totalSpent||0).toFixed(2) %></span></div>
+          </div>
+        </div>
+
+        <div class="p-card">
+          <div class="p-card-title"><i class="fas fa-clock-rotate-left"></i> Fund Request History</div>
+          <% if (!fundRequests.length) { %>
+          <div class="p-empty"><i class="fas fa-file-invoice-dollar"></i><p>No fund requests yet.</p></div>
+          <% } else { %>
+          <div class="p-table-wrap">
+            <table class="pt">
+              <thead><tr><th>Amount</th><th>Token</th><th>Network</th><th>Status</th><th>Date</th></tr></thead>
+              <tbody>
+              <% fundRequests.forEach(fr => { %>
+              <tr>
+                <td style="font-weight:700;color:var(--green)">$<%= (fr.amount||0).toFixed(2) %></td>
+                <td><span class="p-badge p-badge-info"><%= fr.token %></span></td>
+                <td style="color:var(--text-2);text-transform:capitalize"><%= fr.network === 'bnb' ? 'BNB (BEP-20)' : fr.network === 'erc20' ? 'Ethereum (ERC-20)' : 'Solana (SPL)' %></td>
+                <td><span class="p-badge p-badge-<%= fr.status %>"><%= fr.status %></span></td>
+                <td style="color:var(--text-3);font-size:.8rem"><%= new Date(fr.createdAt).toLocaleDateString() %></td>
+              </tr>
+              <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- ── TRANSACTIONS ── -->
+      <div id="sec-transactions" class="p-section" style="display:none">
+        <div class="p-page-header">
+          <div>
+            <h1><i class="fas fa-receipt" style="color:var(--green)"></i> Transactions</h1>
+            <p>Full ledger of all account activity</p>
+          </div>
+        </div>
+        <div class="p-card">
+          <% if (!transactions.length) { %>
+          <div class="p-empty"><i class="fas fa-receipt"></i><p>No transactions yet.</p></div>
+          <% } else { %>
+          <div class="p-table-wrap">
+            <table class="pt">
+              <thead><tr><th>Type</th><th>Description</th><th>Total</th><th>Pool</th><th>BD Fee</th><th>Platform Fee</th><th>Balance After</th><th>Date</th></tr></thead>
+              <tbody>
+              <% transactions.forEach(tx => { %>
+              <tr>
+                <td>
+                  <span class="p-badge <%= tx.type==='fund'?'p-badge-approved':tx.type==='quest_creation'?'p-badge-info':'p-badge-pending' %>">
+                    <% if(tx.type==='fund'){ %><i class="fas fa-arrow-down"></i> Fund<% } else if(tx.type==='quest_creation'){ %><i class="fas fa-trophy"></i> Quest<% } else { %><i class="fas fa-coins"></i> Bounty<% } %>
+                  </span>
+                </td>
+                <td style="font-size:.8125rem;color:var(--text-2)"><%= tx.description || '—' %></td>
+                <td style="font-weight:700;color:<%= tx.type==='fund'?'var(--green)':'var(--amber)' %>">
+                  <%= tx.type==='fund' ? '+' : '-' %>$<%= (tx.totalAmount||0).toFixed(2) %>
+                </td>
+                <td style="color:var(--text-2);font-size:.875rem">$<%= (tx.poolAmount||0).toFixed(2) %></td>
+                <td style="color:var(--text-3);font-size:.8rem">$<%= (tx.bdCommission||0).toFixed(2) %> (<%= tx.bdCommissionRate||0 %>%)</td>
+                <td style="color:var(--text-3);font-size:.8rem">$<%= (tx.platformCommission||0).toFixed(2) %> (<%= tx.platformCommissionRate||0 %>%)</td>
+                <td style="font-weight:700;color:var(--green)">$<%= (tx.balanceAfter||0).toFixed(2) %></td>
+                <td style="color:var(--text-3);font-size:.8rem"><%= new Date(tx.createdAt).toLocaleDateString() %></td>
+              </tr>
+              <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- ── ANALYTICS ── -->
+      <div id="sec-analytics" class="p-section" style="display:none">
+        <div class="p-page-header">
+          <div>
+            <h1><i class="fas fa-chart-bar" style="color:var(--green)"></i> Analytics & KPIs</h1>
+            <p>Performance metrics for your campaigns</p>
+          </div>
+        </div>
+        <div class="p-stats" style="margin-bottom:1.5rem">
+          <div class="p-stat">
+            <div class="p-stat-label">Total Campaign Budget</div>
+            <div class="p-stat-value v-green">$<%= (business.totalSpent||0).toFixed(2) %></div>
+            <div class="p-stat-sub">Across <%= quests.length + bounties.length %> campaigns</div>
+          </div>
+          <div class="p-stat">
+            <div class="p-stat-label">Total Engagements</div>
+            <div class="p-stat-value v-green"><%= totalQuestCompletions + totalBountySubmissions %></div>
+            <div class="p-stat-sub"><%= totalQuestCompletions %> completions + <%= totalBountySubmissions %> submissions</div>
+          </div>
+          <div class="p-stat">
+            <div class="p-stat-label">Avg Cost / Engagement</div>
+            <div class="p-stat-value v-green">
+              <% const totalEng = totalQuestCompletions + totalBountySubmissions; %>
+              <%= totalEng > 0 ? '$'+((business.totalSpent||0)/totalEng).toFixed(2) : '—' %>
+            </div>
+            <div class="p-stat-sub">Budget efficiency</div>
+          </div>
+          <div class="p-stat">
+            <div class="p-stat-label">Available Balance</div>
+            <div class="p-stat-value v-green">$<%= (business.balance||0).toFixed(2) %></div>
+            <div class="p-stat-sub">Ready to spend</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div class="p-card">
+            <div class="p-card-title"><i class="fas fa-chart-pie" style="color:var(--green)"></i> Budget Allocation</div>
+            <div style="position:relative;height:220px;display:flex;align-items:center;justify-content:center">
+              <% const totalQBudgetA = quests.reduce((s,q)=>s+(q.usdcReward||0),0); %>
+              <% const totalBBudgetA = bounties.reduce((s,b)=>s+(b.rewardPool||0),0); %>
+              <% if(totalQBudgetA+totalBBudgetA > 0){ %>
+              <canvas id="budgetChart" width="200" height="200"></canvas>
+              <% } else { %>
+              <div class="p-empty"><i class="fas fa-chart-pie"></i><p>No budget data yet</p></div>
+              <% } %>
+            </div>
+          </div>
+          <div class="p-card">
+            <div class="p-card-title"><i class="fas fa-chart-bar" style="color:var(--green)"></i> Quest Completions</div>
+            <div style="position:relative;height:220px">
+              <% if(quests.length){ %>
+              <canvas id="questCompletionsChart"></canvas>
+              <% } else { %>
+              <div class="p-empty"><i class="fas fa-chart-bar"></i><p>No quest data yet</p></div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="p-card">
+            <div class="p-card-title"><i class="fas fa-trophy" style="color:var(--green)"></i> Quest KPIs</div>
+            <div style="display:flex;flex-direction:column;gap:.875rem">
+              <% const totalQBudget = quests.reduce((s,q)=>s+(q.usdcReward||0),0); %>
+              <% [{l:'Total Quests',v:quests.length,c:'var(--text)'},{l:'Active Quests',v:quests.filter(q=>q.isActive).length,c:'var(--green)'},{l:'Total Completions',v:totalQuestCompletions,c:'var(--green)'},{l:'Reward Pool',v:'$'+totalQBudget.toFixed(2),c:'var(--amber)'},{l:'Cost / Completion',v:totalQuestCompletions>0?'$'+(totalQBudget/totalQuestCompletions).toFixed(2):'—',c:'var(--green)'}].forEach(row => { %>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;background:var(--surface);border-radius:var(--radius-sm)">
+                <span style="color:var(--text-2);font-size:.875rem"><%= row.l %></span>
+                <span style="font-weight:800;font-size:1.125rem;color:<%= row.c %>"><%= row.v %></span>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+          <div class="p-card">
+            <div class="p-card-title"><i class="fas fa-coins" style="color:var(--green)"></i> Bounty KPIs</div>
+            <div style="display:flex;flex-direction:column;gap:.875rem">
+              <% const totalBBudget = bounties.reduce((s,b)=>s+(b.rewardPool||0),0); %>
+              <% [{l:'Total Bounties',v:bounties.length,c:'var(--text)'},{l:'Active Bounties',v:bounties.filter(b=>b.isActive).length,c:'var(--green)'},{l:'Total Submissions',v:totalBountySubmissions,c:'var(--green)'},{l:'Prize Pool',v:'$'+totalBBudget.toFixed(2),c:'var(--amber)'},{l:'Cost / Submission',v:totalBountySubmissions>0?'$'+(totalBBudget/totalBountySubmissions).toFixed(2):'—',c:'var(--green)'}].forEach(row => { %>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;background:var(--surface);border-radius:var(--radius-sm)">
+                <span style="color:var(--text-2);font-size:.875rem"><%= row.l %></span>
+                <span style="font-weight:800;font-size:1.125rem;color:<%= row.c %>"><%= row.v %></span>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ── Fund Request Modal ── -->
+<div class="p-modal-overlay" id="fundModal">
+  <div class="p-modal" style="max-width:560px">
+    <div class="p-modal-head">
+      <h3><i class="fas fa-arrow-up-from-bracket" style="color:var(--green)"></i> Fund Your Account</h3>
+      <button class="p-modal-close" onclick="closeModal('fundModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="/business/fund-request" enctype="multipart/form-data">
+      <div class="p-modal-body">
+        <div class="p-alert p-alert-info" style="margin-bottom:1.25rem;font-size:.8375rem">
+          <i class="fas fa-info-circle"></i>
+          Send funds to the wallet address shown below, then upload your payment screenshot. Your balance will be credited after admin approval.
+        </div>
+        <div class="p-form-group">
+          <label>Amount (USD) <span style="color:var(--red)">*</span></label>
+          <input class="p-input" type="number" name="amount" min="1" step="0.01" placeholder="500.00" required>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="p-form-group">
+            <label>Token <span style="color:var(--red)">*</span></label>
+            <select class="p-input" name="token" id="fundToken" onchange="lookupWallet()" required>
+              <option value="">Select token</option>
+              <option value="USDC">USDC</option>
+              <option value="USDT">USDT</option>
+            </select>
+          </div>
+          <div class="p-form-group">
+            <label>Network <span style="color:var(--red)">*</span></label>
+            <select class="p-input" name="network" id="fundNetwork" onchange="lookupWallet()" required>
+              <option value="">Select network</option>
+              <option value="solana">Solana (SPL)</option>
+              <option value="bnb">BNB Chain (BEP-20)</option>
+              <option value="erc20">Ethereum (ERC-20)</option>
+            </select>
+          </div>
+        </div>
+        <div id="walletDisplay" style="display:none;margin-bottom:1rem">
+          <label style="display:block;font-size:.8125rem;font-weight:600;color:var(--text-2);margin-bottom:.375rem">Send to this wallet address:</label>
+          <div style="background:var(--surface);border:1px solid rgba(16,185,129,.3);border-radius:var(--radius-sm);padding:.875rem 1rem;display:flex;align-items:center;gap:.75rem">
+            <div style="flex:1">
+              <div id="walletLabel" style="font-size:.7rem;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.25rem"></div>
+              <div id="walletAddr" style="font-family:monospace;font-size:.875rem;color:var(--text);word-break:break-all"></div>
+            </div>
+            <button type="button" onclick="copyWallet()" class="p-btn p-btn-ghost p-btn-sm" style="flex-shrink:0" id="copyBtn"><i class="fas fa-copy"></i></button>
+          </div>
+          <input type="hidden" name="walletAddressId" id="walletAddressId">
+        </div>
+        <div id="walletNotFound" style="display:none" class="p-alert p-alert-error">
+          <i class="fas fa-triangle-exclamation"></i> No wallet address configured for this token/network. Contact support.
+        </div>
+        <div class="p-form-group">
+          <label>Payment Screenshot <span style="color:var(--red)">*</span></label>
+          <div style="border:2px dashed var(--border-2);border-radius:var(--radius-sm);padding:1.5rem;text-align:center;cursor:pointer;position:relative" id="dropZone" onclick="document.getElementById('screenshotInput').click()">
+            <i class="fas fa-cloud-arrow-up" style="font-size:1.75rem;color:var(--text-3);margin-bottom:.5rem;display:block"></i>
+            <p style="color:var(--text-2);font-size:.875rem;margin-bottom:.25rem">Click to upload screenshot</p>
+            <p style="color:var(--text-3);font-size:.75rem">PNG, JPG, GIF, WebP — max 5 MB</p>
+            <input type="file" name="screenshot" id="screenshotInput" accept="image/*" required style="display:none" onchange="previewScreenshot(this)">
+          </div>
+          <div id="screenshotPreview" style="display:none;margin-top:.75rem">
+            <img id="previewImg" style="max-width:100%;max-height:200px;border-radius:var(--radius-sm);border:1px solid var(--border)" alt="Preview">
+          </div>
+        </div>
+        <div class="p-form-group">
+          <label>Additional Notes</label>
+          <textarea class="p-input" name="proofNote" placeholder="Any additional info for the admin..." style="min-height:70px"></textarea>
+        </div>
+      </div>
+      <div class="p-modal-foot">
+        <button type="button" class="p-btn p-btn-secondary p-btn-sm" onclick="closeModal('fundModal')">Cancel</button>
+        <button type="submit" class="p-btn p-btn-bd p-btn-sm"><i class="fas fa-paper-plane"></i> Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Create Quest Modal ── -->
+<div class="p-modal-overlay" id="questModal">
+  <div class="p-modal" style="max-width:700px">
+    <div class="p-modal-head">
+      <h3><i class="fas fa-trophy" style="color:var(--green)"></i> Create Quest</h3>
+      <button class="p-modal-close" onclick="closeModal('questModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="/business/create-quest" id="questForm" onsubmit="return prepareQuestSubmit()">
+      <div class="p-modal-body">
+
+        <!-- Basic Info -->
+        <div class="p-form-group">
+          <label>Quest Title <span style="color:var(--red)">*</span></label>
+          <input class="p-input" type="text" name="title" placeholder="e.g. Follow us on Twitter + Join Discord" required>
+        </div>
+        <div class="p-form-group">
+          <label>Short Description <span style="color:var(--red)">*</span></label>
+          <input class="p-input" type="text" name="shortDescription" placeholder="One-liner shown on quest card" required>
+        </div>
+        <div class="p-form-group">
+          <label>Full Description <span style="color:var(--red)">*</span></label>
+          <textarea class="p-input" name="description" style="min-height:80px" placeholder="Detailed quest instructions..." required></textarea>
+        </div>
+        <div class="p-form-group">
+          <label>Image URL</label>
+          <input class="p-input" type="url" name="image" placeholder="https://example.com/image.png">
+        </div>
+
+        <!-- Category / Difficulty -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="p-form-group">
+            <label>Category</label>
+            <select class="p-input" name="category">
+              <option value="social">Social</option>
+              <option value="learning">Learning</option>
+              <option value="development">Development</option>
+              <option value="community">Community</option>
+              <option value="special">Special</option>
+            </select>
+          </div>
+          <div class="p-form-group">
+            <label>Difficulty</label>
+            <select class="p-input" name="difficulty">
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+              <option value="expert">Expert</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Quest Type + Base XP -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="p-form-group">
+            <label>Quest Type</label>
+            <select class="p-input" name="questType" id="questTypeSelect" onchange="onQuestTypeChange(this.value)">
+              <option value="standard">Standard</option>
+              <option value="fcfs">First Come First Serve (FCFS)</option>
+              <option value="competition">Competition (Leaderboard)</option>
+              <option value="referral_boost">Referral Boost</option>
+              <option value="permanent">Permanent</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="special">Special</option>
+            </select>
+          </div>
+          <div class="p-form-group">
+            <label>Base XP Reward</label>
+            <input class="p-input" type="number" name="baseXpReward" min="0" step="1" placeholder="100">
+          </div>
+        </div>
+
+        <!-- FCFS Config -->
+        <div id="fcfsConfig" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;margin-bottom:.75rem">
+          <div style="font-size:.8rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem"><i class="fas fa-users"></i> FCFS Settings</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Max Participants</label>
+              <input class="p-input" type="number" name="maxParticipants" min="1" step="1" placeholder="e.g. 500 (blank = unlimited)">
+            </div>
+          </div>
+          <div style="margin-top:.875rem;padding-top:.875rem;border-top:1px solid var(--border)">
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.875rem;font-weight:600">
+              <input type="checkbox" name="batchEnabled" id="batchEnabledChk" onchange="toggleBatchFields()"> Enable Batch Spot Release
+            </label>
+            <div id="batchFields" style="margin-top:.75rem;display:none;grid-template-columns:1fr 1fr;gap:1rem">
+              <div class="p-form-group" style="margin:0">
+                <label style="font-size:.8rem">Spots Per Batch</label>
+                <input class="p-input" type="number" name="batchSize" min="1" value="50" placeholder="50">
+              </div>
+              <div class="p-form-group" style="margin:0">
+                <label style="font-size:.8rem">Hours Between Batches</label>
+                <input class="p-input" type="number" name="batchIntervalHours" min="1" value="48" placeholder="48">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Competition Config -->
+        <div id="competitionConfig" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;margin-bottom:.75rem">
+          <div style="font-size:.8rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem"><i class="fas fa-ranking-star"></i> Competition Settings</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Top N Winners</label>
+              <input class="p-input" type="number" name="competitionTopWinners" min="1" value="10" placeholder="10">
+            </div>
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Winner Bonus XP</label>
+              <input class="p-input" type="number" name="competitionWinnerXP" min="0" value="0" placeholder="0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Referral Config -->
+        <div id="referralConfig" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;margin-bottom:.75rem">
+          <div style="font-size:.8rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem"><i class="fas fa-user-plus"></i> Referral Boost Settings</div>
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.875rem;font-weight:600;margin-bottom:.75rem">
+            <input type="checkbox" name="referralEnabled" id="referralEnabledChk"> Enable Referral Bonuses
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">XP Per Referral Join</label>
+              <input class="p-input" type="number" name="referralJoinXP" min="0" value="0" placeholder="0">
+            </div>
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">XP Per Referral Complete</label>
+              <input class="p-input" type="number" name="referralCompleteXP" min="0" value="0" placeholder="0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Dates -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="p-form-group">
+            <label>Start Date</label>
+            <input class="p-input" type="date" name="startDate">
+          </div>
+          <div class="p-form-group">
+            <label>End Date</label>
+            <input class="p-input" type="date" name="endDate">
+          </div>
+        </div>
+
+        <!-- Budget -->
+        <div class="p-form-group">
+          <label>Total Budget (USD) <span style="color:var(--red)">*</span></label>
+          <input class="p-input" type="number" name="budget" min="1" step="0.01" placeholder="300.00" required id="questBudgetInput" oninput="updateQuestPreview()">
+          <div style="font-size:.75rem;color:var(--text-3);margin-top:.25rem">Balance: $<%= (business.balance||0).toFixed(2) %></div>
+        </div>
+        <div class="p-commission-box" id="questCommissionPreview" style="display:none">
+          <div style="font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">Fee Breakdown</div>
+          <div class="p-commission-row"><span>BD Commission (<span id="qBdRate">-</span>%)</span><span id="qBdAmt">-</span></div>
+          <div class="p-commission-row"><span>Platform Fee (<span id="qPlatRate">-</span>%)</span><span id="qPlatAmt">-</span></div>
+          <div class="p-commission-row pool"><span><i class="fas fa-trophy"></i> Quest Reward Pool</span><span id="qPoolAmt">-</span></div>
+        </div>
+
+        <!-- Reward Plan -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;margin-bottom:.75rem" id="rewardPlanSection">
+          <div style="font-size:.8rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem"><i class="fas fa-chart-pie" style="color:var(--green)"></i> Reward Distribution</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.875rem">
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">USDC Per Person</label>
+              <input class="p-input" type="number" name="rewardPerPerson" id="bizRewardPerPerson" min="0" step="0.01" placeholder="e.g. 5.00" oninput="calcBizRewardPlan()" style="font-size:.8125rem">
+            </div>
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Max Recipients <span style="color:var(--text-3);font-weight:400">(auto)</span></label>
+              <input class="p-input" type="number" name="maxWinners" id="bizMaxWinners" min="0" placeholder="Auto from budget" style="font-size:.8125rem">
+            </div>
+          </div>
+          <div id="bizRewardPreview" style="display:none;margin-top:.5rem;font-size:.78rem;color:var(--text-3);padding:.375rem .625rem;background:rgba(16,185,129,.06);border-radius:var(--radius-sm)"></div>
+        </div>
+
+        <!-- Tasks -->
+        <div style="margin-top:1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+            <label style="margin:0;font-weight:700">Tasks</label>
+            <button type="button" class="p-btn p-btn-ghost p-btn-sm" onclick="addQuestTask()"><i class="fas fa-plus"></i> Add Task</button>
+          </div>
+          <div id="questTasksList" style="display:flex;flex-direction:column;gap:.75rem"></div>
+          <input type="hidden" name="tasksJson" id="tasksJsonInput">
+          <div id="questNoTasks" style="font-size:.8rem;color:var(--text-3);text-align:center;padding:.75rem;background:var(--surface);border-radius:var(--radius-sm)">No tasks yet. Click "Add Task" to build your quest steps.</div>
+        </div>
+
+        <div class="p-alert p-alert-info" style="margin-top:1rem;font-size:.8rem">
+          <i class="fas fa-clock"></i> Your quest will be reviewed by an admin before going live.
+        </div>
+      </div>
+      <div class="p-modal-foot">
+        <button type="button" class="p-btn p-btn-secondary p-btn-sm" onclick="closeModal('questModal')">Cancel</button>
+        <button type="submit" class="p-btn p-btn-bd p-btn-sm"><i class="fas fa-paper-plane"></i> Submit for Review</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Quest Manager Modal ── -->
+<div class="p-modal-overlay" id="questManagerModal">
+  <div class="p-modal" style="max-width:760px">
+    <div class="p-modal-head">
+      <h3 id="qmTitle"><i class="fas fa-sliders" style="color:var(--green)"></i> Quest Manager</h3>
+      <button class="p-modal-close" onclick="closeModal('questManagerModal')"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Tab bar -->
+    <div style="display:flex;border-bottom:1px solid var(--border);padding:0 1.5rem;flex-shrink:0">
+      <button id="qmTab-leaderboard" onclick="switchQMTab('leaderboard')" style="padding:.625rem 1rem;font-size:.82rem;font-weight:700;background:transparent;border:none;cursor:pointer;color:var(--green);border-bottom:2px solid var(--green);margin-bottom:-1px;font-family:'Outfit',sans-serif"><i class="fas fa-ranking-star"></i> Leaderboard & Entries</button>
+      <button id="qmTab-tasks" onclick="switchQMTab('tasks')" style="padding:.625rem 1rem;font-size:.82rem;font-weight:700;background:transparent;border:none;cursor:pointer;color:var(--text-3);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Outfit',sans-serif"><i class="fas fa-tasks"></i> Manage Tasks</button>
+      <button id="qmTab-applications" onclick="switchQMTab('applications')" style="padding:.625rem 1rem;font-size:.82rem;font-weight:700;background:transparent;border:none;cursor:pointer;color:var(--text-3);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Outfit',sans-serif"><i class="fas fa-user-check"></i> Applications</button>
+    </div>
+
+    <div class="p-modal-body">
+
+      <!-- ── Tab: Leaderboard & Entries ── -->
+      <div id="qmPane-leaderboard">
+        <!-- Stats strip -->
+        <div id="qmStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.25rem">
+          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:.875rem;text-align:center">
+            <div style="font-size:1.5rem;font-weight:900;color:var(--green)" id="qmParticipants">—</div>
+            <div style="font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">Participants</div>
+          </div>
+          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:.875rem;text-align:center">
+            <div style="font-size:1.5rem;font-weight:900;color:var(--green)" id="qmCompletions">—</div>
+            <div style="font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">Completions</div>
+          </div>
+          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:.875rem;text-align:center">
+            <div style="font-size:1.5rem;font-weight:900;color:var(--green)" id="qmRate">—</div>
+            <div style="font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">Completion %</div>
+          </div>
+          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:.875rem;text-align:center">
+            <div style="font-size:1.5rem;font-weight:900;color:var(--amber)" id="qmPool">—</div>
+            <div style="font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">Pool (USDC)</div>
+          </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div style="margin-bottom:1.25rem">
+          <div style="font-weight:700;font-size:.875rem;margin-bottom:.625rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-ranking-star" style="color:var(--green)"></i> Leaderboard (Top 50)</div>
+          <div id="qmLeaderboard" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">
+            <div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+        </div>
+
+        <!-- Detailed entries -->
+        <div>
+          <div style="font-weight:700;font-size:.875rem;margin-bottom:.625rem;display:flex;align-items:center;justify-content:space-between">
+            <span><i class="fas fa-list-ol" style="color:var(--green)"></i> Entries & Submissions</span>
+            <button class="p-btn p-btn-ghost p-btn-sm" onclick="loadQuestEntries(currentQuestId)"><i class="fas fa-refresh"></i> Refresh</button>
+          </div>
+          <div id="qmEntriesWrap" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">
+            <div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">Click Refresh to load entries</div>
+          </div>
+        </div>
+
+        <!-- Award XP -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;margin-top:1rem;margin-bottom:1rem">
+          <div style="font-weight:700;font-size:.875rem;margin-bottom:.75rem"><i class="fas fa-star" style="color:var(--green)"></i> Award Extra XP</div>
+          <div style="display:grid;grid-template-columns:1fr 120px auto;gap:.75rem;align-items:flex-end">
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Username</label>
+              <input class="p-input" id="awardUsername" placeholder="@username" style="font-size:.875rem">
+            </div>
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">XP Amount</label>
+              <input class="p-input" id="awardXP" type="number" min="1" max="10000" placeholder="100" style="font-size:.875rem">
+            </div>
+            <button class="p-btn p-btn-bd p-btn-sm" onclick="awardXP()" style="margin-bottom:.1rem"><i class="fas fa-bolt"></i> Award</button>
+          </div>
+          <div id="awardMsg" style="display:none;margin-top:.625rem;font-size:.8125rem;padding:.5rem .75rem;border-radius:var(--radius-sm)"></div>
+        </div>
+
+        <!-- Disburse -->
+        <div id="disburseSection" style="display:none;background:linear-gradient(135deg,#0d1f14,#0a1a0f);border:1px solid rgba(16,185,129,.3);border-radius:var(--radius-sm);padding:1rem">
+          <div style="font-weight:700;font-size:.875rem;margin-bottom:.5rem;color:var(--green)"><i class="fas fa-money-bill-wave"></i> Distribute USDC Rewards</div>
+          <p style="font-size:.8rem;color:var(--text-2);margin-bottom:.75rem">Quest has ended. Distribute the reward pool to all completers equally (competition: top N only).</p>
+          <button class="p-btn p-btn-bd p-btn-sm" onclick="disburseRewards()"><i class="fas fa-paper-plane"></i> Disburse Now</button>
+          <div id="disburseMsg" style="display:none;margin-top:.625rem;font-size:.8125rem;padding:.5rem .75rem;border-radius:var(--radius-sm)"></div>
+        </div>
+        <div id="distributedBadge" style="display:none" class="p-alert p-alert-info">
+          <i class="fas fa-check-circle"></i> Rewards already distributed for this quest.
+        </div>
+      </div>
+
+      <!-- ── Tab: Applications ── -->
+      <div id="qmPane-applications" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem">
+          <div style="font-weight:700;font-size:.875rem"><i class="fas fa-user-check" style="color:var(--green)"></i> Quest Applications</div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <select id="qmAppFilter" onchange="loadQuestApplications(currentQuestId)" style="font-size:.75rem;padding:.25rem .5rem;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Outfit',sans-serif">
+              <option value="">All</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <button class="p-btn p-btn-ghost p-btn-sm" onclick="loadQuestApplications(currentQuestId)"><i class="fas fa-refresh"></i></button>
+          </div>
+        </div>
+        <div id="qmApplicationsWrap" style="max-height:440px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">
+          <div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">Click Refresh to load applications</div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Manage Tasks ── -->
+      <div id="qmPane-tasks" style="display:none">
+        <div style="font-weight:700;font-size:.875rem;margin-bottom:.875rem"><i class="fas fa-tasks" style="color:var(--green)"></i> Current Tasks</div>
+        <div id="qmTaskListBiz" style="margin-bottom:1rem">
+          <div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">No tasks loaded</div>
+        </div>
+
+        <!-- Add task form (competition only) -->
+        <div id="qmAddTaskSection" style="display:none;border:1px dashed rgba(16,185,129,.3);border-radius:var(--radius-sm);padding:1rem;background:rgba(16,185,129,.03)">
+          <div style="font-size:.75rem;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem"><i class="fas fa-plus"></i> Add Task (Competition)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.625rem">
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Task Title *</label>
+              <input class="p-input" id="nt_biz_title" placeholder="e.g. Follow us on X" style="font-size:.8125rem">
+            </div>
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Task Type</label>
+              <select class="p-input" id="nt_biz_type" style="font-size:.8125rem">
+                <option value="external">External Link</option>
+                <option value="social">Social Action</option>
+                <option value="submission">Text Submission</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:.625rem">
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">XP Reward</label>
+              <input class="p-input" id="nt_biz_xp" type="number" min="0" value="0" style="font-size:.8125rem">
+            </div>
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Button Text</label>
+              <input class="p-input" id="nt_biz_btntext" placeholder="Complete" style="font-size:.8125rem">
+            </div>
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Button Link</label>
+              <input class="p-input" id="nt_biz_btnlink" placeholder="https://..." style="font-size:.8125rem">
+            </div>
+          </div>
+          <div class="p-form-group" style="margin-bottom:.75rem">
+            <label style="font-size:.8rem">Description</label>
+            <input class="p-input" id="nt_biz_desc" placeholder="Short task instructions" style="font-size:.8125rem">
+          </div>
+          <button class="p-btn p-btn-bd p-btn-sm" onclick="submitBizAddTask()"><i class="fas fa-plus"></i> Add Task</button>
+          <div id="addTaskBizMsg" style="display:none;margin-top:.625rem;font-size:.8125rem;padding:.5rem .75rem;border-radius:var(--radius-sm)"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="p-modal-foot">
+      <button type="button" class="p-btn p-btn-secondary p-btn-sm" onclick="closeModal('questManagerModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Create Bounty Modal ── -->
+<div class="p-modal-overlay" id="bountyModal">
+  <div class="p-modal" style="max-width:640px">
+    <div class="p-modal-head">
+      <h3><i class="fas fa-coins" style="color:var(--green)"></i> Create Bounty</h3>
+      <button class="p-modal-close" onclick="closeModal('bountyModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="/business/create-bounty" id="bountyForm" onsubmit="return prepareBountySubmit()">
+      <div class="p-modal-body">
+        <div class="p-form-group">
+          <label>Bounty Title <span style="color:var(--red)">*</span></label>
+          <input class="p-input" type="text" name="title" placeholder="e.g. Build our landing page" required>
+        </div>
+        <div class="p-form-group">
+          <label>Short Description <span style="color:var(--red)">*</span></label>
+          <input class="p-input" type="text" name="shortDescription" placeholder="One-liner for the bounty card" required>
+        </div>
+        <div class="p-form-group">
+          <label>Full Description <span style="color:var(--red)">*</span></label>
+          <textarea class="p-input" name="description" style="min-height:80px" placeholder="Requirements, deliverables, judging criteria..." required></textarea>
+        </div>
+        <div class="p-form-group">
+          <label>Image URL</label>
+          <input class="p-input" type="url" name="image" placeholder="https://example.com/image.png">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="p-form-group">
+            <label>Category</label>
+            <select class="p-input" name="category">
+              <option value="development">Development</option>
+              <option value="design">Design</option>
+              <option value="marketing">Marketing</option>
+              <option value="content">Content</option>
+              <option value="community">Community</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="p-form-group">
+            <label>Max Submissions Per User</label>
+            <input class="p-input" type="number" name="maxSubmissionsPerUser" min="1" step="1" value="1">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="p-form-group">
+            <label>Start Date</label>
+            <input class="p-input" type="date" name="startDate">
+          </div>
+          <div class="p-form-group">
+            <label>End Date</label>
+            <input class="p-input" type="date" name="endDate">
+          </div>
+        </div>
+        <div class="p-form-group">
+          <label>Total Budget (USD) <span style="color:var(--red)">*</span></label>
+          <input class="p-input" type="number" name="budget" min="1" step="0.01" placeholder="500.00" required id="bountyBudgetInput" oninput="updateBountyPreview()">
+          <div style="font-size:.75rem;color:var(--text-3);margin-top:.25rem">Balance: $<%= (business.balance||0).toFixed(2) %></div>
+        </div>
+        <div class="p-commission-box" id="bountyCommissionPreview" style="display:none">
+          <div style="font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">Fee Breakdown</div>
+          <div class="p-commission-row"><span>BD Commission (<span id="bBdRate">-</span>%)</span><span id="bBdAmt">-</span></div>
+          <div class="p-commission-row"><span>Platform Fee (<span id="bPlatRate">-</span>%)</span><span id="bPlatAmt">-</span></div>
+          <div class="p-commission-row pool"><span><i class="fas fa-coins"></i> Bounty Prize Pool</span><span id="bPoolAmt">-</span></div>
+        </div>
+        <div style="margin-top:1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+            <label style="margin:0;font-weight:700">Prize Split</label>
+            <button type="button" class="p-btn p-btn-ghost p-btn-sm" onclick="addSplitRow()"><i class="fas fa-plus"></i> Add Place</button>
+          </div>
+          <div id="bountySplitList" style="display:flex;flex-direction:column;gap:.5rem"></div>
+          <input type="hidden" name="splitJson" id="splitJsonInput">
+          <div id="splitTotal" style="font-size:.8rem;margin-top:.5rem;text-align:right;color:var(--text-3)">Total: 0%</div>
+        </div>
+        <div class="p-alert p-alert-info" style="margin-top:1rem;font-size:.8rem">
+          <i class="fas fa-clock"></i> Your bounty will be reviewed by an admin before going live.
+        </div>
+      </div>
+      <div class="p-modal-foot">
+        <button type="button" class="p-btn p-btn-secondary p-btn-sm" onclick="closeModal('bountyModal')">Cancel</button>
+        <button type="submit" class="p-btn p-btn-bd p-btn-sm"><i class="fas fa-paper-plane"></i> Submit for Review</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// ── Section nav ───────────────────────────────────────────────────────────────
+function showSection(name, el) {
+  document.querySelectorAll('.p-section').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.p-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + name).style.display = '';
+  if (el) el.classList.add('active');
+  if (name === 'analytics') initCharts();
+  if (name === 'applications') loadSectionApplications();
+}
+
+function goToApplications() {
+  var navItems = document.querySelectorAll('.p-nav-item');
+  var appNav = null;
+  navItems.forEach(function(n) { if (n.textContent.trim().indexOf('Applications') !== -1) appNav = n; });
+  showSection('applications', appNav);
+}
+
+// ── Section-level Applications ────────────────────────────────────────────────
+function loadSectionApplications() {
+  var questSel  = document.getElementById('appSectionQuestFilter');
+  var statusSel = document.getElementById('appSectionStatusFilter');
+  var wrap      = document.getElementById('appSectionWrap');
+  if (!questSel || !wrap) return;
+  var questId = questSel.value;
+  var status  = statusSel ? statusSel.value : '';
+  if (!questId) { wrap.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);font-size:.875rem">Select a quest above.</div>'; return; }
+  wrap.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);font-size:.875rem"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+  fetch('/business/api/quest/' + questId + '/applications' + (status ? '?status=' + status : ''))
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d.success) { wrap.innerHTML = '<div style="text-align:center;padding:2rem;color:#ef4444;font-size:.875rem">Failed to load applications.</div>'; return; }
+      var apps = d.applications;
+      if (!apps || !apps.length) {
+        wrap.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);font-size:.875rem">No applications' + (status ? ' with status "' + status + '"' : '') + '.</div>';
+        return;
+      }
+      var pendingCount = apps.filter(function(a){ return a.status === 'pending'; }).length;
+      var header = '<div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem">' +
+        '<span style="font-size:.8rem;font-weight:700;color:var(--text-2)">' + apps.length + ' total</span>' +
+        (pendingCount > 0 ? '<span style="background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3);border-radius:20px;padding:.15rem .6rem;font-size:.75rem;font-weight:800">' + pendingCount + ' pending review</span>' : '') +
+        '</div>';
+      var rows = apps.map(function(a) {
+        var username = (a.userId && a.userId.username) ? a.userId.username : 'Unknown';
+        var statusBg = { pending: 'rgba(245,158,11,.12)', approved: 'rgba(16,185,129,.1)', rejected: 'rgba(239,68,68,.08)' };
+        var statusColor = { pending: '#f59e0b', approved: 'var(--green)', rejected: '#ef4444' };
+        var bg = statusBg[a.status] || 'var(--surface)';
+        var sc = statusColor[a.status] || 'var(--text-3)';
+        var actions = '';
+        if (a.status === 'pending') {
+          actions = '<button onclick="sectionApproveApp(\'' + questId + '\',\'' + a._id + '\')" style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.35);color:var(--green);border-radius:8px;padding:.35rem 1rem;font-size:.8rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif;margin-right:.5rem"><i class="fas fa-check"></i> Approve</button>' +
+            '<button onclick="sectionRejectApp(\'' + questId + '\',\'' + a._id + '\')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:8px;padding:.35rem 1rem;font-size:.8rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-times"></i> Reject</button>';
+        } else {
+          actions = '<span style="font-size:.8rem;font-weight:800;color:' + sc + ';text-transform:capitalize">' + a.status + '</span>';
+        }
+        return '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;padding:1rem 1.25rem;border-radius:10px;background:' + bg + ';border:1px solid var(--border);margin-bottom:.625rem">' +
+          '<div style="display:flex;align-items:center;gap:.875rem">' +
+            '<div style="width:38px;height:38px;border-radius:50%;background:rgba(16,185,129,.15);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1rem;color:var(--green)">' + username.charAt(0).toUpperCase() + '</div>' +
+            '<div>' +
+              '<div style="font-weight:700;font-size:.9375rem">@' + username + '</div>' +
+              '<div style="font-size:.75rem;color:var(--text-3);margin-top:.1rem">' +
+                (a.xHandle ? '<i class="fa-brands fa-x-twitter"></i> @' + a.xHandle + '&nbsp;&nbsp;' : '') +
+                (a.telegramUsername ? '<i class="fab fa-telegram"></i> @' + a.telegramUsername : '') +
+              '</div>' +
+              '<div style="font-size:.7rem;color:var(--text-3);margin-top:.15rem">Applied ' + new Date(a.createdAt).toLocaleDateString() + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div>' + actions + '</div>' +
+        '</div>';
+      }).join('');
+      wrap.innerHTML = header + rows;
+    })
+    .catch(function() {
+      wrap.innerHTML = '<div style="text-align:center;padding:2rem;color:#ef4444;font-size:.875rem">Error loading applications.</div>';
+    });
+}
+
+function sectionApproveApp(questId, appId) {
+  fetch('/business/api/quest/' + questId + '/applications/' + appId + '/approve', { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) loadSectionApplications();
+      else alert(d.message || 'Error');
+    });
+}
+
+function sectionRejectApp(questId, appId) {
+  var reason = prompt('Rejection reason (optional):') || '';
+  fetch('/business/api/quest/' + questId + '/applications/' + appId + '/reject', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason: reason })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) loadSectionApplications();
+    else alert(d.message || 'Error');
+  });
+}
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function toggleSidebar() {
+  document.getElementById('pSidebar').classList.toggle('open');
+  document.getElementById('pOverlay').classList.toggle('active');
+}
+function closeSidebar() {
+  document.getElementById('pSidebar').classList.remove('open');
+  document.getElementById('pOverlay').classList.remove('active');
+}
+document.querySelectorAll('.p-modal-overlay').forEach(o => {
+  o.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); });
+});
+
+// ── Wallet lookup ─────────────────────────────────────────────────────────────
+var currentWalletAddr = '';
+function lookupWallet() {
+  var token   = document.getElementById('fundToken').value;
+  var network = document.getElementById('fundNetwork').value;
+  if (!token || !network) return;
+  fetch('/business/api/wallet-address?token=' + token + '&network=' + network)
+    .then(r => r.json())
+    .then(d => {
+      if (d.found) {
+        currentWalletAddr = d.address;
+        document.getElementById('walletAddr').textContent = d.address;
+        document.getElementById('walletLabel').textContent = d.label || (token + ' · ' + network.toUpperCase());
+        document.getElementById('walletAddressId').value = d.id;
+        document.getElementById('walletDisplay').style.display = '';
+        document.getElementById('walletNotFound').style.display = 'none';
+      } else {
+        document.getElementById('walletDisplay').style.display = 'none';
+        document.getElementById('walletNotFound').style.display = '';
+      }
+    });
+}
+function copyWallet() {
+  if (!currentWalletAddr) return;
+  navigator.clipboard.writeText(currentWalletAddr).then(() => {
+    var btn = document.getElementById('copyBtn');
+    btn.innerHTML = '<i class="fas fa-check"></i>';
+    setTimeout(() => btn.innerHTML = '<i class="fas fa-copy"></i>', 1500);
+  });
+}
+
+// ── Screenshot preview ────────────────────────────────────────────────────────
+function previewScreenshot(input) {
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('previewImg').src = e.target.result;
+      document.getElementById('screenshotPreview').style.display = '';
+      document.getElementById('dropZone').style.borderColor = 'var(--green)';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// ── Commission previews ───────────────────────────────────────────────────────
+var debounceQ, debounceB;
+function updateQuestPreview() {
+  clearTimeout(debounceQ);
+  debounceQ = setTimeout(function() {
+    var amt = parseFloat(document.getElementById('questBudgetInput').value);
+    if (!amt || amt <= 0) { document.getElementById('questCommissionPreview').style.display='none'; return; }
+    fetch('/business/api/commission-preview?amount=' + amt)
+      .then(r => r.json()).then(d => {
+        document.getElementById('questCommissionPreview').style.display = '';
+        document.getElementById('qBdRate').textContent   = d.bdRate;
+        document.getElementById('qPlatRate').textContent = d.platRate;
+        document.getElementById('qBdAmt').textContent    = '$' + d.bdAmt.toFixed(2);
+        document.getElementById('qPlatAmt').textContent  = '$' + d.platAmt.toFixed(2);
+        document.getElementById('qPoolAmt').textContent  = '$' + d.poolAmt.toFixed(2);
+      });
+  }, 400);
+}
+function updateBountyPreview() {
+  clearTimeout(debounceB);
+  debounceB = setTimeout(function() {
+    var amt = parseFloat(document.getElementById('bountyBudgetInput').value);
+    if (!amt || amt <= 0) { document.getElementById('bountyCommissionPreview').style.display='none'; return; }
+    fetch('/business/api/commission-preview?amount=' + amt)
+      .then(r => r.json()).then(d => {
+        document.getElementById('bountyCommissionPreview').style.display = '';
+        document.getElementById('bBdRate').textContent   = d.bdRate;
+        document.getElementById('bPlatRate').textContent = d.platRate;
+        document.getElementById('bBdAmt').textContent    = '$' + d.bdAmt.toFixed(2);
+        document.getElementById('bPlatAmt').textContent  = '$' + d.platAmt.toFixed(2);
+        document.getElementById('bPoolAmt').textContent  = '$' + d.poolAmt.toFixed(2);
+      });
+  }, 400);
+}
+
+// ── Reward plan calculator ────────────────────────────────────────────────────
+function calcBizRewardPlan() {
+  var perPerson = parseFloat(document.getElementById('bizRewardPerPerson').value) || 0;
+  var preview   = document.getElementById('bizRewardPreview');
+  // Try to get pool amount from commission preview
+  var poolEl = document.getElementById('qPoolAmt');
+  var poolText = poolEl ? poolEl.textContent.replace('$','') : '0';
+  var pool = parseFloat(poolText) || 0;
+  if (pool <= 0 || perPerson <= 0) { preview.style.display = 'none'; return; }
+  var winners = Math.floor(pool / perPerson);
+  document.getElementById('bizMaxWinners').value = winners;
+  preview.style.display = '';
+  preview.innerHTML = '<strong style="color:var(--green)">$' + pool.toFixed(2) + '</strong> pool &nbsp;/&nbsp; <strong style="color:var(--green)">$' + perPerson.toFixed(2) + '</strong> per person &nbsp;→&nbsp; <strong style="color:var(--green)">' + winners + ' recipients</strong>';
+}
+
+// ── Quest type config toggles ─────────────────────────────────────────────────
+function onQuestTypeChange(type) {
+  document.getElementById('fcfsConfig').style.display        = type === 'fcfs' ? '' : 'none';
+  document.getElementById('competitionConfig').style.display = type === 'competition' ? '' : 'none';
+  document.getElementById('referralConfig').style.display    = type === 'referral_boost' ? '' : 'none';
+}
+function toggleBatchFields() {
+  var chk = document.getElementById('batchEnabledChk');
+  var fields = document.getElementById('batchFields');
+  fields.style.display = chk.checked ? 'grid' : 'none';
+}
+
+// ── Quest task builder ────────────────────────────────────────────────────────
+var questTaskCount = 0;
+var taskExtraFields = {
+  discord_join:  '<input class="p-input" placeholder="Discord Guild ID" data-task-field="discordGuildId" style="font-size:.8125rem;margin-top:.5rem;display:block;width:100%;box-sizing:border-box"><input class="p-input" placeholder="Discord Server Name" data-task-field="discordGuildName" style="font-size:.8125rem;margin-top:.5rem;display:block;width:100%;box-sizing:border-box">',
+  telegram_join: '<input class="p-input" placeholder="Telegram Chat ID (e.g. -100123456)" data-task-field="telegramChatId" style="font-size:.8125rem;margin-top:.5rem;display:block;width:100%;box-sizing:border-box"><input class="p-input" placeholder="Telegram Group/Channel Name" data-task-field="telegramChatName" style="font-size:.8125rem;margin-top:.5rem;display:block;width:100%;box-sizing:border-box">',
+  webhook:       '<input class="p-input" placeholder="Webhook Verification URL" data-task-field="webhookUrl" style="font-size:.8125rem;margin-top:.5rem;display:block;width:100%;box-sizing:border-box">'
+};
+
+function addQuestTask() {
+  questTaskCount++;
+  var idx = questTaskCount;
+  var html = '<div class="quest-task-row" id="qtask-' + idx + '" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.875rem">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.625rem">' +
+    '<span style="font-size:.8rem;font-weight:700;color:var(--text-2)">Task #' + idx + '</span>' +
+    '<button type="button" onclick="removeQuestTask(this)" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:.9rem"><i class="fas fa-trash"></i></button>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin-bottom:.5rem">' +
+    '<input class="p-input" placeholder="Task title *" data-task-field="title" style="font-size:.8125rem">' +
+    '<select class="p-input" data-task-field="taskType" style="font-size:.8125rem" onchange="onTaskTypeChange(this)">' +
+    '<option value="external">External Link</option>' +
+    '<option value="social">Social Action</option>' +
+    '<option value="submission">Text Submission</option>' +
+    '<option value="verification">Verification</option>' +
+    '<option value="discord_join">Join Discord</option>' +
+    '<option value="telegram_join">Join Telegram</option>' +
+    '<option value="webhook">Webhook Verify</option>' +
+    '</select>' +
+    '</div>' +
+    '<input class="p-input" placeholder="Task description" data-task-field="description" style="font-size:.8125rem;margin-bottom:.5rem;display:block;width:100%;box-sizing:border-box">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.625rem">' +
+    '<input class="p-input" type="number" min="0" placeholder="XP reward" data-task-field="xpReward" style="font-size:.8125rem">' +
+    '<input class="p-input" placeholder="Button text" data-task-field="buttonText" style="font-size:.8125rem">' +
+    '<input class="p-input" placeholder="Button link (URL)" data-task-field="buttonLink" style="font-size:.8125rem">' +
+    '</div>' +
+    '<div class="task-extra-fields"></div>' +
+    '</div>';
+  var list = document.getElementById('questTasksList');
+  list.insertAdjacentHTML('beforeend', html);
+  document.getElementById('questNoTasks').style.display = 'none';
+}
+
+function onTaskTypeChange(sel) {
+  var row = sel.closest('.quest-task-row');
+  var extra = row.querySelector('.task-extra-fields');
+  extra.innerHTML = taskExtraFields[sel.value] || '';
+}
+
+function removeQuestTask(btn) {
+  btn.closest('.quest-task-row').remove();
+  if (!document.querySelector('.quest-task-row')) document.getElementById('questNoTasks').style.display = '';
+}
+
+function prepareQuestSubmit() {
+  var rows = document.querySelectorAll('.quest-task-row');
+  var tasks = [];
+  rows.forEach(function(row) {
+    var get = function(f) { var el = row.querySelector('[data-task-field="' + f + '"]'); return el ? el.value : ''; };
+    tasks.push({
+      title:            get('title')       || 'Task',
+      description:      get('description') || '',
+      taskType:         get('taskType')    || 'external',
+      xpReward:         parseInt(get('xpReward')) || 0,
+      buttonText:       get('buttonText')  || 'Complete',
+      buttonLink:       get('buttonLink')  || '',
+      discordGuildId:   get('discordGuildId')   || '',
+      discordGuildName: get('discordGuildName') || '',
+      telegramChatId:   get('telegramChatId')   || '',
+      telegramChatName: get('telegramChatName') || '',
+      webhookUrl:       get('webhookUrl')        || ''
+    });
+  });
+  document.getElementById('tasksJsonInput').value = JSON.stringify(tasks);
+  return true;
+}
+
+// ── Bounty split builder ──────────────────────────────────────────────────────
+var splitRowCount = 0;
+var splitDefaultLabels = ['1st Place', '2nd Place', '3rd Place', '4th Place', '5th Place'];
+function initDefaultSplit() {
+  addSplitRow(50, '1st Place');
+  addSplitRow(30, '2nd Place');
+  addSplitRow(20, '3rd Place');
+}
+function addSplitRow(pct, lbl) {
+  splitRowCount++;
+  var idx = splitRowCount;
+  var defPct = pct !== undefined ? pct : 0;
+  var defLbl = lbl || (splitDefaultLabels[idx - 1] || ('#' + idx + ' Place'));
+  var html = '<div class="split-row" id="splitrow-' + idx + '" style="display:grid;grid-template-columns:1fr 90px auto;gap:.5rem;align-items:center">' +
+    '<input class="p-input" value="' + defLbl + '" data-split-field="label" style="font-size:.8125rem" oninput="updateSplitTotal()">' +
+    '<div style="position:relative">' +
+    '<input class="p-input" type="number" min="0" max="100" step="0.1" value="' + defPct + '" data-split-field="percentage" style="font-size:.8125rem;padding-right:1.75rem" oninput="updateSplitTotal()">' +
+    '<span style="position:absolute;right:.5rem;top:50%;transform:translateY(-50%);font-size:.75rem;color:var(--text-3);pointer-events:none">%</span>' +
+    '</div>' +
+    '<button type="button" onclick="removeSplitRow(this)" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:.25rem .5rem;font-size:.875rem"><i class="fas fa-trash"></i></button>' +
+    '</div>';
+  document.getElementById('bountySplitList').insertAdjacentHTML('beforeend', html);
+  updateSplitTotal();
+}
+function removeSplitRow(btn) {
+  btn.closest('.split-row').remove();
+  updateSplitTotal();
+}
+function updateSplitTotal() {
+  var total = 0;
+  document.querySelectorAll('[data-split-field="percentage"]').forEach(function(inp) { total += parseFloat(inp.value) || 0; });
+  var el = document.getElementById('splitTotal');
+  if (el) {
+    el.textContent = 'Total: ' + total.toFixed(1) + '%';
+    el.style.color = Math.abs(total - 100) < 0.1 ? 'var(--green)' : 'var(--amber)';
+  }
+}
+function prepareBountySubmit() {
+  var rows = document.querySelectorAll('.split-row');
+  var split = [];
+  rows.forEach(function(row) {
+    split.push({
+      label:      row.querySelector('[data-split-field="label"]').value || 'Place',
+      percentage: parseFloat(row.querySelector('[data-split-field="percentage"]').value) || 0
+    });
+  });
+  if (!split.length) split = [{label:'1st Place',percentage:50},{label:'2nd Place',percentage:30},{label:'3rd Place',percentage:20}];
+  document.getElementById('splitJsonInput').value = JSON.stringify(split);
+  return true;
+}
+initDefaultSplit();
+
+// ── Quest Manager ─────────────────────────────────────────────────────────────
+var currentQuestId   = null;
+var currentQuestType = null;
+
+function switchQMTab(tab) {
+  document.getElementById('qmPane-leaderboard').style.display   = tab === 'leaderboard'   ? '' : 'none';
+  document.getElementById('qmPane-tasks').style.display         = tab === 'tasks'          ? '' : 'none';
+  document.getElementById('qmPane-applications').style.display  = tab === 'applications'   ? '' : 'none';
+  var tabs = ['leaderboard','tasks','applications'];
+  tabs.forEach(function(t) {
+    var btn = document.getElementById('qmTab-' + t);
+    if (btn) {
+      btn.style.color       = t === tab ? 'var(--green)' : 'var(--text-3)';
+      btn.style.borderColor = t === tab ? 'var(--green)' : 'transparent';
+    }
+  });
+  if (tab === 'tasks') loadBizTaskList(currentQuestId, currentQuestType);
+  if (tab === 'applications') loadQuestApplications(currentQuestId);
+}
+
+function openApplications(questId, questTitle) {
+  currentQuestId = questId;
+  document.getElementById('qmTitle').innerHTML = '<i class="fas fa-user-check" style="color:var(--green)"></i> ' + questTitle;
+  openModal('questManagerModal');
+  switchQMTab('applications');
+}
+
+function loadQuestApplications(questId) {
+  if (!questId) return;
+  var wrap   = document.getElementById('qmApplicationsWrap');
+  var status = document.getElementById('qmAppFilter') ? document.getElementById('qmAppFilter').value : '';
+  wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+  fetch('/business/api/quest/' + questId + '/applications' + (status ? '?status=' + status : ''))
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d.success) { wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--red);font-size:.8rem">Failed to load applications.</div>'; return; }
+      var apps = d.applications;
+      if (!apps || !apps.length) {
+        wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">No applications found.</div>';
+        return;
+      }
+      var statusColors = { pending: 'var(--amber)', approved: 'var(--green)', rejected: '#ef4444' };
+      var rows = apps.map(function(a) {
+        var username = (a.userId && a.userId.username) ? '@' + a.userId.username : 'Unknown';
+        var sc = statusColors[a.status] || 'var(--text-3)';
+        var actions = '';
+        if (a.status === 'pending') {
+          actions = '<button onclick="bizApproveApp(\'' + questId + '\',\'' + a._id + '\')" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:var(--green);border-radius:20px;padding:.2rem .6rem;font-size:.68rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif;margin-right:.35rem"><i class="fas fa-check"></i> Approve</button>' +
+            '<button onclick="bizRejectApp(\'' + questId + '\',\'' + a._id + '\')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444;border-radius:20px;padding:.2rem .6rem;font-size:.68rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-times"></i> Reject</button>';
+        } else {
+          actions = '<span style="font-size:.72rem;color:' + sc + ';font-weight:700;text-transform:capitalize">' + a.status + '</span>';
+        }
+        return '<tr>' +
+          '<td style="padding:.5rem .75rem;font-weight:600;font-size:.875rem">' + username + '</td>' +
+          '<td style="padding:.5rem .375rem;font-size:.8rem;color:var(--text-3)">' + (a.xHandle ? '@' + a.xHandle : '—') + '</td>' +
+          '<td style="padding:.5rem .375rem;font-size:.8rem;color:var(--text-3)">' + (a.telegramUsername ? '@' + a.telegramUsername : '—') + '</td>' +
+          '<td style="padding:.5rem .375rem;font-size:.75rem;color:var(--text-3)">' + new Date(a.createdAt).toLocaleDateString() + '</td>' +
+          '<td style="padding:.5rem .75rem">' + actions + '</td>' +
+          '</tr>';
+      }).join('');
+      wrap.innerHTML = '<table style="width:100%;border-collapse:collapse;min-width:460px">' +
+        '<thead><tr style="background:var(--surface)">' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">User</th>' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">X Handle</th>' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">Telegram</th>' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">Applied</th>' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">Action</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table>';
+    })
+    .catch(function() {
+      wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--red);font-size:.8rem">Failed to load applications.</div>';
+    });
+}
+
+function bizApproveApp(questId, appId) {
+  fetch('/business/api/quest/' + questId + '/applications/' + appId + '/approve', { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) loadQuestApplications(questId);
+      else alert(d.message || 'Error approving application.');
+    });
+}
+
+function bizRejectApp(questId, appId) {
+  var reason = prompt('Rejection reason (optional):') || '';
+  fetch('/business/api/quest/' + questId + '/applications/' + appId + '/reject', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason: reason })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) loadQuestApplications(questId);
+    else alert(d.message || 'Error rejecting application.');
+  });
+}
+
+function openQuestManager(questId, questTitle) {
+  currentQuestId   = questId;
+  currentQuestType = null;
+  document.getElementById('qmTitle').innerHTML = '<i class="fas fa-sliders" style="color:var(--green)"></i> ' + questTitle;
+  document.getElementById('qmParticipants').textContent = '—';
+  document.getElementById('qmCompletions').textContent  = '—';
+  document.getElementById('qmRate').textContent         = '—';
+  document.getElementById('qmPool').textContent         = '—';
+  document.getElementById('awardMsg').style.display     = 'none';
+  document.getElementById('disburseMsg').style.display  = 'none';
+  document.getElementById('disburseSection').style.display  = 'none';
+  document.getElementById('distributedBadge').style.display = 'none';
+  document.getElementById('qmLeaderboard').innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+  document.getElementById('qmApplicationsWrap').innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">Click Refresh to load applications</div>';
+  switchQMTab('leaderboard');
+  openModal('questManagerModal');
+  loadQuestStats(questId);
+}
+
+function loadQuestStats(questId) {
+  fetch('/business/api/quest/' + questId + '/stats')
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success) return;
+      var s = d.stats;
+      currentQuestType = s.questType || null;
+      document.getElementById('qmParticipants').textContent = s.totalParticipants;
+      document.getElementById('qmCompletions').textContent  = s.totalCompletions;
+      document.getElementById('qmRate').textContent         = s.completionRate + '%';
+      document.getElementById('qmPool').textContent         = '$' + (s.rewardPool||0).toFixed(2);
+
+      if (s.rewardsDistributed) {
+        document.getElementById('distributedBadge').style.display = '';
+      } else if (s.hasEnded) {
+        document.getElementById('disburseSection').style.display = '';
+      }
+
+      var lb = d.leaderboard;
+      if (!lb || !lb.length) {
+        document.getElementById('qmLeaderboard').innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">No participants yet.</div>';
+        return;
+      }
+      var medals = ['🥇','🥈','🥉'];
+      var rows = lb.map(function(p) {
+        var medal = medals[p.rank - 1] || ('#' + p.rank);
+        var statusColor = p.status === 'completed' ? 'var(--green)' : 'var(--text-3)';
+        return '<tr>' +
+          '<td style="font-size:.8rem;color:var(--text-2);padding:.5rem .75rem">' + medal + '</td>' +
+          '<td style="font-weight:600;font-size:.875rem;padding:.5rem .375rem">@' + p.username + '</td>' +
+          '<td style="color:var(--green);font-weight:700;font-size:.875rem;padding:.5rem .375rem">' + (p.xp||0) + ' XP</td>' +
+          '<td style="color:' + statusColor + ';font-size:.75rem;padding:.5rem .375rem;text-transform:capitalize">' + p.status + '</td>' +
+          '<td style="color:var(--text-3);font-size:.75rem;padding:.5rem .75rem">' + (p.usdcEarned > 0 ? '$'+p.usdcEarned.toFixed(2) : '—') + '</td>' +
+          '</tr>';
+      }).join('');
+      document.getElementById('qmLeaderboard').innerHTML =
+        '<table style="width:100%;border-collapse:collapse">' +
+        '<thead><tr style="background:var(--surface-2,#111)">' +
+        '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">Rank</th>' +
+        '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">User</th>' +
+        '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">XP</th>' +
+        '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">Status</th>' +
+        '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">USDC</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table>';
+    })
+    .catch(function() {
+      document.getElementById('qmLeaderboard').innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--red);font-size:.8rem">Failed to load data.</div>';
+    });
+}
+
+function loadQuestEntries(questId) {
+  var wrap = document.getElementById('qmEntriesWrap');
+  wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem"><i class="fas fa-spinner fa-spin"></i> Loading entries...</div>';
+  fetch('/business/api/quest/' + questId + '/entries')
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success) { wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--red);font-size:.8rem">Failed to load entries.</div>'; return; }
+      var entries = d.entries;
+      if (!entries || !entries.length) {
+        wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">No entries yet.</div>';
+        return;
+      }
+      var rows = entries.map(function(e, i) {
+        var tasks = e.taskProgress || [];
+        var pendingTasks = tasks.filter(function(t) { return t.approvalStatus === 'pending'; });
+        var taskBadges = pendingTasks.map(function(t) {
+          return '<span style="display:inline-flex;align-items:center;gap:.25rem;font-size:.68rem;background:rgba(245,158,11,.1);color:#f59e0b;border:1px solid rgba(245,158,11,.25);border-radius:20px;padding:.1rem .5rem;margin:.1rem">' +
+            'Task pending' +
+            ' <button onclick="bizReviewTask(\'' + questId + '\',\'' + e._id + '\',\'' + t.taskId + '\',\'approve\')" style="background:none;border:none;color:#5ec213;cursor:pointer;font-size:.65rem;padding:0" title="Approve"><i class="fas fa-check"></i></button>' +
+            ' <button onclick="bizReviewTask(\'' + questId + '\',\'' + e._id + '\',\'' + t.taskId + '\',\'reject\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.65rem;padding:0" title="Reject"><i class="fas fa-times"></i></button>' +
+            '</span>';
+        }).join('');
+        var subLinks = tasks.filter(function(t) { return t.submissionUrl; }).map(function(t) {
+          return '<a href="' + t.submissionUrl + '" target="_blank" style="color:#60a5fa;font-size:.72rem">' + t.submissionUrl.slice(0,30) + '…</a>';
+        }).join(', ');
+        var username = (e.userId && e.userId.username) ? '@' + e.userId.username : 'Unknown';
+        var xp = (e.xpBreakdown && e.xpBreakdown.totalXp) ? e.xpBreakdown.totalXp : 0;
+        return '<tr>' +
+          '<td style="padding:.5rem .75rem;font-size:.8rem;color:var(--text-3)">#' + (i+1) + '</td>' +
+          '<td style="padding:.5rem .375rem;font-weight:600;font-size:.875rem">' + username + '</td>' +
+          '<td style="padding:.5rem .375rem;color:var(--green);font-weight:700;font-size:.8rem">' + xp + ' XP</td>' +
+          '<td style="padding:.5rem .375rem;font-size:.75rem;text-transform:capitalize;color:var(--text-3)">' + (e.status||'—') + '</td>' +
+          '<td style="padding:.5rem .375rem;font-size:.75rem">' + (subLinks || '—') + '</td>' +
+          '<td style="padding:.5rem .375rem">' + (taskBadges || '') + '</td>' +
+          '<td style="padding:.5rem .75rem">' +
+            '<button onclick="bizFlagEntry(\'' + questId + '\',\'' + e._id + '\')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444;border-radius:20px;padding:.2rem .6rem;font-size:.68rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-flag"></i> Flag -50XP</button>' +
+          '</td>' +
+          '</tr>';
+      }).join('');
+      wrap.innerHTML = '<table style="width:100%;border-collapse:collapse;min-width:500px">' +
+        '<thead><tr style="background:var(--surface)">' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">#</th>' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">User</th>' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">XP</th>' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">Status</th>' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">Submissions</th>' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">Pending Tasks</th>' +
+        '<th style="font-size:.68rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">Actions</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table>';
+    })
+    .catch(function() {
+      wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--red);font-size:.8rem">Failed to load entries.</div>';
+    });
+}
+
+function bizFlagEntry(questId, progressId) {
+  if (!confirm('Flag this entry and remove 50 XP? This cannot be undone.')) return;
+  fetch('/business/api/quest/' + questId + '/entries/' + progressId + '/flag', { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) { alert('Entry flagged.'); loadQuestEntries(questId); }
+      else alert(d.message || 'Error flagging entry.');
+    });
+}
+
+function bizReviewTask(questId, progressId, taskId, action) {
+  fetch('/business/api/quest/' + questId + '/review/' + progressId, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: action, taskId: taskId })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) { loadQuestEntries(questId); loadQuestStats(questId); }
+    else alert(d.message || 'Error reviewing task.');
+  });
+}
+
+function loadBizTaskList(questId, questType) {
+  var wrap = document.getElementById('qmTaskListBiz');
+  var addSection = document.getElementById('qmAddTaskSection');
+  if (addSection) addSection.style.display = questType === 'competition' ? '' : 'none';
+  if (!questId) return;
+  fetch('/business/api/quest/' + questId + '/stats')
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success) return;
+      currentQuestType = d.stats.questType;
+      if (addSection) addSection.style.display = d.stats.questType === 'competition' ? '' : 'none';
+    });
+  // Load entries to get task info
+  fetch('/business/api/quest/' + questId + '/entries')
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success || !d.quest) { wrap.innerHTML = '<div style="color:var(--text-3);font-size:.85rem;padding:.75rem 0">No task data available.</div>'; return; }
+      var tasks = d.quest.tasks || [];
+      if (!tasks.length) { wrap.innerHTML = '<div style="color:var(--text-3);font-size:.85rem;padding:.75rem 0">No tasks yet.</div>'; return; }
+      wrap.innerHTML = tasks.map(function(t, i) {
+        return '<div style="display:flex;align-items:center;gap:.75rem;padding:.625rem .875rem;border-radius:10px;background:var(--surface);border:1px solid var(--border);margin-bottom:.5rem">' +
+          '<div style="flex-shrink:0;width:26px;height:26px;border-radius:50%;background:rgba(16,185,129,.12);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900">' + (i+1) + '</div>' +
+          '<div style="flex:1;min-width:0">' +
+            '<p style="font-size:.83rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (t.title||'Task') + '</p>' +
+            '<span style="font-size:.7rem;color:var(--text-3)">' + (t.taskType||'external') + '</span>' +
+          '</div>' +
+          '<span style="font-size:.75rem;font-weight:800;color:var(--green)">' + (t.xpReward||0) + ' XP</span>' +
+          '</div>';
+      }).join('');
+    });
+}
+
+function submitBizAddTask() {
+  if (!currentQuestId) return;
+  var title = document.getElementById('nt_biz_title').value.trim();
+  if (!title) { alert('Task title is required'); return; }
+  var payload = {
+    title: title,
+    description: document.getElementById('nt_biz_desc').value.trim(),
+    taskType: document.getElementById('nt_biz_type').value,
+    xpReward: parseInt(document.getElementById('nt_biz_xp').value) || 0,
+    buttonText: document.getElementById('nt_biz_btntext').value.trim() || 'Complete',
+    buttonLink: document.getElementById('nt_biz_btnlink').value.trim()
+  };
+  fetch('/business/api/quest/' + currentQuestId + '/tasks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(d => {
+    var msg = document.getElementById('addTaskBizMsg');
+    msg.textContent = d.success ? 'Task added!' : (d.message || 'Error adding task');
+    msg.style.display = '';
+    msg.style.background = d.success ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)';
+    msg.style.color = d.success ? 'var(--green)' : 'var(--red)';
+    if (d.success) {
+      document.getElementById('nt_biz_title').value = '';
+      document.getElementById('nt_biz_desc').value  = '';
+      document.getElementById('nt_biz_xp').value    = '0';
+      loadBizTaskList(currentQuestId, currentQuestType);
+    }
+    setTimeout(function() { msg.style.display = 'none'; }, 3000);
+  });
+}
+
+function awardXP() {
+  if (!currentQuestId) return;
+  var username = document.getElementById('awardUsername').value.replace('@','').trim();
+  var xp = parseInt(document.getElementById('awardXP').value);
+  if (!username || !xp || xp <= 0) { showAwardMsg('error','Enter a valid username and XP amount.'); return; }
+
+  fetch('/business/api/quest/' + currentQuestId + '/award-xp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: username, xpAmount: xp })
+  })
+  .then(r => r.json())
+  .then(d => {
+    showAwardMsg(d.success ? 'success' : 'error', d.message);
+    if (d.success) {
+      document.getElementById('awardUsername').value = '';
+      document.getElementById('awardXP').value = '';
+      loadQuestStats(currentQuestId);
+    }
+  });
+}
+
+function showAwardMsg(type, msg) {
+  var el = document.getElementById('awardMsg');
+  el.textContent = msg;
+  el.style.display = '';
+  el.style.background = type === 'success' ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)';
+  el.style.color = type === 'success' ? 'var(--green)' : 'var(--red)';
+}
+
+function disburseRewards() {
+  if (!currentQuestId) return;
+  if (!confirm('Distribute USDC rewards to all completers? This cannot be undone.')) return;
+
+  fetch('/business/api/quest/' + currentQuestId + '/disburse', { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+      var el = document.getElementById('disburseMsg');
+      el.textContent = d.message;
+      el.style.display = '';
+      el.style.background = d.success ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)';
+      el.style.color = d.success ? 'var(--green)' : 'var(--red)';
+      if (d.success) {
+        document.getElementById('disburseSection').style.display = 'none';
+        document.getElementById('distributedBadge').style.display = '';
+        loadQuestStats(currentQuestId);
+      }
+    });
+}
+
+// ── Analytics Charts ──────────────────────────────────────────────────────────
+var chartsInitialized = false;
+function initCharts() {
+  if (chartsInitialized) return;
+  chartsInitialized = true;
+
+  var budgetCanvas = document.getElementById('budgetChart');
+  if (budgetCanvas) {
+    new Chart(budgetCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Quests', 'Bounties'],
+        datasets: [{
+          data: [<%= quests.reduce((s,q)=>s+(q.usdcReward||0),0).toFixed(2) %>, <%= bounties.reduce((s,b)=>s+(b.rewardPool||0),0).toFixed(2) %>],
+          backgroundColor: ['rgba(16,185,129,.8)', 'rgba(245,158,11,.8)'],
+          borderColor: ['#10b981','#f59e0b'],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#9ca3af', font: { family: 'Outfit' } } } }
+      }
+    });
+  }
+
+  var completionsCanvas = document.getElementById('questCompletionsChart');
+  if (completionsCanvas) {
+    var qLabels = <%- JSON.stringify(quests.slice(0,8).map(function(q){return q.title.length>18?q.title.slice(0,18)+'…':q.title;})) %>;
+    var qData   = <%- JSON.stringify(quests.slice(0,8).map(function(q){return q.totalCompletions||0;})) %>;
+    new Chart(completionsCanvas, {
+      type: 'bar',
+      data: {
+        labels: qLabels,
+        datasets: [{
+          label: 'Completions',
+          data: qData,
+          backgroundColor: 'rgba(16,185,129,.6)',
+          borderColor: '#10b981',
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#6b7280', font: { family: 'Outfit', size: 10 } }, grid: { color: 'rgba(255,255,255,.05)' } },
+          y: { ticks: { color: '#6b7280', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,.05)' }, beginAtZero: true }
+        }
+      }
+    });
+  }
+}
+
+// ── Query string handling ─────────────────────────────────────────────────────
+(function() {
+  const p = new URLSearchParams(location.search);
+  const tab = p.get('tab');
+  if (tab) {
+    const el = document.querySelector('[onclick*="' + tab + '"]');
+    showSection(tab, el);
+  }
+  const errs = { insufficient_balance:'Insufficient balance.', missing_fields:'Fill all required fields.', invalid_amount:'Invalid amount.', screenshot_required:'Please upload a payment screenshot.', server_error:'Something went wrong. Please try again.' };
+  const oks  = { quest_created:'Quest created!', bounty_created:'Bounty created!', fund_request_submitted:'Fund request submitted. Awaiting admin approval.', quest_submitted:'Quest submitted for review! It will go live after admin approval.', bounty_submitted:'Bounty submitted! Awaiting admin approval before going live.' };
+  const e = p.get('error'), s = p.get('success');
+  if (e) showFlash('error', errs[e] || decodeURIComponent(e));
+  if (s && oks[s])  showFlash('success', oks[s]);
+})();
+
+function showFlash(type, msg) {
+  var div = document.createElement('div');
+  div.className = 'p-alert p-alert-' + type;
+  div.innerHTML = '<i class="fas fa-' + (type==='success'?'check':'exclamation') + '-circle"></i> ' + msg;
+  div.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:9999;max-width:380px';
+  document.body.appendChild(div);
+  setTimeout(function() { div.remove(); }, 4000);
+}
+</script>
+</body>
+</html>

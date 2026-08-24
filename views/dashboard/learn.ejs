@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn - ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <%- include('../partials/achievement-popup') %>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <%- include('../partials/achievement-popup') %>
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <!-- Include Sidebar -->
+    <% const currentPage = 'learn'; %>
+    <%- include('../partials/sidebar', { user, currentPage }) %>
+
+    <div class="dashboard-container">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2>Learn & Apply </h2>
+                        <p>Registration CLosed</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- My Applications -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-list-check"></i> My Applications</h3>
+                    </div>
+                    <div id="myApplicationsContainer">
+                        <p style="color: #888; text-align: center; padding: 2rem;">Loading...</p>
+                    </div>
+                </div>
+
+                Apply for Courses
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-graduation-cap"></i> Apply for Courses</h3>
+                    </div>
+                    <p style="color: #888; margin-bottom: 2rem;">This is more than a class; it’s a guided mentorship that takes you from beginner to expert.</p>
+
+                    <form id="courseApplicationForm">
+                        <div class="form-group">
+                            <label>Select Course *</label>
+                            <select id="courseSelect" required>
+                                <option value="">-- Choose a course --</option>
+                                <option value="Content Creation">Content Creation</option>
+                                <option value="Community Management">Community Management</option>
+                                <option value="Frontend Development">Frontend Development</option>
+                                <option value="Web3 Survival Course">Web3 Survival Course</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" id="fullName" placeholder="John Doe" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email Address *</label>
+                            <input type="email" id="email" placeholder="john@example.com" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Twitter/X Handle</label>
+                            <input type="text" id="twitter" placeholder="@yourusername">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Why do you want to join this course? *</label>
+                            <textarea id="motivation" placeholder="Tell us about your goals and what you hope to learn..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Previous Experience (if any)</label>
+                            <textarea id="experience" placeholder="Share any relevant experience or projects..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-paper-plane"></i> Submit Application
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Course Information
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-info-circle"></i> Available Courses</h3>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-pen-nib"></i> Content Creation</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Learn to create engaging Web3 content and build your personal brand</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 5 Days</p>
+                        </div>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-users"></i> Community Management</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Master building and managing thriving Web3 communities</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 5 Days</p>
+                        </div>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-code"></i> Web3 Survival Course </h4>
+                            <p style="color: #ccc; font-size: 0.9rem;"> The ultimate beginner-friendly guide to surviving and thriving in the Web3 world.
+        Learn wallets, security, airdrops, on-chain skills, and how to navigate the ecosystem
+        without getting wrecked. Perfect for absolute beginners who want to go from 
+        *confused → confident → unstoppable*.</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 5 weeks</p>
+                        </div>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-laptop-code"></i> Frontend Development</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Create beautiful Web3 frontends with HTML CSS and javascript</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 5 days</p>
+                        </div>
+
+                        <!-- <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-chart-line"></i> Marketing & Growth</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Drive growth and engagement for Web3 projects</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 6 weeks</p>
+                        </div>
+
+                        <div style="background: rgba(57,255,20,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(57,255,20,0.2);">
+                            <h4 style="color: #39FF14; margin-top: 0;"><i class="fas fa-paint-brush"></i> Product Design</h4>
+                            <p style="color: #ccc; font-size: 0.9rem;">Design user-friendly Web3 products and experiences</p>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 1rem;">📅 Duration: 8 weeks</p>
+                        </div> -->
+                    </div>
+                </div> -->
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/learn.js"></script>
+</body>
+</html>

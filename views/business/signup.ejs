@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Business Application — ONBOARD3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+<div class="p-auth-wrap" style="align-items:flex-start;padding-top:3rem">
+  <div class="p-auth-box" style="max-width:520px">
+    <div class="p-auth-logo">
+      <img src="/img/logo.png" alt="ONBOARD3">
+      <span class="p-auth-logo-text">ONBOARD3</span>
+      <span class="p-auth-badge biz-badge">BUSINESS</span>
+    </div>
+
+    <h1 class="p-auth-title">Apply as a Business</h1>
+    <p class="p-auth-sub">Host quests, bounties, and campaigns on ONBOARD3. An admin will review and approve your account.</p>
+
+    <% if (error) { %>
+    <div class="p-alert p-alert-error"><i class="fas fa-circle-exclamation"></i> <%= error %></div>
+    <% } %>
+    <% if (success) { %>
+    <div class="p-alert p-alert-success" style="margin-bottom:1.5rem"><i class="fas fa-check-circle"></i> <%= success %></div>
+    <% } %>
+
+    <% if (!success) { %>
+    <div class="p-alert p-alert-info" style="margin-bottom:1.5rem">
+      <i class="fas fa-info-circle"></i>
+      Your account requires admin approval. You'll receive access once approved — typically within 24-48 hours.
+    </div>
+
+    <div style="margin-bottom:1.5rem;padding:1rem;background:rgba(94,194,19,.06);border:1px solid rgba(94,194,19,.2);border-radius:12px">
+      <p style="font-size:.8rem;font-weight:700;color:var(--green);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em"><i class="fas fa-gift"></i> What you get</p>
+      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.35rem">
+        <li style="font-size:.85rem;color:#aaa"><i class="fas fa-check" style="color:var(--green);margin-right:.5rem;font-size:.7rem"></i>Host sponsored quests with USDC rewards</li>
+        <li style="font-size:.85rem;color:#aaa"><i class="fas fa-check" style="color:var(--green);margin-right:.5rem;font-size:.7rem"></i>Post bounties and creative briefs</li>
+        <li style="font-size:.85rem;color:#aaa"><i class="fas fa-check" style="color:var(--green);margin-right:.5rem;font-size:.7rem"></i>Access to ONBOARD3's active Web3 community</li>
+        <li style="font-size:.85rem;color:#aaa"><i class="fas fa-check" style="color:var(--green);margin-right:.5rem;font-size:.7rem"></i>Full analytics and submission dashboard</li>
+      </ul>
+    </div>
+
+    <form method="POST" action="/business/signup">
+      <div class="p-form-group">
+        <label>Business / Project Name <span style="color:var(--red)">*</span></label>
+        <input class="p-input" type="text" name="name" placeholder="e.g. ZeroAuthDAO, Web3Start" required>
+      </div>
+      <div class="p-form-group">
+        <label>Username <span style="color:var(--red)">*</span> <span style="font-size:.75rem;color:var(--text-3);font-weight:400">(used to log in)</span></label>
+        <input class="p-input" type="text" name="username" placeholder="e.g. zeroauthdao" required pattern="[a-z0-9_\-]+" title="Lowercase letters, numbers, _ and - only">
+      </div>
+      <div class="p-form-group">
+        <label>Email Address <span style="color:var(--red)">*</span></label>
+        <input class="p-input" type="email" name="email" placeholder="contact@yourproject.com" required autocomplete="email">
+      </div>
+      <div class="p-form-group">
+        <label>Password <span style="color:var(--red)">*</span></label>
+        <input class="p-input" type="password" name="password" placeholder="Choose a strong password" required minlength="8">
+      </div>
+      <div class="p-form-group">
+        <label>Industry</label>
+        <select class="p-input" name="industry">
+          <option value="other">Other / General</option>
+          <option value="defi">DeFi</option>
+          <option value="nft">NFT / Digital Assets</option>
+          <option value="gaming">Gaming / GameFi</option>
+          <option value="dao">DAO / Governance</option>
+          <option value="social">Social / Community</option>
+          <option value="infrastructure">Infrastructure / Dev Tools</option>
+          <option value="tech">Tech / SaaS</option>
+        </select>
+      </div>
+      <div class="p-form-group">
+        <label>Website</label>
+        <input class="p-input" type="url" name="website" placeholder="https://yourproject.com">
+      </div>
+      <div class="p-form-group">
+        <label>Tell us about your project <span style="color:var(--red)">*</span></label>
+        <textarea class="p-input" name="description" rows="3" placeholder="What does your project do, and what are you looking to achieve on ONBOARD3?" required minlength="30"></textarea>
+      </div>
+
+      <button type="submit" class="p-btn p-btn-primary" style="margin-top:.5rem">
+        <i class="fas fa-paper-plane"></i> Submit Application
+      </button>
+    </form>
+    <% } %>
+
+    <div class="p-auth-footer">
+      Already approved? <a href="/business/login">Sign in</a> &nbsp;·&nbsp; <a href="/business-developers/signup">Apply as BD instead</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

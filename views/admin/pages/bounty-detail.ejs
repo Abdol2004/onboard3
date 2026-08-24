@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title><%= bounty.title %> — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .sub-card { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:1rem 1.125rem; display:flex; gap:.875rem; align-items:flex-start; margin-bottom:.75rem; }
+    .sub-pfp { width:40px; height:40px; border-radius:10px; flex-shrink:0; background:rgba(94,194,19,.1); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); overflow:hidden; }
+    .sub-pfp img { width:100%; height:100%; object-fit:cover; border-radius:9px; }
+    .sub-check { width:20px; height:20px; border-radius:5px; border:2px solid rgba(255,255,255,.15); cursor:pointer; flex-shrink:0; margin-top:10px; appearance:none; background:transparent; }
+    .sub-check:checked { background:var(--green); border-color:var(--green); }
+    .sub-winner-sel { border-left:3px solid #fbbf24 !important; background:rgba(251,191,36,.04) !important; }
+    .split-pill { display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .75rem; border-radius:50px; background:rgba(251,191,36,.12); color:#fbbf24; border:1px solid rgba(251,191,36,.25); font-size:.78rem; font-weight:800; }
+    .info-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:.75rem; margin-bottom:1.5rem; }
+    .info-box { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:.875rem 1rem; }
+    .info-box-lbl { font-size:.68rem; font-weight:800; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; }
+    .info-box-val { font-size:1.125rem; font-weight:900; color:var(--text); margin-top:.25rem; }
+  </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'bounties', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content">
+
+    <% if (created) { %>
+    <div style="background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.3);border-radius:12px;padding:.875rem 1.125rem;margin-bottom:1rem;color:var(--green);font-weight:700;font-size:.875rem">
+      <i class="fas fa-check-circle"></i> Bounty created! Activate it below to make it visible to users.
+    </div>
+    <% } %>
+
+    <div class="a-page-header">
+      <div>
+        <a href="/admin/bounties" style="color:var(--text-3);font-size:.8125rem;text-decoration:none;font-weight:700"><i class="fas fa-arrow-left"></i> All Bounties</a>
+        <h1 style="margin-top:.5rem"><i class="fas fa-coins" style="color:#fbbf24"></i> <%= bounty.title %></h1>
+        <div style="display:flex;gap:.5rem;margin-top:.4rem;flex-wrap:wrap">
+          <span class="a-badge <%= bounty.isActive?'a-badge-success':'a-badge-neutral' %>"><%= bounty.isActive?'Active':'Inactive' %></span>
+          <span class="a-badge a-badge-neutral" style="text-transform:capitalize"><%= bounty.status %></span>
+          <span class="a-badge a-badge-neutral" style="text-transform:capitalize"><%= bounty.category %></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+        <form method="POST" action="/admin/bounties/<%= bounty._id %>/toggle">
+          <button type="submit" class="a-btn <%= bounty.isActive?'a-btn-warning':'a-btn-success' %>">
+            <i class="fas fa-<%= bounty.isActive?'pause':'play' %>"></i> <%= bounty.isActive?'Deactivate':'Activate' %>
+          </button>
+        </form>
+        <% if (bounty.isActive && submissions.length > 0 && bounty.status !== 'winners_announced') { %>
+        <button onclick="openModal('winnersModal')" class="a-btn a-btn-primary"><i class="fas fa-trophy"></i> Announce Winners</button>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Info grid -->
+    <div class="info-grid">
+      <div class="info-box">
+        <div class="info-box-lbl">Reward Pool</div>
+        <div class="info-box-val" style="color:#fbbf24"><%= (bounty.rewardPool||0).toLocaleString() %> <%= bounty.rewardToken||'USDC' %></div>
+      </div>
+      <div class="info-box">
+        <div class="info-box-lbl">Submissions</div>
+        <div class="info-box-val"><%= submissions.length %></div>
+      </div>
+      <div class="info-box">
+        <div class="info-box-lbl">End Date</div>
+        <div class="info-box-val" style="font-size:.875rem"><%= bounty.endDate ? new Date(bounty.endDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'No end date' %></div>
+      </div>
+      <div class="info-box">
+        <div class="info-box-lbl">Category</div>
+        <div class="info-box-val" style="font-size:.875rem;text-transform:capitalize"><%= bounty.category %></div>
+      </div>
+    </div>
+
+    <!-- Reward split -->
+    <% if (bounty.rewardSplit && bounty.rewardSplit.length > 0) { %>
+    <div class="a-card" style="margin-bottom:1.25rem">
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06);font-weight:800;color:var(--text);font-size:.875rem"><i class="fas fa-chart-pie" style="color:#fbbf24"></i> Reward Split</div>
+      <div style="padding:1rem 1.25rem;display:flex;gap:.75rem;flex-wrap:wrap">
+        <% bounty.rewardSplit.forEach(function(s) { %>
+        <div class="split-pill"><%= s.label %> — <%= s.percentage %>% = <%= (s.amount||(bounty.rewardPool*s.percentage/100)).toFixed(2) %> <%= bounty.rewardToken||'USDC' %></div>
+        <% }); %>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Submissions -->
+    <div class="a-card">
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06);font-weight:800;color:var(--text);font-size:.875rem">
+        <i class="fas fa-file-alt"></i> Submissions (<%= submissions.length %>)
+      </div>
+      <div style="padding:1.25rem">
+        <% if (submissions.length === 0) { %>
+        <div style="text-align:center;padding:2rem;color:var(--text-3)"><i class="fas fa-inbox" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No submissions yet</div>
+        <% } %>
+        <% submissions.forEach(function(sub) { %>
+        <div class="sub-card <%= sub.status==='winner'?'sub-winner-sel':'' %>" id="sub-<%= sub._id %>">
+          <div class="sub-pfp">
+            <% if (sub.userId?.profilePicture) { %>
+            <img src="<%= sub.userId.profilePicture %>" alt="">
+            <% } else { %><span><%= (sub.userId?.username||'?').charAt(0).toUpperCase() %></span><% } %>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+              <span style="font-size:.875rem;font-weight:800;color:var(--text)"><%= sub.userId?.username || 'Unknown' %></span>
+              <span style="font-size:.72rem;color:var(--text-3)"><%= sub.userId?.email || '' %></span>
+              <% if (sub.status === 'winner') { %><span style="background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);padding:.15rem .6rem;border-radius:50px;font-size:.65rem;font-weight:800"><i class="fas fa-trophy"></i> #<%= sub.rank %> Winner — <%= (sub.amountWon||0) %> <%= bounty.rewardToken||'USDC' %></span><% } %>
+            </div>
+            <div style="font-weight:700;color:var(--text-2);font-size:.875rem;margin:.25rem 0"><%= sub.title %></div>
+            <div style="font-size:.8rem;color:var(--text-3);line-height:1.6;white-space:pre-wrap"><%= sub.description %></div>
+            <% if (sub.submissionUrl) { %>
+            <a href="<%= sub.submissionUrl %>" target="_blank" style="font-size:.75rem;color:var(--green);font-weight:700;text-decoration:none;margin-top:.4rem;display:inline-flex;align-items:center;gap:.3rem"><i class="fas fa-external-link-alt"></i> View Work</a>
+            <% } %>
+            <div style="font-size:.7rem;color:var(--text-3);margin-top:.35rem"><%= new Date(sub.createdAt).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}) %></div>
+          </div>
+          <% if (bounty.status !== 'winners_announced') { %>
+          <input type="checkbox" class="sub-check winner-pick" value="<%= sub._id %>" title="Mark as winner" onchange="onPickChange(this)">
+          <% } %>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Winners Modal -->
+<% if (bounty.status !== 'winners_announced') { %>
+<div class="a-modal-overlay" id="winnersModal">
+  <div class="a-modal" style="max-width:560px">
+    <div class="a-modal-header">
+      <h3><i class="fas fa-trophy" style="color:#fbbf24"></i> Announce Winners</h3>
+      <button class="a-modal-close" onclick="closeModal('winnersModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:0 1.5rem 1.5rem">
+      <p style="color:var(--text-3);font-size:.875rem;margin-bottom:1.25rem">Select the winning submissions in order (1st, 2nd, 3rd…). Check the boxes on each submission card to add them here.</p>
+      <div id="winnerList" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.25rem;min-height:60px">
+        <p style="color:var(--text-3);font-size:.8rem;text-align:center">Check submissions to add winners</p>
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:flex-end">
+        <button onclick="closeModal('winnersModal')" class="a-btn a-btn-secondary">Cancel</button>
+        <button id="confirmWinnersBtn" onclick="announceWinners()" class="a-btn a-btn-primary" disabled><i class="fas fa-trophy"></i> Confirm Winners</button>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<script>
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+const rewardSplit = <%- JSON.stringify(bounty.rewardSplit || []) %>;
+const rewardToken = '<%= bounty.rewardToken || "USDC" %>';
+const rankEmoji   = ['🥇','🥈','🥉'];
+let pickedWinners = []; // [{ subId, username }]
+
+function onPickChange(cb) {
+  const card     = cb.closest('.sub-card');
+  const username = card.querySelector('[style*="font-weight:800"]')?.textContent?.trim() || 'Unknown';
+  const subId    = cb.value;
+
+  if (cb.checked) {
+    if (!pickedWinners.find(function(w){ return w.subId === subId; })) {
+      pickedWinners.push({ subId, username });
+    }
+    card.classList.add('sub-winner-sel');
+  } else {
+    pickedWinners = pickedWinners.filter(function(w){ return w.subId !== subId; });
+    card.classList.remove('sub-winner-sel');
+  }
+  renderWinnerList();
+}
+
+function renderWinnerList() {
+  const list = document.getElementById('winnerList');
+  const btn  = document.getElementById('confirmWinnersBtn');
+  if (!list) return;
+  if (pickedWinners.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-3);font-size:.8rem;text-align:center">Check submissions to add winners</p>';
+    if(btn) btn.disabled = true;
+    return;
+  }
+  if(btn) btn.disabled = false;
+  list.innerHTML = pickedWinners.map(function(w, i) {
+    const split = rewardSplit.find(function(s){ return s.rank === i+1; });
+    const amount = split ? split.amount || (bounty_pool * split.percentage / 100) : 0;
+    return '<div style="display:flex;align-items:center;gap:.75rem;padding:.625rem .875rem;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:10px">' +
+      '<span style="font-size:1.25rem">' + (rankEmoji[i]||('#'+(i+1))) + '</span>' +
+      '<span style="font-weight:800;color:var(--text);flex:1">' + w.username + '</span>' +
+      (split ? '<span style="color:#fbbf24;font-weight:800;font-size:.875rem">' + split.amount.toFixed(2) + ' ' + rewardToken + '</span>' : '') +
+      '<button onclick="removeWinner(\'' + w.subId + '\')" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:.875rem"><i class="fas fa-times"></i></button>' +
+      '</div>';
+  }).join('');
+}
+
+function removeWinner(subId) {
+  pickedWinners = pickedWinners.filter(function(w){ return w.subId !== subId; });
+  const cb = document.querySelector('.winner-pick[value="' + subId + '"]');
+  if (cb) { cb.checked = false; cb.closest('.sub-card').classList.remove('sub-winner-sel'); }
+  renderWinnerList();
+}
+
+async function announceWinners() {
+  if (pickedWinners.length === 0) return;
+  const btn = document.getElementById('confirmWinnersBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+  const body = new URLSearchParams();
+  pickedWinners.forEach(function(w){ body.append('winner_submission', w.subId); });
+  try {
+    const res  = await fetch('/admin/bounties/<%= bounty._id %>/winners', { method:'POST', body, headers:{ 'Content-Type':'application/x-www-form-urlencoded' } });
+    const data = await res.json();
+    if (data.success) { alert('Winners announced!'); location.reload(); }
+    else { alert(data.message || 'Error'); btn.disabled=false; btn.innerHTML='<i class="fas fa-trophy"></i> Confirm Winners'; }
+  } catch(e) { alert('Network error'); btn.disabled=false; btn.innerHTML='<i class="fas fa-trophy"></i> Confirm Winners'; }
+}
+</script>
+</body>
+</html>

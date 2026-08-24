@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>BD Login — ONBOARD3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+<div class="p-auth-wrap">
+  <div class="p-auth-box">
+    <div class="p-auth-logo">
+      <img src="/img/logo.png" alt="ONBOARD3">
+      <span class="p-auth-logo-text">ONBOARD3</span>
+      <span class="p-auth-badge bd-badge">BD PORTAL</span>
+    </div>
+
+    <h1 class="p-auth-title">Welcome back</h1>
+    <p class="p-auth-sub">Sign in to your Business Developer account</p>
+
+    <% if (error) { %>
+    <div class="p-alert p-alert-error"><i class="fas fa-circle-exclamation"></i> <%= error %></div>
+    <% } %>
+    <% if (success) { %>
+    <div class="p-alert p-alert-success"><i class="fas fa-circle-check"></i> <%= success %></div>
+    <% } %>
+
+    <% if (typeof query !== 'undefined' && query) { %>
+    <% if (query.error === 'not_approved') { %>
+    <div class="p-alert p-alert-error"><i class="fas fa-clock"></i> Your account is pending approval.</div>
+    <% } %>
+    <% } %>
+
+    <form method="POST" action="/business-developers/login">
+      <div class="p-form-group">
+        <label for="email">Email address</label>
+        <input class="p-input" type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="p-form-group">
+        <label for="password">Password</label>
+        <input class="p-input" type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="p-btn p-btn-success" style="margin-top:.5rem">
+        <i class="fas fa-right-to-bracket"></i> Sign in
+      </button>
+    </form>
+
+    <div class="p-auth-footer">
+      Don't have an account? <a href="/business-developers/signup">Apply as a BD</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Wallet Addresses — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'wallet-addresses', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content" style="max-width:900px">
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-wallet"></i> Crypto Wallet Addresses</h1>
+        <p>Manage deposit addresses shown to businesses for funding</p>
+      </div>
+      <button class="a-btn a-btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+        <i class="fas fa-plus"></i> Add Address
+      </button>
+    </div>
+
+    <% if (typeof query !== 'undefined' && query && query.success) { %>
+    <div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:.875rem 1rem;color:#6ee7b7;font-size:.875rem;margin-bottom:1.5rem">
+      <i class="fas fa-check-circle"></i> Wallet address added successfully.
+    </div>
+    <% } %>
+
+    <!-- Network info -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+      <% [['solana','Solana (SPL)','#9945ff'],['bnb','BNB Chain (BEP-20)','#f0b90b'],['erc20','Ethereum (ERC-20)','#627eea']].forEach(function(n){ %>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem">
+        <div style="font-size:.875rem;font-weight:700;color:<%= n[2] %>;margin-bottom:.25rem"><%= n[1] %></div>
+        <div style="font-size:.75rem;color:var(--text-3)">
+          <% const count = wallets.filter(w => w.network === n[0]).length; %>
+          <%= count %> address<%= count !== 1 ? 'es' : '' %> configured
+        </div>
+      </div>
+      <% }) %>
+    </div>
+
+    <div class="a-card">
+      <% if (!wallets.length) { %>
+      <div style="text-align:center;padding:3rem;color:var(--text-3)">
+        <i class="fas fa-wallet" style="font-size:2.5rem;margin-bottom:1rem;opacity:.4;display:block"></i>
+        <p>No wallet addresses configured. Add addresses so businesses can fund their accounts.</p>
+      </div>
+      <% } else { %>
+      <div class="a-table-wrap">
+        <table class="at">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Network</th>
+              <th>Label</th>
+              <th>Address</th>
+              <th>Status</th>
+              <th>Added</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% wallets.forEach(w => { %>
+          <tr>
+            <td><span class="a-badge a-badge-info" style="font-size:.75rem"><%= w.token %></span></td>
+            <td style="color:var(--text-2);font-size:.875rem">
+              <% if(w.network==='solana'){ %><span style="color:#9945ff"><i class="fas fa-circle" style="font-size:.5rem"></i> Solana (SPL)</span>
+              <% } else if(w.network==='bnb'){ %><span style="color:#f0b90b"><i class="fas fa-circle" style="font-size:.5rem"></i> BNB (BEP-20)</span>
+              <% } else { %><span style="color:#627eea"><i class="fas fa-circle" style="font-size:.5rem"></i> ETH (ERC-20)</span><% } %>
+            </td>
+            <td style="color:var(--text-2);font-size:.875rem"><%= w.label || '—' %></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:.5rem">
+                <span style="font-family:monospace;font-size:.8rem;color:var(--text-3);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<%= w.address %>"><%= w.address %></span>
+                <button onclick="navigator.clipboard.writeText('<%= w.address %>').then(()=>{this.innerHTML='<i class=\\'fas fa-check\\'></i>';setTimeout(()=>{this.innerHTML='<i class=\\'fas fa-copy\\'></i>'},1000)})" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:.75rem;padding:.2rem">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+            </td>
+            <td>
+              <span class="a-badge a-badge-<%= w.isActive ? 'success' : 'neutral' %>">
+                <%= w.isActive ? 'Active' : 'Inactive' %>
+              </span>
+            </td>
+            <td style="color:var(--text-3);font-size:.8rem"><%= new Date(w.createdAt).toLocaleDateString() %></td>
+            <td>
+              <div style="display:flex;gap:.375rem">
+                <button class="a-btn a-btn-secondary" style="padding:.35rem .75rem;font-size:.75rem" onclick="toggleWallet('<%= w._id %>', this)">
+                  <i class="fas fa-<%= w.isActive ? 'pause' : 'play' %>"></i> <%= w.isActive ? 'Disable' : 'Enable' %>
+                </button>
+                <button class="a-btn a-btn-danger" style="padding:.35rem .75rem;font-size:.75rem" onclick="deleteWallet('<%= w._id %>')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+
+    <div class="a-card" style="margin-top:1.5rem">
+      <h3 style="font-size:.9375rem;font-weight:800;margin-bottom:.875rem;display:flex;align-items:center;gap:.5rem">
+        <i class="fas fa-info-circle" style="color:var(--amber)"></i> How it works
+      </h3>
+      <div style="color:var(--text-2);font-size:.875rem;line-height:1.7">
+        <p>When a business requests funding, they select a <strong>token</strong> (USDC or USDT) and a <strong>network</strong> (Solana, BNB, or ERC-20). The system looks up the active wallet address for that combination and displays it to the business.</p>
+        <p style="margin-top:.625rem">The business sends crypto to that address and uploads a payment screenshot. You verify the screenshot in <strong>Fund Requests</strong> and approve it to credit their balance.</p>
+        <p style="margin-top:.625rem">You can have multiple addresses per token/network (all active ones are shown by lookup), so deactivating one won't break existing flows.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Modal -->
+<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:500px;margin:1rem">
+    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <h3 style="font-size:1rem;font-weight:800"><i class="fas fa-plus" style="color:var(--green)"></i> Add Wallet Address</h3>
+      <button onclick="document.getElementById('addModal').style.display='none'" style="background:none;border:none;color:var(--text-3);font-size:1.125rem;cursor:pointer"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="/admin/wallet-addresses/add">
+      <div style="padding:1.5rem;display:flex;flex-direction:column;gap:1rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div>
+            <label style="display:block;font-size:.8125rem;font-weight:600;color:var(--text-2);margin-bottom:.375rem">Token *</label>
+            <select name="token" required style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;color:var(--text);font-size:.875rem;outline:none;font-family:inherit">
+              <option value="USDC">USDC</option>
+              <option value="USDT">USDT</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:.8125rem;font-weight:600;color:var(--text-2);margin-bottom:.375rem">Network *</label>
+            <select name="network" required style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;color:var(--text);font-size:.875rem;outline:none;font-family:inherit">
+              <option value="solana">Solana (SPL)</option>
+              <option value="bnb">BNB Chain (BEP-20)</option>
+              <option value="erc20">Ethereum (ERC-20)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="display:block;font-size:.8125rem;font-weight:600;color:var(--text-2);margin-bottom:.375rem">Wallet Address *</label>
+          <input type="text" name="address" required placeholder="Paste wallet address..." style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;color:var(--text);font-size:.875rem;outline:none;font-family:monospace">
+        </div>
+        <div>
+          <label style="display:block;font-size:.8125rem;font-weight:600;color:var(--text-2);margin-bottom:.375rem">Label (shown to businesses)</label>
+          <input type="text" name="label" placeholder="e.g. USDC · Solana Network" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;color:var(--text);font-size:.875rem;outline:none;font-family:inherit">
+        </div>
+      </div>
+      <div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:.5rem;justify-content:flex-end">
+        <button type="button" onclick="document.getElementById('addModal').style.display='none'" class="a-btn a-btn-secondary" style="padding:.5rem 1rem;font-size:.8125rem">Cancel</button>
+        <button type="submit" class="a-btn a-btn-primary" style="padding:.5rem 1rem;font-size:.8125rem"><i class="fas fa-save"></i> Save Address</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function toggleWallet(id, btn) {
+  fetch('/admin/wallet-addresses/' + id + '/toggle', { method: 'POST' })
+    .then(r => r.json()).then(d => { if (d.success) location.reload(); });
+}
+function deleteWallet(id) {
+  if (!confirm('Remove this wallet address? Businesses will no longer see it.')) return;
+  fetch('/admin/wallet-addresses/' + id + '/delete', { method: 'POST' })
+    .then(r => r.json()).then(d => { if (d.success) location.reload(); else alert(d.message); });
+}
+</script>
+</body>
+</html>

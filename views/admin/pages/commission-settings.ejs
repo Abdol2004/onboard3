@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Commission Settings — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'commission-settings', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content" style="max-width:700px">
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-percent"></i> Commission Settings</h1>
+        <p>Global rates applied to all business quest and bounty spending</p>
+      </div>
+    </div>
+
+    <% if (typeof saved !== 'undefined' && saved) { %>
+    <div class="a-alert a-alert-success" style="margin-bottom:1.5rem;padding:.875rem 1rem;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:8px;color:#6ee7b7;font-size:.875rem">
+      <i class="fas fa-check-circle"></i> Commission settings saved successfully.
+    </div>
+    <% } %>
+
+    <div class="a-card" style="margin-bottom:1.5rem">
+      <h2 style="font-size:1rem;font-weight:800;margin-bottom:1.5rem;display:flex;align-items:center;gap:.5rem">
+        <i class="fas fa-sliders" style="color:var(--green)"></i> Global Rates
+      </h2>
+      <form method="POST" action="/admin/commission-settings">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+          <div>
+            <label style="display:block;font-size:.8125rem;font-weight:600;color:var(--text-2);margin-bottom:.5rem">
+              BD Commission Rate
+            </label>
+            <div style="position:relative">
+              <input
+                type="number" name="bdCommissionRate"
+                value="<%= settings.bdCommissionRate %>"
+                min="0" max="100" step="0.1"
+                required
+                style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 2.5rem .75rem 1rem;color:var(--text);font-size:.9375rem;outline:none;font-family:inherit">
+              <span style="position:absolute;right:.875rem;top:50%;transform:translateY(-50%);color:var(--text-3)">%</span>
+            </div>
+            <p style="font-size:.75rem;color:var(--text-3);margin-top:.375rem">
+              Percentage of business spend credited to the referring BD as commission
+            </p>
+          </div>
+          <div>
+            <label style="display:block;font-size:.8125rem;font-weight:600;color:var(--text-2);margin-bottom:.5rem">
+              Platform Commission Rate
+            </label>
+            <div style="position:relative">
+              <input
+                type="number" name="platformCommissionRate"
+                value="<%= settings.platformCommissionRate %>"
+                min="0" max="100" step="0.1"
+                required
+                style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 2.5rem .75rem 1rem;color:var(--text);font-size:.9375rem;outline:none;font-family:inherit">
+              <span style="position:absolute;right:.875rem;top:50%;transform:translateY(-50%);color:var(--text-3)">%</span>
+            </div>
+            <p style="font-size:.75rem;color:var(--text-3);margin-top:.375rem">
+              Percentage of business spend retained as ONBOARD3 platform revenue
+            </p>
+          </div>
+        </div>
+
+        <!-- Live preview -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.5rem">
+          <div style="font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.875rem">
+            Live Preview — $1,000 spend example
+          </div>
+          <div id="previewBox">
+            <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--text-2)">BD Commission (<span class="pr-bd-rate"><%= settings.bdCommissionRate %></span>%)</span>
+              <span style="font-weight:700;color:var(--amber)">$<span class="pr-bd-amt"><%= (1000 * settings.bdCommissionRate / 100).toFixed(2) %></span></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--text-2)">Platform Revenue (<span class="pr-plat-rate"><%= settings.platformCommissionRate %></span>%)</span>
+              <span style="font-weight:700;color:var(--blue)">$<span class="pr-plat-amt"><%= (1000 * settings.platformCommissionRate / 100).toFixed(2) %></span></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:.625rem 0">
+              <span style="color:var(--green);font-weight:700"><i class="fas fa-trophy"></i> Quest/Bounty Pool</span>
+              <span style="font-weight:800;font-size:1.125rem;color:var(--green)">$<span class="pr-pool"></span></span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:1rem;align-items:center">
+          <button type="submit" class="a-btn a-btn-primary">
+            <i class="fas fa-save"></i> Save Settings
+          </button>
+          <span style="color:var(--text-3);font-size:.8125rem">
+            Last updated: <%= settings.updatedAt ? new Date(settings.updatedAt).toLocaleString() : 'Never' %>
+          </span>
+        </div>
+      </form>
+    </div>
+
+    <!-- Info card -->
+    <div class="a-card">
+      <h2 style="font-size:1rem;font-weight:800;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem">
+        <i class="fas fa-info-circle" style="color:var(--amber)"></i> How Commissions Work
+      </h2>
+      <div style="display:flex;flex-direction:column;gap:.875rem">
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:28px;height:28px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#8b5cf6;font-size:.75rem;font-weight:800">1</div>
+          <div><p style="font-weight:600;margin-bottom:.25rem">Business spends $X on a quest/bounty</p><p style="color:var(--text-2);font-size:.875rem">The full budget is deducted from the business's balance.</p></div>
+        </div>
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:28px;height:28px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#8b5cf6;font-size:.75rem;font-weight:800">2</div>
+          <div><p style="font-weight:600;margin-bottom:.25rem">Fees are calculated and tracked</p><p style="color:var(--text-2);font-size:.875rem">BD commission and platform fee are deducted from the total budget. The remainder becomes the quest/bounty reward pool.</p></div>
+        </div>
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:28px;height:28px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#8b5cf6;font-size:.75rem;font-weight:800">3</div>
+          <div><p style="font-weight:600;margin-bottom:.25rem">BD receives their commission</p><p style="color:var(--text-2);font-size:.875rem">BD commissions accumulate as "pending" and you mark them as "paid" when you process payouts.</p></div>
+        </div>
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <div style="width:28px;height:28px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#8b5cf6;font-size:.75rem;font-weight:800">4</div>
+          <div><p style="font-weight:600;margin-bottom:.25rem">Individual BD rates override global</p><p style="color:var(--text-2);font-size:.875rem">You can set a custom commission rate per BD from the Business Developers page. Custom rates take priority over this global setting.</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('input[type=number]').forEach(input => {
+  input.addEventListener('input', updatePreview);
+});
+
+function updatePreview() {
+  const bd   = parseFloat(document.querySelector('[name=bdCommissionRate]').value)   || 0;
+  const plat = parseFloat(document.querySelector('[name=platformCommissionRate]').value) || 0;
+  const pool = Math.max(0, 1000 - 1000 * bd / 100 - 1000 * plat / 100);
+  document.querySelectorAll('.pr-bd-rate').forEach(el => el.textContent = bd);
+  document.querySelectorAll('.pr-plat-rate').forEach(el => el.textContent = plat);
+  document.querySelectorAll('.pr-bd-amt').forEach(el => el.textContent = (1000 * bd / 100).toFixed(2));
+  document.querySelectorAll('.pr-plat-amt').forEach(el => el.textContent = (1000 * plat / 100).toFixed(2));
+  document.querySelectorAll('.pr-pool').forEach(el => el.textContent = pool.toFixed(2));
+}
+</script>
+</body>
+</html>

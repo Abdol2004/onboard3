@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>BD Application — ONBOARD3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+<div class="p-auth-wrap" style="align-items:flex-start;padding-top:3rem">
+  <div class="p-auth-box" style="max-width:500px">
+    <div class="p-auth-logo">
+      <img src="/img/logo.png" alt="ONBOARD3">
+      <span class="p-auth-logo-text">ONBOARD3</span>
+      <span class="p-auth-badge bd-badge">BD PORTAL</span>
+    </div>
+
+    <h1 class="p-auth-title">Become a Business Developer</h1>
+    <p class="p-auth-sub">Submit your application. An admin will review and approve your account before you can log in.</p>
+
+    <% if (error) { %>
+    <div class="p-alert p-alert-error"><i class="fas fa-circle-exclamation"></i> <%= error %></div>
+    <% } %>
+
+    <div class="p-alert p-alert-info" style="margin-bottom:1.5rem">
+      <i class="fas fa-info-circle"></i>
+      Your account requires admin approval. You'll be able to log in once approved.
+    </div>
+
+    <form method="POST" action="/business-developers/signup">
+      <div class="p-form-group">
+        <label>Full Name <span style="color:var(--red)">*</span></label>
+        <input class="p-input" type="text" name="name" placeholder="Your full name" required>
+      </div>
+      <div class="p-form-group">
+        <label>Email Address <span style="color:var(--red)">*</span></label>
+        <input class="p-input" type="email" name="email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="p-form-group">
+        <label>Password <span style="color:var(--red)">*</span></label>
+        <input class="p-input" type="password" name="password" placeholder="Choose a strong password" required minlength="8">
+      </div>
+      <div class="p-form-group">
+        <label>Phone Number</label>
+        <input class="p-input" type="tel" name="phone" placeholder="+1 234 567 8900">
+      </div>
+      <div class="p-form-group">
+        <label>About You</label>
+        <textarea class="p-input" name="bio" placeholder="Tell us about your background and how you plan to bring businesses onboard..."></textarea>
+      </div>
+
+      <button type="submit" class="p-btn p-btn-success" style="margin-top:.5rem">
+        <i class="fas fa-paper-plane"></i> Submit Application
+      </button>
+    </form>
+
+    <div class="p-auth-footer">
+      Already approved? <a href="/business-developers/login">Sign in</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <%- include('../partials/achievement-popup') %>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    /* ── Main tabs ── */
+    .b-main-tabs {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .b-main-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .65rem 1.375rem;
+      border-radius: 12px;
+      font-size: .9rem;
+      font-weight: 800;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      transition: all .2s;
+      letter-spacing: -.1px;
+      white-space: nowrap;
+    }
+    .b-main-tab:hover { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.15); color: var(--text); }
+    .b-main-tab.active-int { background: rgba(251,146,60,.12); border-color: rgba(251,146,60,.4); color: #fb923c; }
+    .b-main-tab.active-ext { background: rgba(168,85,247,.12); border-color: rgba(168,85,247,.4); color: #c084fc; }
+    .b-tab-count {
+      background: rgba(255,255,255,.1);
+      color: var(--text-3);
+      font-size: .65rem;
+      font-weight: 900;
+      padding: .15rem .45rem;
+      border-radius: 50px;
+      min-width: 20px;
+      text-align: center;
+    }
+    .b-main-tab.active-int .b-tab-count { background: rgba(251,146,60,.2); color: #fb923c; }
+    .b-main-tab.active-ext .b-tab-count { background: rgba(168,85,247,.2); color: #c084fc; }
+
+    /* ── Sub-tabs (Active / Ended) ── */
+    .b-sub-tabs {
+      display: flex;
+      gap: .3rem;
+      margin-bottom: 1.25rem;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 10px;
+      padding: .25rem;
+      width: fit-content;
+    }
+    .b-sub-tab {
+      padding: .375rem .9rem;
+      border-radius: 7px;
+      font-size: .8rem;
+      font-weight: 800;
+      border: none;
+      background: transparent;
+      color: var(--text-3);
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      white-space: nowrap;
+    }
+    .b-sub-tab:hover { color: var(--text-2); }
+    .b-sub-tab.active-live { background: rgba(94,194,19,.15); color: var(--green); }
+    .b-sub-tab.active-ended { background: rgba(100,100,100,.12); color: var(--text-2); }
+
+    /* ── Cards grid ── */
+    .b-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 1rem;
+    }
+    @media (max-width: 600px) { .b-grid { grid-template-columns: 1fr; } }
+
+    .b-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+    }
+    .b-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.4); }
+    .b-card--int:hover  { border-color: rgba(251,146,60,.4); }
+    .b-card--ext:hover  { border-color: rgba(168,85,247,.4); }
+    .b-card--dim        { opacity: .7; }
+
+    .b-card-img {
+      height: 92px;
+      background: linear-gradient(135deg,#0e140e,#111811);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative; flex-shrink: 0;
+    }
+    .b-card-img img { width: 100%; height: 100%; object-fit: cover; }
+    .b-card-img-icon { font-size: 1.875rem; opacity: .2; }
+
+    .b-card-body {
+      padding: .875rem 1rem 1rem;
+      display: flex; flex-direction: column; flex: 1;
+    }
+
+    .b-tags { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .5rem; }
+    .b-tag {
+      font-size: .62rem; font-weight: 800;
+      padding: .2rem .5rem; border-radius: 50px; letter-spacing: .4px; white-space: nowrap;
+    }
+    .b-tag--live { background: rgba(94,194,19,.12);   color: var(--green); border: 1px solid rgba(94,194,19,.25); }
+    .b-tag--end  { background: rgba(239,68,68,.08);   color: #f87171; border: 1px solid rgba(239,68,68,.2); }
+    .b-tag--win  { background: rgba(251,191,36,.1);   color: #fbbf24; border: 1px solid rgba(251,191,36,.25); }
+    .b-tag--cat  { background: rgba(255,255,255,.05); color: var(--text-3); border: 1px solid rgba(255,255,255,.09); text-transform: capitalize; }
+    .b-tag--int  { background: rgba(251,146,60,.1);   color: #fb923c; border: 1px solid rgba(251,146,60,.2); }
+    .b-tag--ext  { background: rgba(168,85,247,.1);   color: #c084fc; border: 1px solid rgba(168,85,247,.2); }
+
+    .b-card-title {
+      font-size: .9rem; font-weight: 800; color: var(--text);
+      margin-bottom: .35rem; line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .b-card-desc {
+      font-size: .76rem; color: var(--text-3); line-height: 1.6;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      flex: 1; margin-bottom: .75rem;
+    }
+    .b-card-foot {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: .5rem; padding-top: .625rem;
+      border-top: 1px solid rgba(255,255,255,.05);
+      flex-wrap: wrap;
+    }
+    .b-reward-main { font-size: .875rem; font-weight: 900; color: #fbbf24; display: flex; align-items: center; gap: .3rem; }
+    .b-reward-sub  { font-size: .68rem; font-weight: 700; color: var(--green); margin-top: 1px; }
+    .b-cd { font-size: .7rem; font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: .3rem; white-space: nowrap; }
+    .b-cd.urgent { color: #f87171; }
+
+    /* ── Empty state ── */
+    .b-empty {
+      text-align: center; padding: 3rem 1rem;
+      color: var(--text-3); font-size: .875rem;
+      background: rgba(255,255,255,.015);
+      border: 1px dashed rgba(255,255,255,.08);
+      border-radius: 14px;
+    }
+    .b-empty i { display: block; font-size: 1.75rem; margin-bottom: .625rem; opacity: .35; }
+
+    /* ── Section header ── */
+    .b-section-hdr {
+      display: flex; align-items: center; gap: .75rem;
+      margin-bottom: 1.25rem; padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .b-section-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: .875rem; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+<%- include('../partials/sidebar', { user, currentPage }) %>
+
+<div class="dashboard-container">
+  <main class="main-content">
+    <div class="content">
+
+      <!-- Page heading -->
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:clamp(1.4rem,3vw,2rem);font-weight:900;letter-spacing:-1px;color:var(--text);margin-bottom:.375rem">
+          <i class="fas fa-coins" style="color:#fbbf24;margin-right:.4rem"></i>Bounties
+        </h2>
+        <p style="color:var(--text-3);font-size:.875rem">Complete bounties to earn rewards. Switch between ONBOARD3 and ZeroAuthDAO bounties.</p>
+      </div>
+
+      <!-- ── Main tabs ── -->
+      <div class="b-main-tabs">
+        <button id="tab-int" class="b-main-tab" onclick="selectMain('int', this)">
+          <i class="fas fa-coins"></i> ONBOARD3
+          <span class="b-tab-count"><%= internalLive.length + internalEnded.length %></span>
+        </button>
+        <button id="tab-ext" class="b-main-tab active-ext" onclick="selectMain('ext', this)">
+          <i class="fas fa-satellite-dish"></i> ZeroAuthDAO
+          <span class="b-tab-count"><%= zadLive.length + zadPast.length %></span>
+        </button>
+      </div>
+
+      <!-- ══════════════ ONBOARD3 SECTION ══════════════ -->
+      <div id="section-int" style="display:none">
+        <div class="b-section-hdr">
+          <div class="b-section-icon" style="background:rgba(251,146,60,.15);color:#fb923c"><i class="fas fa-coins"></i></div>
+          <div>
+            <div style="font-size:1rem;font-weight:900;color:var(--text)">ONBOARD3 Bounties</div>
+            <div style="font-size:.78rem;color:var(--text-3);margin-top:2px">Bounties created and managed by ONBOARD3</div>
+          </div>
+        </div>
+
+        <div class="b-sub-tabs">
+          <button id="int-tab-active" class="b-sub-tab active-live" onclick="switchSub('int','active',this)">
+            <i class="fas fa-circle" style="font-size:.42rem"></i> Active (<%= internalLive.length %>)
+          </button>
+          <button id="int-tab-ended" class="b-sub-tab" onclick="switchSub('int','ended',this)">
+            <i class="fas fa-check-circle" style="font-size:.7rem"></i> Ended (<%= internalEnded.length %>)
+          </button>
+        </div>
+
+        <!-- Internal Active -->
+        <div id="int-active">
+          <% if (internalLive.length === 0) { %>
+          <div class="b-empty"><i class="fas fa-coins"></i>No active bounties right now — check back soon!</div>
+          <% } else { %>
+          <div class="b-grid">
+            <% internalLive.forEach(function(b) { %>
+            <a href="/dashboard/bounties/internal/<%= b._id %>" class="b-card b-card--int">
+              <div class="b-card-img" style="background:rgba(251,146,60,.05)">
+                <% if (b.image) { %><img src="<%= b.image %>" alt="">
+                <% } else { %><i class="b-card-img-icon fas fa-coins" style="color:#fb923c"></i><% } %>
+              </div>
+              <div class="b-card-body">
+                <div class="b-tags">
+                  <span class="b-tag b-tag--int">ONBOARD3</span>
+                  <span class="b-tag b-tag--live"><i class="fas fa-circle" style="font-size:.4rem"></i> Active</span>
+                  <% if (b.category) { %><span class="b-tag b-tag--cat"><%= b.category %></span><% } %>
+                </div>
+                <div class="b-card-title"><%= b.title %></div>
+                <div class="b-card-desc"><%= b.shortDescription %></div>
+                <div class="b-card-foot">
+                  <div>
+                    <div class="b-reward-main"><i class="fas fa-coins"></i> <%= (b.rewardPool||0).toLocaleString() %> <%= b.rewardToken||'USDC' %></div>
+                  </div>
+                  <% if (b.endDate) { %>
+                  <span class="b-cd" data-end="<%= new Date(b.endDate).getTime() %>"><i class="fas fa-clock"></i> ...</span>
+                  <% } %>
+                </div>
+              </div>
+            </a>
+            <% }); %>
+          </div>
+          <% } %>
+        </div>
+
+        <!-- Internal Ended -->
+        <div id="int-ended" style="display:none">
+          <% if (internalEnded.length === 0) { %>
+          <div class="b-empty"><i class="fas fa-history"></i>No ended bounties yet.</div>
+          <% } else { %>
+          <div class="b-grid">
+            <% internalEnded.forEach(function(b) { %>
+            <a href="/dashboard/bounties/internal/<%= b._id %>" class="b-card b-card--int b-card--dim">
+              <div class="b-card-img" style="background:rgba(251,146,60,.04)">
+                <% if (b.image) { %><img src="<%= b.image %>" alt="">
+                <% } else { %><i class="b-card-img-icon fas fa-coins" style="color:#fb923c"></i><% } %>
+              </div>
+              <div class="b-card-body">
+                <div class="b-tags">
+                  <span class="b-tag b-tag--int">ONBOARD3</span>
+                  <% if (b.status === 'winners_announced') { %>
+                  <span class="b-tag b-tag--win"><i class="fas fa-trophy"></i> Winners Out</span>
+                  <% } else { %>
+                  <span class="b-tag b-tag--end">Ended</span>
+                  <% } %>
+                  <% if (b.category) { %><span class="b-tag b-tag--cat"><%= b.category %></span><% } %>
+                </div>
+                <div class="b-card-title"><%= b.title %></div>
+                <div class="b-card-desc"><%= b.shortDescription %></div>
+                <div class="b-card-foot">
+                  <div class="b-reward-main"><i class="fas fa-coins"></i> <%= (b.rewardPool||0).toLocaleString() %> <%= b.rewardToken||'USDC' %></div>
+                  <span style="font-size:.7rem;color:var(--text-3)"><%= b.totalSubmissions||0 %> submissions</span>
+                </div>
+              </div>
+            </a>
+            <% }); %>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- ══════════════ ZEROAUTHDAO SECTION ══════════════ -->
+      <div id="section-ext">
+        <div class="b-section-hdr">
+          <div class="b-section-icon" style="background:rgba(168,85,247,.15);color:#c084fc"><i class="fas fa-satellite-dish"></i></div>
+          <div>
+            <div style="font-size:1rem;font-weight:900;color:var(--text)">ZeroAuthDAO Bounties</div>
+            <div style="font-size:.78rem;color:var(--text-3);margin-top:2px">Live bounties from ZeroAuthDAO — submit and track all in one place</div>
+          </div>
+        </div>
+
+        <div class="b-sub-tabs">
+          <button id="ext-tab-active" class="b-sub-tab active-live" onclick="switchSub('ext','active',this)">
+            <i class="fas fa-circle" style="font-size:.42rem"></i> Active (<%= zadLive.length %>)
+          </button>
+          <button id="ext-tab-ended" class="b-sub-tab" onclick="switchSub('ext','ended',this)">
+            <i class="fas fa-check-circle" style="font-size:.7rem"></i> Ended (<%= zadPast.length %>)
+          </button>
+        </div>
+
+        <!-- ZAD Active -->
+        <div id="ext-active">
+          <% if (zadLive.length === 0) { %>
+          <div class="b-empty"><i class="fas fa-satellite-dish"></i>No active ZeroAuthDAO bounties right now — check back soon!</div>
+          <% } else { %>
+          <div class="b-grid">
+            <% zadLive.forEach(function(b) {
+              var sym    = b.token && typeof b.token === 'object' ? (b.token.symbol || '') : '';
+              var reward = b.totalPayment ? (Number(b.totalPayment).toLocaleString() + (sym ? ' ' + sym : '')) : '';
+              var usd    = b.usdValue ? b.usdValue : '';
+              var bTitle = b.name || b.title || 'Bounty';
+              var desc   = String(b.description || b.shortDescription || '');
+              var bid    = b.id || b._id;
+              var cat    = typeof b.category === 'string' ? b.category : (typeof b.type === 'string' ? b.type : '');
+              var endTs  = b.deadline ? new Date(b.deadline).getTime() : (b.endDate ? new Date(b.endDate).getTime() : 0);
+              var imgSrc = b.imageUrl || b.logo || '/img/partners/zeroauthdao.webp';
+            %>
+            <a href="/dashboard/bounties/external/<%= bid %>" class="b-card b-card--ext" style="border-color:rgba(168,85,247,.2)">
+              <div class="b-card-img" style="background:rgba(168,85,247,.06)">
+                <img src="<%= imgSrc %>" alt="<%= bTitle %>"
+                  onerror="this.onerror=null;this.src='/img/partners/zeroauthdao.webp'" style="object-fit:contain;padding:8px">
+              </div>
+              <div class="b-card-body">
+                <div class="b-tags">
+                  <span class="b-tag b-tag--ext">ZeroAuthDAO</span>
+                  <span class="b-tag b-tag--live"><i class="fas fa-circle" style="font-size:.4rem"></i> Active</span>
+                  <% if (cat) { %><span class="b-tag b-tag--cat"><%= cat %></span><% } %>
+                </div>
+                <div class="b-card-title"><%= bTitle %></div>
+                <div class="b-card-desc"><%= desc.substring(0, 110) %><%= desc.length > 110 ? '…' : '' %></div>
+                <div class="b-card-foot">
+                  <div>
+                    <% if (reward) { %>
+                    <div class="b-reward-main" style="color:#c084fc"><i class="fas fa-coins"></i> <%= reward %></div>
+                    <% } %>
+                    <% if (usd) { %><div class="b-reward-sub"><%= usd %></div><% } %>
+                  </div>
+                  <% if (endTs > 0) { %>
+                  <span class="b-cd" data-end="<%= endTs %>"><i class="fas fa-clock"></i> ...</span>
+                  <% } %>
+                </div>
+              </div>
+            </a>
+            <% }); %>
+          </div>
+          <% } %>
+        </div>
+
+        <!-- ZAD Ended -->
+        <div id="ext-ended" style="display:none">
+          <% if (zadPast.length === 0) { %>
+          <div class="b-empty"><i class="fas fa-history"></i>No ended ZeroAuthDAO bounties yet.</div>
+          <% } else { %>
+          <div class="b-grid">
+            <% zadPast.forEach(function(b) {
+              var sym      = b.token && typeof b.token === 'object' ? (b.token.symbol || '') : '';
+              var reward   = b.totalPayment ? (Number(b.totalPayment).toLocaleString() + (sym ? ' ' + sym : '')) : '';
+              var bTitle   = b.name || b.title || 'Bounty';
+              var desc     = String(b.description || b.shortDescription || '');
+              var bid      = b.id || b._id;
+              var cat      = typeof b.category === 'string' ? b.category : (typeof b.type === 'string' ? b.type : '');
+              var hasWin   = b.winners && b.winners.length > 0;
+              var imgSrc   = b.imageUrl || b.logo || '/img/partners/zeroauthdao.webp';
+            %>
+            <a href="/dashboard/bounties/external/<%= bid %>" class="b-card b-card--ext b-card--dim" style="border-color:rgba(168,85,247,.12)">
+              <div class="b-card-img" style="background:rgba(168,85,247,.04)">
+                <img src="<%= imgSrc %>" alt="<%= bTitle %>"
+                  onerror="this.onerror=null;this.src='/img/partners/zeroauthdao.webp'" style="object-fit:contain;padding:8px">
+              </div>
+              <div class="b-card-body">
+                <div class="b-tags">
+                  <span class="b-tag b-tag--ext">ZeroAuthDAO</span>
+                  <% if (hasWin) { %>
+                  <span class="b-tag b-tag--win"><i class="fas fa-trophy"></i> Winners Out</span>
+                  <% } else { %>
+                  <span class="b-tag b-tag--end">Ended</span>
+                  <% } %>
+                  <% if (cat) { %><span class="b-tag b-tag--cat"><%= cat %></span><% } %>
+                </div>
+                <div class="b-card-title"><%= bTitle %></div>
+                <div class="b-card-desc"><%= desc.substring(0, 110) %><%= desc.length > 110 ? '…' : '' %></div>
+                <div class="b-card-foot">
+                  <div>
+                    <% if (reward) { %>
+                    <div class="b-reward-main" style="color:#7c5cbf"><i class="fas fa-coins"></i> <%= reward %></div>
+                    <% } %>
+                    <% if (hasWin) { %>
+                    <div style="font-size:.7rem;color:#fbbf24;font-weight:700;margin-top:2px"><i class="fas fa-trophy"></i> <%= b.winners.length %> winner<%= b.winners.length !== 1 ? 's' : '' %></div>
+                    <% } %>
+                  </div>
+                  <% if (b.submissionsCount || (b.submissions && b.submissions.length)) { %>
+                  <span style="font-size:.7rem;color:var(--text-3)"><%= b.submissionsCount || b.submissions.length %> subs</span>
+                  <% } %>
+                </div>
+              </div>
+            </a>
+            <% }); %>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+var _active = 'ext'; // default to ZAD tab
+
+function selectMain(which, btn) {
+  _active = which;
+  document.getElementById('section-int').style.display = which === 'int' ? 'block' : 'none';
+  document.getElementById('section-ext').style.display = which === 'ext' ? 'block' : 'none';
+  document.querySelectorAll('.b-main-tab').forEach(function(b) {
+    b.classList.remove('active-int', 'active-ext');
+  });
+  btn.classList.add('active-' + which);
+}
+
+function switchSub(section, tab, btn) {
+  document.getElementById(section + '-active').style.display = tab === 'active' ? 'block' : 'none';
+  document.getElementById(section + '-ended').style.display  = tab === 'ended'  ? 'block' : 'none';
+  btn.closest('.b-sub-tabs').querySelectorAll('.b-sub-tab').forEach(function(b) {
+    b.classList.remove('active-live', 'active-ended');
+  });
+  btn.classList.add(tab === 'active' ? 'active-live' : 'active-ended');
+}
+
+// Countdown timers
+function fmtMs(ms) {
+  if (ms <= 0 || isNaN(ms)) return 'Ended';
+  var d = Math.floor(ms / 86400000), h = Math.floor((ms % 86400000) / 3600000),
+      m = Math.floor((ms % 3600000) / 60000),  s = Math.floor((ms % 60000) / 1000);
+  if (d > 0) return d + 'd ' + h + 'h';
+  if (h > 0) return h + 'h ' + m + 'm';
+  return m + 'm ' + s + 's';
+}
+function tickAll() {
+  document.querySelectorAll('.b-cd[data-end]').forEach(function(el) {
+    var end = parseInt(el.getAttribute('data-end'));
+    var ms  = end - Date.now();
+    el.innerHTML = '<i class="fas fa-clock"></i> ' + fmtMs(ms);
+    if (ms < 3600000 && ms > 0) el.classList.add('urgent');
+    else el.classList.remove('urgent');
+  });
+}
+tickAll();
+setInterval(tickAll, 1000);
+</script>
+</body>
+</html>

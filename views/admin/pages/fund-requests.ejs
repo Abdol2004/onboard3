@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Fund Requests — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'fund-requests', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content">
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-file-invoice-dollar"></i> Fund Requests</h1>
+        <p>Review and approve business funding requests</p>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+      <div class="a-stat-card">
+        <div class="a-stat-label">Pending</div>
+        <div class="a-stat-value" style="color:var(--amber)"><%= counts.pending || 0 %></div>
+      </div>
+      <div class="a-stat-card">
+        <div class="a-stat-label">Approved This Month</div>
+        <div class="a-stat-value" style="color:var(--green)">$<%= (totalApprovedThisMonth||0).toFixed(2) %></div>
+      </div>
+      <div class="a-stat-card">
+        <div class="a-stat-label">Total Approved</div>
+        <div class="a-stat-value" style="color:var(--green)">$<%= (totalApproved||0).toFixed(2) %></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.25rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem">
+      <% ['all','pending','approved','rejected'].forEach(t => { %>
+      <a href="?status=<%= t %>" style="padding:.625rem 1.25rem;font-size:.875rem;font-weight:600;color:<%= (activeStatus||'all')===t?'var(--green)':'var(--text-3)' %>;border-bottom:2px solid <%= (activeStatus||'all')===t?'var(--green)':'transparent' %>;transition:color .15s">
+        <%= t.charAt(0).toUpperCase()+t.slice(1) %>
+        <% if(t!=='all'){ %><span style="background:var(--surface-2);border-radius:20px;padding:.1rem .5rem;font-size:.7rem;margin-left:.25rem"><%= counts[t]||0 %></span><% } %>
+      </a>
+      <% }) %>
+    </div>
+
+    <div class="a-card">
+      <% if (!requests.length) { %>
+      <div style="text-align:center;padding:3rem;color:var(--text-3)">
+        <i class="fas fa-file-invoice-dollar" style="font-size:2.5rem;margin-bottom:1rem;opacity:.4;display:block"></i>
+        <p>No fund requests <%= activeStatus && activeStatus !== 'all' ? 'with status "' + activeStatus + '"' : '' %>.</p>
+      </div>
+      <% } else { %>
+      <div class="a-table-wrap">
+        <table class="at">
+          <thead>
+            <tr>
+              <th>Business</th>
+              <th>Amount</th>
+              <th>Token</th>
+              <th>Network</th>
+              <th>Screenshot</th>
+              <th>Notes</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% requests.forEach(fr => { %>
+          <tr>
+            <td>
+              <div style="font-weight:700;color:var(--text)"><%= fr.businessId ? fr.businessId.name : '—' %></div>
+              <div style="font-size:.75rem;color:var(--text-3);font-family:monospace">@<%= fr.businessId ? fr.businessId.username : '' %></div>
+            </td>
+            <td style="color:var(--green);font-size:1.0625rem;font-weight:800">$<%= (fr.amount||0).toFixed(2) %></td>
+            <td><span class="a-badge a-badge-info"><%= fr.token || '—' %></span></td>
+            <td style="color:var(--text-2);font-size:.875rem;text-transform:capitalize">
+              <% if(fr.network==='bnb'){ %>BNB (BEP-20)<% } else if(fr.network==='erc20'){ %>ETH (ERC-20)<% } else if(fr.network==='solana'){ %>Solana (SPL)<% } else { %>—<% } %>
+            </td>
+            <td>
+              <% if (fr.screenshotPath) { %>
+              <button class="a-btn a-btn-secondary" style="padding:.25rem .625rem;font-size:.7rem" onclick="showScreenshot('<%= fr.screenshotPath %>')">
+                <i class="fas fa-image"></i> View
+              </button>
+              <% } else { %><span style="color:var(--text-3)">—</span><% } %>
+            </td>
+            <td>
+              <% if (fr.proofNote) { var _note = fr.proofNote.replace(/'/g, '&#39;'); %>
+              <button class="a-btn a-btn-secondary" style="padding:.25rem .625rem;font-size:.7rem" onclick="showNote('<%= _note %>')">
+                <i class="fas fa-eye"></i> View
+              </button>
+              <% } else { %><span style="color:var(--text-3)">—</span><% } %>
+            </td>
+            <td>
+              <span class="a-badge a-badge-<%= fr.status==='approved'?'success':fr.status==='pending'?'warning':'danger' %>">
+                <% if(fr.status==='approved'){ %><i class="fas fa-check"></i><% } else if(fr.status==='pending'){ %><i class="fas fa-clock"></i><% } else { %><i class="fas fa-times"></i><% } %>
+                <%= fr.status %>
+              </span>
+            </td>
+            <td style="color:var(--text-3);font-size:.8rem"><%= new Date(fr.createdAt).toLocaleDateString() %></td>
+            <td>
+              <% if (fr.status === 'pending') { %>
+              <div style="display:flex;gap:.375rem">
+                <button class="a-btn a-btn-success" style="padding:.35rem .75rem;font-size:.75rem" onclick="approveFund('<%= fr._id %>', '<%= fr.amount %>')">
+                  <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="a-btn a-btn-danger" style="padding:.35rem .75rem;font-size:.75rem" onclick="rejectFund('<%= fr._id %>')">
+                  <i class="fas fa-times"></i> Reject
+                </button>
+              </div>
+              <% } else { %><span style="color:var(--text-3);font-size:.8rem">Processed</span><% } %>
+            </td>
+          </tr>
+          <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Note Modal -->
+<div id="noteModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:480px;margin:1rem">
+    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <h3 style="font-size:1rem;font-weight:800">Proof / Notes</h3>
+      <button onclick="document.getElementById('noteModal').style.display='none'" style="background:none;border:none;color:var(--text-3);font-size:1.125rem;cursor:pointer"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:1.5rem">
+      <p id="noteContent" style="color:var(--text-2);font-size:.9rem;white-space:pre-wrap;word-break:break-word"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+function approveFund(id, amount) {
+  if (!confirm('Approve this fund request for $' + parseFloat(amount).toFixed(2) + '? This will credit the business balance immediately.')) return;
+  fetch('/admin/fund-requests/' + id + '/approve', { method: 'POST' })
+    .then(r => r.json()).then(d => { if (d.success) location.reload(); else alert(d.message || 'Error'); });
+}
+function rejectFund(id) {
+  if (!confirm('Reject this fund request?')) return;
+  fetch('/admin/fund-requests/' + id + '/reject', { method: 'POST' })
+    .then(r => r.json()).then(d => { if (d.success) location.reload(); else alert(d.message || 'Error'); });
+}
+function showNote(text) {
+  document.getElementById('noteContent').textContent = text;
+  document.getElementById('noteModal').style.display = 'flex';
+}
+function showScreenshot(path) {
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;display:flex;align-items:center;justify-content:center;cursor:pointer';
+  modal.innerHTML = '<img src="' + path + '" style="max-width:90vw;max-height:90vh;border-radius:8px;border:1px solid var(--border)">';
+  modal.onclick = function() { document.body.removeChild(modal); };
+  document.body.appendChild(modal);
+}
+</script>
+</body>
+</html>

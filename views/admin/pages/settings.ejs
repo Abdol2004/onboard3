@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Settings — ONBOARD3 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'settings', admin:user }) %>
+<div class="a-main">
+    <div class="a-content">
+        <div class="a-page-header"><div><h1><i class="fas fa-gear"></i> Settings</h1><p>Platform configuration</p></div></div>
+
+        <!-- Pathway Community Links -->
+        <div class="a-card" style="animation-delay:0ms">
+            <div class="a-card-header"><h2><i class="fas fa-map-signs"></i> Pathway Community Links</h2></div>
+            <p style="font-size:.875rem;color:var(--text-3);margin-bottom:1.5rem">Set the Telegram group link for each pathway — shows as "Join Community" button on user dashboard.</p>
+            <form method="POST" action="/admin/settings/pathways">
+                <% ['web3_jobs','ai','building','trading'].forEach(pw => { const pCfg = pathwayConfigs.find(p=>p.pathway===pw)||{}; const labels = {web3_jobs:'Web3 Jobs',ai:'AI & Web3',building:'Building',trading:'Trading'}; const icons = {web3_jobs:'fa-briefcase',ai:'fa-microchip',building:'fa-code',trading:'fa-chart-line'}; %>
+                <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:1.125rem;margin-bottom:.875rem">
+                    <p style="font-size:.875rem;font-weight:800;color:var(--green);margin-bottom:.875rem;display:flex;align-items:center;gap:.5rem"><i class="fas <%= icons[pw] %>"></i> <%= labels[pw] %></p>
+                    <div class="a-form-row">
+                        <div class="a-form-group" style="margin-bottom:0"><label>Telegram Group Link</label><input type="url" name="<%= pw %>_groupLink" class="a-input" value="<%= pCfg.groupLink||'' %>" placeholder="https://t.me/..."></div>
+                        <div class="a-form-group" style="margin-bottom:0"><label>X Community Link</label><input type="url" name="<%= pw %>_xLink" class="a-input" value="<%= pCfg.xLink||'' %>" placeholder="https://x.com/..."></div>
+                    </div>
+                </div>
+                <% }) %>
+                <button type="submit" class="a-btn a-btn-primary"><i class="fas fa-floppy-disk"></i> Save Pathway Links</button>
+            </form>
+        </div>
+
+        <!-- Twitter Setting -->
+        <div class="a-card" style="animation-delay:60ms">
+            <div class="a-card-header"><h2><i class="fab fa-x-twitter"></i> X (Twitter) Requirement</h2></div>
+            <p style="font-size:.875rem;color:var(--text-3);margin-bottom:1.25rem">When enabled, users must connect their X account to attempt social quests.</p>
+            <form method="POST" action="/admin/settings/twitter">
+                <div style="display:flex;align-items:center;gap:1.5rem">
+                    <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
+                        <input type="checkbox" name="twitterRequired" value="true" <%= settings.twitterRequired ? 'checked' : '' %> style="width:18px;height:18px;accent-color:var(--green)">
+                        <span style="font-size:.9rem;font-weight:600;color:var(--text)">Require X account for social quests</span>
+                    </label>
+                    <button type="submit" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Platform Stats -->
+        <div class="a-card" style="animation-delay:120ms">
+            <div class="a-card-header"><h2><i class="fas fa-chart-bar"></i> Platform Statistics</h2></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem">
+                <% Object.entries(platformStats).forEach(([key,val]) => { %>
+                <div style="text-align:center;padding:1.125rem;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid var(--border)">
+                    <div style="font-size:1.5rem;font-weight:900;color:var(--green);letter-spacing:-.5px"><%= val %></div>
+                    <div style="font-size:.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-top:3px"><%= key %></div>
+                </div>
+                <% }) %>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

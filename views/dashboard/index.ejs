@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — ONBOARD3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <%- include('../partials/achievement-popup') %>
+</head>
+<body>
+    <%- include('../partials/salary-popup') %>
+    <div class="grid-bg"></div>
+
+    <% const currentPage = 'dashboard'; %>
+    <%- include('../partials/sidebar', { user, currentPage }) %>
+
+    <div class="dashboard-container">
+        <main class="main-content">
+
+            <!-- ═══ HEADER ═══ -->
+            <header class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h2>
+                            <%
+                                const hr = new Date().getHours();
+                                const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+                            %>
+                            <%= greet %>, <%= user.username %>
+                        </h2>
+                        <p>Track your progress, quests, and rewards.</p>
+                    </div>
+                    <div class="header-stats">
+                        <div class="stat-badge" style="background:<%=roleData.currentRole.color%>18;border-color:<%=roleData.currentRole.color%>55;">
+                            <i class="fas <%= roleData.currentRole.icon %>" style="color:<%=roleData.currentRole.color%>"></i>
+                            <span style="color:<%=roleData.currentRole.color%>"><%= roleData.currentRole.name %></span>
+                        </div>
+                        <% if (roleData.isEarlyCitizen) { %>
+                        <div class="stat-badge" style="background:#FFD70018;border-color:#FFD70055;">
+                            <i class="fas fa-star" style="color:#FFD700"></i>
+                            <span style="color:#FFD700">Early Citizen</span>
+                        </div>
+                        <% } %>
+                        <div class="stat-badge">
+                            <i class="fas fa-bolt" style="color:var(--green)"></i>
+                            <span><%= (user.xp || 0).toLocaleString() %> XP</span>
+                        </div>
+                        <a href="/dashboard/withdrawal" class="stat-badge">
+                            <i class="fas fa-wallet" style="color:var(--green)"></i>
+                            <span>Withdraw</span>
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <%
+                    /* ── Role progression data ── */
+                    const MILESTONES = [
+                        { key:'citizen',     label:'Citizen',     min:0,       nextMin:10000  },
+                        { key:'contributor', label:'Contributor', min:10000,   nextMin:25000  },
+                        { key:'captain',     label:'Captain',     min:25000,   nextMin:50000  },
+                        { key:'maxi',        label:'Maxi',        min:50000,   nextMin:100000 },
+                        { key:'legend',      label:'Legend',      min:100000,  nextMin:200000 },
+                        { key:'major',       label:'Major',       min:200000,  nextMin:300000 },
+                        { key:'core_team',   label:'Core',        min:300000,  nextMin:null   }
+                    ];
+                    const xp = user.xp || 0;
+                    const curIdx = MILESTONES.findIndex(m => m.key === roleData.roleKey);
+                    const cur = MILESTONES[curIdx] || MILESTONES[0];
+                    const nxt = MILESTONES[curIdx + 1] || null;
+                    const progressPct = nxt
+                        ? Math.min(100, Math.round(((xp - cur.min) / (nxt.nextMin - cur.min)) * 100))
+                        : 100;
+                    const xpToNext = nxt ? (nxt.nextMin - xp).toLocaleString() : 0;
+                    const memberSince = new Date(user.createdAt).toLocaleDateString('en-US', { month:'short', year:'numeric' });
+                %>
+
+                <!-- Pathway badge (shown after onboarding) -->
+                <% if (user.pathway) {
+                    const pathwayMeta = {
+                        web3_jobs: { fa:'fa-briefcase',  name:'Web3 Jobs',             color:'rgba(251,191,36,0.15)', border:'rgba(251,191,36,0.35)', text:'#fbbf24' },
+                        ai:        { fa:'fa-microchip',  name:'AI & Web3',             color:'rgba(168,85,247,0.12)', border:'rgba(168,85,247,0.35)', text:'#c084fc' },
+                        building:  { fa:'fa-code',       name:'Building',              color:'rgba(59,130,246,0.12)', border:'rgba(59,130,246,0.35)', text:'#60a5fa' },
+                        trading:   { fa:'fa-chart-line', name:'Trading',               color:'rgba(16,185,129,0.10)', border:'rgba(16,185,129,0.35)', text:'#10b981' },
+                        nft:       { fa:'fa-image',      name:'NFTs & Digital Assets', color:'rgba(236,72,153,0.10)', border:'rgba(236,72,153,0.35)', text:'#f472b6' }
+                    };
+                    const pm = pathwayMeta[user.pathway] || pathwayMeta.building;
+                    const ps = user.pathwayStatus;
+                    const isApproved = !ps || ps === 'approved' || ps === 'auto_approved';
+                %>
+                <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.375rem;border-radius:15px;background:<%=pm.color%>;border:1px solid <%=pm.border%>;animation:cardIn .5s ease both">
+                    <i class="fas <%= pm.fa %>" style="font-size:1.375rem;color:<%=pm.text%>;flex-shrink:0"></i>
+                    <div style="flex:1">
+                        <p style="font-size:.72rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:.2rem">Your Pathway</p>
+                        <p style="font-size:1rem;font-weight:800;color:<%=pm.text%>"><%= pm.name %></p>
+                    </div>
+                    <% if (isApproved) { %>
+                    <button onclick="joinCommunity('<%=user.pathway%>')" class="btn btn-outline" style="font-size:.8rem;padding:.5rem 1rem;border-color:<%=pm.border%>;color:<%=pm.text%>;cursor:pointer;background:none">
+                        <i class="fas fa-users"></i> Join Community
+                    </button>
+                    <% } else if (ps === 'pending') { %>
+                    <span style="font-size:.75rem;font-weight:700;padding:.375rem .75rem;border-radius:99px;background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)">
+                        <i class="fas fa-clock"></i> Under Review
+                    </span>
+                    <% } else if (ps === 'rejected') { %>
+                    <span style="font-size:.75rem;font-weight:700;padding:.375rem .75rem;border-radius:99px;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25)">
+                        <i class="fas fa-times"></i> Not Approved
+                    </span>
+                    <% } %>
+                </div>
+                <% } %>
+
+                <!-- ═══ XP HERO CARD ═══ -->
+                <div class="card xp-card">
+                    <div class="xp-top">
+                        <div class="xp-left">
+                            <p class="xp-label">Total XP Balance</p>
+                            <div class="xp-value" id="xpCounter" data-target="<%= xp %>">0<span class="xp-unit">XP</span></div>
+                            <p class="xp-sub">
+                                <% if (nxt) { %>
+                                    <%= xpToNext %> XP to reach <strong style="color:var(--text-2)"><%= nxt.label %></strong>
+                                <% } else { %>
+                                    Maximum rank achieved
+                                <% } %>
+                            </p>
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:.625rem;flex-shrink:0">
+                            <div style="position:relative">
+                                <img src="/images/badges/<%= roleData.roleKey %>.png"
+                                     alt="<%= roleData.currentRole.name %>"
+                                     style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 0 18px <%=roleData.currentRole.color%>66);"
+                                     onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                <div style="display:none;width:80px;height:80px;border-radius:20px;background:<%=roleData.currentRole.color%>18;border:2px solid <%=roleData.currentRole.color%>44;align-items:center;justify-content:center;font-size:2rem;color:<%=roleData.currentRole.color%>">
+                                    <i class="fas <%= roleData.currentRole.icon %>"></i>
+                                </div>
+                                <% if (roleData.isEarlyCitizen) { %>
+                                <img src="/images/badges/early_citizen.png" alt="Early Citizen"
+                                     style="width:26px;height:26px;object-fit:contain;position:absolute;bottom:-4px;right:-4px;filter:drop-shadow(0 0 6px #FFD70099);"
+                                     onerror="this.style.display='none'">
+                                <% } %>
+                            </div>
+                            <span style="font-size:.72rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:<%=roleData.currentRole.color%>"><%= roleData.currentRole.name %></span>
+                        </div>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="xp-progress-section">
+                        <div class="xp-progress-meta">
+                            <span><%= cur.label %> &mdash; <%= cur.min.toLocaleString() %> XP</span>
+                            <% if (nxt) { %><strong><%= progressPct %>%</strong><% } else { %><strong>Max</strong><% } %>
+                            <% if (nxt) { %><span><%= nxt.label %> &mdash; <%= nxt.min.toLocaleString() %> XP</span><% } %>
+                        </div>
+                        <div class="xp-bar-wrap">
+                            <div class="xp-bar-fill" id="xpBar" style="width:0%"></div>
+                        </div>
+                        <% if (nxt) { %>
+                        <p class="xp-progress-tip"><i class="fas fa-bolt"></i> Complete quests to earn more XP and unlock <%= nxt.label %></p>
+                        <% } %>
+                    </div>
+
+                    <!-- Role steps with badge images -->
+                    <div class="role-steps" id="roleSteps">
+                        <% MILESTONES.forEach((m, i) => {
+                            const isDone    = i < curIdx;
+                            const isCurrent = i === curIdx;
+                            const isLocked  = i > curIdx;
+                        %>
+                            <div class="role-step <%= isDone ? 'done' : isCurrent ? 'current' : '' %>">
+                                <div class="role-step-img-wrap" style="
+                                    width:40px;height:40px;border-radius:11px;overflow:hidden;
+                                    border:2px solid <%= isDone ? 'rgba(94,194,19,0.5)' : isCurrent ? 'var(--green)' : 'rgba(255,255,255,0.1)' %>;
+                                    background:<%= isDone ? 'rgba(94,194,19,0.1)' : isCurrent ? 'rgba(94,194,19,0.15)' : 'rgba(255,255,255,0.03)' %>;
+                                    display:flex;align-items:center;justify-content:center;
+                                    box-shadow:<%= isCurrent ? '0 0 16px rgba(94,194,19,0.55)' : isDone ? '0 0 8px rgba(94,194,19,0.2)' : 'none' %>;
+                                    opacity:<%= isLocked ? '0.35' : '1' %>;
+                                    transition:all .3s;
+                                    <%= isCurrent ? 'animation:dotPulse 2s ease-in-out infinite;' : '' %>
+                                ">
+                                    <img src="/images/badges/<%= m.key %>.png"
+                                         alt="<%= m.label %>"
+                                         style="width:34px;height:34px;object-fit:contain;<%= isLocked ? 'filter:grayscale(1)' : '' %>"
+                                         onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                    <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:<%= isCurrent ? 'var(--green-light)' : isDone ? 'var(--green)' : '#555' %>">
+                                        <%= m.label.substring(0,3) %>
+                                    </div>
+                                </div>
+                                <span class="role-step-label"><%= m.label %></span>
+                            </div>
+                            <% if (i < MILESTONES.length - 1) { %>
+                                <div class="role-step-line <%= isDone ? 'done' : '' %>"></div>
+                            <% } %>
+                        <% }) %>
+                    </div>
+                </div>
+
+                <!-- ═══ STATS GRID ═══ -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="stat-val">$<span><%= user.usdcBalance || 0 %></span></div>
+                        <div class="stat-lbl">USDC Balance</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-val"><span><%= user.referralStats?.totalReferrals || 0 %></span></div>
+                        <div class="stat-lbl">Onboarded</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-fire"></i></div>
+                        <div class="stat-val"><span><%= user.streakCount || user.checkInStreak || 0 %></span></div>
+                        <div class="stat-lbl">Check-in Streak</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-calendar"></i></div>
+                        <div class="stat-val" style="font-size:1.25rem"><span><%= memberSince %></span></div>
+                        <div class="stat-lbl">Member Since</div>
+                    </div>
+                </div>
+
+                <!-- ═══ ROLE CARD ═══ -->
+                <div class="card" style="animation-delay:180ms;background:linear-gradient(135deg,rgba(20,35,20,0.95),rgba(14,24,14,0.95));border-color:rgba(94,194,19,0.25);">
+                    <div style="display:flex;align-items:center;gap:2rem;flex-wrap:wrap;">
+                        <div style="display:flex;align-items:center;gap:1.25rem;flex:1;min-width:0;">
+                            <div style="position:relative;flex-shrink:0;">
+                                <img src="/images/badges/<%= roleData.roleKey %>.png"
+                                     alt="<%= roleData.currentRole.name %>"
+                                     style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 0 16px <%=roleData.currentRole.color%>66);"
+                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <div style="display:none;width:72px;height:72px;border-radius:18px;background:<%=roleData.currentRole.color%>22;border:2px solid <%=roleData.currentRole.color%>44;align-items:center;justify-content:center;font-size:2rem;color:<%=roleData.currentRole.color%>;">
+                                    <i class="fas <%= roleData.currentRole.icon %>"></i>
+                                </div>
+                                <% if (roleData.isEarlyCitizen) { %>
+                                <img src="/images/badges/early_citizen.png" alt="Early Citizen"
+                                     style="width:28px;height:28px;object-fit:contain;position:absolute;bottom:-4px;right:-4px;filter:drop-shadow(0 0 8px #FFD70099);"
+                                     onerror="this.style.display='none';">
+                                <% } %>
+                            </div>
+                            <div>
+                                <p style="font-size:0.72rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--text-3);margin-bottom:0.3rem;">Current Rank</p>
+                                <h3 style="font-size:1.5rem;font-weight:900;color:<%=roleData.currentRole.color%>;letter-spacing:-0.5px;margin-bottom:0.3rem;"><%= roleData.currentRole.name %></h3>
+                                <p style="font-size:0.8125rem;color:var(--text-3);">Keep earning XP to level up</p>
+                            </div>
+                        </div>
+                        <% if (nxt) { %>
+                        <div style="text-align:right;flex-shrink:0;">
+                            <p style="font-size:0.72rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--text-3);margin-bottom:0.3rem;">Next Rank</p>
+                            <p style="font-size:1.125rem;font-weight:900;color:var(--text-2);margin-bottom:0.2rem;"><%= nxt.label %></p>
+                            <p style="font-size:0.8125rem;color:var(--text-3);">Need <strong style="color:var(--green)"><%= xpToNext %> XP</strong> more</p>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- ═══ COMMUNITY FEED ═══ -->
+                <div class="sf-feed-col">
+                    <div class="sf-feed-topbar">
+                        <div style="display:flex;align-items:center;gap:.75rem">
+                            <span class="sf-live-pill"><span class="sf-live-dot"></span>LIVE</span>
+                            <h3 style="font-size:1rem;font-weight:800;color:var(--text)">Community Feed</h3>
+                        </div>
+                    </div>
+                    <div id="socialFeed" class="sf-posts">
+                        <div class="sf-skel"><div class="sf-skel-av"></div><div class="sf-skel-lines"><div class="sf-skel-l sf-skel-l--wide"></div><div class="sf-skel-l sf-skel-l--med"></div><div class="sf-skel-l sf-skel-l--narrow"></div></div></div>
+                        <div class="sf-skel"><div class="sf-skel-av"></div><div class="sf-skel-lines"><div class="sf-skel-l sf-skel-l--wide"></div><div class="sf-skel-l sf-skel-l--med"></div><div class="sf-skel-l sf-skel-l--narrow"></div></div></div>
+                        <div class="sf-skel"><div class="sf-skel-av"></div><div class="sf-skel-lines"><div class="sf-skel-l sf-skel-l--wide"></div><div class="sf-skel-l sf-skel-l--med"></div><div class="sf-skel-l sf-skel-l--narrow"></div></div></div>
+                    </div>
+                </div>
+
+                <!-- ═══ YOUR RECENT ACTIVITY ═══ -->
+                <% if (user.recentActivity && user.recentActivity.length) { %>
+                <div style="margin-top:1.5rem;border-radius:18px;border:1px solid rgba(94,194,19,.13);background:rgba(14,23,14,.7);overflow:hidden">
+                    <div style="display:flex;align-items:center;gap:.625rem;padding:.875rem 1.25rem;border-bottom:1px solid rgba(94,194,19,.1)">
+                        <i class="fas fa-clock-rotate-left" style="color:var(--green);font-size:.875rem"></i>
+                        <h3 style="font-size:.9rem;font-weight:800;color:var(--text)">Your Recent Activity</h3>
+                    </div>
+                    <ul style="list-style:none;padding:0;margin:0">
+                    <% user.recentActivity.slice(0,8).forEach(function(act, i) {
+                        var ts = new Date(act.timestamp);
+                        var now = new Date();
+                        var diff = Math.floor((now - ts) / 1000);
+                        var timeAgo = diff < 60 ? 'just now' : diff < 3600 ? Math.floor(diff/60) + 'm ago' : diff < 86400 ? Math.floor(diff/3600) + 'h ago' : Math.floor(diff/86400) + 'd ago';
+                        var icon = 'fa-bolt';
+                        var col  = 'var(--green)';
+                        var a = act.action || '';
+                        if (a.toLowerCase().indexOf('quest') !== -1) { icon='fa-trophy'; col='#fbbf24'; }
+                        else if (a.toLowerCase().indexOf('referral') !== -1 || a.toLowerCase().indexOf('referred') !== -1) { icon='fa-user-plus'; col='#60a5fa'; }
+                        else if (a.toLowerCase().indexOf('usdc') !== -1 || a.toLowerCase().indexOf('reward') !== -1 || a.toLowerCase().indexOf('earned') !== -1) { icon='fa-coins'; col='#5ec213'; }
+                        else if (a.toLowerCase().indexOf('role') !== -1 || a.toLowerCase().indexOf('captain') !== -1 || a.toLowerCase().indexOf('contributor') !== -1) { icon='fa-arrow-up'; col='#a855f7'; }
+                        else if (a.toLowerCase().indexOf('check') !== -1 || a.toLowerCase().indexOf('check-in') !== -1) { icon='fa-calendar-check'; col='#10b981'; }
+                        else if (a.toLowerCase().indexOf('welcome') !== -1 || a.toLowerCase().indexOf('created') !== -1) { icon='fa-rocket'; col='#f97316'; }
+                    %>
+                    <li style="display:flex;align-items:flex-start;gap:.875rem;padding:.75rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.04)<%= i === Math.min(user.recentActivity.length,8)-1 ? ';border-bottom:none' : '' %>">
+                        <div style="width:32px;height:32px;border-radius:50%;background:<%- col %>18;border:1px solid <%- col %>33;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem">
+                            <i class="fas <%- icon %>" style="color:<%- col %>;font-size:.75rem"></i>
+                        </div>
+                        <div style="flex:1;min-width:0">
+                            <p style="font-size:.84rem;font-weight:600;color:var(--text-2);line-height:1.45"><%= act.action %></p>
+                            <span style="font-size:.7rem;color:var(--text-3)"><%= timeAgo %></span>
+                        </div>
+                    </li>
+                    <% }); %>
+                    </ul>
+                </div>
+                <% } %>
+
+            </div><!-- /content -->
+        </main>
+    </div>
+
+    <style>
+    /* ── Community Feed (full-width) ── */
+    .sf-layout { display:block; }
+
+    /* Feed column */
+    .sf-feed-col { display:flex;flex-direction:column;gap:0; }
+    .sf-feed-topbar {
+        display:flex;align-items:center;justify-content:space-between;
+        padding:.875rem 1.125rem;
+        background:var(--bg-card);border:1px solid var(--border);
+        border-radius:var(--radius) var(--radius) 0 0;
+        border-bottom:none;
+    }
+    .sf-live-pill {
+        display:inline-flex;align-items:center;gap:.4rem;
+        background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);
+        color:#ef4444;font-size:.65rem;font-weight:800;letter-spacing:.1em;
+        padding:.2rem .6rem;border-radius:20px;text-transform:uppercase;
+    }
+    .sf-live-dot {
+        width:6px;height:6px;border-radius:50%;background:#ef4444;
+        animation:sfPulse 1.4s ease-in-out infinite;
+    }
+    @keyframes sfPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(239,68,68,.5)}50%{opacity:.7;box-shadow:0 0 0 4px rgba(239,68,68,0)}}
+    .sf-profile-link {
+        font-size:.75rem;font-weight:700;color:var(--text-3);text-decoration:none;
+        display:flex;align-items:center;gap:.35rem;transition:color .2s;
+    }
+    .sf-profile-link:hover { color:var(--green); }
+
+    /* Posts container */
+    .sf-posts {
+        display:flex;flex-direction:column;
+        border:1px solid var(--border);
+        border-radius:0 0 var(--radius) var(--radius);
+        overflow:hidden;
+    }
+
+    /* Individual post */
+    .spost {
+        display:flex;gap:.875rem;
+        padding:1rem 1.125rem;
+        border-bottom:1px solid var(--border-2);
+        background:var(--bg-card);
+        transition:background .15s;
+        position:relative;
+    }
+    .spost:last-child { border-bottom:none; }
+    .spost:hover { background:rgba(94,194,19,.025); }
+    .spost.spost--new { animation:spostSlide .45s cubic-bezier(.22,1,.36,1); }
+    @keyframes spostSlide{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+
+    /* Avatar */
+    .spost-av {
+        flex-shrink:0;width:42px;height:42px;border-radius:50%;
+        display:flex;align-items:center;justify-content:center;
+        font-size:1rem;font-weight:900;letter-spacing:-.5px;
+    }
+
+    /* Post body */
+    .spost-body { flex:1;min-width:0; }
+    .spost-meta {
+        display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;
+    }
+    .spost-username {
+        font-weight:800;font-size:.875rem;color:var(--text);
+        text-decoration:none;transition:color .15s;
+    }
+    .spost-username:hover { color:var(--green); }
+    .spost-time { font-size:.72rem;color:var(--text-3); }
+
+    /* Role upgrade content */
+    .spost-upgrade {
+        display:flex;align-items:center;gap:.875rem;
+        padding:.75rem 1rem;border-radius:12px;
+        margin-bottom:.75rem;
+        border:1px solid;
+    }
+    .spost-upgrade-icon {
+        flex-shrink:0;width:44px;height:44px;border-radius:50%;
+        display:flex;align-items:center;justify-content:center;
+        font-size:1.1rem;
+    }
+    .spost-upgrade-text { flex:1;min-width:0; }
+    .spost-upgrade-headline { font-size:.8125rem;font-weight:800;color:var(--text);margin-bottom:.25rem; }
+    .spost-upgrade-path {
+        display:flex;align-items:center;gap:.5rem;
+        font-size:.78rem;font-weight:600;
+    }
+    .spost-upgrade-path i { font-size:.6rem;color:var(--text-3); }
+    .spost-role-from { color:var(--text-3); }
+
+    /* USDC reward content */
+    .spost-reward {
+        display:flex;align-items:center;gap:.875rem;
+        padding:.75rem 1rem;border-radius:12px;
+        background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);
+        margin-bottom:.75rem;
+    }
+    .spost-reward-icon {
+        flex-shrink:0;width:44px;height:44px;border-radius:50%;
+        background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);
+        display:flex;align-items:center;justify-content:center;
+        font-size:1.1rem;color:#f59e0b;
+    }
+    .spost-reward-amount { font-size:1.375rem;font-weight:900;color:#f59e0b;line-height:1; }
+    .spost-reward-label { font-size:.72rem;color:var(--text-3);margin-top:.2rem; }
+
+    /* Action bar */
+    .spost-actions {
+        display:flex;align-items:center;gap:.25rem;
+    }
+    .spost-btn {
+        display:inline-flex;align-items:center;gap:.4rem;
+        padding:.4rem .75rem;border-radius:20px;
+        font-size:.75rem;font-weight:700;
+        background:transparent;border:none;cursor:pointer;
+        color:var(--text-3);font-family:'Outfit',sans-serif;
+        transition:background .15s,color .15s;
+    }
+    .spost-btn:hover { background:rgba(255,255,255,.05);color:var(--text-2); }
+    .spost-btn.like-btn.liked { color:#f43f5e; }
+    .spost-btn.like-btn.liked i { animation:heartPop .35s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes heartPop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
+    .spost-btn.like-btn:hover { background:rgba(244,63,94,.08);color:#f43f5e; }
+    .spost-view-link {
+        display:inline-flex;align-items:center;gap:.4rem;
+        padding:.4rem .75rem;border-radius:20px;
+        font-size:.75rem;font-weight:700;
+        color:var(--text-3);text-decoration:none;
+        transition:background .15s,color .15s;
+        margin-left:auto;
+    }
+    .spost-view-link:hover { background:rgba(94,194,19,.08);color:var(--green); }
+
+    /* Empty / error state */
+    .sf-empty {
+        padding:3rem 1rem;text-align:center;
+        color:var(--text-3);font-size:.875rem;
+        background:var(--bg-card);
+        display:flex;flex-direction:column;align-items:center;gap:.625rem;
+    }
+    .sf-empty i { font-size:1.75rem;opacity:.4; }
+
+    /* Skeleton */
+    .sf-skel {
+        display:flex;gap:.875rem;padding:1rem 1.125rem;
+        border-bottom:1px solid var(--border-2);background:var(--bg-card);
+        animation:sfSkP 1.4s ease-in-out infinite;
+    }
+    @keyframes sfSkP{0%,100%{opacity:.45}50%{opacity:1}}
+    .sf-skel-av { flex-shrink:0;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.06); }
+    .sf-skel-lines { flex:1;display:flex;flex-direction:column;gap:.55rem;padding-top:.25rem; }
+    .sf-skel-l { height:10px;border-radius:4px;background:rgba(255,255,255,.06); }
+    .sf-skel-l--wide{width:75%}.sf-skel-l--med{width:55%}.sf-skel-l--narrow{width:35%}
+
+    /* Sidebar */
+    .sf-sidebar-col { display:flex;flex-direction:column; }
+    .sf-quick-links { }
+    .sf-qlink {
+        display:flex;align-items:center;gap:.625rem;
+        padding:.5rem .625rem;border-radius:8px;
+        font-size:.8125rem;font-weight:600;
+        color:var(--text-2);text-decoration:none;
+        transition:background .15s,color .15s;
+    }
+    .sf-qlink i { width:14px;text-align:center;color:var(--text-3);font-size:.8rem; }
+    .sf-qlink:hover { background:rgba(94,194,19,.08);color:var(--green); }
+    .sf-qlink:hover i { color:var(--green); }
+    </style>
+
+    <!-- Mini toast for copy confirmation -->
+    <div id="sfToast" style="
+        position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(12px);
+        background:var(--green);color:#000;font-weight:800;font-size:.8rem;
+        padding:.45rem 1.1rem;border-radius:30px;
+        opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+        z-index:9999;white-space:nowrap;
+    "></div>
+    <style>
+    #sfToast.sf-toast--show { opacity:1;transform:translateX(-50%) translateY(0); }
+    </style>
+
+    <!-- ── Profile Search Modal ── -->
+    <div id="profileSearchModal" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding:5rem 1rem 1rem;">
+      <div style="background:#0f160f;border:1px solid rgba(94,194,19,.2);border-radius:16px;width:100%;max-width:440px;overflow:hidden;">
+        <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(94,194,19,.1);display:flex;align-items:center;gap:.75rem;">
+          <i class="fas fa-search" style="color:var(--green);font-size:.9rem"></i>
+          <input id="profileSearchInput" type="text" placeholder="Search members by username…"
+            style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:600;"
+            oninput="runProfileSearch(this.value)">
+          <button onclick="closeProfileSearch()" style="background:transparent;border:none;color:var(--text-3);cursor:pointer;padding:.2rem .4rem;font-size:1rem;">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div id="profileSearchResults" style="min-height:80px;max-height:340px;overflow-y:auto;">
+          <div style="padding:1.5rem;text-align:center;color:var(--text-3);font-size:.82rem;">Start typing to search members</div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        /* ── Animated XP counter ── */
+        (function() {
+            const el = document.getElementById('xpCounter');
+            const unit = el.querySelector('.xp-unit');
+            const target = parseInt(el.dataset.target || '0', 10);
+            const dur = 1400;
+            const start = performance.now();
+            function tick(now) {
+                const t = Math.min(1, (now - start) / dur);
+                const ease = 1 - Math.pow(1 - t, 3);
+                el.childNodes[0].textContent = Math.round(ease * target).toLocaleString();
+                if (t < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        })();
+
+        /* ── XP progress bar ── */
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const bar = document.getElementById('xpBar');
+                if (bar) bar.style.width = '<%= progressPct %>%';
+            }, 300);
+        });
+
+        /* Monthly claim removed */
+
+        /* ── Social Feed ── */
+        (function() {
+            var RC = { citizen:'#6b7280',contributor:'#10b981',captain:'#3b82f6',maxi:'#a855f7',legend:'#eab308',major:'#f97316',core_team:'#ef4444' };
+            var RL = { citizen:'Citizen',contributor:'Contributor',captain:'Captain',maxi:'Maxi',legend:'Legend',major:'Major',core_team:'Core Team' };
+
+            function ago(d) {
+                var s = (Date.now() - new Date(d)) / 1000;
+                if (s < 60) return 'just now';
+                if (s < 3600) return Math.floor(s/60) + 'm ago';
+                if (s < 86400) return Math.floor(s/3600) + 'h ago';
+                return Math.floor(s/86400) + 'd ago';
+            }
+
+            /* Like state — persisted in DB via API */
+            window.toggleLike = function(btn, evId) {
+                var isLiked = btn.classList.contains('liked');
+                var countEl = btn.querySelector('.sf-like-count');
+                var iconEl  = btn.querySelector('i');
+                var cur = parseInt(countEl.textContent, 10) || 0;
+                /* Optimistic update */
+                if (isLiked) {
+                    countEl.textContent = Math.max(0, cur - 1);
+                    iconEl.className = 'far fa-heart';
+                    btn.classList.remove('liked');
+                } else {
+                    countEl.textContent = cur + 1;
+                    iconEl.className = 'fas fa-heart';
+                    btn.classList.add('liked');
+                }
+                fetch('/api/feed/' + evId + '/like', { method:'POST', headers:{'Content-Type':'application/json'} })
+                    .then(function(r){ return r.json(); })
+                    .then(function(d) {
+                        if (d.success) {
+                            countEl.textContent = d.count;
+                        } else {
+                            /* revert on failure */
+                            if (isLiked) { btn.classList.add('liked'); iconEl.className='fas fa-heart'; countEl.textContent=cur; }
+                            else { btn.classList.remove('liked'); iconEl.className='far fa-heart'; countEl.textContent=cur; }
+                        }
+                    }).catch(function(){});
+            };
+
+            window.sharePost = function(username) {
+                var url = window.location.origin + '/u/' + username;
+                navigator.clipboard.writeText(url).then(function() {
+                    showMiniToast('Link copied!');
+                }).catch(function() { showMiniToast('Copy: ' + url); });
+            };
+
+            function showMiniToast(msg) {
+                var t = document.getElementById('sfToast');
+                t.textContent = msg;
+                t.classList.add('sf-toast--show');
+                setTimeout(function(){ t.classList.remove('sf-toast--show'); }, 2000);
+            }
+
+            function mkPost(ev, isNew) {
+                var isRole  = ev.type === 'role_upgrade';
+                var isUsdc  = ev.type === 'usdc_earned';
+                var isQuest = ev.type === 'quest_completed';
+                if (!isRole && !isUsdc && !isQuest) return null;
+
+                var evId      = ev._id || (ev.username + ev.createdAt);
+                var isLiked   = !!ev.viewerLiked;
+                var likeCount = (ev.likes && ev.likes.count) || 0;
+
+                var avColor = isRole ? (RC[ev.data.newRole] || '#5ec213') : isUsdc ? '#f59e0b' : '#5ec213';
+                var initial = (ev.username || '?').charAt(0).toUpperCase();
+
+                var contentHtml = '';
+                if (isRole) {
+                    var col = RC[ev.data.newRole] || '#5ec213';
+                    var fromLabel = RL[ev.data.oldRole] || ev.data.oldRole || '?';
+                    var toLabel   = RL[ev.data.newRole] || ev.data.newRole;
+                    contentHtml =
+                        '<div class="spost-upgrade" style="background:' + col + '09;border-color:' + col + '25">' +
+                            '<div class="spost-upgrade-icon" style="background:' + col + '18;border:1px solid ' + col + '33;color:' + col + '"><i class="fas fa-shield-halved"></i></div>' +
+                            '<div class="spost-upgrade-text">' +
+                                '<div class="spost-upgrade-headline">Just leveled up! 🎉</div>' +
+                                '<div class="spost-upgrade-path">' +
+                                    '<span class="spost-role-from">' + fromLabel + '</span>' +
+                                    '<i class="fas fa-arrow-right"></i>' +
+                                    '<span style="color:' + col + ';font-weight:900">' + toLabel + '</span>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                } else if (isUsdc) {
+                    var amt    = parseFloat(ev.data.amount || 0).toFixed(2);
+                    var qtitle = ev.data.questTitle ? '"' + ev.data.questTitle + '"' : 'a quest';
+                    contentHtml =
+                        '<div class="spost-reward">' +
+                            '<div class="spost-reward-icon"><i class="fas fa-sack-dollar"></i></div>' +
+                            '<div>' +
+                                '<div class="spost-reward-amount">$' + amt + ' <span style="font-size:.65rem;font-weight:700;color:rgba(245,158,11,.7)">USDC</span></div>' +
+                                '<div class="spost-reward-label">earned from ' + qtitle + '</div>' +
+                            '</div>' +
+                        '</div>';
+                } else {
+                    var qt = ev.data.questTitle || 'a quest';
+                    contentHtml =
+                        '<div class="spost-upgrade" style="background:rgba(94,194,19,.06);border-color:rgba(94,194,19,.2)">' +
+                            '<div class="spost-upgrade-icon" style="background:rgba(94,194,19,.15);border:1px solid rgba(94,194,19,.3);color:#5ec213"><i class="fas fa-trophy"></i></div>' +
+                            '<div class="spost-upgrade-text">' +
+                                '<div class="spost-upgrade-headline" style="color:#5ec213">Quest Completed! 🏆</div>' +
+                                '<div style="font-size:.78rem;color:var(--text-2);margin-top:.2rem">' + qt + '</div>' +
+                            '</div>' +
+                        '</div>';
+                }
+
+                var likeIcon = isLiked ? 'fas fa-heart' : 'far fa-heart';
+                var actionsHtml =
+                    '<div class="spost-actions">' +
+                        '<button class="spost-btn like-btn' + (isLiked ? ' liked' : '') + '" onclick="toggleLike(this,' + JSON.stringify(evId) + ')">' +
+                            '<i class="' + likeIcon + '"></i><span class="sf-like-count">' + likeCount + '</span>' +
+                        '</button>' +
+                        '<button class="spost-btn" onclick="sharePost(' + JSON.stringify(ev.username) + ')">' +
+                            '<i class="fas fa-share-nodes"></i> Share' +
+                        '</button>' +
+                        '<a href="/u/' + ev.username + '" class="spost-view-link">' +
+                            '<i class="fas fa-user"></i> Profile' +
+                        '</a>' +
+                    '</div>';
+
+                var el = document.createElement('div');
+                el.className = 'spost' + (isNew ? ' spost--new' : '');
+                el.innerHTML =
+                    '<div class="spost-av" style="background:' + avColor + '22;color:' + avColor + '">' + initial + '</div>' +
+                    '<div class="spost-body">' +
+                        '<div class="spost-meta">' +
+                            '<a href="/u/' + ev.username + '" class="spost-username">@' + ev.username + '</a>' +
+                            '<span class="spost-time">' + ago(ev.createdAt) + '</span>' +
+                        '</div>' +
+                        contentHtml +
+                        actionsHtml +
+                    '</div>';
+                return el;
+            }
+
+            var feed = document.getElementById('socialFeed');
+            var MAX = 5;
+
+            fetch('/api/feed').then(function(r){return r.json();}).then(function(d){
+                feed.innerHTML = '';
+                if (!d.events || !d.events.length) {
+                    feed.innerHTML = '<div class="sf-empty"><i class="fas fa-satellite-dish"></i><span>Waiting for community activity…</span></div>';
+                    return;
+                }
+                d.events.slice(0, MAX).forEach(function(ev) {
+                    var p = mkPost(ev, false);
+                    if (p) feed.appendChild(p);
+                });
+            }).catch(function() {
+                feed.innerHTML = '<div class="sf-empty"><i class="fas fa-wifi"></i><span>Feed unavailable</span></div>';
+            });
+
+            if (typeof io !== 'undefined') {
+                var socket = io({ transports: ['websocket','polling'] });
+                socket.on('feed_event', function(ev) {
+                    var p = mkPost(ev, true);
+                    if (!p) return;
+                    /* Remove skeleton if still there */
+                    var skel = feed.querySelector('.sf-skel');
+                    if (skel) feed.innerHTML = '';
+                    feed.insertBefore(p, feed.firstChild);
+                    while (feed.children.length > MAX) feed.removeChild(feed.lastChild);
+                    setTimeout(function(){ p.classList.remove('spost--new'); }, 600);
+                });
+            }
+        })();
+
+        /* ── Profile Search ── */
+        var _searchTimer = null;
+        function openProfileSearch() {
+            var m = document.getElementById('profileSearchModal');
+            m.style.display = 'flex';
+            setTimeout(function(){ document.getElementById('profileSearchInput').focus(); }, 50);
+        }
+        function closeProfileSearch() {
+            document.getElementById('profileSearchModal').style.display = 'none';
+            document.getElementById('profileSearchInput').value = '';
+            document.getElementById('profileSearchResults').innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--text-3);font-size:.82rem;">Start typing to search members</div>';
+        }
+        document.getElementById('profileSearchModal').addEventListener('click', function(e){ if(e.target===this) closeProfileSearch(); });
+        document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeProfileSearch(); });
+
+        function runProfileSearch(q) {
+            clearTimeout(_searchTimer);
+            var res = document.getElementById('profileSearchResults');
+            if (!q || q.length < 2) {
+                res.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--text-3);font-size:.82rem;">Start typing to search members</div>';
+                return;
+            }
+            res.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--text-3);font-size:.82rem"><i class="fas fa-spinner fa-spin"></i></div>';
+            _searchTimer = setTimeout(function() {
+                fetch('/api/users/search?q=' + encodeURIComponent(q))
+                    .then(function(r){ return r.json(); })
+                    .then(function(d) {
+                        if (!d.results || !d.results.length) {
+                            res.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--text-3);font-size:.82rem">No members found for "<b style=color:var(--text)>' + q + '</b>"</div>';
+                            return;
+                        }
+                        res.innerHTML = d.results.map(function(u) {
+                            var init = (u.username || '?').charAt(0).toUpperCase();
+                            var av = u.profilePicture
+                                ? '<img src="' + u.profilePicture + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover">'
+                                : '<div style="width:36px;height:36px;border-radius:50%;background:rgba(94,194,19,.15);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.875rem;color:var(--green)">' + init + '</div>';
+                            return '<a href="/u/' + u.username + '" onclick="closeProfileSearch()" style="display:flex;align-items:center;gap:.75rem;padding:.75rem 1.25rem;text-decoration:none;transition:background .15s;border-bottom:1px solid rgba(94,194,19,.06)" onmouseover="this.style.background=\'rgba(94,194,19,.05)\'" onmouseout="this.style.background=\'transparent\'">' +
+                                av +
+                                '<div style="flex:1;min-width:0">' +
+                                    '<div style="font-size:.875rem;font-weight:800;color:var(--text)">@' + u.username + '</div>' +
+                                    '<div style="font-size:.72rem;color:var(--text-3)">' + u.roleName + (u.pathway ? ' · ' + u.pathway : '') + '</div>' +
+                                '</div>' +
+                                '<span style="font-size:.72rem;color:var(--green);font-weight:700">' + (u.xp||0).toLocaleString() + ' XP</span>' +
+                            '</a>';
+                        }).join('');
+                    }).catch(function() {
+                        res.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--text-3);font-size:.82rem">Search unavailable</div>';
+                    });
+            }, 280);
+        }
+
+        /* ── Join Community (pathway-specific group link from admin) ── */
+        async function joinCommunity(pathway) {
+            if (!pathway) return;
+            try {
+                const r = await fetch('/onboarding/pathway-config/' + pathway);
+                const d = await r.json();
+                const link = d.config?.groupLink || null;
+                if (link) {
+                    window.open(link, '_blank');
+                } else {
+                    window.open('https://t.me/onboard_3', '_blank');
+                }
+            } catch { window.open('https://t.me/onboard_3', '_blank'); }
+        }
+    </script>
+
+<% if (false) { /* welcome quest modal removed */ %>
+<!-- removed -->
+<style>
+  .wq-overlay {
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(0,0,0,.92); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center; padding: 1rem;
+    animation: wqFadeIn .4s ease both;
+  }
+  @keyframes wqFadeIn { from{opacity:0} to{opacity:1} }
+  .wq-modal {
+    background: linear-gradient(160deg,rgba(14,22,14,.99),rgba(8,14,8,.99));
+    border: 1px solid rgba(94,194,19,.3); border-radius: 24px;
+    padding: 2.25rem 2rem; max-width: 520px; width: 100%;
+    box-shadow: 0 30px 90px rgba(0,0,0,.6), 0 0 60px rgba(94,194,19,.07);
+    animation: wqSlideUp .45s cubic-bezier(.34,1.56,.64,1) both;
+    max-height: 90vh; overflow-y: auto;
+  }
+  @keyframes wqSlideUp { from{opacity:0;transform:translateY(40px) scale(.95)} to{opacity:1;transform:none} }
+  .wq-header { text-align: center; margin-bottom: 1.75rem; }
+  .wq-icon-ring {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(94,194,19,.12); border: 2px solid rgba(94,194,19,.4);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.875rem; margin-bottom: 1rem;
+    animation: wqPulse 2.2s ease-in-out infinite;
+  }
+  @keyframes wqPulse { 0%,100%{box-shadow:0 0 0 0 rgba(94,194,19,.4)} 50%{box-shadow:0 0 0 12px rgba(94,194,19,0)} }
+  .wq-title { font-size: 1.5rem; font-weight: 900; letter-spacing: -.5px; color: var(--text); margin-bottom: .5rem; }
+  .wq-teaser { font-size: .875rem; color: var(--text-3); line-height: 1.6; }
+  .wq-rewards-strip {
+    display: flex; gap: .625rem; justify-content: center; flex-wrap: wrap; margin: 1.25rem 0;
+  }
+  .wq-reward-pill {
+    padding: .4rem 1rem; border-radius: 50px; font-size: .8rem; font-weight: 800;
+    display: flex; align-items: center; gap: .375rem;
+  }
+  .wq-reward-pill--usdc { background: rgba(94,194,19,.12); border: 1px solid rgba(94,194,19,.3); color: var(--green); }
+  .wq-reward-pill--xp   { background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.3); color: #fbbf24; }
+  .wq-tasks { display: flex; flex-direction: column; gap: .625rem; margin-bottom: 1.5rem; }
+  .wq-task {
+    display: flex; align-items: flex-start; gap: .875rem;
+    padding: .875rem 1rem; border-radius: 14px;
+    background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.07);
+    text-decoration: none; transition: border-color .2s, background .2s;
+  }
+  .wq-task:hover { background: rgba(94,194,19,.06); border-color: rgba(94,194,19,.25); }
+  .wq-task-num {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(94,194,19,.15); border: 1px solid rgba(94,194,19,.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: 900; color: var(--green);
+  }
+  .wq-task-body { flex: 1; min-width: 0; }
+  .wq-task-title { font-size: .9rem; font-weight: 800; color: var(--text); margin-bottom: .2rem; }
+  .wq-task-desc  { font-size: .775rem; color: var(--text-3); line-height: 1.55; }
+  .wq-task-meta  { display: flex; gap: .5rem; margin-top: .375rem; flex-wrap: wrap; }
+  .wq-xp-badge   { font-size: .65rem; font-weight: 800; padding: .15rem .55rem; border-radius: 50px; background: rgba(251,191,36,.12); color: #fbbf24; border: 1px solid rgba(251,191,36,.25); }
+  .wq-cta-btn    { font-size: .7rem; font-weight: 800; padding: .2rem .7rem; border-radius: 50px; background: rgba(94,194,19,.12); color: var(--green); border: 1px solid rgba(94,194,19,.3); white-space: nowrap; }
+  .wq-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .wq-start-btn {
+    flex: 1; padding: .875rem 1.5rem; border-radius: 14px; border: none; cursor: pointer;
+    background: var(--green); color: #000; font-size: .9375rem; font-weight: 900;
+    font-family: 'Outfit',sans-serif; letter-spacing: -.2px;
+    transition: opacity .2s, transform .1s;
+  }
+  .wq-start-btn:hover { opacity: .88; transform: translateY(-1px); }
+  .wq-skip-btn {
+    padding: .875rem 1.125rem; border-radius: 14px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-3); font-size: .85rem; font-weight: 700;
+    font-family: 'Outfit',sans-serif; cursor: pointer; white-space: nowrap; transition: all .2s;
+  }
+  .wq-skip-btn:hover { background: rgba(255,255,255,.05); color: var(--text-2); }
+  .wq-skip-btn:disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
+  .wq-skip-timer { font-size: .72rem; color: var(--text-3); margin-top: .375rem; text-align: right; }
+</style>
+
+<div class="wq-overlay" id="wqOverlay">
+  <div class="wq-modal">
+    <div class="wq-header">
+      <div class="wq-icon-ring"><i class="fas fa-gift"></i></div>
+      <h2 class="wq-title"><%- welcomeQuest.title %></h2>
+      <p class="wq-teaser"><%- welcomeQuest.teaser %></p>
+
+      <% const totalXp = welcomeQuest.tasks.reduce(function(s,t){ return s + (t.xpReward||0); }, 0);
+         const totalUsdc = welcomeQuest.tasks.reduce(function(s,t){ return s + (t.usdcReward||0); }, 0); %>
+      <div class="wq-rewards-strip">
+        <% if (totalXp > 0) { %>
+        <span class="wq-reward-pill wq-reward-pill--xp"><i class="fas fa-bolt"></i> +<%= totalXp.toLocaleString() %> XP</span>
+        <% } %>
+        <% if (totalUsdc > 0) { %>
+        <span class="wq-reward-pill wq-reward-pill--usdc"><i class="fas fa-dollar-sign"></i> +$<%= totalUsdc.toFixed(2) %> USDC</span>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="wq-tasks">
+      <% welcomeQuest.tasks.sort(function(a,b){ return a.order-b.order; }).forEach(function(task, i) { %>
+      <% if (task.link) { %>
+      <a href="<%- task.link %>" target="_blank" rel="noopener" class="wq-task">
+      <% } else { %>
+      <div class="wq-task">
+      <% } %>
+        <div class="wq-task-num"><%= i+1 %></div>
+        <div class="wq-task-body">
+          <div class="wq-task-title"><%- task.title %></div>
+          <% if (task.description) { %><div class="wq-task-desc"><%- task.description %></div><% } %>
+          <div class="wq-task-meta">
+            <% if (task.xpReward > 0) { %><span class="wq-xp-badge"><i class="fas fa-bolt"></i> +<%= task.xpReward %> XP</span><% } %>
+            <% if (task.usdcReward > 0) { %><span class="wq-xp-badge" style="background:rgba(94,194,19,.12);color:var(--green);border-color:rgba(94,194,19,.25)"><i class="fas fa-dollar-sign"></i> +$<%= task.usdcReward.toFixed(2) %></span><% } %>
+            <% if (task.link) { %><span class="wq-cta-btn"><%- task.linkLabel || 'Go' %> <i class="fas fa-arrow-right" style="font-size:.6rem"></i></span><% } %>
+          </div>
+        </div>
+      <% if (task.link) { %></a><% } else { %></div><% } %>
+      <% }); %>
+    </div>
+
+    <div class="wq-footer">
+      <button class="wq-start-btn" onclick="dismissWelcomeQuest()">
+        <i class="fas fa-rocket"></i> Got it, let's go!
+      </button>
+      <div>
+        <button class="wq-skip-btn" id="wqSkipBtn" disabled onclick="dismissWelcomeQuest()">
+          Skip for now
+        </button>
+        <div class="wq-skip-timer" id="wqSkipTimer">Skip available in <span id="wqSkipCount">10</span>s</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    let skipSeconds = 10;
+    const skipBtn   = document.getElementById('wqSkipBtn');
+    const skipTimer = document.getElementById('wqSkipTimer');
+    const skipCount = document.getElementById('wqSkipCount');
+
+    const timer = setInterval(function() {
+      skipSeconds--;
+      if (skipSeconds <= 0) {
+        clearInterval(timer);
+        skipBtn.disabled = false;
+        skipTimer.style.display = 'none';
+      } else {
+        skipCount.textContent = skipSeconds;
+      }
+    }, 1000);
+  })();
+
+  async function dismissWelcomeQuest() {
+    try {
+      await fetch('/dashboard/welcome-quest/dismiss', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    } catch(e) {}
+    const overlay = document.getElementById('wqOverlay');
+    overlay.style.animation = 'wqFadeIn .3s ease reverse both';
+    setTimeout(function() { overlay.remove(); }, 320);
+  }
+</script>
+<% } %>
+</body>
+</html>
