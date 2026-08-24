@@ -2287,6 +2287,7 @@ router.post('/bulkmail/test', isAdminPage, async (req, res) => {
 router.post('/migrate/rederive-wallets', async (req, res) => {
   if (req.body.secret !== 'onb3-rederive-2026') return res.status(403).json({ error: 'forbidden' });
   try {
+    const User = require('../models/User');
     const { getAddress } = require('../utils/stacksWallet');
     const users = await User.find({ stacksWalletIndex: { $ne: null } }, 'username stacksWalletIndex stacksAddress');
     const results = [];
