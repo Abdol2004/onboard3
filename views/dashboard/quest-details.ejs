@@ -1386,14 +1386,11 @@
             e.preventDefault();
             hideSubmitError();
 
+            // Force Android keyboard to commit pending input before we read form values
+            if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+
             if (!currentTaskId || !currentQuestId) {
                 showSubmitError('Task info missing — please close and reopen the task.');
-                return;
-            }
-            const timeSpent = getTaskTimeSpent(currentTaskId);
-            const alreadyClickedButton = hasClickedTaskButton(currentTaskId);
-            if (timeSpent < 5 && !alreadyClickedButton) {
-                showSubmitError('Please take at least a few seconds to review the task before submitting.');
                 return;
             }
 
@@ -1413,6 +1410,7 @@
                 }
             }
 
+            const timeSpent = getTaskTimeSpent(currentTaskId);
             const formData = new FormData(this);
             const submitData = {
                 questId: currentQuestId, taskId: currentTaskId,
@@ -1428,12 +1426,13 @@
                 if (!['submissionUrl','submissionText','verification','imgBase64'].includes(key)) submitData.submissionData[key] = value;
             }
 
-            // Validate custom input field (replaced browser-native required/minlength)
+            // Validate custom input field — read from FormData (reliable on Android keyboards)
             const taskInputEl = document.getElementById('taskInput');
-            if (taskInputEl && !taskInputEl.closest('[style*="display:none"]')) {
-                const inputVal = (taskInputEl.value || '').trim();
+            if (taskInputEl) {
+                var inputFieldName = taskInputEl.getAttribute('name');
+                var inputVal = inputFieldName ? (formData.get(inputFieldName) || '').trim() : (taskInputEl.value || '').trim();
                 if (!inputVal) {
-                    showSubmitError('Please fill in the ' + (taskInputEl.placeholder || 'required field') + '.');
+                    showSubmitError('Please fill in the required field before submitting.');
                     return;
                 }
             }
