@@ -1145,6 +1145,60 @@ router.post('/api/launch-rewards/:rewardId/reset', isAdmin, async (req, res) => 
   }
 });
 
+// Fix all MANUAL override users who received the wrong (lower) amount
+router.post('/api/launch-rewards/fix-manual-overrides', isAdmin, async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const MANUAL = {
+      'ridique': 5, 'zaynab': 5, 'lrick 05': 5,
+      'bolacrypt': 3, 'defioyin': 3, 'luckee': 3, 'trae♠️': 3, 'promzy10': 3,
+      'ragnar': 3, 'obasalopi': 3, 'imxihab': 3, 'levrone': 3, 'cynthia anto': 3,
+      'naana': 2, 'abdulkourey': 2, 'ibnmarzuk': 2, 'jayed': 2, 'ghostdev': 2,
+      'desmonolord': 1, 'desmondolord': 1, 'brainly': 1, 'bless': 1, 'nassir1': 1,
+      'destancrypt': 1, 'adenuga': 1, 'byмusa': 1, 'bymusa': 1, 'jonathan': 1,
+      'dominus': 1, 'king marlito': 1, 'heelat123': 1,
+    };
+
+    const all = await LaunchReward.find({}).lean();
+    const fixed = [];
+
+    for (const r of all) {
+      const key = (r.username || '').toLowerCase().trim();
+      const correctBase = MANUAL[key];
+      if (correctBase === undefined) continue;
+      // Only fix if they got significantly less than intended (more than $0.13 off, accounting for jitter)
+      if (r.amount >= correctBase - 0.13) continue;
+
+      await LaunchReward.updateOne({ _id: r._id }, {
+        $set: { amount: correctBase, tier: correctBase >= 5 ? 'top5' : correctBase >= 3 ? 'legend_manual' : correctBase >= 2 ? 'captain_active' : 'captain', status: 'pending', sentAt: null, failReason: null }
+      });
+      await User.collection.updateOne({ _id: r.userId }, { $set: { launchDayCompleted: false } });
+      fixed.push({ username: r.username, was: r.amount, now: correctBase });
+    }
+
+    res.json({ ok: true, fixed });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Direct balance credit — add USDC to any user's in-app balance
+router.post('/api/users/credit-balance', isAdmin, async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const { username, amount } = req.body;
+    if (!username || !amount) return res.status(400).json({ ok: false, error: 'username and amount required' });
+    const parsed = parseFloat(amount);
+    if (isNaN(parsed) || parsed <= 0) return res.status(400).json({ ok: false, error: 'Invalid amount' });
+    const user = await User.findOne({ username: new RegExp('^' + username.trim() + '$', 'i') }).select('_id username usdcBalance');
+    if (!user) return res.status(404).json({ ok: false, error: 'User not found' });
+    await User.collection.updateOne({ _id: user._id }, { $inc: { usdcBalance: parsed } });
+    res.json({ ok: true, username: user.username, credited: parsed, newBalance: (user.usdcBalance || 0) + parsed });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 module.exports = router;
 router.get('/api/quests/:questId/winners', isAdmin, adminController.getQuestWinners);
 router.post('/api/quests/distribute-rewards', isAdmin, adminController.distributeQuestRewards);
@@ -1501,16 +1555,25 @@ router.post('/api/leaderboard/update/:userId', isAdmin, async (req, res) => {
       await user.save();
       res.json({ success: true, message: 'User updated successfully' });
     } else {
-      // Update quest progress XP
+      // Update quest progress XP — use updateOne to bypass the pre-save hook
+      // (hook recalculates totalXp from parts, so .save() would give wrong total)
       const UserQuestProgress = require('../models/UserQuestProgress');
       const progress = await UserQuestProgress.findOne({ userId: req.params.userId, questId: leaderboardType });
       if (!progress) return res.json({ success: false, message: 'Quest progress not found' });
 
       if (points !== undefined) {
-        progress.xpBreakdown.totalXp = points;
-        progress.xpBreakdown.baseXp = points;
+        await UserQuestProgress.updateOne(
+          { _id: progress._id },
+          { $set: {
+            'xpBreakdown.totalXp': points,
+            'xpBreakdown.taskXp': 0,
+            'xpBreakdown.baseXp': points,
+            'xpBreakdown.referralJoinBonus': 0,
+            'xpBreakdown.referralCompleteBonus': 0,
+            'xpBreakdown.winnerBonus': 0
+          }}
+        );
       }
-      await progress.save();
       res.json({ success: true, message: 'Quest progress updated successfully' });
     }
   } catch (error) {
