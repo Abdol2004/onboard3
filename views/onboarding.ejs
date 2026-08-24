@@ -184,6 +184,18 @@
         <div class="ob-step active" id="step0">
             <div class="ob-card" style="text-align:center">
                 <div class="ob-logo"><img src="/img/logo.png" alt="ONBOARD3"></div>
+                <% if (isLaunchDay) { %>
+                <div class="ob-eyebrow" style="justify-content:center;color:#fbbf24"><i class="fas fa-gift" style="color:#fbbf24"></i> Launch Day Reward</div>
+                <h1 class="ob-h1">We are <span>LIVE</span> 🎉</h1>
+                <p class="ob-p">Complete these quick tasks and <strong style="color:var(--green)">claim your USDC reward</strong> — we have 39,900 builders and we want the reward to reach everybody. It's free. Earn more through quests and bounties!</p>
+                <div style="padding:.875rem 1rem;border-radius:12px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);margin-bottom:1.25rem">
+                    <div style="font-size:.75rem;font-weight:800;color:#fbbf24;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.25rem">Your reward is waiting</div>
+                    <div style="font-size:1rem;color:var(--text-2);font-size:.875rem">Complete all steps → see your reward on the final screen</div>
+                </div>
+                <button class="ob-btn ob-btn--primary" onclick="goStep(1)">
+                    <i class="fas fa-gift"></i> Claim My Reward
+                </button>
+                <% } else { %>
                 <div class="ob-eyebrow" style="justify-content:center">Welcome</div>
                 <h1 class="ob-h1">Hey <span><%= user.username %></span>,<br>you're officially in.</h1>
                 <p class="ob-p">ONBOARD3 is your gateway into Web3 — real quests, IRL events, community, and actual rewards. We're a movement, not just an app.</p>
@@ -195,6 +207,7 @@
                 <button class="ob-btn ob-btn--primary" onclick="goStep(1)">
                     <i class="fas fa-rocket"></i> Start My Journey
                 </button>
+                <% } %>
             </div>
         </div>
 
@@ -542,23 +555,30 @@
         <!-- ══ STEP 7: REWARD ══ -->
         <div class="ob-step" id="step7">
             <div class="ob-card" style="text-align:center">
-                <div class="ob-eyebrow" style="justify-content:center"><i class="fas fa-trophy"></i> Reward</div>
+                <div class="ob-eyebrow" style="justify-content:center"><i class="fas fa-trophy"></i> <% if (isLaunchDay) { %>Launch Reward<% } else { %>Reward<% } %></div>
                 <div class="reward-wrap">
                     <div class="reward-icon-ring"><i class="fas fa-dollar-sign"></i></div>
-                    <p style="font-size:.78rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--text-3);margin-bottom:.5rem">Welcome Reward</p>
+                    <p style="font-size:.78rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--text-3);margin-bottom:.5rem"><% if (isLaunchDay) { %>Launch Day Reward<% } else { %>Welcome Reward<% } %></p>
                     <div class="reward-amount" id="rewardAmt">$0.00</div>
-                    <div class="reward-lbl">USDC · Added to your balance</div>
+                    <div class="reward-lbl">USDC · Added to your ONBOARD3 balance</div>
                     <div class="reward-stars">
                         <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                     </div>
                 </div>
 
+                <% if (isLaunchDay) { %>
+                <div style="margin-bottom:1.5rem;padding:1rem;border-radius:14px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);text-align:left">
+                    <p style="font-size:.78rem;font-weight:800;color:#fbbf24;margin-bottom:.4rem"><i class="fas fa-share-nodes"></i> Share & earn more</p>
+                    <p style="font-size:.8125rem;color:var(--text-2);line-height:1.65">Screenshot your reward and post it on X tagging <strong style="color:var(--text)">@onboard3___</strong>. Complete quests and bounties to earn even bigger rewards — this is just the start.</p>
+                </div>
+                <% } else { %>
                 <div id="pathwayBox" style="margin-bottom:1.5rem;padding:1rem;border-radius:14px;background:rgba(94,194,19,.06);border:1px solid rgba(94,194,19,.2)">
                     <p style="font-size:.72rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--text-3);margin-bottom:.35rem">Your Pathway</p>
                     <div id="pathwayBoxInner" style="font-size:1.0625rem;font-weight:800;color:var(--green);display:flex;align-items:center;justify-content:center;gap:.5rem"></div>
                 </div>
+                <% } %>
 
-                <p style="font-size:.875rem;color:var(--text-2);line-height:1.75;margin-bottom:1.5rem">You're now a certified ONBOARD3 builder. Complete quests, attend events, grow your XP, and unlock bigger rewards. The journey starts now.</p>
+                <p style="font-size:.875rem;color:var(--text-2);line-height:1.75;margin-bottom:1.5rem"><% if (isLaunchDay) { %>With 39,900+ builders on ONBOARD3, we're spreading rewards to everyone. Complete quests, bounties, and daily check-ins to stack more.<% } else { %>You're now a certified ONBOARD3 builder. Complete quests, attend events, grow your XP, and unlock bigger rewards. The journey starts now.<% } %></p>
 
                 <button class="ob-btn ob-btn--primary" onclick="window.location.href='/dashboard'">
                     <i class="fas fa-house"></i> Enter My Dashboard

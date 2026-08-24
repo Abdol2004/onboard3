@@ -10,10 +10,10 @@ const launchRewardSchema = new mongoose.Schema({
   twitterHandle: { type: String, default: null },
   status: {
     type: String,
-    enum: ['pending', 'sent', 'failed', 'skipped_no_wallet'],
+    enum: ['pending', 'sent', 'failed'],
     default: 'pending'
   },
-  txSignature:   { type: String, default: null },
+  txSignature:   { type: String, default: null }, // reserved for future on-chain use
   failReason:    { type: String, default: null },
   sentAt:        { type: Date, default: null },
   notified:      { type: Boolean, default: false },

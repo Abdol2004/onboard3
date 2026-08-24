@@ -43,9 +43,9 @@ exports.getDashboard = async (req, res) => {
       return res.redirect('/auth');
     }
 
-    // Redirect new users to onboarding
-    if (!user.onboardingCompleted) {
-      return res.redirect('/onboarding');
+    // Redirect new users to onboarding (middleware also enforces this for all dashboard routes)
+    if (!user.onboardingCompleted || !user.launchDayCompleted) {
+      return res.redirect('/onboarding?launch=1');
     }
 
     // Get total users for ranking

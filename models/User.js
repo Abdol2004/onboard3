@@ -124,6 +124,14 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: null
   },
+  launchDayCompleted: {
+    type: Boolean,
+    default: false
+  },
+  launchDayReward: {
+    type: Number,
+    default: null
+  },
   bio: {
     type: String,
     default: ''

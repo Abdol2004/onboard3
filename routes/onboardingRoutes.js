@@ -13,13 +13,22 @@ router.get('/', isAuthenticated, async (req, res) => {
   try {
     const user = await User.findById(req.session.userId).select('-password');
     if (!user) return res.redirect('/auth');
-    if (user.onboardingCompleted) return res.redirect('/dashboard');
+
+    // Already done everything — go to dashboard
+    if (user.onboardingCompleted && user.launchDayCompleted) return res.redirect('/dashboard');
+
+    // It's a launch-day run if they haven't done it yet (new field, false for everyone on first deploy)
+    const isLaunchDay = !user.launchDayCompleted;
+
+    // Mark session so /complete knows this is a launch-day run
+    if (isLaunchDay) req.session.isLaunchOnboarding = true;
 
     const OnboardingConfig = require('../models/OnboardingConfig');
     const config = await OnboardingConfig.get();
 
     res.render('onboarding', {
       user: user.toObject(),
+      isLaunchDay: isLaunchDay || false,
       obConfig: {
         step4Title:        config.step4Title,
         step4Desc:         config.step4Desc,
@@ -85,47 +94,125 @@ router.post('/profile', isAuthenticated, async (req, res) => {
   }
 });
 
-// Complete onboarding + weighted random reward
+// Complete onboarding — handles both first-time and launch-day re-onboarding
 router.post('/complete', isAuthenticated, async (req, res) => {
   try {
     const user = await User.findById(req.session.userId);
     if (!user) return res.json({ success: false, message: 'User not found' });
-    if (user.onboardingCompleted) return res.json({ success: true, reward: user.onboardingReward });
 
-    // Onboarding reward temporarily disabled
-    const reward = 0;
+    const isLaunchDay = !user.launchDayCompleted;
+    const LaunchReward = require('../models/LaunchReward');
+
+    // ── LAUNCH-DAY RE-ONBOARDING ─────────────────────────────────────────────
+    if (isLaunchDay && !user.launchDayCompleted) {
+      // Look up their pre-calculated reward
+      let reward = 0;
+      const launchRecord = await LaunchReward.findOne({ userId: user._id, status: 'pending' });
+
+      if (launchRecord) {
+        reward = launchRecord.amount;
+        // Credit their in-app USDC balance
+        await User.collection.updateOne(
+          { _id: user._id },
+          { $inc: { usdcBalance: reward } }
+        );
+        await LaunchReward.updateOne(
+          { _id: launchRecord._id },
+          { $set: { status: 'sent', sentAt: new Date() } }
+        );
+      } else {
+        // New user joining today — give them a small welcome reward
+        reward = 0.10;
+        await User.collection.updateOne(
+          { _id: user._id },
+          { $inc: { usdcBalance: reward } }
+        );
+        // Create a record so it's tracked
+        await LaunchReward.create({
+          userId: user._id,
+          username: user.username,
+          amount: reward,
+          tier: 'new_launch_day',
+          xp: user.xp || 0,
+          twitterHandle: user.twitter || null,
+          status: 'sent',
+          sentAt: new Date()
+        }).catch(() => {});
+      }
+
+      // Mark launch-day done (and also mark normal onboarding done for new users)
+      const updates = {
+        launchDayCompleted: true,
+        launchDayReward: reward
+      };
+      if (!user.onboardingCompleted) {
+        updates.onboardingCompleted = true;
+        updates.onboardingReward = 0;
+      }
+      await User.collection.updateOne({ _id: user._id }, { $set: updates });
+      req.session.isLaunchOnboarding = false;
+
+      // Notify referrer if new user
+      if (!user.onboardingCompleted && user.referredBy) {
+        try {
+          const referrer = await User.findOne({ referralCode: user.referredBy }).select('_id');
+          if (referrer) {
+            notify(referrer._id, {
+              type: 'referral',
+              title: 'New Referral Onboarded!',
+              message: `${user.username} just completed onboarding using your referral link!`,
+              link: '/dashboard/referral'
+            }).catch(() => {});
+          }
+        } catch (_) {}
+      }
+
+      notify(user._id, {
+        type: 'reward',
+        title: `$${reward.toFixed(2)} Launch Reward Credited!`,
+        message: `You earned $${reward.toFixed(2)} USDC for completing the ONBOARD3 launch onboarding! Complete quests and bounties to earn more.`,
+        link: '/dashboard/wallet'
+      }).catch(() => {});
+
+      return res.json({ success: true, reward, isLaunchDay: true });
+    }
+
+    // ── FIRST-TIME ONBOARDING (already launch-day done, shouldn't happen often) ──
+    if (user.onboardingCompleted) {
+      return res.json({ success: true, reward: user.onboardingReward || 0 });
+    }
 
     user.onboardingCompleted = true;
-    user.onboardingReward    = reward;
+    user.onboardingReward    = 0;
+    user.launchDayCompleted  = true;
+    user.launchDayReward     = 0;
     if (!user.recentActivity) user.recentActivity = [];
-    user.recentActivity.unshift({ action: `Completed onboarding`, timestamp: new Date() });
+    user.recentActivity.unshift({ action: 'Completed onboarding', timestamp: new Date() });
     if (user.recentActivity.length > 10) user.recentActivity = user.recentActivity.slice(0, 10);
     await user.save();
 
-    // Notify the referrer if user was referred
     if (user.referredBy) {
-        try {
-            const referrer = await User.findOne({ referralCode: user.referredBy }).select('_id');
-            if (referrer) {
-                notify(referrer._id, {
-                    type: 'referral',
-                    title: 'New Referral Onboarded!',
-                    message: `${user.username} just completed onboarding using your referral link!`,
-                    link: '/dashboard/referral'
-                }).catch(() => {});
-            }
-        } catch (_) {}
+      try {
+        const referrer = await User.findOne({ referralCode: user.referredBy }).select('_id');
+        if (referrer) {
+          notify(referrer._id, {
+            type: 'referral',
+            title: 'New Referral Onboarded!',
+            message: `${user.username} just completed onboarding using your referral link!`,
+            link: '/dashboard/referral'
+          }).catch(() => {});
+        }
+      } catch (_) {}
     }
 
-    // Welcome notification for the user
     notify(user._id, {
-        type: 'system',
-        title: 'Welcome to ONBOARD3!',
-        message: `You've completed onboarding! Start completing quests to earn USDC rewards!`,
-        link: '/dashboard/quests'
+      type: 'system',
+      title: 'Welcome to ONBOARD3!',
+      message: `You've completed onboarding! Start completing quests to earn USDC rewards!`,
+      link: '/dashboard/quests'
     }).catch(() => {});
 
-    res.json({ success: true, reward });
+    res.json({ success: true, reward: 0 });
   } catch (err) {
     console.error('Onboarding complete error:', err);
     res.json({ success: false, message: 'Error completing onboarding' });

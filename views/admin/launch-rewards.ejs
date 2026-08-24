@@ -64,19 +64,10 @@ tr:hover td{background:rgba(255,255,255,.025)}
 <a href="/admin" class="back"><i class="fas fa-arrow-left"></i> Admin</a>
 <h1><i class="fas fa-coins"></i> Launch Reward Distribution</h1>
 
-<% if (balance !== null) { %>
-<div class="notice">
-  <i class="fas fa-wallet"></i>
-  Treasury USDC balance: <strong style="color:#fbbf24">$<%= (balance||0).toFixed(2) %></strong>
-  &nbsp;·&nbsp; Need $<%= stats.totalOwed.toFixed(2) %> to pay pending rewards.
-  <% if ((balance||0) < stats.totalOwed) { %> <strong style="color:#f87171">⚠️ INSUFFICIENT FUNDS</strong><% } %>
+<div class="notice" style="background:rgba(94,194,19,.07);border-color:rgba(94,194,19,.25);color:#a3e070">
+  <i class="fas fa-info-circle"></i>
+  Rewards are credited to users' <strong>ONBOARD3 account balance</strong> — no blockchain transactions needed. Users can withdraw to their Solana wallet whenever they're ready.
 </div>
-<% } else { %>
-<div class="notice">
-  <i class="fas fa-key"></i>
-  Set <code>TREASURY_PRIVATE_KEY</code> in .env to enable automatic USDC transfers.
-</div>
-<% } %>
 
 <div class="stats-row">
   <div class="stat-box"><div class="stat-val"><%= stats.total %></div><div class="stat-lbl">Total Recipients</div></div>
@@ -197,7 +188,7 @@ async function seedRewards() {
 async function confirmDistribute() {
   const n = <%= stats.pending %>;
   const amt = '<%= stats.totalOwed.toFixed(2) %>';
-  if (!confirm(`Send USDC to ${n} users (total $${amt})?\n\nThis will execute real on-chain transactions. Make sure your treasury wallet is funded.`)) return;
+  if (!confirm(`Credit ${n} users with $${amt} total in ONBOARD3 balance?\n\nThis adds to their in-app USD balance. Users can withdraw to their Solana wallet when ready.`)) return;
   startDistribute();
 }
 

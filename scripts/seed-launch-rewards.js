@@ -129,7 +129,7 @@ async function main() {
       tier,
       xp,
       twitterHandle: u.twitter || null,
-      status:        u.walletAddress ? 'pending' : 'skipped_no_wallet',
+      status:        'pending',
     });
   }
 
