@@ -609,19 +609,23 @@ router.post('/api/quest/:id/entries/:progressId/flag', businessAuth, async (req,
     if (!quest || String(quest.sponsoredBy) !== String(business._id)) {
       return res.json({ success: false, message: 'Quest not found' });
     }
-    const progress = await UserQuestProgress.findById(req.params.progressId);
+    const progress = await UserQuestProgress.findById(req.params.progressId).lean();
     if (!progress || String(progress.questId) !== String(quest._id)) {
       return res.json({ success: false, message: 'Entry not found' });
     }
-    const penaltyXp = Math.min(50, progress.xpBreakdown.winnerBonus || 0);
-    progress.xpBreakdown.winnerBonus = (progress.xpBreakdown.winnerBonus || 0) - penaltyXp;
-    progress.flagged = true;
-    await progress.save();
+    const currentTotal = progress.xpBreakdown?.totalXp || 0;
+    const penaltyXp = Math.min(50, currentTotal);
     if (penaltyXp > 0) {
+      await UserQuestProgress.updateOne(
+        { _id: progress._id },
+        { $set: { flagged: true }, $inc: { 'xpBreakdown.taskXp': -penaltyXp, 'xpBreakdown.totalXp': -penaltyXp } }
+      );
       const User = require('../models/User');
       await User.findByIdAndUpdate(progress.userId, { $inc: { xp: -penaltyXp } });
+    } else {
+      await UserQuestProgress.updateOne({ _id: progress._id }, { $set: { flagged: true } });
     }
-    res.json({ success: true, message: 'Entry flagged and XP adjusted' });
+    res.json({ success: true, message: `Entry flagged. Removed ${penaltyXp} XP.` });
   } catch (err) {
     console.error('Flag entry error:', err);
     res.json({ success: false, message: 'Server error' });

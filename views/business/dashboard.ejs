@@ -1648,8 +1648,23 @@ function loadQuestEntries(questId) {
             ' <button onclick="bizReviewTask(\'' + questId + '\',\'' + e._id + '\',\'' + t.taskId + '\',\'reject\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.65rem;padding:0" title="Reject"><i class="fas fa-times"></i></button>' +
             '</span>';
         }).join('');
-        var subLinks = tasks.filter(function(t) { return t.submissionUrl; }).map(function(t) {
-          return '<a href="' + t.submissionUrl + '" target="_blank" style="color:#60a5fa;font-size:.72rem">' + t.submissionUrl.slice(0,30) + '…</a>';
+        var subLinks = tasks.filter(function(t) {
+          return t.submissionUrl || t.submissionText || (t.submissionData && Object.keys(t.submissionData).length);
+        }).map(function(t) {
+          if (t.submissionUrl) {
+            return '<a href="' + t.submissionUrl + '" target="_blank" style="color:#60a5fa;font-size:.72rem">' + t.submissionUrl.slice(0,40) + '…</a>';
+          }
+          if (t.submissionText) {
+            return '<span style="font-size:.72rem;color:var(--text-2)">' + String(t.submissionText).substring(0,40) + '</span>';
+          }
+          if (t.submissionData && typeof t.submissionData === 'object') {
+            return Object.values(t.submissionData).filter(function(v){ return v; }).map(function(v) {
+              var sv = String(v).trim();
+              if (/^https?:\/\//.test(sv)) return '<a href="' + sv + '" target="_blank" style="color:#60a5fa;font-size:.72rem">' + sv.slice(0,40) + '…</a>';
+              return '<span style="font-size:.72rem;color:var(--text-2)">' + sv.substring(0,40) + '</span>';
+            }).join(' ');
+          }
+          return '';
         }).join(', ');
         var username = (e.userId && e.userId.username) ? '@' + e.userId.username : 'Unknown';
         var xp = (e.xpBreakdown && e.xpBreakdown.totalXp) ? e.xpBreakdown.totalXp : 0;

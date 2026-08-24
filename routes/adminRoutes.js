@@ -2486,6 +2486,7 @@ router.post('/api/quest/reset-progress', isAdminPage, async (req, res) => {
   try {
     const Quest             = require('../models/Quest');
     const UserQuestProgress = require('../models/UserQuestProgress');
+    const User              = require('../models/User');
     const { questId } = req.body;
     if (!questId) return res.json({ success: false, message: 'questId required' });
 
