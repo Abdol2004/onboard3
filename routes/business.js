@@ -644,7 +644,7 @@ router.post('/api/quest/:id/tasks', businessAuth, async (req, res) => {
     if (quest.questType !== 'competition') {
       return res.json({ success: false, message: 'Tasks can only be added to competition quests' });
     }
-    const { title, description, taskType, xpReward, buttonText, buttonLink, inputType, inputLabel } = req.body;
+    const { title, description, taskType, xpReward, buttonText, buttonLink, inputType, inputName, inputLabel } = req.body;
     if (!title) return res.json({ success: false, message: 'Task title is required' });
     quest.tasks.push({
       title: title.trim(),
@@ -654,6 +654,7 @@ router.post('/api/quest/:id/tasks', businessAuth, async (req, res) => {
       buttonText: buttonText || 'Complete',
       buttonLink: buttonLink || '',
       inputType: inputType || 'link',
+      inputName: inputName || '',
       inputLabel: inputLabel || '',
       order: quest.tasks.length
     });

@@ -932,9 +932,9 @@
               <input class="p-input" id="nt_biz_btnlink" placeholder="https://..." style="font-size:.8125rem">
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.625rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:.625rem">
             <div class="p-form-group" style="margin:0">
-              <label style="font-size:.8rem">Input Type</label>
+              <label style="font-size:.8rem">Proof Type</label>
               <select class="p-input" id="nt_biz_input_type" style="font-size:.8125rem">
                 <option value="link">Link / URL</option>
                 <option value="text">Text</option>
@@ -943,8 +943,12 @@
               </select>
             </div>
             <div class="p-form-group" style="margin:0">
-              <label style="font-size:.8rem">Input Label</label>
-              <input class="p-input" id="nt_biz_input_label" placeholder="e.g. Your X post link" style="font-size:.8125rem">
+              <label style="font-size:.8rem">Proof Field Name</label>
+              <input class="p-input" id="nt_biz_input_name" placeholder="e.g. post_link" style="font-size:.8125rem">
+            </div>
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Proof Label (shown to user)</label>
+              <input class="p-input" id="nt_biz_input_label" placeholder="e.g. Submit comment link" style="font-size:.8125rem">
             </div>
           </div>
           <div class="p-form-group" style="margin-bottom:.75rem">
@@ -1766,7 +1770,8 @@ function submitBizAddTask() {
     xpReward: parseInt(document.getElementById('nt_biz_xp').value) || 0,
     buttonText: document.getElementById('nt_biz_btntext').value.trim() || 'Complete',
     buttonLink: document.getElementById('nt_biz_btnlink').value.trim(),
-    inputType: document.getElementById('nt_biz_input_type').value,
+    inputType:  document.getElementById('nt_biz_input_type').value,
+    inputName:  document.getElementById('nt_biz_input_name').value.trim(),
     inputLabel: document.getElementById('nt_biz_input_label').value.trim()
   };
   fetch('/business/api/quest/' + currentQuestId + '/tasks', {
