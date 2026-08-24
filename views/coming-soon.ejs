@@ -14,7 +14,7 @@
     .glow{position:fixed;top:50%;left:50%;width:800px;height:800px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(94,194,19,.07) 0%,transparent 65%);pointer-events:none;z-index:0}
     .grid-bg{position:fixed;inset:0;background-image:linear-gradient(rgba(94,194,19,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(94,194,19,.03) 1px,transparent 1px);background-size:60px 60px;z-index:0}
 
-    .cs-wrap{position:relative;z-index:1;max-width:520px;width:100%;text-align:center;transition:opacity .4s}
+    .cs-wrap{position:relative;z-index:1;max-width:520px;width:100%;text-align:center;transition:opacity .5s}
     .cs-logo{font-size:1.5rem;font-weight:900;color:var(--green);letter-spacing:3px;margin-bottom:3rem}
     .cs-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(94,194,19,.08);border:1px solid rgba(94,194,19,.2);color:var(--green);font-size:.78rem;font-weight:700;padding:.4rem 1rem;border-radius:99px;margin-bottom:1.75rem;letter-spacing:.04em}
     .cs-badge span{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.4s ease infinite}
@@ -26,6 +26,7 @@
 
     .cs-countdown{display:flex;gap:1rem;justify-content:center;margin-bottom:2.75rem;flex-wrap:wrap}
     .cs-unit{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:.875rem 1.25rem;min-width:72px;transition:border-color .3s}
+    .cs-unit.active{border-color:rgba(94,194,19,.4)}
     .cs-unit-val{font-size:2rem;font-weight:900;color:var(--text);line-height:1}
     .cs-unit-lbl{font-size:.65rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.1em;margin-top:.3rem}
 
@@ -36,22 +37,74 @@
     .cs-btn-tg{background:#229ED9;color:#fff}
     .cs-foot{font-size:.75rem;color:rgba(255,255,255,.2)}
 
-    /* ── LAUNCH OVERLAY ── */
-    #launch-overlay{position:fixed;inset:0;background:#050a05;z-index:999;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem}
-    #launch-overlay.show{display:flex}
-    .lo-logo{font-size:2rem;font-weight:900;color:var(--green);letter-spacing:4px;margin-bottom:2rem;animation:fadeUp .6s ease both}
-    .lo-title{font-size:clamp(2.5rem,8vw,4.5rem);font-weight:900;line-height:1.1;margin-bottom:1rem;animation:fadeUp .6s .15s ease both}
-    .lo-title .hi{color:var(--green)}
-    .lo-sub{font-size:1.1rem;color:var(--text-2);max-width:420px;line-height:1.7;margin-bottom:2.5rem;animation:fadeUp .6s .3s ease both}
-    .lo-pills{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center;margin-bottom:2.5rem;animation:fadeUp .6s .45s ease both}
-    .lo-pill{background:rgba(94,194,19,.12);border:1px solid rgba(94,194,19,.25);color:var(--green);font-size:.82rem;font-weight:700;padding:.45rem 1.1rem;border-radius:99px}
-    .lo-cta{display:inline-flex;align-items:center;gap:.6rem;background:var(--green);color:#000;font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:800;padding:.9rem 2.5rem;border-radius:12px;text-decoration:none;animation:fadeUp .6s .6s ease both;border:none;cursor:pointer}
-    .lo-counter{margin-top:1.5rem;font-size:.85rem;color:var(--text-2);animation:fadeUp .6s .75s ease both}
+    /* Ready-to-launch state (countdown done, waiting for admin) */
+    #ready-state{display:none;animation:fadeIn .6s ease both}
+    .ready-pulse{font-size:clamp(1.5rem,5vw,2.2rem);font-weight:900;color:var(--green);text-shadow:0 0 30px rgba(94,194,19,.4);animation:gPulse 1.2s ease-in-out infinite alternate}
+    @keyframes gPulse{from{text-shadow:0 0 20px rgba(94,194,19,.3)} to{text-shadow:0 0 60px rgba(94,194,19,.8)}}
+    .ready-sub{font-size:.9rem;color:var(--text-2);margin-top:.75rem}
+    .poll-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin:0 2px;animation:dotBounce .9s ease infinite}
+    .poll-dot:nth-child(2){animation-delay:.15s}
+    .poll-dot:nth-child(3){animation-delay:.3s}
+    @keyframes dotBounce{0%,100%{transform:translateY(0);opacity:.4} 50%{transform:translateY(-6px);opacity:1}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)}}
 
-    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    /* ── LIVE PRELOADER ── */
+    #live-preloader{
+      position:fixed;inset:0;background:#050a05;z-index:9999;
+      display:none;flex-direction:column;align-items:center;justify-content:center;
+      overflow:hidden;
+    }
+    #live-preloader.show{display:flex}
+    #preload-canvas{position:absolute;inset:0;pointer-events:none;z-index:1}
 
-    /* confetti canvas */
-    #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:1000}
+    /* Sky banner (plane + text trail) */
+    .plane-scene{position:absolute;width:100%;pointer-events:none;z-index:3}
+    .plane-el{
+      position:absolute;font-size:clamp(2rem,5vw,3.5rem);
+      filter:drop-shadow(0 0 18px rgba(94,194,19,.9));
+      will-change:left,top;
+    }
+    .sky-banner{
+      position:absolute;white-space:nowrap;
+      font-size:clamp(.9rem,2.5vw,1.6rem);font-weight:900;letter-spacing:.15em;
+      color:var(--green);text-shadow:0 0 20px rgba(94,194,19,.7);
+      border-bottom:2px dashed rgba(94,194,19,.5);
+      padding-bottom:3px;will-change:left,top;
+      opacity:0;transition:opacity .3s;
+    }
+
+    /* Center live text */
+    .live-center{
+      position:relative;z-index:4;text-align:center;
+      animation:fadeIn .5s .2s ease both;
+    }
+    .live-we{
+      font-size:clamp(1.5rem,5vw,2.8rem);font-weight:900;
+      color:rgba(255,255,255,.55);letter-spacing:.15em;
+      display:block;margin-bottom:.25rem;
+    }
+    .live-live{
+      font-size:clamp(5rem,18vw,10rem);font-weight:900;
+      color:var(--green);line-height:.95;display:block;
+      animation:liveFlash 1.5s ease-in-out infinite alternate;
+      letter-spacing:-.02em;
+    }
+    @keyframes liveFlash{
+      0%  {text-shadow:0 0 40px rgba(94,194,19,.5),0 0 80px rgba(94,194,19,.2)}
+      100%{text-shadow:0 0 80px rgba(94,194,19,.9),0 0 160px rgba(94,194,19,.5),0 0 8px #fff}
+    }
+    .live-tag{
+      display:inline-flex;align-items:center;gap:.5rem;margin-top:1.25rem;
+      background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.3);
+      color:var(--green);font-size:.85rem;font-weight:800;padding:.45rem 1.25rem;
+      border-radius:99px;letter-spacing:.08em;
+    }
+    .live-tag i{animation:blink 1s ease infinite}
+    .live-redir{
+      position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+      font-size:.8rem;color:rgba(255,255,255,.35);font-weight:600;white-space:nowrap;
+      z-index:4;
+    }
 
     @media(max-width:420px){
       .cs-countdown{gap:.5rem}
@@ -63,19 +116,27 @@
 <body>
   <div class="glow"></div>
   <div class="grid-bg"></div>
-  <canvas id="confetti-canvas"></canvas>
 
   <!-- Coming Soon -->
   <div class="cs-wrap" id="cs-main">
     <div class="cs-logo">ONBOARD3</div>
-    <div class="cs-badge"><span></span> LAUNCHING TODAY</div>
-    <h1>We go <span>LIVE at 10AM</span></h1>
+    <div class="cs-badge"><span></span> <span id="badge-text">LAUNCHING TODAY</span></div>
+    <h1 id="cs-h1">We go <span>LIVE at 10AM</span></h1>
     <p class="cs-sub">The new ONBOARD3 drops in hours. Earn rewards, level up, build on-chain. Complete onboarding tasks and get paid in USDC — stay ready.</p>
 
     <div class="cs-countdown" id="countdown">
       <div class="cs-unit"><div class="cs-unit-val" id="cd-h">00</div><div class="cs-unit-lbl">Hours</div></div>
       <div class="cs-unit"><div class="cs-unit-val" id="cd-m">00</div><div class="cs-unit-lbl">Mins</div></div>
       <div class="cs-unit"><div class="cs-unit-val" id="cd-s">00</div><div class="cs-unit-lbl">Secs</div></div>
+    </div>
+
+    <!-- Shown when countdown hits 0 — waiting for admin go-signal -->
+    <div id="ready-state">
+      <div class="ready-pulse">🚀 Ready to Launch</div>
+      <div class="ready-sub">
+        Waiting for the official go-signal
+        <span class="poll-dot"></span><span class="poll-dot"></span><span class="poll-dot"></span>
+      </div>
     </div>
 
     <div class="cs-socials">
@@ -85,34 +146,90 @@
     <div class="cs-foot">ONBOARD3 · Web3 Builder Hub · onboard3.app</div>
   </div>
 
-  <!-- LAUNCH CELEBRATION OVERLAY -->
-  <div id="launch-overlay">
-    <div class="lo-logo">ONBOARD3</div>
-    <div class="lo-title">We Are<br><span class="hi">LIVE 🎉</span></div>
-    <p class="lo-sub">The wait is over. Complete onboarding tasks, earn XP, and get rewarded in USDC. <strong style="color:var(--text)">$1,000 in rewards</strong> are being distributed based on your activity.</p>
-    <div class="lo-pills">
-      <span class="lo-pill">💰 Earn USDC</span>
-      <span class="lo-pill">⚡ Complete Tasks</span>
-      <span class="lo-pill">🏆 Climb Ranks</span>
-      <span class="lo-pill">🖼️ Collect NFTs</span>
-      <span class="lo-pill">🌐 Build On-Chain</span>
+  <!-- ── LIVE PRELOADER ── -->
+  <div id="live-preloader">
+    <canvas id="preload-canvas"></canvas>
+
+    <!-- Plane + banner scene -->
+    <div class="plane-scene" id="plane-scene">
+      <div class="plane-el" id="plane-el">✈</div>
+      <div class="sky-banner" id="sky-banner">— WE ARE LIVE! —</div>
     </div>
-    <button class="lo-cta" onclick="goLive()"><i class="fas fa-rocket"></i> Enter ONBOARD3</button>
-    <div class="lo-counter" id="auto-redirect">Redirecting in <span id="redir-sec">8</span>s...</div>
+
+    <!-- Center text -->
+    <div class="live-center">
+      <span class="live-we">WE ARE</span>
+      <span class="live-live">LIVE</span>
+      <div class="live-tag"><i class="fas fa-circle"></i> ONBOARD3 IS OPEN</div>
+    </div>
+
+    <div class="live-redir">Entering in <span id="preload-sec">7</span>s...</div>
   </div>
 
   <script>
-    // Target: Aug 24 2026 10:00 WAT (UTC+1)
-    var target = new Date('2026-08-24T10:00:00+01:00').getTime();
-    var launched = false;
+    var TARGET = new Date('2026-08-24T10:00:00+01:00').getTime();
+    var countdownDone = false;
+    var pollTimer = null;
 
-    function goLive() {
-      window.location.href = '/';
+    // ── Countdown ─────────────────────────────────────────────────────────────
+    function tick() {
+      var diff = Math.max(0, TARGET - Date.now());
+      var h = Math.floor(diff / 3600000);
+      var m = Math.floor((diff % 3600000) / 60000);
+      var s = Math.floor((diff % 60000) / 1000);
+      var pad = function(n){ return String(n).padStart(2,'0'); };
+      var hEl = document.getElementById('cd-h');
+      var mEl = document.getElementById('cd-m');
+      var sEl = document.getElementById('cd-s');
+      if (hEl) hEl.textContent = pad(h);
+      if (mEl) mEl.textContent = pad(m);
+      if (sEl) sEl.textContent = pad(s);
+
+      if (diff === 0 && !countdownDone) {
+        countdownDone = true;
+        onCountdownFinished();
+      }
+    }
+    tick();
+    setInterval(tick, 1000);
+
+    // Called when the countdown hits 0 — DON'T auto-launch, wait for admin
+    function onCountdownFinished() {
+      var cd = document.getElementById('countdown');
+      if (cd) { cd.style.opacity = '0'; setTimeout(function(){ cd.style.display = 'none'; }, 400); }
+      var h1 = document.getElementById('cs-h1');
+      if (h1) { h1.style.opacity = '0'; setTimeout(function(){ h1.style.display = 'none'; }, 400); }
+      var badge = document.getElementById('badge-text');
+      if (badge) badge.textContent = 'LAUNCH IMMINENT';
+      var ready = document.getElementById('ready-state');
+      if (ready) { setTimeout(function(){ ready.style.display = 'block'; }, 450); }
+      // Start polling for admin go-signal
+      startPolling();
     }
 
-    function startCelebration() {
-      if (launched) return;
-      launched = true;
+    // ── Poll for admin go-signal ──────────────────────────────────────────────
+    function startPolling() {
+      checkLive(); // first check immediately
+      pollTimer = setInterval(checkLive, 5000);
+    }
+
+    function checkLive() {
+      fetch('/api/site-live')
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if (d.live) {
+            clearInterval(pollTimer);
+            triggerLivePreloader();
+          }
+        })
+        .catch(function(){});
+    }
+
+    // ── EPIC LIVE PRELOADER ───────────────────────────────────────────────────
+    var _preloaderFired = false;
+    function triggerLivePreloader() {
+      if (_preloaderFired) return;
+      _preloaderFired = true;
 
       // Fade out coming-soon
       var cs = document.getElementById('cs-main');
@@ -120,83 +237,194 @@
 
       setTimeout(function() {
         cs.style.display = 'none';
-        var overlay = document.getElementById('launch-overlay');
-        overlay.classList.add('show');
-        startConfetti();
+        var preloader = document.getElementById('live-preloader');
+        preloader.classList.add('show');
 
-        // Auto-redirect countdown
-        var sec = 8;
-        var interval = setInterval(function() {
+        // Start all the animations
+        initPreloaderCanvas();
+        animatePlane();
+        speakLive();
+
+        // Countdown to redirect
+        var sec = 7;
+        var redir = setInterval(function() {
           sec--;
-          var el = document.getElementById('redir-sec');
+          var el = document.getElementById('preload-sec');
           if (el) el.textContent = sec;
-          if (sec <= 0) { clearInterval(interval); goLive(); }
+          if (sec <= 0) { clearInterval(redir); window.location.href = '/'; }
         }, 1000);
-
-        // Tell server to disable coming soon mode
-        fetch('/api/launch-now', { method: 'POST' }).catch(function(){});
-      }, 400);
+      }, 500);
     }
 
-    function tick() {
-      var now  = Date.now();
-      var diff = Math.max(0, target - now);
-      var h    = Math.floor(diff / 3600000);
-      var m    = Math.floor((diff % 3600000) / 60000);
-      var s    = Math.floor((diff % 60000) / 1000);
-      var hEl = document.getElementById('cd-h');
-      var mEl = document.getElementById('cd-m');
-      var sEl = document.getElementById('cd-s');
-      if (hEl) hEl.textContent = String(h).padStart(2,'0');
-      if (mEl) mEl.textContent = String(m).padStart(2,'0');
-      if (sEl) sEl.textContent = String(s).padStart(2,'0');
-      if (diff === 0) startCelebration();
-    }
-    tick();
-    setInterval(tick, 1000);
+    // ── PLANE ANIMATION ───────────────────────────────────────────────────────
+    function animatePlane() {
+      var plane    = document.getElementById('plane-el');
+      var banner   = document.getElementById('sky-banner');
+      var scene    = document.getElementById('plane-scene');
+      var W        = window.innerWidth;
+      var sceneTop = window.innerHeight * 0.22;
+      scene.style.top = sceneTop + 'px';
+      scene.style.height = '80px';
 
-    // ── CONFETTI ──
-    function startConfetti() {
-      var canvas = document.getElementById('confetti-canvas');
-      var ctx = canvas.getContext('2d');
-      canvas.width = window.innerWidth;
+      var x        = -140;
+      var bannerShown = false;
+      var startTime = performance.now();
+      var duration  = 3800; // ms to cross the screen
+
+      function step(now) {
+        var progress = Math.min(1, (now - startTime) / duration);
+        x = -140 + (W + 300) * progress;
+        var bob = Math.sin(progress * Math.PI * 4) * 8;
+        plane.style.left = x + 'px';
+        plane.style.top  = (20 + bob) + 'px';
+
+        // Show banner once plane is ~100px into screen
+        if (x > 20 && !bannerShown) {
+          bannerShown = true;
+          banner.style.opacity = '1';
+        }
+        if (bannerShown) {
+          banner.style.left = (x - 4) + 'px'; // banner trails right behind
+          banner.style.top  = (42 + bob) + 'px';
+        }
+
+        // Spawn trail particles
+        if (Math.random() < 0.4 && x > 0 && x < W) {
+          spawnTrail(x - 10, sceneTop + 20 + bob);
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          // Plane gone — run again after short pause
+          setTimeout(animatePlane, 1200);
+          banner.style.opacity = '0';
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    // ── CANVAS: confetti + trail particles ────────────────────────────────────
+    var _particles = [];
+
+    function spawnTrail(x, y) {
+      for (var i = 0; i < 3; i++) {
+        _particles.push({
+          x: x + (Math.random() - 0.5) * 12,
+          y: y + (Math.random() - 0.5) * 8,
+          r: Math.random() * 4 + 1,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: Math.random() * 2 + 0.5,
+          life: 1,
+          decay: 0.04 + Math.random() * 0.03,
+          color: ['#5EC213','#39FF14','#fff','#fbbf24'][Math.floor(Math.random()*4)]
+        });
+      }
+    }
+
+    function initPreloaderCanvas() {
+      var canvas = document.getElementById('preload-canvas');
+      var ctx    = canvas.getContext('2d');
+      canvas.width  = window.innerWidth;
       canvas.height = window.innerHeight;
 
-      var colors = ['#5EC213','#39FF14','#fff','#fbbf24','#a78bfa','#38bdf8'];
-      var pieces = [];
-      for (var i = 0; i < 180; i++) {
-        pieces.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height - canvas.height,
-          w: Math.random() * 10 + 5,
-          h: Math.random() * 5 + 3,
+      // Burst confetti at start
+      var confetti = [];
+      var colors   = ['#5EC213','#39FF14','#ffffff','#fbbf24','#a78bfa','#38bdf8','#f472b6'];
+      for (var i = 0; i < 220; i++) {
+        confetti.push({
+          x:   Math.random() * canvas.width,
+          y:   Math.random() * canvas.height - canvas.height,
+          w:   Math.random() * 11 + 4,
+          h:   Math.random() * 6 + 3,
           color: colors[Math.floor(Math.random() * colors.length)],
-          rot: Math.random() * 360,
-          vx: (Math.random() - 0.5) * 3,
-          vy: Math.random() * 4 + 2,
-          vr: (Math.random() - 0.5) * 8,
+          rot:  Math.random() * 360,
+          vx:  (Math.random() - 0.5) * 3,
+          vy:  Math.random() * 4.5 + 2,
+          vr:  (Math.random() - 0.5) * 9,
+          alpha: 1
         });
       }
 
-      var frame;
-      function draw() {
+      function drawFrame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        pieces.forEach(function(p) {
+
+        // Draw confetti
+        confetti.forEach(function(p) {
           ctx.save();
+          ctx.globalAlpha = p.alpha;
           ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
           ctx.rotate(p.rot * Math.PI / 180);
           ctx.fillStyle = p.color;
           ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
           ctx.restore();
           p.x += p.vx; p.y += p.vy; p.rot += p.vr;
-          if (p.y > canvas.height + 20) { p.y = -20; p.x = Math.random() * canvas.width; }
+          if (p.y > canvas.height + 20) { p.y = -20; p.x = Math.random() * canvas.width; p.alpha = Math.random() * 0.6 + 0.4; }
         });
-        frame = requestAnimationFrame(draw);
+
+        // Draw trail particles
+        for (var i = _particles.length - 1; i >= 0; i--) {
+          var pt = _particles[i];
+          ctx.save();
+          ctx.globalAlpha = pt.life;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2);
+          ctx.fillStyle = pt.color;
+          ctx.fill();
+          ctx.restore();
+          pt.x += pt.vx; pt.y += pt.vy; pt.life -= pt.decay;
+          if (pt.life <= 0) _particles.splice(i, 1);
+        }
+
+        requestAnimationFrame(drawFrame);
       }
-      draw();
-      // Stop confetti after 10s
-      setTimeout(function() { cancelAnimationFrame(frame); ctx.clearRect(0,0,canvas.width,canvas.height); }, 10000);
+      drawFrame();
+
+      // Stop confetti after 10s (trail keeps going while plane flies)
+      setTimeout(function() { confetti.length = 0; }, 10000);
     }
+
+    // ── VOICE ─────────────────────────────────────────────────────────────────
+    function speakLive() {
+      if (!window.speechSynthesis) return;
+      // Short delay so the preloader is visible first
+      setTimeout(function() {
+        var msg = new SpeechSynthesisUtterance('Onboard 3 is now live! Welcome, Raider. Let\'s go!');
+        msg.volume = 0.28;
+        msg.rate   = 0.92;
+        msg.pitch  = 1.05;
+        // Prefer a non-default voice if available
+        var voices = window.speechSynthesis.getVoices();
+        var preferred = voices.find(function(v) {
+          return v.lang === 'en-US' && v.name.toLowerCase().indexOf('google') !== -1;
+        });
+        if (!preferred) preferred = voices.find(function(v){ return v.lang.startsWith('en'); });
+        if (preferred) msg.voice = preferred;
+        window.speechSynthesis.speak(msg);
+      }, 600);
+    }
+
+    // Also if voices load late
+    if (window.speechSynthesis && window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = function() {};
+    }
+
+    // ── If page loads and site is already live (admin flipped switch) ─────────
+    fetch('/api/site-live')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d.live) {
+          // Admin already turned it on — trigger preloader right away
+          triggerLivePreloader();
+        } else if (Date.now() >= TARGET) {
+          // Countdown already passed on page load
+          onCountdownFinished();
+        }
+      })
+      .catch(function(){
+        // No network — fall back to countdown check
+        if (Date.now() >= TARGET) onCountdownFinished();
+      });
   </script>
 </body>
 </html>

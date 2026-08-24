@@ -106,29 +106,20 @@ app.use(async (req, res, next) => {
       _csCache = job ? job.comingSoonMode : false;
       _csCacheAt = now;
     }
-    // Auto-disable coming soon after 10am WAT Aug 24 2026
-    const LAUNCH_TIME = new Date('2026-08-24T10:00:00+01:00').getTime();
-    if (_csCache && Date.now() >= LAUNCH_TIME) {
-      const BulkMailJob = require('./models/BulkMailJob');
-      await BulkMailJob.collection.updateOne({}, { $set: { comingSoonMode: false } });
-      _csCache = false;
-    }
     if (_csCache) return res.render('coming-soon');
   } catch (_) {}
   next();
 });
 
-// POST /api/launch-now — called by coming-soon page at 10am to flip the switch
-app.post('/api/launch-now', async (req, res) => {
+// GET /api/site-live — polled by coming-soon page to detect when admin flips the switch
+app.get('/api/site-live', async (req, res) => {
   try {
-    const LAUNCH_TIME = new Date('2026-08-24T10:00:00+01:00').getTime();
-    if (Date.now() < LAUNCH_TIME - 60000) return res.status(403).json({ ok: false }); // not yet
     const BulkMailJob = require('./models/BulkMailJob');
-    await BulkMailJob.collection.updateOne({}, { $set: { comingSoonMode: false } });
-    _csCache = false;
-    res.json({ ok: true });
+    const job = await BulkMailJob.findOne().select('comingSoonMode').lean();
+    const csOn = job ? job.comingSoonMode : false;
+    res.json({ live: !csOn });
   } catch (e) {
-    res.status(500).json({ ok: false });
+    res.json({ live: false });
   }
 });
 
