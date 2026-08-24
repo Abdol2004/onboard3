@@ -802,7 +802,9 @@
                         var isCompleted = taskProgress && taskProgress.isCompleted;
                         var isPending   = taskProgress && taskProgress.approvalStatus === 'pending';
                         var isRejected  = taskProgress && taskProgress.approvalStatus === 'rejected';
-                        var isPreviousCompleted = index === 0 || userProgress.taskProgress[index - 1]?.isCompleted || (userProgress.taskProgress[index - 1]?.approvalStatus === 'pending');
+                        var prevTask = index > 0 ? quest.tasks[index - 1] : null;
+                        var prevTaskProgress = prevTask ? userProgress.taskProgress.find(function(tp) { return tp.taskId.toString() === prevTask._id.toString(); }) : null;
+                        var isPreviousCompleted = index === 0 || (prevTaskProgress && (prevTaskProgress.isCompleted || prevTaskProgress.approvalStatus === 'pending'));
                         var isLocked = !isPreviousCompleted && !isCompleted && !isPending;
                         var isActive = !isCompleted && !isLocked && !isPending;
                         var taskXp = task.xpReward || 0;

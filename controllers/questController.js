@@ -520,7 +520,20 @@ exports.submitTask = async (req, res) => {
     const allTasks = [...quest.tasks, ...(quest.dailyTasks || [])];
     const task = allTasks.find(t => t._id.toString() === taskId);
 
-    // Find the task in progress — auto-heal if missing (e.g. task added after user was approved)
+    // Sync taskProgress — remove stale entries for deleted tasks, add entries for new tasks
+    // This handles cases where tasks were changed after the user joined (e.g. after a quest reset)
+    const currentTaskIds = new Set(allTasks.map(t => t._id.toString()));
+    // Remove entries for tasks that no longer exist
+    userProgress.taskProgress = userProgress.taskProgress.filter(tp => currentTaskIds.has(tp.taskId.toString()));
+    // Add entries for tasks not yet tracked
+    allTasks.forEach(t => {
+      if (!userProgress.taskProgress.find(tp => tp.taskId.toString() === t._id.toString())) {
+        userProgress.taskProgress.push({ taskId: t._id, isCompleted: false });
+      }
+    });
+    userProgress.totalTasks = allTasks.length;
+
+    // Find the task in progress
     let taskProgress = userProgress.taskProgress.find(
       tp => tp.taskId.toString() === taskId
     );
@@ -532,7 +545,7 @@ exports.submitTask = async (req, res) => {
           message: "Task not found"
         });
       }
-      // Task exists in quest but not in user's progress — add it now
+      // Shouldn't reach here after sync above, but safety net
       userProgress.taskProgress.push({ taskId: task._id, isCompleted: false });
       userProgress.totalTasks = allTasks.length;
       taskProgress = userProgress.taskProgress[userProgress.taskProgress.length - 1];
