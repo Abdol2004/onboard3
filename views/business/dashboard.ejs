@@ -932,6 +932,21 @@
               <input class="p-input" id="nt_biz_btnlink" placeholder="https://..." style="font-size:.8125rem">
             </div>
           </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.625rem">
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Input Type</label>
+              <select class="p-input" id="nt_biz_input_type" style="font-size:.8125rem">
+                <option value="link">Link / URL</option>
+                <option value="text">Text</option>
+                <option value="file">File Upload</option>
+                <option value="none">No Input (button only)</option>
+              </select>
+            </div>
+            <div class="p-form-group" style="margin:0">
+              <label style="font-size:.8rem">Input Label</label>
+              <input class="p-input" id="nt_biz_input_label" placeholder="e.g. Your X post link" style="font-size:.8125rem">
+            </div>
+          </div>
           <div class="p-form-group" style="margin-bottom:.75rem">
             <label style="font-size:.8rem">Description</label>
             <input class="p-input" id="nt_biz_desc" placeholder="Short task instructions" style="font-size:.8125rem">
@@ -1664,7 +1679,9 @@ function submitBizAddTask() {
     taskType: document.getElementById('nt_biz_type').value,
     xpReward: parseInt(document.getElementById('nt_biz_xp').value) || 0,
     buttonText: document.getElementById('nt_biz_btntext').value.trim() || 'Complete',
-    buttonLink: document.getElementById('nt_biz_btnlink').value.trim()
+    buttonLink: document.getElementById('nt_biz_btnlink').value.trim(),
+    inputType: document.getElementById('nt_biz_input_type').value,
+    inputLabel: document.getElementById('nt_biz_input_label').value.trim()
   };
   fetch('/business/api/quest/' + currentQuestId + '/tasks', {
     method: 'POST',

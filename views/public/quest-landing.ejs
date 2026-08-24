@@ -527,6 +527,44 @@
     .sponsor-logo-circle img { width: 100%; height: 100%; object-fit: cover; }
     .sponsor-logo-name { font-size: .75rem; font-weight: 600; color: var(--text-2); }
 
+    /* Brand follow rows */
+    .brand-follow-row {
+      display: flex; align-items: center; gap: .875rem;
+      padding: .75rem 1rem; border-radius: 12px;
+      background: var(--surface2); border: 1px solid var(--border);
+      text-decoration: none; transition: border-color .2s, background .2s;
+    }
+    .brand-follow-row:hover { border-color: var(--border-green); background: rgba(57,255,20,.04); }
+    .brand-follow-icon {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: .9rem;
+      border: 1px solid transparent;
+    }
+    .brand-follow-name { font-size: .875rem; font-weight: 800; color: var(--text); }
+    .brand-follow-handle { font-size: .75rem; color: var(--text-3); font-weight: 600; }
+    .brand-follow-btn {
+      margin-left: auto; font-size: .75rem; font-weight: 800; color: var(--green);
+      white-space: nowrap; display: flex; align-items: center; gap: .3rem;
+    }
+
+    /* Comment guide */
+    .comment-structure {
+      padding: .875rem 1rem; background: rgba(57,255,20,.04);
+      border-left: 3px solid var(--green); border-radius: 0 10px 10px 0;
+      font-size: .8125rem; color: var(--text-2); line-height: 2;
+      font-style: italic;
+    }
+    .comment-structure strong { color: var(--green); font-style: normal; }
+
+    /* Brand rule notice */
+    .brand-rule {
+      display: flex; align-items: flex-start; gap: .625rem;
+      padding: .75rem 1rem; border-radius: 10px;
+      background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.2);
+      font-size: .8125rem; color: #fca5a5; margin-top: .875rem;
+    }
+    .brand-rule i { color: #ef4444; flex-shrink: 0; margin-top: .1rem; }
+
     @media (max-width: 640px) {
       .hero { padding: 3.5rem 1rem 1.5rem; }
       .card { padding: 1.25rem; }
@@ -709,7 +747,7 @@
         <% } else if (isPending) { %>
         <span class="badge badge-yellow" style="font-size:.72rem"><i class="fas fa-clock"></i> Under Review</span>
         <% } else { %>
-        <button class="btn btn-outline" style="font-size:.8125rem;padding:.5rem 1rem" onclick="openTaskModal('<%= tId %>','<%= task.title.replace(/'/g, "&#39;") %>')">
+        <button class="btn btn-outline" style="font-size:.8125rem;padding:.5rem 1rem" onclick="openTaskModal('<%= tId %>','<%= task.title.replace(/'/g, "&#39;") %>','<%= task.inputType || "link" %>','<%= (task.inputLabel || "").replace(/'/g, "&#39;") %>')">
           <i class="fas fa-arrow-up-from-bracket"></i> Submit
         </button>
         <% if (task.buttonLink) { %>
@@ -774,6 +812,59 @@
   </div>
 
   <div class="info-section">
+    <h3><i class="fab fa-x-twitter" style="color:var(--green);margin-right:.5rem"></i> Follow These Projects</h3>
+    <p style="color:var(--text-2);font-size:.875rem;margin-bottom:.875rem">You are raiding for these 3 projects. Follow them on X before completing any tasks.</p>
+    <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.875rem">
+      <a href="https://x.com/eyecoinHQ" target="_blank" rel="noopener noreferrer" class="brand-follow-row">
+        <div class="brand-follow-icon" style="background:rgba(57,255,20,.1);border-color:var(--border-green);color:var(--green)"><i class="fab fa-x-twitter"></i></div>
+        <div>
+          <div class="brand-follow-name">Eyecoin</div>
+          <div class="brand-follow-handle">@eyecoinHQ</div>
+        </div>
+        <div class="brand-follow-btn"><i class="fas fa-arrow-up-right-from-square"></i> Follow</div>
+      </a>
+      <a href="https://x.com/ginox_official" target="_blank" rel="noopener noreferrer" class="brand-follow-row">
+        <div class="brand-follow-icon" style="background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3);color:var(--blue)"><i class="fab fa-x-twitter"></i></div>
+        <div>
+          <div class="brand-follow-name">Ginox</div>
+          <div class="brand-follow-handle">@ginox_official</div>
+        </div>
+        <div class="brand-follow-btn"><i class="fas fa-arrow-up-right-from-square"></i> Follow</div>
+      </a>
+      <a href="https://x.com/stxbuzz" target="_blank" rel="noopener noreferrer" class="brand-follow-row">
+        <div class="brand-follow-icon" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:var(--yellow)"><i class="fab fa-x-twitter"></i></div>
+        <div>
+          <div class="brand-follow-name">StxBuzz</div>
+          <div class="brand-follow-handle">@stxbuzz</div>
+        </div>
+        <div class="brand-follow-btn"><i class="fas fa-arrow-up-right-from-square"></i> Follow</div>
+      </a>
+    </div>
+    <div class="brand-rule">
+      <i class="fas fa-triangle-exclamation"></i>
+      <span><strong>Never mention all 3 brands in a single comment.</strong> Each submission should focus on one brand at a time — mixing them looks spammy and won't earn extra XP.</span>
+    </div>
+  </div>
+
+  <div class="info-section">
+    <h3><i class="fas fa-pen-nib" style="color:var(--green);margin-right:.5rem"></i> Comment Guidelines</h3>
+    <ul class="bullet-list" style="margin-bottom:1rem">
+      <li><i class="fas fa-check-circle"></i> Write in your own voice — no AI-sounding or generic comments</li>
+      <li><i class="fas fa-check-circle"></i> Be personal and genuine — share your real opinion or experience</li>
+      <li><i class="fas fa-check-circle"></i> Well-structured comments earn extra XP from admin</li>
+      <li><i class="fas fa-times-circle" style="color:var(--red)"></i> Don't write a wall of text — quality beats quantity</li>
+      <li><i class="fas fa-times-circle" style="color:var(--red)"></i> Never mention all 3 brands together in one comment</li>
+    </ul>
+    <p style="font-size:.8125rem;font-weight:700;color:var(--text-2);margin-bottom:.5rem;letter-spacing:.5px;text-transform:uppercase">Default Comment Structure</p>
+    <div class="comment-structure">
+      <strong>Hook</strong> — Start with something that grabs attention (reaction, question, bold statement)<br>
+      <strong>Value add</strong> — Share a thought, insight, or genuine opinion about the project<br>
+      <strong>Call to action</strong> — End with why others should care or what they should do next
+    </div>
+    <p style="font-size:.75rem;color:var(--text-3);margin-top:.625rem"><i class="fas fa-star" style="color:var(--yellow)"></i> Comments that follow this structure and feel authentic earn extra XP.</p>
+  </div>
+
+  <div class="info-section">
     <h3><i class="fas fa-list-ol" style="color:var(--green);margin-right:.5rem"></i> How It Works</h3>
     <div class="how-steps">
       <div class="how-step">
@@ -825,15 +916,19 @@
   <div class="modal-box">
     <button class="modal-close" onclick="closeTaskModal()"><i class="fas fa-times"></i></button>
     <div class="modal-title" id="modalTaskTitle">Submit Task</div>
-    <p style="color:var(--text-2);font-size:.875rem;margin-bottom:1.25rem">Provide your submission link or proof below.</p>
+    <p style="color:var(--text-2);font-size:.875rem;margin-bottom:1.25rem" id="modalDesc">Provide your submission link or proof below.</p>
     <input type="hidden" id="modalTaskId">
-    <div class="form-group">
-      <label class="form-label">Submission Link or Text</label>
+    <div class="form-group" id="modalLinkGroup">
+      <label class="form-label" id="modalLinkLabel">Submission Link</label>
       <input type="text" id="modalSubmissionUrl" class="form-input" placeholder="https://...">
     </div>
-    <div class="form-group">
+    <div class="form-group" id="modalTextGroup" style="display:none">
+      <label class="form-label" id="modalTextLabel">Your Submission</label>
+      <textarea id="modalSubmissionText" class="form-input" rows="4" placeholder="Write your submission here..." style="resize:vertical;min-height:100px"></textarea>
+    </div>
+    <div class="form-group" id="modalNotesGroup">
       <label class="form-label">Additional Notes (optional)</label>
-      <input type="text" id="modalSubmissionText" class="form-input" placeholder="Any context or notes">
+      <input type="text" id="modalSubmissionNotes" class="form-input" placeholder="Any context or notes">
     </div>
     <div class="msg msg-error" id="modalError"></div>
     <div class="msg msg-success" id="modalOk"><i class="fas fa-check-circle"></i> Submitted! Under review.</div>
@@ -947,16 +1042,43 @@ function submitApplication() {
 
 // ── Task modal ────────────────────────────────────────────────────
 var _currentTaskId = null;
-function openTaskModal(taskId, taskTitle) {
-  _currentTaskId = taskId;
-  document.getElementById('modalTaskId').value    = taskId;
+var _currentInputType = 'link';
+function openTaskModal(taskId, taskTitle, inputType, inputLabel) {
+  _currentTaskId   = taskId;
+  _currentInputType = inputType || 'link';
+  document.getElementById('modalTaskId').value = taskId;
   document.getElementById('modalTaskTitle').textContent = 'Submit: ' + taskTitle;
-  document.getElementById('modalSubmissionUrl').value   = '';
-  document.getElementById('modalSubmissionText').value  = '';
+  document.getElementById('modalSubmissionUrl').value  = '';
+  document.getElementById('modalSubmissionText').value = '';
+  document.getElementById('modalSubmissionNotes').value = '';
   document.getElementById('modalError').classList.remove('show');
   document.getElementById('modalOk').classList.remove('show');
   document.getElementById('modalSubmitBtn').disabled = false;
   document.getElementById('modalSubmitBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
+
+  var linkGroup  = document.getElementById('modalLinkGroup');
+  var textGroup  = document.getElementById('modalTextGroup');
+  var notesGroup = document.getElementById('modalNotesGroup');
+  var descEl     = document.getElementById('modalDesc');
+
+  linkGroup.style.display  = 'none';
+  textGroup.style.display  = 'none';
+  notesGroup.style.display = 'none';
+
+  if (_currentInputType === 'none') {
+    descEl.textContent = 'Click Submit to confirm you completed this task.';
+  } else if (_currentInputType === 'text') {
+    textGroup.style.display = 'block';
+    document.getElementById('modalTextLabel').textContent = inputLabel || 'Your Submission';
+    descEl.textContent = 'Write your submission below.';
+  } else {
+    // link or file — use URL input (file upload via URL for now)
+    linkGroup.style.display  = 'block';
+    notesGroup.style.display = 'block';
+    document.getElementById('modalLinkLabel').textContent = inputLabel || 'Submission Link';
+    descEl.textContent = 'Provide your submission link or proof below.';
+  }
+
   document.getElementById('taskModal').classList.add('open');
 }
 function closeTaskModal() {
@@ -969,17 +1091,22 @@ document.getElementById('taskModal').addEventListener('click', function(e) {
 });
 
 function submitTask() {
-  var taskId   = _currentTaskId;
-  var url      = (document.getElementById('modalSubmissionUrl').value  || '').trim();
-  var text     = (document.getElementById('modalSubmissionText').value || '').trim();
-  var btn      = document.getElementById('modalSubmitBtn');
-  var errEl    = document.getElementById('modalError');
-  var okEl     = document.getElementById('modalOk');
+  var taskId = _currentTaskId;
+  var url = '', text = '';
+  if (_currentInputType === 'text') {
+    text = (document.getElementById('modalSubmissionText').value || '').trim();
+  } else if (_currentInputType !== 'none') {
+    url  = (document.getElementById('modalSubmissionUrl').value   || '').trim();
+    text = (document.getElementById('modalSubmissionNotes').value || '').trim();
+  }
+  var btn   = document.getElementById('modalSubmitBtn');
+  var errEl = document.getElementById('modalError');
+  var okEl  = document.getElementById('modalOk');
   errEl.classList.remove('show');
   okEl.classList.remove('show');
 
-  if (!url && !text) {
-    errEl.innerHTML = '<i class="fas fa-circle-xmark"></i> Please provide a submission link or text.';
+  if (_currentInputType !== 'none' && !url && !text) {
+    errEl.innerHTML = '<i class="fas fa-circle-xmark"></i> Please provide a submission.';
     errEl.classList.add('show');
     return;
   }

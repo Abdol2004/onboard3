@@ -44,6 +44,11 @@ const taskSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  inputType: {
+    type: String,
+    enum: ['text', 'link', 'file', 'none'],
+    default: 'link'
+  },
   requirements: {
     url: String,
     platform: String,
