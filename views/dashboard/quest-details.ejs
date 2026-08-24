@@ -1044,6 +1044,7 @@
             </div>
             <form id="taskSubmitForm">
                 <div id="taskInputContainer"></div>
+                <div id="taskSubmitError" style="display:none;margin-top:.875rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);border-radius:12px;padding:.875rem 1rem;color:#f87171;font-size:.84rem;line-height:1.5"></div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeTaskModal()"><i class="fas fa-times"></i> Cancel</button>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Submit Task</button>
@@ -1259,6 +1260,7 @@
                         '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
                 }
 
+                hideSubmitError();
                 document.getElementById('taskModal').style.display = 'flex';
                 setTimeout(function() { const inp = document.getElementById('taskInput'); if (inp) inp.focus(); }, 100);
             } catch (error) {
@@ -1335,7 +1337,25 @@
         function closeTaskModal() {
             document.getElementById('taskModal').style.display = 'none';
             document.getElementById('taskSubmitForm').reset();
+            hideSubmitError();
             currentTaskId = null; currentQuestId = null;
+        }
+
+        function showSubmitError(msg, details) {
+            var box = document.getElementById('taskSubmitError');
+            var html = '<strong><i class="fas fa-exclamation-circle"></i> ' + msg + '</strong>';
+            if (details && details.length) {
+                html += '<ul style="margin:.5rem 0 0 1.1rem;padding:0">' +
+                    details.map(function(d){ return '<li style="margin-top:.25rem">' + d + '</li>'; }).join('') + '</ul>';
+            }
+            box.innerHTML = html;
+            box.style.display = '';
+            box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function hideSubmitError() {
+            var box = document.getElementById('taskSubmitError');
+            if (box) { box.style.display = 'none'; box.innerHTML = ''; }
         }
 
         function filterLeaderboard() {
@@ -1361,25 +1381,31 @@
 
         document.getElementById('taskSubmitForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            if (!currentTaskId || !currentQuestId) { showToast('Error: Task information missing','error'); return; }
+            hideSubmitError();
+
+            if (!currentTaskId || !currentQuestId) {
+                showSubmitError('Task info missing — please close and reopen the task.');
+                return;
+            }
             const timeSpent = getTaskTimeSpent(currentTaskId);
             const alreadyClickedButton = hasClickedTaskButton(currentTaskId);
-            if (timeSpent < 5 && !alreadyClickedButton) { showToast('Please take a moment to review the task before submitting.','success'); return; }
-
-            // Block discord_join submission if user hasn't connected Discord
-            const activeBtn = document.querySelector('.submit-task-btn[data-task-id="' + currentTaskId + '"]');
-            if (activeBtn && activeBtn.getAttribute('data-task-type') === 'discord_join' && !userDiscordConnected) {
-                showToast('Connect your Discord account first','error');
+            if (timeSpent < 5 && !alreadyClickedButton) {
+                showSubmitError('Please take at least a few seconds to review the task before submitting.');
                 return;
             }
 
-            /* Validate image upload if task type requires it */
+            const activeBtn = document.querySelector('.submit-task-btn[data-task-id="' + currentTaskId + '"]');
+            if (activeBtn && activeBtn.getAttribute('data-task-type') === 'discord_join' && !userDiscordConnected) {
+                showSubmitError('Connect your Discord account first before submitting this task.');
+                return;
+            }
+
             const activeBtn2 = document.querySelector('.submit-task-btn[data-task-id="' + currentTaskId + '"]');
             const activeTaskType = activeBtn2 ? activeBtn2.getAttribute('data-task-type') : '';
             if (activeTaskType === 'image_upload') {
                 const imgBase64 = document.getElementById('imgBase64');
                 if (!imgBase64 || !imgBase64.value) {
-                    showToast('Please upload a screenshot as proof', 'error');
+                    showSubmitError('Please upload a screenshot as proof before submitting.');
                     return;
                 }
             }
@@ -1393,7 +1419,6 @@
                 verification: formData.get('verification') || '',
                 timeSpent
             };
-            /* For image uploads, embed base64 in submissionData */
             const imgB64 = formData.get('imgBase64');
             if (imgB64) submitData.submissionData.image = imgB64;
             for (let [key, value] of formData.entries()) {
@@ -1411,18 +1436,28 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(submitData)
                 });
+
+                if (!response.ok && response.status === 401) {
+                    showSubmitError('Your session has expired. Please refresh the page and log in again.');
+                    submitBtn.innerHTML = orig; submitBtn.disabled = false;
+                    return;
+                }
+
                 const data = await response.json();
+
                 if (data.success) {
                     localStorage.removeItem('taskClick_' + currentTaskId);
                     localStorage.removeItem('taskTimer_' + currentTaskId);
                     delete taskClickTracking[currentTaskId];
                     delete taskStartTime[currentTaskId];
                     closeTaskModal();
-                    if (data.isQuestCompleted) {
-                        let msg = 'Quest Completed! You earned ' + data.rewards.xp + ' XP';
-                        if (data.rewards.usdc > 0) msg += ' and $' + data.rewards.usdc + ' USDC';
-                        alert(msg);
-                    } else { showToast('Task submitted!','success'); }
+                    if (data.pending) {
+                        showToast('Submission received — pending review', 'success');
+                    } else if (data.isQuestCompleted) {
+                        showToast('Quest Completed! You earned ' + data.rewards.xp + ' XP', 'success');
+                    } else {
+                        showToast('Task submitted!', 'success');
+                    }
                     window.location.reload();
                 } else if (data.requiresConnection) {
                     closeTaskModal();
@@ -1434,17 +1469,21 @@
                         banner.innerHTML = '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:1.25rem 1.375rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap"><i class="fas fa-lock" style="color:#f87171;font-size:1.125rem;flex-shrink:0"></i><div style="flex:1"><p style="font-size:.875rem;font-weight:700;color:var(--text);margin-bottom:.35rem">Social connection required</p><p style="font-size:.8125rem;color:var(--text-2)">' + data.message + '</p></div><div style="display:flex;gap:.5rem;flex-wrap:wrap">' + parts.join('') + '</div></div>';
                         banner.scrollIntoView({ behavior:'smooth', block:'center' });
                     }
+                } else if (data.requiresFollow && data.targetAccount) {
+                    showSubmitError(data.message, ['Tap below to follow @' + data.targetAccount + ', then submit again.']);
+                    submitBtn.innerHTML = '<a href="https://x.com/' + data.targetAccount + '" target="_blank" style="color:inherit;text-decoration:none"><i class="fab fa-x-twitter"></i> Follow @' + data.targetAccount + '</a>';
+                    submitBtn.disabled = false;
+                } else if (data.requiresTwitterConnect) {
+                    showSubmitError(data.message, ['<a href="/dashboard/connect-twitter?redirect=' + encodeURIComponent(window.location.pathname) + '" style="color:#5EC213;font-weight:700">Connect your X account</a> then try again.']);
+                    submitBtn.innerHTML = orig; submitBtn.disabled = false;
                 } else {
-                    if (data.requiresFollow && data.targetAccount) {
-                        if (confirm(`${data.message}\n\nOpen @${data.targetAccount}'s profile to follow them?`)) window.open(`https://x.com/${data.targetAccount}`, '_blank');
-                    } else if (data.requiresTwitterConnect) {
-                        if (confirm(`${data.message}\n\nConnect your X account now?`)) window.location.href = '/dashboard/connect-twitter?redirect=' + encodeURIComponent(window.location.pathname);
-                    } else { alert(data.message || 'Failed to submit task'); }
+                    var errDetails = data.errors && data.errors.length ? data.errors : null;
+                    showSubmitError(data.message || 'Submission failed. Please try again.', errDetails);
                     submitBtn.innerHTML = orig; submitBtn.disabled = false;
                 }
             } catch (error) {
-                console.error('Error:', error);
-                showToast('Error submitting task. Please try again.','error');
+                console.error('Submit error:', error);
+                showSubmitError('Network error — check your connection and try again. (' + (error.message || 'unknown') + ')');
                 submitBtn.innerHTML = orig; submitBtn.disabled = false;
             }
         });
