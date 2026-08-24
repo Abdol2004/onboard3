@@ -88,6 +88,8 @@ tr:hover td{background:rgba(255,255,255,.025)}
   <button class="btn btn-outline" disabled><i class="fas fa-check-circle"></i> All rewards distributed</button>
   <% } %>
   <button class="btn btn-outline" onclick="location.reload()"><i class="fas fa-rotate-right"></i> Refresh</button>
+  <button class="btn" style="background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.25)" onclick="fixManualOverrides()"><i class="fas fa-wrench"></i> Fix Manual Overrides</button>
+  <button class="btn" style="background:rgba(94,194,19,.1);color:#5EC213;border:1px solid rgba(94,194,19,.25)" onclick="document.getElementById('creditModal').style.display='flex'"><i class="fas fa-plus-circle"></i> Credit User Balance</button>
   <% if (stats.failed > 0) { %>
   <button class="btn btn-danger" onclick="retryFailed()"><i class="fas fa-redo"></i> Retry <%= stats.failed %> Failed</button>
   <% } %>
@@ -117,11 +119,12 @@ tr:hover td{background:rgba(255,255,255,.025)}
         <th>Wallet</th>
         <th>Status</th>
         <th>TX</th>
+        <th>Edit</th>
       </tr>
     </thead>
     <tbody id="rewardTable">
     <% rewards.forEach((r, i) => { %>
-    <tr data-status="<%= r.status %>">
+    <tr data-status="<%= r.status %>" id="rrow-<%= r._id %>">
       <td style="color:var(--t3)"><%= i+1 %></td>
       <td>
         <div style="font-weight:700">@<%= r.username %></div>
@@ -153,6 +156,10 @@ tr:hover td{background:rgba(255,255,255,.025)}
           <a href="https://solscan.io/tx/<%= r.txSignature %>" target="_blank" class="tx-link"><%= r.txSignature.slice(0,8) %>...</a>
         <% } else { %><span style="color:var(--t3)">—</span><% } %>
       </td>
+      <td style="display:flex;gap:.35rem;align-items:center">
+        <button onclick="openEditReward('<%= r._id %>','<%= r.amount %>','<%= r.tier %>','<%= r.status %>')" title="Edit amount/tier" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#aaa;border-radius:6px;padding:.25rem .6rem;font-size:.72rem;font-weight:700;cursor:pointer"><i class="fas fa-pen"></i></button>
+        <button onclick="openResetReward('<%= r._id %>','<%= r.username %>','<%= r.amount %>')" title="Reset — user redoes welcome task" style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:#fbbf24;border-radius:6px;padding:.25rem .6rem;font-size:.72rem;font-weight:700;cursor:pointer"><i class="fas fa-rotate-left"></i></button>
+      </td>
     </tr>
     <% }); %>
     </tbody>
@@ -165,7 +172,171 @@ tr:hover td{background:rgba(255,255,255,.025)}
 </div>
 <% } %>
 
+<!-- Direct credit modal -->
+<div id="creditModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
+  <div style="background:#0f140f;border:1px solid rgba(94,194,19,.25);border-radius:16px;padding:1.75rem;width:340px;max-width:95vw">
+    <h3 style="font-size:1rem;font-weight:800;margin-bottom:1.25rem;color:#5EC213"><i class="fas fa-plus-circle"></i> Credit User Balance</h3>
+    <div style="margin-bottom:1rem">
+      <label style="font-size:.75rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.35rem">Username</label>
+      <input id="cb_username" type="text" placeholder="e.g. defioyin" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#f0f0f0;border-radius:8px;padding:.6rem .75rem;font-family:'Outfit',sans-serif;font-size:.875rem">
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <label style="font-size:.75rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.35rem">Amount ($)</label>
+      <input id="cb_amount" type="number" step="0.01" min="0.01" placeholder="0.00" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#f0f0f0;border-radius:8px;padding:.6rem .75rem;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:700">
+    </div>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="saveCreditBalance()" style="flex:1;background:#5EC213;color:#000;border:none;border-radius:8px;padding:.65rem;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:800;cursor:pointer">Credit</button>
+      <button onclick="document.getElementById('creditModal').style.display='none'" style="flex:1;background:rgba(255,255,255,.06);color:#aaa;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.65rem;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:700;cursor:pointer">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset reward modal -->
+<div id="resetRewardModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
+  <div style="background:#0f140f;border:1px solid rgba(251,191,36,.25);border-radius:16px;padding:1.75rem;width:360px;max-width:95vw">
+    <h3 style="font-size:1rem;font-weight:800;margin-bottom:.5rem;color:#fbbf24"><i class="fas fa-rotate-left"></i> Reset for Redo</h3>
+    <p id="rr_desc" style="font-size:.8rem;color:#aaa;margin-bottom:1.25rem"></p>
+    <input type="hidden" id="rr_id">
+    <div style="margin-bottom:1.5rem">
+      <label style="font-size:.75rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.35rem">Corrected Amount ($)</label>
+      <input id="rr_amount" type="number" step="0.01" min="0" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#f0f0f0;border-radius:8px;padding:.6rem .75rem;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:700">
+    </div>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="saveResetReward()" style="flex:1;background:#fbbf24;color:#000;border:none;border-radius:8px;padding:.65rem;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:800;cursor:pointer">Reset & Save</button>
+      <button onclick="document.getElementById('resetRewardModal').style.display='none'" style="flex:1;background:rgba(255,255,255,.06);color:#aaa;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.65rem;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:700;cursor:pointer">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit reward modal -->
+<div id="editRewardModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center">
+  <div style="background:#0f140f;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:1.75rem;width:340px;max-width:95vw">
+    <h3 style="font-size:1rem;font-weight:800;margin-bottom:1.25rem;color:#f0f0f0"><i class="fas fa-pen" style="color:#5EC213"></i> Edit Reward</h3>
+    <div id="er_sent_note" style="display:none;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);color:#fbbf24;border-radius:8px;padding:.5rem .75rem;font-size:.75rem;font-weight:700;margin-bottom:1rem"><i class="fas fa-info-circle"></i> Already sent — saving will credit/debit the difference to their balance.</div>
+    <input type="hidden" id="er_id">
+    <div style="margin-bottom:1rem">
+      <label style="font-size:.75rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.35rem">Amount ($)</label>
+      <input id="er_amount" type="number" step="0.01" min="0" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#f0f0f0;border-radius:8px;padding:.6rem .75rem;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:700">
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <label style="font-size:.75rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.35rem">Tier</label>
+      <select id="er_tier" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#f0f0f0;border-radius:8px;padding:.6rem .75rem;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:700">
+        <option value="new">new ($0.10)</option>
+        <option value="active">active ($0.50)</option>
+        <option value="engaged">engaged ($1.00)</option>
+        <option value="power">power ($2.00)</option>
+        <option value="og">og ($3.00)</option>
+        <option value="custom">custom</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="saveEditReward()" style="flex:1;background:#5EC213;color:#000;border:none;border-radius:8px;padding:.65rem;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:800;cursor:pointer">Save</button>
+      <button onclick="document.getElementById('editRewardModal').style.display='none'" style="flex:1;background:rgba(255,255,255,.06);color:#aaa;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.65rem;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:700;cursor:pointer">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
+async function saveCreditBalance() {
+  var username = document.getElementById('cb_username').value.trim();
+  var amount = parseFloat(document.getElementById('cb_amount').value);
+  if (!username) { alert('Enter a username'); return; }
+  if (isNaN(amount) || amount <= 0) { alert('Enter a valid amount'); return; }
+  if (!confirm('Credit $' + amount.toFixed(2) + ' to @' + username + '?')) return;
+  var r = await fetch('/admin/api/users/credit-balance', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, amount })
+  });
+  var d = await r.json();
+  if (d.ok) {
+    document.getElementById('creditModal').style.display = 'none';
+    document.getElementById('cb_username').value = '';
+    document.getElementById('cb_amount').value = '';
+    alert('Done! $' + d.credited.toFixed(2) + ' credited to @' + d.username + '. New balance: $' + d.newBalance.toFixed(2));
+  } else {
+    alert('Error: ' + (d.error || 'unknown'));
+  }
+}
+
+async function fixManualOverrides() {
+  if (!confirm('Scan all MANUAL override users and reset anyone who got less than their intended amount? They will need to redo the welcome task to collect the corrected reward.')) return;
+  var r = await fetch('/admin/api/launch-rewards/fix-manual-overrides', { method: 'POST', headers: { 'Accept': 'application/json' } });
+  var d = await r.json();
+  if (d.ok) {
+    if (d.fixed.length === 0) {
+      alert('All manual override users already have the correct amounts. Nothing to fix.');
+    } else {
+      var lines = d.fixed.map(function(f) { return '@' + f.username + ': $' + f.was.toFixed(2) + ' → $' + f.now.toFixed(2); }).join('\n');
+      alert('Fixed ' + d.fixed.length + ' user(s):\n\n' + lines + '\n\nThey can now redo the welcome task to collect the correct amount.');
+      location.reload();
+    }
+  } else {
+    alert('Error: ' + (d.error || 'unknown'));
+  }
+}
+
+function openResetReward(id, username, currentAmount) {
+  document.getElementById('rr_id').value = id;
+  document.getElementById('rr_amount').value = parseFloat(currentAmount).toFixed(2);
+  document.getElementById('rr_desc').textContent = 'Set the corrected reward for @' + username + '. Their launchDayCompleted will be reset — they will receive this amount automatically when they redo the welcome task.';
+  document.getElementById('resetRewardModal').style.display = 'flex';
+}
+async function saveResetReward() {
+  var id = document.getElementById('rr_id').value;
+  var amount = parseFloat(document.getElementById('rr_amount').value);
+  if (isNaN(amount) || amount <= 0) { alert('Enter a valid amount'); return; }
+  var r = await fetch('/admin/api/launch-rewards/' + id + '/reset', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount })
+  });
+  var d = await r.json();
+  if (d.ok) {
+    document.getElementById('resetRewardModal').style.display = 'none';
+    alert('Done. User can now redo the welcome task and will be credited $' + amount.toFixed(2) + '.');
+    location.reload();
+  } else {
+    alert('Error: ' + (d.error || 'unknown'));
+  }
+}
+
+var _erStatus = '';
+function openEditReward(id, amount, tier, status) {
+  document.getElementById('er_id').value = id;
+  document.getElementById('er_amount').value = parseFloat(amount).toFixed(2);
+  document.getElementById('er_tier').value = tier;
+  _erStatus = status || '';
+  var note = document.getElementById('er_sent_note');
+  note.style.display = status === 'sent' ? '' : 'none';
+  document.getElementById('editRewardModal').style.display = 'flex';
+}
+async function saveEditReward() {
+  var id = document.getElementById('er_id').value;
+  var amount = parseFloat(document.getElementById('er_amount').value);
+  var tier = document.getElementById('er_tier').value;
+  if (isNaN(amount) || amount < 0) { alert('Invalid amount'); return; }
+  var r = await fetch('/admin/api/launch-rewards/' + id, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount, tier })
+  });
+  var d = await r.json();
+  if (d.ok) {
+    document.getElementById('editRewardModal').style.display = 'none';
+    var row = document.getElementById('rrow-' + id);
+    if (row) {
+      row.querySelectorAll('td')[2].textContent = '$' + amount.toFixed(2);
+      row.querySelectorAll('td')[3].querySelector('.badge').textContent = tier;
+    }
+    var msg = 'Reward updated.';
+    if (d.diff && d.diff !== 0) msg += ' Balance adjusted by $' + d.diff.toFixed(2) + '.';
+    alert(msg);
+  } else {
+    alert('Error: ' + (d.error || 'unknown'));
+  }
+}
+
 function filter(status, btn) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
