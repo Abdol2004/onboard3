@@ -1217,6 +1217,15 @@
                 '<p style="color:var(--text-2);font-size:.875rem">Click Submit to confirm you\'ve completed the required action.</p>' +
                 '</div>';
 
+        } else if (inputLabel && inputName) {
+            if (titleEl) titleEl.innerHTML = '<i class="fas fa-paper-plane"></i> Submit: ' + taskTitle;
+            if (subEl) subEl.textContent = inputLabel;
+            container.innerHTML = reminderHtml +
+                '<label style="display:block;font-size:.8125rem;font-weight:700;color:var(--text-2);margin-bottom:.4rem"><i class="fas fa-edit" style="color:var(--green)"></i> ' + inputLabel + '</label>' +
+                '<input type="text" id="qs_customInput" data-field-name="' + inputName.replace(/"/g,'&quot;') + '" placeholder="Enter ' + inputLabel.toLowerCase() + '" autocomplete="off" autocorrect="off" autocapitalize="off" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--text);font-family:Outfit,sans-serif;font-size:.9rem;padding:.75rem 1rem;outline:none" onfocus="this.style.borderColor=\'rgba(94,194,19,.5)\'" onblur="this.style.borderColor=\'rgba(255,255,255,.12)\'">' +
+                '<small style="color:var(--text-3);font-size:.75rem;margin-top:.4rem;display:block">Type your ' + inputLabel.toLowerCase() + ' and tap <strong style="color:var(--green)">Submit Task</strong></small>';
+            setTimeout(function() { var el = document.getElementById('qs_customInput'); if (el) { el.focus(); el.select(); } }, 120);
+
         } else if (taskType === 'submission') {
             if (titleEl) titleEl.innerHTML = '<i class="fas fa-link"></i> Submit: ' + taskTitle;
             if (subEl) subEl.textContent = 'Paste the link to your work below';
@@ -1265,15 +1274,6 @@
                 'We\'ll verify <strong style="color:var(--green)">' + userTwitterDisplay + '</strong> follows <strong style="color:#1DA1F2">@' + twitterFollowTarget + '</strong></p>' +
                 '<div style="background:rgba(255,255,255,0.04);padding:.875rem;border-radius:10px;font-size:.8rem;color:var(--text-3)">' +
                 '<i class="fas fa-shield-alt" style="color:var(--green)"></i> Secure OAuth verification</div></div>';
-
-        } else if (inputLabel && inputName) {
-            if (titleEl) titleEl.innerHTML = '<i class="fas fa-paper-plane"></i> Submit: ' + taskTitle;
-            if (subEl) subEl.textContent = inputLabel;
-            container.innerHTML = reminderHtml +
-                '<label style="display:block;font-size:.8125rem;font-weight:700;color:var(--text-2);margin-bottom:.4rem"><i class="fas fa-edit" style="color:var(--green)"></i> ' + inputLabel + '</label>' +
-                '<input type="text" id="qs_customInput" data-field-name="' + inputName.replace(/"/g,'&quot;') + '" placeholder="Enter ' + inputLabel.toLowerCase() + '" autocomplete="off" autocorrect="off" autocapitalize="off" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--text);font-family:Outfit,sans-serif;font-size:.9rem;padding:.75rem 1rem;outline:none" onfocus="this.style.borderColor=\'rgba(94,194,19,.5)\'" onblur="this.style.borderColor=\'rgba(255,255,255,.12)\'">' +
-                '<small style="color:var(--text-3);font-size:.75rem;margin-top:.4rem;display:block">Type your ' + inputLabel.toLowerCase() + ' and tap <strong style="color:var(--green)">Submit Task</strong></small>';
-            setTimeout(function() { var el = document.getElementById('qs_customInput'); if (el) { el.focus(); el.select(); } }, 120);
 
         } else {
             if (titleEl) titleEl.innerHTML = '<i class="fas fa-paper-plane"></i> Submit: ' + taskTitle;
@@ -1350,29 +1350,34 @@
             timeSpent:      0
         };
 
-        if (taskType === 'poll') {
-            var chosen = document.querySelector('input[name="pollChoice"]:checked');
-            if (!chosen) { showSubmitError('Please select a poll option.'); return; }
-            payload.submissionData.pollChoice = chosen.value;
+        /* Read payload by checking what's actually in the DOM — not taskType string */
+        var pollChosen = document.querySelector('input[name="pollChoice"]:checked');
+        var urlEl      = document.getElementById('qs_urlInput');
+        var customEl   = document.getElementById('qs_customInput');
+        var b64El      = document.getElementById('qs_imgBase64');
 
-        } else if (taskType === 'submission') {
-            var urlEl = document.getElementById('qs_urlInput');
-            payload.submissionUrl = urlEl ? urlEl.value.trim() : '';
+        if (pollChosen) {
+            payload.submissionData.pollChoice = pollChosen.value;
 
-        } else if (taskType === 'image_upload') {
-            var b64El = document.getElementById('qs_imgBase64');
-            if (!b64El || !b64El.value) { showSubmitError('Please upload a screenshot as proof before submitting.'); return; }
+        } else if (b64El && b64El.value) {
             payload.submissionData.image = b64El.value;
 
-        } else {
-            /* Custom input field (inputLabel/inputName) OR default (no input) */
-            var customEl = document.getElementById('qs_customInput');
-            if (customEl) {
-                var fieldName = customEl.getAttribute('data-field-name') || 'input';
-                var fieldVal  = customEl.value.trim();
-                payload.submissionData[fieldName] = fieldVal;
-            }
+        } else if (b64El && !b64El.value) {
+            /* image_upload modal is showing but no image selected */
+            showSubmitError('Please upload a screenshot as proof before submitting.');
+            return;
+
+        } else if (customEl) {
+            var fieldName = customEl.getAttribute('data-field-name') || 'input';
+            var fieldVal  = customEl.value.trim();
+            if (!fieldVal) { showSubmitError('Please fill in the required field before submitting.'); return; }
+            payload.submissionData[fieldName] = fieldVal;
+
+        } else if (urlEl) {
+            payload.submissionUrl = urlEl.value.trim();
+
         }
+        /* else: poll/discord/telegram/webhook/twitter — no extra input needed */
 
         /* Lock UI */
         var submitBtn   = document.getElementById('taskSubmitBtn');
