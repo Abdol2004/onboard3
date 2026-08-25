@@ -3208,6 +3208,19 @@ exports.distributeQuestRewards = async (req, res) => {
 
         await user.save();
 
+        // Feed event — show USDC award in community feed
+        try {
+          const FeedEvent = require('../models/FeedEvent');
+          const io        = req.app.get('io');
+          const ev = await new FeedEvent({
+            type: 'usdc_earned',
+            userId: user._id,
+            username: user.username,
+            data: { amount: parseFloat(amount), questTitle: quest.title }
+          }).save();
+          io?.emit('feed_event', { ...ev.toObject(), viewerLiked: false });
+        } catch (feedErr) { console.error('Feed event error (distribute):', feedErr.message); }
+
         // 👇 SEND EMAIL NOTIFICATION
         let emailSent = false;
         try {

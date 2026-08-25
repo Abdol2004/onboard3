@@ -3,6 +3,8 @@ const router  = express.Router();
 const multer  = require('multer');
 const path    = require('path');
 
+const User                = require('../models/User');
+const FeedEvent           = require('../models/FeedEvent');
 const Business            = require('../models/Business');
 const BusinessFundRequest = require('../models/BusinessFundRequest');
 const BusinessTransaction = require('../models/BusinessTransaction');
@@ -557,11 +559,35 @@ router.post('/api/quest/:id/disburse', businessAuth, async (req, res) => {
     }
 
     const perUser = Math.round(pool / winners.length * 100) / 100;
+    const io = req.app.get('io');
 
     await Promise.all(winners.map(async (w) => {
       w.usdcEarned    = perUser;
       w.rewardsClaimed = true;
       await w.save();
+
+      // Credit user balance + feed event
+      const userId = w.userId?._id || w.userId;
+      const userDoc = await User.findById(userId);
+      if (!userDoc) return;
+
+      userDoc.usdcBalance = Math.round(((userDoc.usdcBalance || 0) + perUser) * 100) / 100;
+      userDoc.recentActivity.unshift({
+        action: `Received $${perUser.toFixed(2)} USDC from quest: ${quest.title}`,
+        timestamp: new Date()
+      });
+      if (userDoc.recentActivity.length > 10) userDoc.recentActivity = userDoc.recentActivity.slice(0, 10);
+      await userDoc.save();
+
+      try {
+        const ev = await new FeedEvent({
+          type: 'usdc_earned',
+          userId: userDoc._id,
+          username: userDoc.username,
+          data: { amount: perUser, questTitle: quest.title }
+        }).save();
+        io?.emit('feed_event', { ...ev.toObject(), viewerLiked: false });
+      } catch (e) { console.error('Feed event error (disburse):', e.message); }
     }));
 
     quest.rewardsDistributed    = true;
