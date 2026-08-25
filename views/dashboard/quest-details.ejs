@@ -1071,6 +1071,55 @@
     var userDiscordConnected = <%= user.discordConnected ? 'true' : 'false' %>;
     var userDiscordUsername  = '<%= (user.discordUsername || "").replace(/'/g, "\\'") %>';
 
+    /* ══ SOUND SYSTEM (Web Audio API — no files needed) ══ */
+    var _ac = null;
+    function _getAC() {
+        if (!_ac) { try { _ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
+        /* iOS requires resume after user gesture */
+        if (_ac && _ac.state === 'suspended') { try { _ac.resume(); } catch(e) {} }
+        return _ac;
+    }
+    function _note(ctx, freq, startDelay, dur, vol, wave) {
+        try {
+            var o = ctx.createOscillator(), g = ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.type = wave || 'sine';
+            o.frequency.value = freq;
+            var t = ctx.currentTime + startDelay;
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(vol || 0.25, t + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+            o.start(t); o.stop(t + dur + 0.02);
+        } catch(e) {}
+    }
+    function playSound(type) {
+        var ctx = _getAC(); if (!ctx) return;
+        try {
+            if (type === 'click') {
+                _note(ctx, 900, 0, 0.04, 0.18, 'sine');
+            } else if (type === 'submit') {
+                _note(ctx, 440, 0,    0.08, 0.2, 'sine');
+                _note(ctx, 554, 0.07, 0.1,  0.2, 'sine');
+            } else if (type === 'success') {
+                _note(ctx, 523, 0,    0.12, 0.25, 'sine');
+                _note(ctx, 659, 0.1,  0.12, 0.25, 'sine');
+                _note(ctx, 784, 0.2,  0.18, 0.28, 'sine');
+            } else if (type === 'quest_complete') {
+                _note(ctx, 523,  0,    0.1,  0.3, 'sine');
+                _note(ctx, 659,  0.08, 0.1,  0.3, 'sine');
+                _note(ctx, 784,  0.16, 0.1,  0.3, 'sine');
+                _note(ctx, 1047, 0.24, 0.22, 0.35,'sine');
+                _note(ctx, 1319, 0.38, 0.28, 0.3, 'sine');
+            } else if (type === 'error') {
+                _note(ctx, 280, 0,    0.08, 0.2, 'sawtooth');
+                _note(ctx, 210, 0.1,  0.12, 0.2, 'sawtooth');
+            } else if (type === 'pending') {
+                _note(ctx, 523, 0,    0.1,  0.2, 'sine');
+                _note(ctx, 392, 0.12, 0.15, 0.2, 'sine');
+            }
+        } catch(e) {}
+    }
+
     /* ── Toast ── */
     function showToast(msg, type) {
         var ex = document.getElementById('globalToast');
@@ -1148,6 +1197,7 @@
 
     /* ── Called by task card Submit buttons ── */
     function handleSubmitClick(btn) {
+        playSound('click');
         var taskId           = btn.getAttribute('data-task-id');
         var questId          = btn.getAttribute('data-quest-id');
         var taskTitle        = btn.getAttribute('data-task-title');
@@ -1411,6 +1461,7 @@
         /* else: poll/discord/telegram/webhook/twitter — no extra input needed */
 
         /* Lock UI */
+        playSound('submit');
         var submitBtn   = document.getElementById('taskSubmitBtn');
         var origBtnHtml = submitBtn ? submitBtn.innerHTML : '';
         isSubmitting = true;
@@ -1437,10 +1488,13 @@
             if (data.success) {
                 closeTaskModal();
                 if (data.pending) {
+                    playSound('pending');
                     showToast('Submitted! Pending admin review — XP will be credited once approved.', 'success');
                 } else if (data.isQuestCompleted) {
+                    playSound('quest_complete');
                     showToast('Quest Completed! You earned ' + ((data.rewards && data.rewards.xp) || 0) + ' XP!', 'success');
                 } else {
+                    playSound('success');
                     showToast('Task done! +' + (data.taskXpEarned || 0) + ' XP earned', 'success');
                 }
                 setTimeout(function() { window.location.reload(); }, 1400);
@@ -1469,12 +1523,14 @@
                 showSubmitError(data.message || 'X account required.', ['<a href="/dashboard/connect-twitter?redirect=' + encodeURIComponent(window.location.pathname) + '" style="color:#5EC213;font-weight:700">Connect your X account</a> then try again.']);
 
             } else {
+                playSound('error');
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = origBtnHtml; }
                 var errDetails = (data.errors && data.errors.length) ? data.errors : null;
                 showSubmitError(data.message || 'Submission failed. Please try again.', errDetails);
             }
         })
         .catch(function(err) {
+            playSound('error');
             isSubmitting = false;
             if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = origBtnHtml; }
             var m = (err && err.message) ? err.message.toLowerCase() : '';
