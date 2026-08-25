@@ -486,41 +486,45 @@
                 <% } %>
 
                 <!-- Prize distribution -->
+                <% if (quest.prizeDistribution && quest.prizeDistribution.length) { %>
+                <%
+                  var _prizeTotal = 0;
+                  quest.prizeDistribution.forEach(function(t){ _prizeTotal += t.amount * (t.to - t.from + 1); });
+                  var _topWin = quest.prizeDistribution[quest.prizeDistribution.length-1].to;
+                  var _tierColors = [
+                    { text:'#fbbf24', bg:'rgba(251,191,36,.08)',   border:'rgba(251,191,36,.25)' },
+                    { text:'#9ca3af', bg:'rgba(156,163,175,.06)',  border:'rgba(156,163,175,.2)' },
+                    { text:'#cd7f32', bg:'rgba(180,120,60,.06)',   border:'rgba(180,120,60,.2)'  },
+                    { text:'#60a5fa', bg:'rgba(96,165,250,.06)',   border:'rgba(96,165,250,.2)'  },
+                    { text:'#a78bfa', bg:'rgba(167,139,250,.06)',  border:'rgba(167,139,250,.2)' }
+                  ];
+                  var _tierEmojis = ['🥇','🥈','🥉','🏅','🏅'];
+                  var _ord = function(n){ return n===1?'1st':n===2?'2nd':n===3?'3rd':n+'th'; };
+                %>
                 <div class="card" style="margin-bottom:1.5rem;background:linear-gradient(135deg,rgba(251,191,36,.05) 0%,rgba(0,0,0,0) 100%);border-color:rgba(251,191,36,.2)">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.125rem;flex-wrap:wrap;gap:.5rem">
                         <h3 style="font-size:1rem;font-weight:900;color:var(--text);display:flex;align-items:center;gap:.5rem">
-                            <i class="fas fa-trophy" style="color:#fbbf24"></i> $500 Prize Pool
+                            <i class="fas fa-trophy" style="color:#fbbf24"></i> $<%= _prizeTotal %> Prize Pool
                         </h3>
-                        <span style="font-size:.78rem;font-weight:700;color:#fbbf24;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);padding:.25rem .75rem;border-radius:50px">Top 30 Win</span>
+                        <span style="font-size:.78rem;font-weight:700;color:#fbbf24;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);padding:.25rem .75rem;border-radius:50px">Top <%= _topWin %> Win</span>
                     </div>
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem">
-                        <!-- Top 3 -->
-                        <div style="text-align:center;padding:1rem .75rem;border-radius:14px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25)">
-                            <div style="font-size:1.5rem;margin-bottom:.3rem">🥇</div>
-                            <div style="font-size:.75rem;font-weight:800;color:#fbbf24;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.25rem">Top 3</div>
-                            <div style="font-size:1.375rem;font-weight:900;color:#fbbf24;line-height:1">$100</div>
-                            <div style="font-size:.7rem;color:var(--text-3);margin-top:.25rem">shared equally</div>
-                            <div style="font-size:.75rem;font-weight:700;color:var(--text-2);margin-top:.4rem">~$33 each</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.75rem">
+                        <% quest.prizeDistribution.forEach(function(tier, ti) {
+                          var tc = _tierColors[Math.min(ti, _tierColors.length-1)];
+                          var emoji = _tierEmojis[Math.min(ti, _tierEmojis.length-1)];
+                          var label = tier.from === tier.to ? _ord(tier.from) : (tier.from === 1 ? 'Top '+tier.to : _ord(tier.from)+' – '+_ord(tier.to));
+                        %>
+                        <div style="text-align:center;padding:1rem .75rem;border-radius:14px;background:<%= tc.bg %>;border:1px solid <%= tc.border %>">
+                            <div style="font-size:1.5rem;margin-bottom:.3rem"><%= emoji %></div>
+                            <div style="font-size:.75rem;font-weight:800;color:<%= tc.text %>;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.25rem"><%= label %></div>
+                            <div style="font-size:1.375rem;font-weight:900;color:<%= tc.text %>;line-height:1">$<%= tier.amount %></div>
+                            <div style="font-size:.7rem;color:var(--text-3);margin-top:.25rem">per person</div>
                         </div>
-                        <!-- 4th–10th -->
-                        <div style="text-align:center;padding:1rem .75rem;border-radius:14px;background:rgba(156,163,175,.06);border:1px solid rgba(156,163,175,.2)">
-                            <div style="font-size:1.5rem;margin-bottom:.3rem">🥈</div>
-                            <div style="font-size:.75rem;font-weight:800;color:#9ca3af;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.25rem">4th – 10th</div>
-                            <div style="font-size:1.375rem;font-weight:900;color:#9ca3af;line-height:1">$100</div>
-                            <div style="font-size:.7rem;color:var(--text-3);margin-top:.25rem">shared equally</div>
-                            <div style="font-size:.75rem;font-weight:700;color:var(--text-2);margin-top:.4rem">~$14 each</div>
-                        </div>
-                        <!-- 11th–30th -->
-                        <div style="text-align:center;padding:1rem .75rem;border-radius:14px;background:rgba(180,120,60,.06);border:1px solid rgba(180,120,60,.2)">
-                            <div style="font-size:1.5rem;margin-bottom:.3rem">🥉</div>
-                            <div style="font-size:.75rem;font-weight:800;color:#cd7f32;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.25rem">11th – 30th</div>
-                            <div style="font-size:1.375rem;font-weight:900;color:#cd7f32;line-height:1">$300</div>
-                            <div style="font-size:.7rem;color:var(--text-3);margin-top:.25rem">shared equally</div>
-                            <div style="font-size:.75rem;font-weight:700;color:var(--text-2);margin-top:.4rem">$15 each</div>
-                        </div>
+                        <% }); %>
                     </div>
                     <p style="font-size:.78rem;color:var(--text-3);margin-top:.875rem;text-align:center"><i class="fas fa-info-circle"></i> Rank higher by completing daily tasks and earning XP. Quality submissions earn bonus XP.</p>
                 </div>
+                <% } %>
 
                 <% } %>
 
