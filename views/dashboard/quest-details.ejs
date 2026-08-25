@@ -1114,6 +1114,14 @@
         });
     });
 
+    /* ── Scroll modal to bottom so Submit button stays visible when keyboard opens ── */
+    function scrollModalToBottom() {
+        setTimeout(function() {
+            var mc = document.querySelector('#taskModal .modal-content');
+            if (mc) mc.scrollTop = mc.scrollHeight;
+        }, 350);
+    }
+
     /* ── Track external link clicks (soft reminder only, never blocks) ── */
     function trackTaskClick(taskId) {
         clickedBtns[taskId] = Date.now();
@@ -1222,8 +1230,8 @@
             if (subEl) subEl.textContent = inputLabel;
             container.innerHTML = reminderHtml +
                 '<label style="display:block;font-size:.8125rem;font-weight:700;color:var(--text-2);margin-bottom:.4rem"><i class="fas fa-edit" style="color:var(--green)"></i> ' + inputLabel + '</label>' +
-                '<input type="text" id="qs_customInput" data-field-name="' + inputName.replace(/"/g,'&quot;') + '" placeholder="Enter ' + inputLabel.toLowerCase() + '" autocomplete="off" autocorrect="off" autocapitalize="off" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--text);font-family:Outfit,sans-serif;font-size:.9rem;padding:.75rem 1rem;outline:none" onfocus="this.style.borderColor=\'rgba(94,194,19,.5)\'" onblur="this.style.borderColor=\'rgba(255,255,255,.12)\'">' +
-                '<small style="color:var(--text-3);font-size:.75rem;margin-top:.4rem;display:block">Type your ' + inputLabel.toLowerCase() + ' and tap <strong style="color:var(--green)">Submit Task</strong></small>';
+                '<input type="text" id="qs_customInput" data-field-name="' + inputName.replace(/"/g,'&quot;') + '" placeholder="Enter ' + inputLabel.toLowerCase() + '" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="go" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--text);font-family:Outfit,sans-serif;font-size:.9rem;padding:.75rem 1rem;outline:none" onfocus="this.style.borderColor=\'rgba(94,194,19,.5)\';scrollModalToBottom()" onblur="this.style.borderColor=\'rgba(255,255,255,.12)\'" onkeydown="if(event.key===\'Enter\'){event.preventDefault();submitCurrentTask();}">' +
+                '<small style="color:var(--text-3);font-size:.75rem;margin-top:.4rem;display:block">Type your ' + inputLabel.toLowerCase() + ' and tap <strong style="color:var(--green)">Submit Task</strong> (or press Enter)</small>';
             setTimeout(function() { var el = document.getElementById('qs_customInput'); if (el) { el.focus(); el.select(); } }, 120);
 
         } else if (taskType === 'submission') {
@@ -1235,7 +1243,7 @@
                 'Paste the URL of your submission below. Admin will review and approve it.' +
                 '</div>' +
                 '<label style="display:block;font-size:.8125rem;font-weight:700;color:var(--text-2);margin-bottom:.4rem"><i class="fas fa-link" style="color:var(--green)"></i> Submission URL</label>' +
-                '<input type="text" inputmode="url" id="qs_urlInput" placeholder="https://..." autocomplete="off" autocorrect="off" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(94,194,19,.25);border-radius:10px;color:var(--text);font-family:Outfit,sans-serif;font-size:.9rem;padding:.75rem 1rem;outline:none" onfocus="this.style.borderColor=\'rgba(94,194,19,.6)\'" onblur="this.style.borderColor=\'rgba(94,194,19,.25)\'">' +
+                '<input type="text" inputmode="url" id="qs_urlInput" placeholder="https://..." autocomplete="off" autocorrect="off" enterkeyhint="go" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(94,194,19,.25);border-radius:10px;color:var(--text);font-family:Outfit,sans-serif;font-size:.9rem;padding:.75rem 1rem;outline:none" onfocus="this.style.borderColor=\'rgba(94,194,19,.6)\';scrollModalToBottom()" onblur="this.style.borderColor=\'rgba(94,194,19,.25)\'" onkeydown="if(event.key===\'Enter\'){event.preventDefault();submitCurrentTask();}">' +
                 '<small style="color:var(--text-3);font-size:.75rem;margin-top:.4rem;display:block"><i class="fas fa-clock" style="color:#f59e0b"></i> Admin will review before XP is credited</small>';
             setTimeout(function() { var el = document.getElementById('qs_urlInput'); if (el) el.focus(); }, 120);
 
@@ -1372,9 +1380,13 @@
             var fieldVal  = customEl.value.trim();
             if (!fieldVal) { showSubmitError('Please fill in the required field before submitting.'); return; }
             payload.submissionData[fieldName] = fieldVal;
+            /* Also populate url + text so server-side requiresLink/requiresText validation passes */
+            payload.submissionUrl  = fieldVal;
+            payload.submissionText = fieldVal;
 
         } else if (urlEl) {
-            payload.submissionUrl = urlEl.value.trim();
+            payload.submissionUrl  = urlEl.value.trim();
+            payload.submissionText = urlEl.value.trim();
 
         }
         /* else: poll/discord/telegram/webhook/twitter — no extra input needed */
