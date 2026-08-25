@@ -81,11 +81,9 @@ const connectDB = async () => {
 };
 
 // Ensure DB is ready before every route (critical for Vercel cold starts)
-let _feedSeeded = false;
 app.use(async (req, res, next) => {
   try {
     await connectDB();
-    if (!_feedSeeded) { _feedSeeded = true; seedDemoFeedEvents(); }
     next();
   } catch (err) { next(err); }
 });
@@ -123,34 +121,6 @@ app.get('/api/site-live', async (req, res) => {
   }
 });
 
-// Seed 2 demo feed events so the community feed isn't empty on first launch
-async function seedDemoFeedEvents() {
-  try {
-    const FeedEvent = require('./models/FeedEvent');
-    const count = await FeedEvent.countDocuments();
-    if (count > 0) return; // already has events
-    const demoUserId = new mongoose.Types.ObjectId();
-    await FeedEvent.insertMany([
-      {
-        type: 'role_upgrade',
-        userId: demoUserId,
-        username: 'CryptoBuilder',
-        data: { oldRole: 'citizen', newRole: 'contributor' },
-        createdAt: new Date(Date.now() - 12 * 60 * 1000)
-      },
-      {
-        type: 'usdc_earned',
-        userId: new mongoose.Types.ObjectId(),
-        username: 'Web3Learner',
-        data: { amount: 5.00, questTitle: 'Web3 Fundamentals' },
-        createdAt: new Date(Date.now() - 3 * 60 * 1000)
-      }
-    ]);
-    console.log('Seeded 2 demo feed events');
-  } catch (e) {
-    console.error('Feed seed error:', e.message);
-  }
-}
 
 // Local dev only: connect DB first, then start HTTP server + Telegram bot
 if (!process.env.VERCEL) {
@@ -439,8 +409,18 @@ app.get("/card/:username", async (req, res) => {
 app.get("/api/feed", async (req, res) => {
   try {
     const FeedEvent = require('./models/FeedEvent');
+    const User      = require('./models/User');
     const viewerUserId = req.session.userId ? req.session.userId.toString() : null;
-    const events = await FeedEvent.find().sort({ createdAt: -1 }).limit(15).lean();
+
+    // Fetch more than we need so we can filter down to real users
+    const raw = await FeedEvent.find().sort({ createdAt: -1 }).limit(40).lean();
+
+    // Keep only events whose userId maps to a real User (removes demo/orphan events)
+    const userIds = [...new Set(raw.map(ev => ev.userId?.toString()).filter(Boolean))];
+    const realUsers = await User.find({ _id: { $in: userIds } }).select('_id').lean();
+    const realSet   = new Set(realUsers.map(u => u._id.toString()));
+
+    const events  = raw.filter(ev => ev.userId && realSet.has(ev.userId.toString())).slice(0, 15);
     const enriched = events.map(ev => ({
       ...ev,
       viewerLiked: viewerUserId && ev.likes && ev.likes.users
