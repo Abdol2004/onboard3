@@ -1040,499 +1040,469 @@
             <div class="modal-header">
                 <div>
                     <h3 id="taskModalTitle"><i class="fas fa-paper-plane"></i> Submit Task</h3>
-                    <p>Complete the form below to submit your task</p>
+                    <p id="taskModalSub">Complete the action, then tap Submit</p>
                 </div>
                 <button class="modal-close-btn" onclick="closeTaskModal()"><i class="fas fa-times"></i></button>
             </div>
-            <form id="taskSubmitForm" novalidate>
-                <div id="taskInputContainer"></div>
-                <div id="taskSubmitError" style="display:none;margin-top:.875rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);border-radius:12px;padding:.875rem 1rem;color:#f87171;font-size:.84rem;line-height:1.5"></div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeTaskModal()"><i class="fas fa-times"></i> Cancel</button>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Submit Task</button>
-                </div>
-            </form>
+            <div id="taskInputContainer"></div>
+            <div id="taskSubmitError" style="display:none;margin-top:.875rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);border-radius:12px;padding:.875rem 1rem;color:#f87171;font-size:.84rem;line-height:1.5"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeTaskModal()"><i class="fas fa-times"></i> Cancel</button>
+                <button type="button" id="taskSubmitBtn" class="btn btn-primary" onclick="submitCurrentTask()"><i class="fas fa-check"></i> Submit Task</button>
+            </div>
         </div>
     </div>
 
     <script>
-        /* ── Toast notification ── */
-        function showToast(msg, type) {
-            var existing = document.getElementById('globalToast');
-            if (existing) existing.remove();
-            var t = document.createElement('div');
-            t.id = 'globalToast';
-            var bg = type === 'error' ? 'rgba(239,68,68,.95)' : type === 'warning' ? 'rgba(245,158,11,.95)' : 'rgba(94,194,19,.95)';
-            var icon = type === 'error' ? 'fa-times-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle';
-            t.style.cssText = 'position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-120%);background:' + bg + ';color:#fff;padding:.85rem 1.5rem;border-radius:14px;font-size:.9rem;font-weight:700;font-family:Outfit,sans-serif;z-index:99999;display:flex;align-items:center;gap:.6rem;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:transform .35s cubic-bezier(.34,1.56,.64,1);max-width:90vw;text-align:center';
-            t.innerHTML = '<i class="fas ' + icon + '"></i><span>' + msg + '</span>';
-            document.body.appendChild(t);
-            requestAnimationFrame(function() {
-                requestAnimationFrame(function() { t.style.transform = 'translateX(-50%) translateY(0)'; });
-            });
-            setTimeout(function() {
-                t.style.transform = 'translateX(-50%) translateY(-120%)';
-                setTimeout(function() { if (t.parentNode) t.remove(); }, 400);
-            }, type === 'error' ? 5000 : 3500);
-        }
+    /* ══════════════════════════════════════════════════════════
+       QUEST TASK SUBMISSION — Clean rewrite
+       No FormData, no form-submit event, no timer gates,
+       no warning-modal close/reopen cycle.
+       Reads values directly from DOM at submit time.
+    ══════════════════════════════════════════════════════════ */
 
-        /* ── Animate progress bar on load ── */
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                const fill = document.getElementById('progFill');
-                if (fill) fill.style.width = '<%= userProgress ? userProgress.progress : 0 %>%';
-            }, 300);
+    var currentTaskId  = null;
+    var currentQuestId = null;
+    var isSubmitting   = false;
+    var clickedBtns    = {}; // taskId -> timestamp (for soft reminder only)
+
+    var userTwitterUsername  = '<%= (user.twitter || "").replace(/'/g, "\\'") %>';
+    var userDiscordConnected = <%= user.discordConnected ? 'true' : 'false' %>;
+    var userDiscordUsername  = '<%= (user.discordUsername || "").replace(/'/g, "\\'") %>';
+
+    /* ── Toast ── */
+    function showToast(msg, type) {
+        var ex = document.getElementById('globalToast');
+        if (ex) ex.remove();
+        var t = document.createElement('div');
+        t.id = 'globalToast';
+        var bg   = type === 'error' ? 'rgba(239,68,68,.95)' : type === 'warning' ? 'rgba(245,158,11,.95)' : 'rgba(94,194,19,.95)';
+        var icon = type === 'error' ? 'fa-times-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+        t.style.cssText = 'position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-120%);background:' + bg + ';color:#fff;padding:.85rem 1.5rem;border-radius:14px;font-size:.9rem;font-weight:700;font-family:Outfit,sans-serif;z-index:99999;display:flex;align-items:center;gap:.6rem;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:transform .35s cubic-bezier(.34,1.56,.64,1);max-width:90vw;text-align:center;pointer-events:none';
+        t.innerHTML = '<i class="fas ' + icon + '"></i><span>' + msg + '</span>';
+        document.body.appendChild(t);
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() { t.style.transform = 'translateX(-50%) translateY(0)'; });
         });
+        setTimeout(function() {
+            t.style.transform = 'translateX(-50%) translateY(-120%)';
+            setTimeout(function() { if (t.parentNode) t.remove(); }, 400);
+        }, type === 'error' ? 5000 : 3500);
+    }
 
-        let currentTaskId = null;
-        let currentQuestId = null;
-        let taskClickTracking = {};
-        let taskStartTime = {};
-        const userTwitterUsername = '<%= user.twitter || "" %>';
-
-        function handleSubmitClick(button) {
-            const taskId        = button.getAttribute('data-task-id');
-            const questId       = button.getAttribute('data-quest-id');
-            const taskTitle     = button.getAttribute('data-task-title');
-            const inputLabel    = button.getAttribute('data-input-label');
-            const inputName     = button.getAttribute('data-input-name');
-            const hasButton     = button.getAttribute('data-has-button') === 'true';
-            const twitterTarget = button.getAttribute('data-twitter-target');
-            const taskType      = button.getAttribute('data-task-type') || 'submission';
-            const pollOptions   = JSON.parse(decodeURIComponent(button.getAttribute('data-poll-options') || '%5B%5D'));
-            const discordGuildId   = button.getAttribute('data-discord-guild-id') || '';
-            const discordGuildName = button.getAttribute('data-discord-guild-name') || '';
-            const telegramChatId   = button.getAttribute('data-telegram-chat-id') || '';
-            const telegramChatName = button.getAttribute('data-telegram-chat-name') || '';
-            openTaskModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton, twitterTarget, taskType, pollOptions, discordGuildId, discordGuildName, telegramChatId, telegramChatName);
+    /* ── Progress bar ── */
+    window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            var fill = document.getElementById('progFill');
+            if (fill) fill.style.width = '<%= userProgress ? userProgress.progress : 0 %>%';
+        }, 300);
+        /* leaderboard scroll */
+        setTimeout(function() {
+            var me = document.querySelector('.lb-row--me');
+            if (me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 700);
+        /* backdrop + Escape */
+        var modal = document.getElementById('taskModal');
+        if (modal) {
+            modal.addEventListener('click', function(e) { if (e.target === this && !isSubmitting) closeTaskModal(); });
         }
-
-        function trackTaskClick(taskId) {
-            taskClickTracking[taskId] = Date.now();
-            localStorage.setItem('taskClick_' + taskId, Date.now().toString());
-        }
-
-        function hasClickedTaskButton(taskId) {
-            const clickTime = taskClickTracking[taskId] || localStorage.getItem('taskClick_' + taskId);
-            if (!clickTime) return false;
-            return (Date.now() - parseInt(clickTime)) < 5 * 60 * 1000;
-        }
-
-        function startTaskTimer(taskId) {
-            // Don't reset if already running (e.g. modal opened twice after warning)
-            if (taskStartTime[taskId]) return;
-            // Restore from localStorage if page was reloaded (Android tab kill)
-            var stored = localStorage.getItem('taskTimer_' + taskId);
-            taskStartTime[taskId] = stored ? parseInt(stored) : Date.now();
-            if (!stored) localStorage.setItem('taskTimer_' + taskId, taskStartTime[taskId].toString());
-        }
-        function getTaskTimeSpent(taskId) {
-            if (!taskStartTime[taskId]) {
-                var stored = localStorage.getItem('taskTimer_' + taskId);
-                if (stored) taskStartTime[taskId] = parseInt(stored);
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !isSubmitting) {
+                var m = document.getElementById('taskModal');
+                if (m && m.style.display === 'flex') closeTaskModal();
             }
-            if (!taskStartTime[taskId]) return 0;
-            return Math.floor((Date.now() - taskStartTime[taskId]) / 1000);
+        });
+    });
+
+    /* ── Track external link clicks (soft reminder only, never blocks) ── */
+    function trackTaskClick(taskId) {
+        clickedBtns[taskId] = Date.now();
+    }
+
+    /* ── Called by task card Submit buttons ── */
+    function handleSubmitClick(btn) {
+        var taskId           = btn.getAttribute('data-task-id');
+        var questId          = btn.getAttribute('data-quest-id');
+        var taskTitle        = btn.getAttribute('data-task-title');
+        var inputLabel       = btn.getAttribute('data-input-label');
+        var inputName        = btn.getAttribute('data-input-name');
+        var hasButton        = btn.getAttribute('data-has-button') === 'true';
+        var twitterTarget    = btn.getAttribute('data-twitter-target');
+        var taskType         = btn.getAttribute('data-task-type') || 'default';
+        var pollOptions      = [];
+        try { pollOptions = JSON.parse(decodeURIComponent(btn.getAttribute('data-poll-options') || '%5B%5D')); } catch(e) {}
+        var discordGuildId   = btn.getAttribute('data-discord-guild-id')   || '';
+        var discordGuildName = btn.getAttribute('data-discord-guild-name') || '';
+        var telegramChatId   = btn.getAttribute('data-telegram-chat-id')   || '';
+        var telegramChatName = btn.getAttribute('data-telegram-chat-name') || '';
+
+        openTaskModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton,
+                      twitterTarget, taskType, pollOptions,
+                      discordGuildId, discordGuildName, telegramChatId, telegramChatName);
+    }
+
+    function openTaskModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton,
+                           twitterFollowTarget, taskType, pollOptions,
+                           discordGuildId, discordGuildName, telegramChatId, telegramChatName) {
+        currentTaskId  = taskId;
+        currentQuestId = questId;
+
+        var titleEl   = document.getElementById('taskModalTitle');
+        var subEl     = document.getElementById('taskModalSub');
+        var container = document.getElementById('taskInputContainer');
+        var submitBtn = document.getElementById('taskSubmitBtn');
+
+        hideSubmitError();
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-check"></i> Submit Task'; }
+
+        /* ── Optional reminder banner for external-link tasks ── */
+        var reminderHtml = '';
+        var specialTypes = ['poll','discord_join','telegram_join','webhook'];
+        if (hasButton && !clickedBtns[taskId] && specialTypes.indexOf(taskType) === -1) {
+            reminderHtml = '<div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:10px;padding:.75rem 1rem;margin-bottom:.875rem;font-size:.82rem;color:#fbbf24;display:flex;align-items:flex-start;gap:.5rem">' +
+                '<i class="fas fa-triangle-exclamation" style="margin-top:.1rem;flex-shrink:0"></i>' +
+                '<span>Make sure you've completed the task action first, then submit your proof below.</span></div>';
         }
 
-        const userDiscordConnected = <%= user.discordConnected ? 'true' : 'false' %>;
-        const userDiscordUsername  = '<%= user.discordUsername || "" %>';
+        /* ── Build modal content by task type ── */
+        if (taskType === 'poll' && pollOptions && pollOptions.length > 0) {
+            if (titleEl) titleEl.innerHTML = '<i class="fas fa-poll"></i> Vote: ' + taskTitle;
+            if (subEl) subEl.textContent = 'Select your choice below';
+            var optHtml = pollOptions.map(function(opt, i) {
+                return '<label style="display:flex;align-items:center;gap:.75rem;padding:.875rem 1rem;border-radius:10px;border:1px solid rgba(168,85,247,.25);background:rgba(168,85,247,.04);cursor:pointer;margin-bottom:.5rem">' +
+                    '<input type="radio" name="pollChoice" value="' + opt.text.replace(/"/g,'&quot;') + '" style="accent-color:#c084fc;flex-shrink:0" ' + (i===0?'checked':'') + '>' +
+                    '<span style="color:var(--text);font-size:.9rem;flex:1">' + opt.text + '</span>' +
+                    '<span style="color:var(--text-3);font-size:.75rem;flex-shrink:0">' + (opt.votes||0) + ' votes</span>' +
+                    '</label>';
+            }).join('');
+            container.innerHTML = reminderHtml + '<div>' + optHtml + '</div>';
 
-        function openTaskModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton, twitterFollowTarget, taskType, pollOptions, discordGuildId, discordGuildName, telegramChatId, telegramChatName) {
-            try {
-                currentTaskId = taskId;
-                currentQuestId = questId;
-                startTaskTimer(taskId);
+        } else if (taskType === 'discord_join') {
+            if (titleEl) titleEl.innerHTML = '<i class="fab fa-discord"></i> Discord Verification';
+            if (subEl) subEl.textContent = 'Join the server, then verify below';
+            var serverName = discordGuildName || 'the required Discord server';
+            if (!userDiscordConnected) {
+                container.innerHTML = '<div style="background:rgba(88,101,242,.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(88,101,242,.3);text-align:center">' +
+                    '<i class="fab fa-discord" style="color:#818cf8;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
+                    '<h4 style="color:#818cf8;margin-bottom:.75rem">Connect Discord First</h4>' +
+                    '<p style="color:var(--text-2);font-size:.875rem;margin-bottom:1.25rem">Connect your Discord account to verify you\'ve joined <strong>' + serverName + '</strong>.</p>' +
+                    '<a href="/auth/discord/connect" class="task-action-btn task-action-btn--primary" style="display:inline-flex;text-decoration:none"><i class="fab fa-discord"></i> Connect Discord</a>' +
+                    '</div>';
+            } else {
+                container.innerHTML = '<div style="background:rgba(88,101,242,.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(88,101,242,.3);text-align:center">' +
+                    '<i class="fab fa-discord" style="color:#818cf8;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
+                    '<h4 style="color:#818cf8;margin-bottom:.5rem">Discord Membership Check</h4>' +
+                    '<p style="color:var(--text-2);font-size:.875rem;margin-bottom:.5rem">Verifying <strong style="color:#818cf8">@' + userDiscordUsername + '</strong> is in <strong>' + serverName + '</strong></p>' +
+                    '<div style="background:rgba(255,255,255,.04);padding:.75rem;border-radius:10px;font-size:.8rem;color:var(--text-3)"><i class="fas fa-shield-alt" style="color:var(--green)"></i> Verified via Discord bot</div>' +
+                    '</div>';
+            }
 
-                // For button-based tasks that aren't special types, show warning if not clicked
-                const specialTypes = ['poll', 'discord_join', 'telegram_join', 'webhook'];
-                if (hasButton && !hasClickedTaskButton(taskId) && !specialTypes.includes(taskType)) {
-                    showWarningModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton, twitterFollowTarget, taskType, pollOptions, discordGuildId, discordGuildName, telegramChatId, telegramChatName);
-                    return;
-                }
+        } else if (taskType === 'telegram_join') {
+            if (titleEl) titleEl.innerHTML = '<i class="fab fa-telegram"></i> Telegram Verification';
+            if (subEl) subEl.textContent = 'Join the group, then verify below';
+            var chatName = telegramChatName || 'the required Telegram group';
+            container.innerHTML = '<div style="background:rgba(0,136,204,.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(0,136,204,.3);text-align:center">' +
+                '<i class="fab fa-telegram" style="color:#38bdf8;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
+                '<h4 style="color:#38bdf8;margin-bottom:.5rem">Telegram Membership Check</h4>' +
+                '<p style="color:var(--text-2);font-size:.875rem;margin-bottom:.5rem">Checking your Telegram account is in <strong>' + chatName + '</strong>.</p>' +
+                '<div style="background:rgba(255,255,255,.04);padding:.75rem;border-radius:10px;font-size:.8rem;color:var(--text-3)"><i class="fas fa-shield-alt" style="color:var(--green)"></i> Verified via Telegram bot</div>' +
+                '</div>';
 
-                const inputContainer = document.getElementById('taskInputContainer');
+        } else if (taskType === 'webhook') {
+            if (titleEl) titleEl.innerHTML = '<i class="fas fa-shield-alt"></i> Verify: ' + taskTitle;
+            if (subEl) subEl.textContent = 'Click Submit to confirm the action';
+            container.innerHTML = '<div style="background:rgba(251,146,60,.06);padding:1.5rem;border-radius:14px;border:1px solid rgba(251,146,60,.25);text-align:center">' +
+                '<i class="fas fa-plug" style="color:#fb923c;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
+                '<h4 style="color:#fb923c;margin-bottom:.5rem">External Verification</h4>' +
+                '<p style="color:var(--text-2);font-size:.875rem">Click Submit to confirm you\'ve completed the required action.</p>' +
+                '</div>';
 
-                if (taskType === 'poll' && pollOptions && pollOptions.length > 0) {
-                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-poll"></i> Vote: ' + taskTitle;
-                    const optHtml = pollOptions.map(function(opt, i) {
-                        return '<label style="display:flex;align-items:center;gap:.75rem;padding:.875rem 1rem;border-radius:10px;border:1px solid rgba(168,85,247,.25);background:rgba(168,85,247,.04);cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor=\'rgba(168,85,247,.6)\'" onmouseout="this.style.borderColor=\'rgba(168,85,247,.25)\'">' +
-                            '<input type="radio" name="pollChoice" value="' + opt.text.replace(/"/g,'&quot;') + '" style="accent-color:#c084fc" ' + (i===0?'checked':'') + '>' +
-                            '<span style="color:var(--text);font-size:.9rem">' + opt.text + '</span>' +
-                            '<span style="margin-left:auto;color:var(--text-3);font-size:.75rem">' + (opt.votes||0) + ' votes</span>' +
-                            '</label>';
-                    }).join('');
-                    inputContainer.innerHTML = '<div style="display:flex;flex-direction:column;gap:.5rem">' + optHtml + '</div>' +
-                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+        } else if (taskType === 'submission') {
+            if (titleEl) titleEl.innerHTML = '<i class="fas fa-link"></i> Submit: ' + taskTitle;
+            if (subEl) subEl.textContent = 'Paste the link to your work below';
+            container.innerHTML = reminderHtml +
+                '<div style="background:rgba(94,194,19,.04);padding:1rem;border-radius:12px;border:1px solid rgba(94,194,19,.15);margin-bottom:.875rem;font-size:.82rem;color:var(--text-2)">' +
+                '<i class="fas fa-info-circle" style="color:var(--green);margin-right:.35rem"></i>' +
+                'Paste the URL of your submission below. Admin will review and approve it.' +
+                '</div>' +
+                '<label style="display:block;font-size:.8125rem;font-weight:700;color:var(--text-2);margin-bottom:.4rem"><i class="fas fa-link" style="color:var(--green)"></i> Submission URL</label>' +
+                '<input type="text" inputmode="url" id="qs_urlInput" placeholder="https://..." autocomplete="off" autocorrect="off" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(94,194,19,.25);border-radius:10px;color:var(--text);font-family:Outfit,sans-serif;font-size:.9rem;padding:.75rem 1rem;outline:none" onfocus="this.style.borderColor=\'rgba(94,194,19,.6)\'" onblur="this.style.borderColor=\'rgba(94,194,19,.25)\'">' +
+                '<small style="color:var(--text-3);font-size:.75rem;margin-top:.4rem;display:block"><i class="fas fa-clock" style="color:#f59e0b"></i> Admin will review before XP is credited</small>';
+            setTimeout(function() { var el = document.getElementById('qs_urlInput'); if (el) el.focus(); }, 120);
 
-                } else if (taskType === 'discord_join') {
-                    document.getElementById('taskModalTitle').innerHTML = '<i class="fab fa-discord"></i> Discord Verification';
-                    const serverName = discordGuildName || 'the required Discord server';
-                    if (!userDiscordConnected) {
-                        inputContainer.innerHTML =
-                            '<div style="background:rgba(88,101,242,.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(88,101,242,.3);text-align:center">' +
-                            '<i class="fab fa-discord" style="color:#818cf8;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
-                            '<h4 style="color:#818cf8;margin-bottom:.75rem">Connect Discord First</h4>' +
-                            '<p style="color:var(--text-2);font-size:.875rem;margin-bottom:1.25rem">Connect your Discord account to verify you\'ve joined <strong>' + serverName + '</strong>.</p>' +
-                            '<a href="/auth/discord/connect" class="task-action-btn task-action-btn--primary" style="display:inline-flex;text-decoration:none"><i class="fab fa-discord"></i> Connect Discord</a>' +
-                            '</div>';
-                    } else {
-                        inputContainer.innerHTML =
-                            '<div style="background:rgba(88,101,242,.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(88,101,242,.3);text-align:center">' +
-                            '<i class="fab fa-discord" style="color:#818cf8;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
-                            '<h4 style="color:#818cf8;margin-bottom:.5rem">Discord Membership Check</h4>' +
-                            '<p style="color:var(--text-2);font-size:.875rem;margin-bottom:.5rem">Verifying <strong style="color:#818cf8">@' + userDiscordUsername + '</strong> is in <strong>' + serverName + '</strong></p>' +
-                            '<div style="background:rgba(255,255,255,.04);padding:.75rem;border-radius:10px;font-size:.8rem;color:var(--text-3)"><i class="fas fa-shield-alt" style="color:var(--green)"></i> Verified via Discord bot</div>' +
-                            '</div>' +
-                            '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
-                    }
+        } else if (taskType === 'image_upload') {
+            if (titleEl) titleEl.innerHTML = '<i class="fas fa-image"></i> Upload Proof: ' + taskTitle;
+            if (subEl) subEl.textContent = 'Upload a screenshot as proof of completion';
+            container.innerHTML = reminderHtml +
+                '<div style="background:rgba(168,85,247,.04);padding:1rem;border-radius:12px;border:1px solid rgba(168,85,247,.2);margin-bottom:.875rem;font-size:.82rem;color:var(--text-2)">' +
+                '<i class="fas fa-camera" style="color:#c084fc;margin-right:.35rem"></i>' +
+                'Upload a screenshot or image as proof. Max 5MB. Admin will review before XP is credited.' +
+                '</div>' +
+                '<div id="imgUploadArea" style="border:2px dashed rgba(168,85,247,.3);border-radius:12px;padding:2rem 1rem;text-align:center;cursor:pointer;transition:border-color .2s;background:rgba(168,85,247,.03)"' +
+                ' onclick="document.getElementById(\'imgFileInput\').click()" ondragover="event.preventDefault();this.style.borderColor=\'rgba(168,85,247,.7)\'" ondragleave="this.style.borderColor=\'rgba(168,85,247,.3)\'" ondrop="handleImgDrop(event)">' +
+                '<i class="fas fa-cloud-upload-alt" style="font-size:2rem;color:rgba(168,85,247,.5);margin-bottom:.5rem;display:block"></i>' +
+                '<p style="color:var(--text-3);font-size:.85rem;margin:0">Click or drag &amp; drop image here</p>' +
+                '<p style="color:var(--text-3);font-size:.72rem;margin:.25rem 0 0">PNG, JPG, WEBP — max 5MB</p>' +
+                '</div>' +
+                '<input type="file" id="imgFileInput" accept="image/*" style="display:none" onchange="previewUploadedImg(this)">' +
+                '<div id="imgPreviewWrap" style="display:none;margin-top:.75rem;border-radius:10px;overflow:hidden;border:1px solid rgba(168,85,247,.25)">' +
+                '<img id="imgPreview" style="width:100%;max-height:200px;object-fit:cover;display:block">' +
+                '<div style="padding:.4rem .75rem;background:rgba(168,85,247,.08);font-size:.72rem;color:#c084fc;display:flex;align-items:center;justify-content:space-between">' +
+                '<span id="imgFileName"></span>' +
+                '<button type="button" onclick="clearImgUpload()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.72rem;font-family:Outfit,sans-serif">✕ Remove</button>' +
+                '</div></div>' +
+                '<input type="hidden" id="qs_imgBase64" value="">';
 
-                } else if (taskType === 'telegram_join') {
-                    document.getElementById('taskModalTitle').innerHTML = '<i class="fab fa-telegram"></i> Telegram Verification';
-                    const chatName = telegramChatName || 'the required Telegram group';
-                    inputContainer.innerHTML =
-                        '<div style="background:rgba(0,136,204,.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(0,136,204,.3);text-align:center">' +
-                        '<i class="fab fa-telegram" style="color:#38bdf8;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
-                        '<h4 style="color:#38bdf8;margin-bottom:.5rem">Telegram Membership Check</h4>' +
-                        '<p style="color:var(--text-2);font-size:.875rem;margin-bottom:.5rem">Checking your Telegram account is in <strong>' + chatName + '</strong>.</p>' +
-                        '<div style="background:rgba(255,255,255,.04);padding:.75rem;border-radius:10px;font-size:.8rem;color:var(--text-3)"><i class="fas fa-shield-alt" style="color:var(--green)"></i> Verified via Telegram bot</div>' +
-                        '</div>' +
-                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+        } else if (twitterFollowTarget) {
+            if (titleEl) titleEl.innerHTML = '<i class="fab fa-x-twitter"></i> Submit: ' + taskTitle;
+            if (subEl) subEl.textContent = 'Follow the account, then click Submit';
+            var userTwitterDisplay = userTwitterUsername ? '@' + userTwitterUsername : 'your connected X account';
+            container.innerHTML = reminderHtml +
+                '<div style="background:rgba(29,161,242,0.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(29,161,242,0.25);text-align:center">' +
+                '<i class="fab fa-x-twitter" style="color:#1DA1F2;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
+                '<h4 style="color:#1DA1F2;margin-bottom:.75rem">X Follow Verification</h4>' +
+                '<p style="color:var(--text-2);line-height:1.65;margin-bottom:1rem;font-size:.875rem">' +
+                'We\'ll verify <strong style="color:var(--green)">' + userTwitterDisplay + '</strong> follows <strong style="color:#1DA1F2">@' + twitterFollowTarget + '</strong></p>' +
+                '<div style="background:rgba(255,255,255,0.04);padding:.875rem;border-radius:10px;font-size:.8rem;color:var(--text-3)">' +
+                '<i class="fas fa-shield-alt" style="color:var(--green)"></i> Secure OAuth verification</div></div>';
 
-                } else if (taskType === 'webhook') {
-                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-shield-alt"></i> Verify: ' + taskTitle;
-                    inputContainer.innerHTML =
-                        '<div style="background:rgba(251,146,60,.06);padding:1.5rem;border-radius:14px;border:1px solid rgba(251,146,60,.25);text-align:center">' +
-                        '<i class="fas fa-plug" style="color:#fb923c;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
-                        '<h4 style="color:#fb923c;margin-bottom:.5rem">External Verification</h4>' +
-                        '<p style="color:var(--text-2);font-size:.875rem">Click Verify to confirm you\'ve completed the required action.</p>' +
-                        '</div>' +
-                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+        } else if (inputLabel && inputName) {
+            if (titleEl) titleEl.innerHTML = '<i class="fas fa-paper-plane"></i> Submit: ' + taskTitle;
+            if (subEl) subEl.textContent = inputLabel;
+            container.innerHTML = reminderHtml +
+                '<label style="display:block;font-size:.8125rem;font-weight:700;color:var(--text-2);margin-bottom:.4rem"><i class="fas fa-edit" style="color:var(--green)"></i> ' + inputLabel + '</label>' +
+                '<input type="text" id="qs_customInput" data-field-name="' + inputName.replace(/"/g,'&quot;') + '" placeholder="Enter ' + inputLabel.toLowerCase() + '" autocomplete="off" autocorrect="off" autocapitalize="off" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--text);font-family:Outfit,sans-serif;font-size:.9rem;padding:.75rem 1rem;outline:none" onfocus="this.style.borderColor=\'rgba(94,194,19,.5)\'" onblur="this.style.borderColor=\'rgba(255,255,255,.12)\'">' +
+                '<small style="color:var(--text-3);font-size:.75rem;margin-top:.4rem;display:block">Type your ' + inputLabel.toLowerCase() + ' and tap <strong style="color:var(--green)">Submit Task</strong></small>';
+            setTimeout(function() { var el = document.getElementById('qs_customInput'); if (el) { el.focus(); el.select(); } }, 120);
 
-                } else if (taskType === 'submission') {
-                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-link"></i> Submit: ' + taskTitle;
-                    inputContainer.innerHTML =
-                        '<div style="background:rgba(94,194,19,.04);padding:1rem;border-radius:12px;border:1px solid rgba(94,194,19,.15);margin-bottom:.875rem;font-size:.82rem;color:var(--text-2)">' +
-                        '<i class="fas fa-info-circle" style="color:var(--green);margin-right:.35rem"></i>' +
-                        'Paste the URL of your submission below. Your admin will review and approve it.' +
-                        '</div>' +
-                        '<div class="form-group">' +
-                        '<label><i class="fas fa-link" style="color:var(--green)"></i> Submission URL *</label>' +
-                        '<input type="text" inputmode="url" id="taskInput" name="submissionUrl" placeholder="https://..." required minlength="5" style="width:100%;padding:.65rem .875rem;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(94,194,19,.2);color:var(--text);font-family:Outfit,sans-serif;font-size:.875rem">' +
-                        '<small style="color:var(--text-3);font-size:.75rem;margin-top:.3rem;display:block"><i class="fas fa-clock" style="color:#f59e0b"></i> Admin will review before XP is credited</small>' +
-                        '</div>' +
-                        '<input type="hidden" name="verification" value="' + generateVerificationCode(taskId) + '">';
+        } else {
+            if (titleEl) titleEl.innerHTML = '<i class="fas fa-paper-plane"></i> Submit: ' + taskTitle;
+            if (subEl) subEl.textContent = 'Tap Submit to mark this task done';
+            container.innerHTML = '<div style="background:rgba(94,194,19,0.06);padding:1.5rem;border-radius:13px;border:1px solid rgba(94,194,19,0.2);text-align:center">' +
+                '<i class="fas fa-check-circle" style="color:var(--green);font-size:2.5rem;display:block;margin-bottom:.75rem"></i>' +
+                '<p style="color:var(--text-2);font-size:.9rem">Tap <strong style="color:var(--green)">Submit Task</strong> to complete this task.</p></div>';
+        }
 
-                } else if (taskType === 'image_upload') {
-                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-image"></i> Upload Proof: ' + taskTitle;
-                    inputContainer.innerHTML =
-                        '<div style="background:rgba(168,85,247,.04);padding:1rem;border-radius:12px;border:1px solid rgba(168,85,247,.2);margin-bottom:.875rem;font-size:.82rem;color:var(--text-2)">' +
-                        '<i class="fas fa-camera" style="color:#c084fc;margin-right:.35rem"></i>' +
-                        'Upload a screenshot or image as proof. Max 5MB. Admin will review before XP is credited.' +
-                        '</div>' +
-                        '<div class="form-group">' +
-                        '<label><i class="fas fa-upload" style="color:#c084fc"></i> Proof Screenshot *</label>' +
-                        '<div id="imgUploadArea" style="border:2px dashed rgba(168,85,247,.3);border-radius:12px;padding:2rem 1rem;text-align:center;cursor:pointer;transition:border-color .2s;background:rgba(168,85,247,.03)"' +
-                        ' onclick="document.getElementById(\'imgFileInput\').click()" ondragover="event.preventDefault();this.style.borderColor=\'rgba(168,85,247,.7)\'" ondragleave="this.style.borderColor=\'rgba(168,85,247,.3)\'" ondrop="handleImgDrop(event)">' +
-                        '<i class="fas fa-cloud-upload-alt" style="font-size:2rem;color:rgba(168,85,247,.5);margin-bottom:.5rem;display:block"></i>' +
-                        '<p style="color:var(--text-3);font-size:.85rem;margin:0">Click or drag &amp; drop image here</p>' +
-                        '<p style="color:var(--text-3);font-size:.72rem;margin:.25rem 0 0">PNG, JPG, WEBP — max 5MB</p>' +
-                        '</div>' +
-                        '<input type="file" id="imgFileInput" accept="image/*" style="display:none" onchange="previewUploadedImg(this)">' +
-                        '<div id="imgPreviewWrap" style="display:none;margin-top:.75rem;border-radius:10px;overflow:hidden;border:1px solid rgba(168,85,247,.25)">' +
-                        '<img id="imgPreview" style="width:100%;max-height:200px;object-fit:cover;display:block">' +
-                        '<div style="padding:.4rem .75rem;background:rgba(168,85,247,.08);font-size:.72rem;color:#c084fc;display:flex;align-items:center;justify-content:space-between">' +
-                        '<span id="imgFileName"></span>' +
-                        '<button type="button" onclick="clearImgUpload()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.72rem;font-family:Outfit,sans-serif">✕ Remove</button>' +
-                        '</div></div>' +
-                        '<input type="hidden" id="imgBase64" name="imgBase64" value="">' +
-                        '</div>' +
-                        '<input type="hidden" name="verification" value="' + generateVerificationCode(taskId) + '">';
+        document.getElementById('taskModal').style.display = 'flex';
+    }
 
-                } else if (twitterFollowTarget) {
-                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-paper-plane"></i> Submit: ' + taskTitle;
-                    const userTwitterDisplay = userTwitterUsername ? '@' + userTwitterUsername : 'your connected X account';
-                    inputContainer.innerHTML =
-                        '<div style="background:rgba(29,161,242,0.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(29,161,242,0.25);text-align:center">' +
-                        '<i class="fab fa-x-twitter" style="color:#1DA1F2;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
-                        '<h4 style="color:#1DA1F2;margin-bottom:.75rem">X Follow Verification</h4>' +
-                        '<p style="color:var(--text-2);line-height:1.65;margin-bottom:1rem;font-size:.875rem">' +
-                        'We\'ll verify that <strong style="color:var(--green)">' + userTwitterDisplay + '</strong> follows <strong style="color:#1DA1F2">@' + twitterFollowTarget + '</strong></p>' +
-                        '<div style="background:rgba(255,255,255,0.04);padding:.875rem;border-radius:10px;font-size:.8rem;color:var(--text-3)">' +
-                        '<i class="fas fa-shield-alt" style="color:var(--green)"></i> Secure OAuth verification — no cheating possible</div></div>' +
-                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+    function closeTaskModal() {
+        if (isSubmitting) return;
+        document.getElementById('taskModal').style.display = 'none';
+        document.getElementById('taskInputContainer').innerHTML = '';
+        hideSubmitError();
+        var submitBtn = document.getElementById('taskSubmitBtn');
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-check"></i> Submit Task'; }
+        currentTaskId = null;
+        currentQuestId = null;
+    }
 
-                } else if (inputLabel && inputName) {
-                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-paper-plane"></i> Submit: ' + taskTitle;
-                    inputContainer.innerHTML =
-                        '<div class="form-group">' +
-                        '<label><i class="fas fa-edit"></i> ' + inputLabel + '</label>' +
-                        '<input type="text" id="taskInput" name="' + inputName + '" placeholder="Enter ' + inputLabel.toLowerCase() + '" autocomplete="off">' +
-                        '<small><i class="fas fa-info-circle"></i> Provide accurate information</small>' +
-                        '</div>' +
-                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+    function showSubmitError(msg, details) {
+        var box = document.getElementById('taskSubmitError');
+        if (!box) return;
+        var html = '<strong><i class="fas fa-exclamation-circle"></i> ' + msg + '</strong>';
+        if (details && details.length) {
+            html += '<ul style="margin:.5rem 0 0 1.1rem;padding:0">' +
+                details.map(function(d) { return '<li style="margin-top:.25rem">' + d + '</li>'; }).join('') + '</ul>';
+        }
+        box.innerHTML = html;
+        box.style.display = '';
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 
+    function hideSubmitError() {
+        var box = document.getElementById('taskSubmitError');
+        if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+    }
+
+    /* ── SUBMIT — reads directly from DOM, no FormData ── */
+    function submitCurrentTask() {
+        if (isSubmitting) return;
+        if (!currentTaskId || !currentQuestId) {
+            showSubmitError('Task info missing — please close and reopen the task.');
+            return;
+        }
+
+        /* Commit any pending mobile keyboard input */
+        if (document.activeElement && document.activeElement !== document.body) {
+            document.activeElement.blur();
+        }
+
+        /* Find the active task button to read taskType */
+        var activeBtn = document.querySelector('.submit-task-btn[data-task-id="' + currentTaskId + '"]');
+        var taskType  = activeBtn ? activeBtn.getAttribute('data-task-type') : 'default';
+
+        /* Discord gate */
+        if (taskType === 'discord_join' && !userDiscordConnected) {
+            showSubmitError('Connect your Discord account first before submitting this task.');
+            return;
+        }
+
+        hideSubmitError();
+
+        /* Build payload by reading DOM elements directly */
+        var payload = {
+            questId:        currentQuestId,
+            taskId:         currentTaskId,
+            submissionUrl:  '',
+            submissionText: '',
+            submissionData: {},
+            timeSpent:      0
+        };
+
+        if (taskType === 'poll') {
+            var chosen = document.querySelector('input[name="pollChoice"]:checked');
+            if (!chosen) { showSubmitError('Please select a poll option.'); return; }
+            payload.submissionData.pollChoice = chosen.value;
+
+        } else if (taskType === 'submission') {
+            var urlEl = document.getElementById('qs_urlInput');
+            payload.submissionUrl = urlEl ? urlEl.value.trim() : '';
+
+        } else if (taskType === 'image_upload') {
+            var b64El = document.getElementById('qs_imgBase64');
+            if (!b64El || !b64El.value) { showSubmitError('Please upload a screenshot as proof before submitting.'); return; }
+            payload.submissionData.image = b64El.value;
+
+        } else {
+            /* Custom input field (inputLabel/inputName) OR default (no input) */
+            var customEl = document.getElementById('qs_customInput');
+            if (customEl) {
+                var fieldName = customEl.getAttribute('data-field-name') || 'input';
+                var fieldVal  = customEl.value.trim();
+                payload.submissionData[fieldName] = fieldVal;
+            }
+        }
+
+        /* Lock UI */
+        var submitBtn   = document.getElementById('taskSubmitBtn');
+        var origBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+        isSubmitting = true;
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...'; }
+
+        fetch('/dashboard/quests/submit-task', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload)
+        })
+        .then(function(res) {
+            if (res.status === 401) {
+                isSubmitting = false;
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = origBtnHtml; }
+                showSubmitError('Session expired — please refresh the page and log in again.');
+                return null;
+            }
+            return res.json();
+        })
+        .then(function(data) {
+            if (!data) return;
+            isSubmitting = false;
+
+            if (data.success) {
+                closeTaskModal();
+                if (data.pending) {
+                    showToast('Submitted! Pending admin review — XP will be credited once approved.', 'success');
+                } else if (data.isQuestCompleted) {
+                    showToast('Quest Completed! You earned ' + ((data.rewards && data.rewards.xp) || 0) + ' XP!', 'success');
                 } else {
-                    document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-paper-plane"></i> Submit: ' + taskTitle;
-                    inputContainer.innerHTML =
-                        '<div style="background:rgba(94,194,19,0.06);padding:1.25rem;border-radius:13px;border:1px solid rgba(94,194,19,0.2);text-align:center">' +
-                        '<i class="fas fa-check-circle" style="color:var(--green);font-size:2rem;display:block;margin-bottom:.5rem"></i>' +
-                        '<p style="color:var(--text-2);font-size:.875rem">Click submit to complete this task</p>' +
-                        '</div>' +
-                        '<input type="hidden" id="taskVerification" name="verification" value="' + generateVerificationCode(taskId) + '">';
+                    showToast('Task done! +' + (data.taskXpEarned || 0) + ' XP earned', 'success');
                 }
+                setTimeout(function() { window.location.reload(); }, 1400);
 
-                hideSubmitError();
-                document.getElementById('taskModal').style.display = 'flex';
-                setTimeout(function() { const inp = document.getElementById('taskInput'); if (inp) inp.focus(); }, 100);
-            } catch (error) {
-                console.error('Error opening task modal:', error);
-                showToast('Error opening task modal. Please refresh and try again.','error');
-            }
-        }
-
-        function showWarningModal(taskId, questId, taskTitle, inputLabel, inputName, hasButton, twitterFollowTarget, taskType, pollOptions, discordGuildId, discordGuildName, telegramChatId, telegramChatName) {
-            document.getElementById('taskModalTitle').innerHTML = '<i class="fas fa-triangle-exclamation" style="color:#fbbf24"></i> Action Required';
-            document.getElementById('taskInputContainer').innerHTML =
-                '<div style="background:rgba(251,191,36,0.08);padding:1.5rem;border-radius:14px;border:1px solid rgba(251,191,36,0.3);text-align:center">' +
-                '<i class="fas fa-hand-pointer" style="color:#fbbf24;font-size:2.5rem;margin-bottom:.75rem;display:block"></i>' +
-                '<h4 style="color:#fbbf24;margin-bottom:.75rem">Complete the Task First!</h4>' +
-                '<p style="color:var(--text-2);line-height:1.65;margin-bottom:1rem;font-size:.875rem">Click the task button above and complete the required action before submitting.</p>' +
-                '<ol style="color:var(--text-2);text-align:left;font-size:.85rem;padding-left:1.5rem;margin:0;line-height:1.9">' +
-                '<li>Click the task action button</li><li>Complete the required action</li><li>Return and click "Submit Task"</li></ol>' +
-                '<button class="task-action-btn task-action-btn--secondary" onclick="closeTaskModal()" style="margin-top:1.25rem;width:100%">' +
-                '<i class="fas fa-arrow-left"></i> Got it, let me do the task</button></div>';
-            document.getElementById('taskModal').style.display = 'flex';
-            const footer = document.querySelector('.modal-footer');
-            if (footer) {
-                footer.style.display = 'none';
-                setTimeout(function() {
-                    footer.style.display = 'flex';
-                    // Replace submit with "I've Done It" that opens actual modal
-                    const submitBtn = footer.querySelector('button[type="submit"]');
-                    if (submitBtn) {
-                        submitBtn.textContent = "I've Done It — Submit";
-                        submitBtn.onclick = function(e) {
-                            e.preventDefault();
-                            trackTaskClick(taskId);
-                            closeTaskModal();
-                            openTaskModal(taskId, questId, taskTitle, inputLabel, inputName, false, twitterFollowTarget, taskType, pollOptions, discordGuildId, discordGuildName, telegramChatId, telegramChatName);
-                        };
-                    }
-                }, 1000);
-            }
-        }
-
-        function generateVerificationCode(taskId) {
-            return btoa(taskId + ':' + Date.now()).substr(0, 20);
-        }
-
-        /* ── Image upload helpers ── */
-        function previewUploadedImg(input) {
-            if (!input.files || !input.files[0]) return;
-            var file = input.files[0];
-            if (file.size > 5 * 1024 * 1024) { showToast('Image too large — max 5MB', 'error'); input.value = ''; return; }
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('imgPreview').src = e.target.result;
-                document.getElementById('imgFileName').textContent = file.name;
-                document.getElementById('imgPreviewWrap').style.display = 'block';
-                document.getElementById('imgUploadArea').style.display = 'none';
-                document.getElementById('imgBase64').value = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-        function handleImgDrop(e) {
-            e.preventDefault();
-            document.getElementById('imgUploadArea').style.borderColor = 'rgba(168,85,247,.3)';
-            var file = e.dataTransfer.files[0];
-            if (!file || !file.type.startsWith('image/')) return;
-            var fakeInput = { files: [file] };
-            previewUploadedImg(fakeInput);
-        }
-        function clearImgUpload() {
-            document.getElementById('imgBase64').value = '';
-            document.getElementById('imgPreviewWrap').style.display = 'none';
-            document.getElementById('imgUploadArea').style.display = 'block';
-            document.getElementById('imgFileInput').value = '';
-        }
-
-        function closeTaskModal() {
-            document.getElementById('taskModal').style.display = 'none';
-            document.getElementById('taskSubmitForm').reset();
-            hideSubmitError();
-            currentTaskId = null; currentQuestId = null;
-        }
-
-        function showSubmitError(msg, details) {
-            var box = document.getElementById('taskSubmitError');
-            var html = '<strong><i class="fas fa-exclamation-circle"></i> ' + msg + '</strong>';
-            if (details && details.length) {
-                html += '<ul style="margin:.5rem 0 0 1.1rem;padding:0">' +
-                    details.map(function(d){ return '<li style="margin-top:.25rem">' + d + '</li>'; }).join('') + '</ul>';
-            }
-            box.innerHTML = html;
-            box.style.display = '';
-            box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        function hideSubmitError() {
-            var box = document.getElementById('taskSubmitError');
-            if (box) { box.style.display = 'none'; box.innerHTML = ''; }
-        }
-
-        function filterLeaderboard() {
-            const filter = document.getElementById('leaderboardSearch').value.toLowerCase();
-            let visible = 0;
-            document.querySelectorAll('.lb-row').forEach(row => {
-                const match = row.getAttribute('data-username').includes(filter);
-                row.style.display = match ? 'flex' : 'none';
-                if (match) visible++;
-            });
-            const list = document.getElementById('leaderboardList');
-            let noMsg = document.getElementById('noResultsMsg');
-            if (visible === 0 && filter) {
-                if (!noMsg) {
-                    noMsg = document.createElement('div');
-                    noMsg.id = 'noResultsMsg';
-                    noMsg.style.cssText = 'text-align:center;padding:2rem;color:var(--text-3);font-size:.875rem';
-                    noMsg.innerHTML = '<i class="fas fa-search" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No users found for "' + filter + '"';
-                    list.appendChild(noMsg);
+            } else if (data.requiresConnection) {
+                closeTaskModal();
+                var parts = [];
+                if (data.missingX)  parts.push('<a href="/auth/twitter" style="color:#5EC213;font-weight:700"><i class="fab fa-x-twitter"></i> Connect X</a>');
+                if (data.missingTg) parts.push('<a href="https://t.me/onboard3bot" target="_blank" style="color:#1d9bf0;font-weight:700"><i class="fab fa-telegram"></i> Connect Telegram</a>');
+                var banner = document.getElementById('connectionGateBanner');
+                if (banner) {
+                    banner.innerHTML = '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:1.25rem 1.375rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap"><i class="fas fa-lock" style="color:#f87171;font-size:1.125rem;flex-shrink:0"></i><div style="flex:1"><p style="font-size:.875rem;font-weight:700;color:var(--text);margin-bottom:.35rem">Social connection required</p><p style="font-size:.8125rem;color:var(--text-2)">' + (data.message || '') + '</p></div><div style="display:flex;gap:.5rem;flex-wrap:wrap">' + parts.join('') + '</div></div>';
+                    banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-            } else if (noMsg) noMsg.remove();
-        }
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = origBtnHtml; }
 
-        document.getElementById('taskSubmitForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            hideSubmitError();
-
-            // Force Android keyboard to commit pending input before we read form values
-            if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-
-            if (!currentTaskId || !currentQuestId) {
-                showSubmitError('Task info missing — please close and reopen the task.');
-                return;
-            }
-
-            const activeBtn = document.querySelector('.submit-task-btn[data-task-id="' + currentTaskId + '"]');
-            if (activeBtn && activeBtn.getAttribute('data-task-type') === 'discord_join' && !userDiscordConnected) {
-                showSubmitError('Connect your Discord account first before submitting this task.');
-                return;
-            }
-
-            const activeBtn2 = document.querySelector('.submit-task-btn[data-task-id="' + currentTaskId + '"]');
-            const activeTaskType = activeBtn2 ? activeBtn2.getAttribute('data-task-type') : '';
-            if (activeTaskType === 'image_upload') {
-                const imgBase64 = document.getElementById('imgBase64');
-                if (!imgBase64 || !imgBase64.value) {
-                    showSubmitError('Please upload a screenshot as proof before submitting.');
-                    return;
-                }
-            }
-
-            const timeSpent = getTaskTimeSpent(currentTaskId);
-            const formData = new FormData(this);
-            const submitData = {
-                questId: currentQuestId, taskId: currentTaskId,
-                submissionUrl: formData.get('submissionUrl') || '',
-                submissionText: formData.get('submissionText') || '',
-                submissionData: {},
-                verification: formData.get('verification') || '',
-                timeSpent
-            };
-            const imgB64 = formData.get('imgBase64');
-            if (imgB64) submitData.submissionData.image = imgB64;
-            for (let [key, value] of formData.entries()) {
-                if (!['submissionUrl','submissionText','verification','imgBase64'].includes(key)) submitData.submissionData[key] = value;
-            }
-            // Fallback: capture custom input value directly from DOM in case FormData missed it
-            var taskInputEl = document.getElementById('taskInput');
-            if (taskInputEl && taskInputEl.name) {
-                var directVal = taskInputEl.value || '';
-                if (directVal && !submitData.submissionData[taskInputEl.name]) {
-                    submitData.submissionData[taskInputEl.name] = directVal;
-                }
-            }
-
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const orig = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-            submitBtn.disabled = true;
-
-            try {
-                const response = await fetch('/dashboard/quests/submit-task', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(submitData)
-                });
-
-                if (!response.ok && response.status === 401) {
-                    showSubmitError('Your session has expired. Please refresh the page and log in again.');
-                    submitBtn.innerHTML = orig; submitBtn.disabled = false;
-                    return;
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    localStorage.removeItem('taskClick_' + currentTaskId);
-                    localStorage.removeItem('taskTimer_' + currentTaskId);
-                    delete taskClickTracking[currentTaskId];
-                    delete taskStartTime[currentTaskId];
-                    closeTaskModal();
-                    if (data.pending) {
-                        showToast('Submitted! Pending admin review — XP will be credited once approved.', 'success');
-                    } else if (data.isQuestCompleted) {
-                        showToast('Quest Completed! You earned ' + data.rewards.xp + ' XP', 'success');
-                    } else {
-                        showToast('Task completed! +' + (data.taskXpEarned || 0) + ' XP earned', 'success');
-                    }
-                    setTimeout(function() { window.location.reload(); }, 1200);
-                } else if (data.requiresConnection) {
-                    closeTaskModal();
-                    const parts = [];
-                    if (data.missingX)  parts.push('<a href="/auth/twitter" style="color:#5EC213;font-weight:700"><i class="fab fa-x-twitter"></i> Connect X</a>');
-                    if (data.missingTg) parts.push('<a href="https://t.me/onboard3bot" target="_blank" style="color:#1d9bf0;font-weight:700"><i class="fab fa-telegram"></i> Connect Telegram</a>');
-                    const banner = document.getElementById('connectionGateBanner');
-                    if (banner) {
-                        banner.innerHTML = '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:1.25rem 1.375rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap"><i class="fas fa-lock" style="color:#f87171;font-size:1.125rem;flex-shrink:0"></i><div style="flex:1"><p style="font-size:.875rem;font-weight:700;color:var(--text);margin-bottom:.35rem">Social connection required</p><p style="font-size:.8125rem;color:var(--text-2)">' + data.message + '</p></div><div style="display:flex;gap:.5rem;flex-wrap:wrap">' + parts.join('') + '</div></div>';
-                        banner.scrollIntoView({ behavior:'smooth', block:'center' });
-                    }
-                } else if (data.requiresFollow && data.targetAccount) {
-                    showSubmitError(data.message, ['Tap below to follow @' + data.targetAccount + ', then submit again.']);
+            } else if (data.requiresFollow && data.targetAccount) {
+                if (submitBtn) {
                     submitBtn.innerHTML = '<a href="https://x.com/' + data.targetAccount + '" target="_blank" style="color:inherit;text-decoration:none"><i class="fab fa-x-twitter"></i> Follow @' + data.targetAccount + '</a>';
                     submitBtn.disabled = false;
-                } else if (data.requiresTwitterConnect) {
-                    showSubmitError(data.message, ['<a href="/dashboard/connect-twitter?redirect=' + encodeURIComponent(window.location.pathname) + '" style="color:#5EC213;font-weight:700">Connect your X account</a> then try again.']);
-                    submitBtn.innerHTML = orig; submitBtn.disabled = false;
-                } else {
-                    var errDetails = data.errors && data.errors.length ? data.errors : null;
-                    showSubmitError(data.message || 'Submission failed. Please try again.', errDetails);
-                    submitBtn.innerHTML = orig; submitBtn.disabled = false;
                 }
-            } catch (error) {
-                console.error('Submit error:', error);
-                var errMsg = error.message || 'unknown error';
-                if (errMsg.toLowerCase().includes('failed to fetch') || errMsg.toLowerCase().includes('networkerror')) {
-                    showSubmitError('No internet connection. Check your network and try again.');
-                } else if (errMsg.toLowerCase().includes('json') || errMsg.toLowerCase().includes('syntax')) {
-                    showSubmitError('Server error — the server returned an unexpected response. Please try again in a moment.');
-                } else {
-                    showSubmitError('Something went wrong: ' + errMsg + '. Please try again.');
-                }
-                submitBtn.innerHTML = orig; submitBtn.disabled = false;
+                showSubmitError(data.message || 'Please follow the account first.', ['Tap the button above, follow @' + data.targetAccount + ', then Submit again.']);
+
+            } else if (data.requiresTwitterConnect) {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = origBtnHtml; }
+                showSubmitError(data.message || 'X account required.', ['<a href="/dashboard/connect-twitter?redirect=' + encodeURIComponent(window.location.pathname) + '" style="color:#5EC213;font-weight:700">Connect your X account</a> then try again.']);
+
+            } else {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = origBtnHtml; }
+                var errDetails = (data.errors && data.errors.length) ? data.errors : null;
+                showSubmitError(data.message || 'Submission failed. Please try again.', errDetails);
+            }
+        })
+        .catch(function(err) {
+            isSubmitting = false;
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = origBtnHtml; }
+            var m = (err && err.message) ? err.message.toLowerCase() : '';
+            if (m.indexOf('fetch') !== -1 || m.indexOf('network') !== -1 || m.indexOf('failed') !== -1) {
+                showSubmitError('No internet connection. Check your network and try again.');
+            } else if (m.indexOf('json') !== -1 || m.indexOf('syntax') !== -1) {
+                showSubmitError('Server returned an unexpected response. Please try again in a moment.');
+            } else {
+                showSubmitError('Something went wrong. Please close and try again.');
             }
         });
+    }
 
-        document.getElementById('taskModal')?.addEventListener('click', function(e) { if (e.target === this) closeTaskModal(); });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('taskModal').style.display === 'flex') closeTaskModal(); });
+    /* ── Image upload helpers ── */
+    function previewUploadedImg(input) {
+        if (!input.files || !input.files[0]) return;
+        var file = input.files[0];
+        if (file.size > 5 * 1024 * 1024) { showToast('Image too large — max 5MB', 'error'); input.value = ''; return; }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imgPreview').src = e.target.result;
+            document.getElementById('imgFileName').textContent = file.name;
+            document.getElementById('imgPreviewWrap').style.display = 'block';
+            document.getElementById('imgUploadArea').style.display = 'none';
+            document.getElementById('qs_imgBase64').value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+    function handleImgDrop(e) {
+        e.preventDefault();
+        document.getElementById('imgUploadArea').style.borderColor = 'rgba(168,85,247,.3)';
+        var file = e.dataTransfer.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        previewUploadedImg({ files: [file] });
+    }
+    function clearImgUpload() {
+        document.getElementById('qs_imgBase64').value = '';
+        document.getElementById('imgPreviewWrap').style.display = 'none';
+        document.getElementById('imgUploadArea').style.display = 'block';
+        document.getElementById('imgFileInput').value = '';
+    }
 
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                const me = document.querySelector('.lb-row--me');
-                if (me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 600);
+    /* ── Leaderboard search ── */
+    function filterLeaderboard() {
+        var filter  = document.getElementById('leaderboardSearch').value.toLowerCase();
+        var visible = 0;
+        document.querySelectorAll('.lb-row').forEach(function(row) {
+            var match = row.getAttribute('data-username').indexOf(filter) !== -1;
+            row.style.display = match ? 'flex' : 'none';
+            if (match) visible++;
         });
+        var list  = document.getElementById('leaderboardList');
+        var noMsg = document.getElementById('noResultsMsg');
+        if (!list) return;
+        if (visible === 0 && filter) {
+            if (!noMsg) {
+                noMsg = document.createElement('div');
+                noMsg.id = 'noResultsMsg';
+                noMsg.style.cssText = 'text-align:center;padding:2rem;color:var(--text-3);font-size:.875rem';
+                noMsg.innerHTML = '<i class="fas fa-search" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No users found for "' + filter + '"';
+                list.appendChild(noMsg);
+            }
+        } else if (noMsg) { noMsg.remove(); }
+    }
     </script>
     <% } %>
 
