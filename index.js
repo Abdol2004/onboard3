@@ -133,7 +133,6 @@ if (!process.env.VERCEL) {
 
   connectDB()
     .then(async () => {
-      await seedDemoFeedEvents();
       telegramBot.start();
       const PORT = process.env.PORT || 5000;
       server.listen(PORT, () => {
