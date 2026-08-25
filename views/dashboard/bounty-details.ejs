@@ -8,118 +8,135 @@
   <%- include('../partials/achievement-popup') %>
   <link rel="stylesheet" href="/css/dashboard.css">
   <style>
-    .bd-hero { border-radius:18px; overflow:hidden; border:1px solid var(--border); min-height:180px; position:relative; }
-    .bd-hero-bg { position:absolute; inset:0; background:linear-gradient(135deg,#0d190d 0%,#111c11 50%,#0f1d0e 100%); }
-    .bd-hero-overlay { position:absolute; inset:0; background:radial-gradient(ellipse at 70% 50%,rgba(251,191,36,.08) 0%,transparent 65%); }
-    <% if (bounty.image) { %>.bd-hero-img { position:absolute; inset:0; background:url('<%= bounty.image %>') center/cover; opacity:.25; }<% } %>
-    .bd-hero-content { position:relative; z-index:1; padding:2rem 2.25rem; min-height:200px; display:flex; align-items:flex-end; flex-wrap:wrap; gap:1.5rem; }
-    .bd-back { display:inline-flex; align-items:center; gap:.5rem; color:var(--text-3); font-size:.8125rem; font-weight:700; text-decoration:none; margin-bottom:1rem; }
+    /* ── Reset for this page ── */
+    *, *::before, *::after { box-sizing:border-box; }
+
+    /* ── Hero ── */
+    .bd-hero { border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.07); position:relative; margin-bottom:1.25rem; }
+    .bd-hero-bg { position:absolute; inset:0; background:linear-gradient(135deg,#0c170c 0%,#101a10 60%,#0d1c0c 100%); }
+    .bd-hero-overlay { position:absolute; inset:0; background:radial-gradient(ellipse at 70% 40%,rgba(94,194,19,.07) 0%,transparent 60%),radial-gradient(ellipse at 15% 85%,rgba(251,191,36,.05) 0%,transparent 50%); }
+    <% if (bounty.image) { %>.bd-hero-img { position:absolute; inset:0; background:url('<%= bounty.image %>') center/cover; opacity:.18; }<% } %>
+    .bd-hero-inner { position:relative; z-index:1; padding:1.75rem 1.75rem 1.5rem; }
+    .bd-back { display:inline-flex; align-items:center; gap:.4rem; color:rgba(255,255,255,.38); font-size:.78rem; font-weight:700; text-decoration:none; margin-bottom:1.125rem; letter-spacing:.01em; transition:color .2s; }
     .bd-back:hover { color:var(--green); }
-    .bd-badge { font-size:.68rem; font-weight:800; padding:.3rem .75rem; border-radius:50px; letter-spacing:.5px; }
-    .bd-badge--live { background:rgba(94,194,19,.18); color:var(--green); border:1px solid rgba(94,194,19,.35); }
-    .bd-badge--ended { background:rgba(239,68,68,.15); color:#f87171; border:1px solid rgba(239,68,68,.3); }
-    .bd-badge--int { background:rgba(251,146,60,.15); color:#fb923c; border:1px solid rgba(251,146,60,.3); }
-    .bd-badge--win { background:rgba(251,191,36,.18); color:#fbbf24; border:1px solid rgba(251,191,36,.35); }
-    .bd-title { font-size:clamp(1.4rem,3vw,2rem); font-weight:900; color:var(--text); letter-spacing:-1px; margin-bottom:.5rem; }
-    .reward-strip { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.25rem; }
-    .reward-pill { display:inline-flex; align-items:center; gap:.45rem; padding:.5rem 1rem; border-radius:50px; font-size:.875rem; font-weight:800; }
-    .reward-pill--pool { background:rgba(251,191,36,.15); color:#fbbf24; border:1px solid rgba(251,191,36,.3); }
-    .reward-pill--subs { background:rgba(94,194,19,.1); color:var(--green); border:1px solid rgba(94,194,19,.2); }
-    .bd-layout { display:grid; grid-template-columns:1fr 320px; gap:1.25rem; align-items:start; margin-top:1.25rem; }
-    @media (max-width:1100px) { .bd-layout { grid-template-columns:1fr 280px; } }
-    @media (max-width:820px)  { .bd-layout { grid-template-columns:1fr; } }
-    .split-table { width:100%; border-collapse:collapse; font-size:.875rem; }
-    .split-table th { text-align:left; color:var(--text-3); font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; padding:.5rem .75rem; }
-    .split-table td { padding:.625rem .75rem; border-top:1px solid rgba(255,255,255,.05); color:var(--text); font-weight:700; }
-    .split-table .gold { color:#fbbf24; }
-    .submit-card { background:var(--bg-card); border:1px solid var(--border); border-radius:18px; padding:1.5rem; position:sticky; top:1.25rem; }
-    @media (max-width:820px) { .submit-card { position:static; } }
-    .submit-card h3 { font-size:.9375rem; font-weight:900; margin-bottom:1rem; color:var(--text); }
-    .form-group { margin-bottom:1rem; }
-    .form-group label { display:block; font-size:.78rem; font-weight:800; color:var(--text-3); text-transform:uppercase; letter-spacing:.8px; margin-bottom:.4rem; }
-    .form-group input, .form-group textarea { width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:10px; color:var(--text); font-family:'Outfit',sans-serif; font-size:.875rem; padding:.75rem 1rem; resize:vertical; box-sizing:border-box; }
-    .form-group input:focus, .form-group textarea:focus { border-color:rgba(94,194,19,.5); outline:none; }
-    .submit-btn { width:100%; padding:.875rem; border-radius:12px; background:var(--green); color:#000; font-family:'Outfit',sans-serif; font-size:.9375rem; font-weight:900; border:none; cursor:pointer; transition:all .25s; }
-    .submit-btn:hover { transform:translateY(-2px); box-shadow:0 6px 22px rgba(94,194,19,.45); }
-    .submit-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
-    .countdown-box { background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:1.25rem; text-align:center; margin-bottom:1.25rem; }
-    .countdown-val { font-size:1.5rem; font-weight:900; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-.5px; }
-    .countdown-val.urgent { color:#f87171; }
-    .countdown-lbl { font-size:.72rem; color:var(--text-3); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:.25rem; }
-    .sub-card { background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:1rem 1.125rem; display:flex; gap:.875rem; }
-    .sub-pfp { width:40px; height:40px; border-radius:10px; flex-shrink:0; background:rgba(94,194,19,.1); border:1px solid rgba(94,194,19,.2); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); font-size:1rem; overflow:hidden; }
-    .sub-pfp img { width:100%; height:100%; object-fit:cover; border-radius:9px; }
-    .sub-name { font-size:.875rem; font-weight:800; color:var(--text); }
-    .sub-title { font-size:.8125rem; color:var(--text-2); margin:.15rem 0; font-weight:600; }
-    .sub-desc { font-size:.78rem; color:var(--text-3); line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-    .sub-meta { font-size:.7rem; color:var(--text-3); margin-top:.375rem; }
-    .sub-winner-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .65rem; border-radius:50px; background:rgba(251,191,36,.15); color:#fbbf24; border:1px solid rgba(251,191,36,.35); font-size:.65rem; font-weight:800; margin-left:.5rem; }
-    .winner-card { background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,146,60,.06)); border:1px solid rgba(251,191,36,.3); border-radius:16px; padding:1.125rem; display:flex; align-items:center; gap:1rem; }
-    .winner-rank { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:900; flex-shrink:0; }
-    .winner-rank-1 { background:rgba(251,191,36,.2); color:#fbbf24; }
-    .winner-rank-2 { background:rgba(148,163,184,.15); color:#94a3b8; }
-    .winner-rank-3 { background:rgba(180,120,80,.15); color:#cd7f32; }
-    .winner-pfp { width:44px; height:44px; border-radius:11px; flex-shrink:0; background:rgba(94,194,19,.1); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); overflow:hidden; }
-    .winner-pfp img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
+    .bd-badges { display:flex; gap:.35rem; flex-wrap:wrap; margin-bottom:.75rem; }
+    .bdb { font-size:.63rem; font-weight:800; padding:.22rem .6rem; border-radius:50px; letter-spacing:.04em; white-space:nowrap; }
+    .bdb-live  { background:rgba(94,194,19,.15);  color:var(--green); border:1px solid rgba(94,194,19,.3); }
+    .bdb-ended { background:rgba(239,68,68,.12);  color:#f87171;      border:1px solid rgba(239,68,68,.25); }
+    .bdb-int   { background:rgba(251,146,60,.12); color:#fb923c;      border:1px solid rgba(251,146,60,.25); }
+    .bdb-win   { background:rgba(251,191,36,.15); color:#fbbf24;      border:1px solid rgba(251,191,36,.3); }
+    .bdb-cat   { background:rgba(255,255,255,.06); color:rgba(255,255,255,.45); border:1px solid rgba(255,255,255,.09); text-transform:capitalize; }
+    .bd-title  { font-size:clamp(1.25rem,2.8vw,1.875rem); font-weight:900; color:#fff; letter-spacing:-.03em; line-height:1.2; margin-bottom:.5rem; word-break:break-word; }
+    .bd-short  { color:rgba(255,255,255,.5); font-size:.875rem; line-height:1.65; margin-bottom:1.125rem; }
+    .bd-pills  { display:flex; gap:.5rem; flex-wrap:wrap; }
+    .bd-pill   { display:inline-flex; align-items:center; gap:.4rem; padding:.4rem .875rem; border-radius:50px; font-size:.78rem; font-weight:800; }
+    .bd-pill-pool { background:rgba(251,191,36,.12); color:#fbbf24; border:1px solid rgba(251,191,36,.25); }
+    .bd-pill-subs { background:rgba(94,194,19,.08);  color:var(--green); border:1px solid rgba(94,194,19,.18); }
 
-    /* ── Always: text safety ── */
-    .bd-desc { word-break:break-word; overflow-wrap:break-word; white-space:pre-wrap; max-width:100%; }
-    .bd-section-body { padding:0 1.5rem 1.5rem; }
-
-    @media (max-width:820px) {
-      /* Fix grid item overflow — grid children must yield to 1fr */
-      .bd-layout > div { min-width:0; overflow-x:hidden; }
+    /* ── Two-col layout ── */
+    .bd-layout { display:grid; grid-template-columns:1fr 290px; gap:1.125rem; align-items:start; }
+    @media (max-width:1024px) { .bd-layout { grid-template-columns:1fr 260px; } }
+    @media (max-width:768px)  {
+      .bd-layout { grid-template-columns:1fr; gap:.875rem; }
+      .bd-layout > * { min-width:0; }
     }
 
-    @media (max-width:600px) {
-      /* Hero */
-      .bd-hero-content { padding:1rem .875rem; gap:.625rem; min-height:130px; }
-      .bd-title { font-size:1.15rem; letter-spacing:-.3px; }
-      .bd-back { font-size:.75rem; margin-bottom:.625rem; }
-      .bd-badge { font-size:.6rem; padding:.2rem .5rem; }
-      .reward-strip { gap:.375rem; margin-top:.625rem; }
-      .reward-pill { font-size:.72rem; padding:.3rem .6rem; }
+    /* ── Section box ── */
+    .bd-box { background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.07); border-radius:14px; overflow:hidden; margin-bottom:.875rem; width:100%; }
+    .bd-box:last-child { margin-bottom:0; }
+    .bd-box-head { display:flex; align-items:center; gap:.5rem; padding:.875rem 1.125rem; border-bottom:1px solid rgba(255,255,255,.06); }
+    .bd-box-head h3 { font-size:.84rem; font-weight:800; color:rgba(255,255,255,.85); letter-spacing:-.01em; display:flex; align-items:center; gap:.45rem; margin:0; }
+    .bd-box-head h3 i { color:var(--green); font-size:.78rem; }
+    .bd-box-body { padding:1.125rem; }
 
-      /* Layout spacing */
-      .bd-layout { margin-top:.75rem; gap:.75rem; }
+    /* ── Description ── */
+    .bd-desc-text { color:rgba(255,255,255,.55); line-height:1.75; font-size:.875rem; white-space:pre-wrap; word-break:break-word; overflow-wrap:break-word; }
 
-      /* Card — reduce own padding to stop double-padding squeeze */
-      .card { padding:.875rem; border-radius:12px; }
-      .card-header { margin-bottom:.75rem; }
+    /* ── Reward table ── */
+    .bd-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .bd-split { width:100%; border-collapse:collapse; font-size:.84rem; min-width:260px; }
+    .bd-split th { text-align:left; color:rgba(255,255,255,.32); font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; padding:.625rem 1.125rem; }
+    .bd-split td { padding:.6rem 1.125rem; border-top:1px solid rgba(255,255,255,.05); color:rgba(255,255,255,.82); font-weight:700; white-space:nowrap; }
+    .bd-split .gold { color:#fbbf24; }
 
-      /* Section body: remove side padding — card provides it now */
-      .bd-section-body { padding:0 0 .875rem !important; }
+    /* ── Winner cards ── */
+    .bd-winner { background:linear-gradient(135deg,rgba(251,191,36,.06),rgba(251,146,60,.03)); border:1px solid rgba(251,191,36,.18); border-radius:12px; padding:.875rem 1rem; display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
+    .bd-w-rank { width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:.95rem; flex-shrink:0; }
+    .bd-w-rank-1 { background:rgba(251,191,36,.18); }
+    .bd-w-rank-2 { background:rgba(148,163,184,.12); }
+    .bd-w-rank-3 { background:rgba(180,120,80,.12); }
+    .bd-w-pfp { width:36px; height:36px; border-radius:9px; flex-shrink:0; background:rgba(94,194,19,.1); border:1px solid rgba(94,194,19,.15); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); overflow:hidden; font-size:.85rem; }
+    .bd-w-pfp img { width:100%; height:100%; object-fit:cover; }
+    .bd-w-info { flex:1; min-width:0; }
+    .bd-w-name { font-size:.84rem; font-weight:800; color:rgba(255,255,255,.9); }
+    .bd-w-sub  { font-size:.74rem; color:rgba(255,255,255,.4); margin-top:2px; }
+    .bd-w-amt  { font-size:.9rem; font-weight:900; color:#fbbf24; flex-shrink:0; }
 
-      /* Submit card */
-      .submit-card { padding:.875rem; border-radius:12px; }
-      .submit-card h3 { font-size:.875rem; margin-bottom:.75rem; }
-      .form-group { margin-bottom:.75rem; }
-      .form-group label { font-size:.72rem; }
-      .form-group input, .form-group textarea { padding:.6rem .75rem; font-size:.875rem; min-width:0; }
-      .submit-btn { padding:.75rem; font-size:.875rem; }
+    /* ── Submission cards ── */
+    .bd-sub { background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.06); border-radius:11px; padding:.875rem; display:flex; gap:.75rem; align-items:flex-start; }
+    .bd-sub-pfp { width:34px; height:34px; border-radius:8px; flex-shrink:0; background:rgba(94,194,19,.08); border:1px solid rgba(94,194,19,.14); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); font-size:.82rem; overflow:hidden; }
+    .bd-sub-pfp img { width:100%; height:100%; object-fit:cover; }
+    .bd-sub-body { flex:1; min-width:0; }
+    .bd-sub-name { font-size:.82rem; font-weight:800; color:rgba(255,255,255,.9); }
+    .bd-sub-badge { display:inline-flex; align-items:center; gap:.25rem; padding:.12rem .5rem; border-radius:50px; background:rgba(251,191,36,.12); color:#fbbf24; border:1px solid rgba(251,191,36,.28); font-size:.6rem; font-weight:800; margin-left:.4rem; vertical-align:middle; }
+    .bd-sub-title { font-size:.77rem; color:rgba(255,255,255,.5); margin:.2rem 0 .3rem; font-weight:600; }
+    .bd-sub-desc  { font-size:.74rem; color:rgba(255,255,255,.38); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .bd-sub-link  { display:inline-flex; align-items:center; gap:.3rem; font-size:.71rem; color:var(--green); font-weight:700; text-decoration:none; margin-top:.4rem; }
+    .bd-sub-meta  { font-size:.67rem; color:rgba(255,255,255,.28); margin-top:.35rem; }
+    .bd-sub-won   { flex-shrink:0; font-weight:900; color:#fbbf24; font-size:.82rem; padding-top:.1rem; }
 
-      /* Countdown */
-      .countdown-box { padding:.875rem; }
-      .countdown-val { font-size:1.1rem; }
-      .countdown-lbl { font-size:.68rem; }
+    /* ── Sidebar ── */
+    .bd-sidebar { display:flex; flex-direction:column; gap:.875rem; }
 
-      /* Reward split table — scrollable if needed */
-      .split-table { font-size:.78rem; display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-      .split-table th, .split-table td { padding:.4rem .5rem; white-space:nowrap; }
+    /* ── Countdown ── */
+    .bd-countdown { background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.07); border-radius:13px; padding:1.125rem 1rem; text-align:center; }
+    .bd-cd-val { font-size:1.5rem; font-weight:900; color:#fff; font-variant-numeric:tabular-nums; letter-spacing:-.03em; }
+    .bd-cd-val.urgent { color:#f87171; }
+    .bd-cd-lbl { font-size:.67rem; color:rgba(255,255,255,.32); font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-top:.3rem; }
 
-      /* Winner cards */
-      .winner-card { flex-wrap:wrap; gap:.5rem; padding:.875rem; }
-      .winner-card > div:last-child { width:100%; text-align:left; margin-top:.25rem; }
-      .winner-pfp { width:36px; height:36px; }
-      .winner-rank { width:34px; height:34px; font-size:1rem; }
+    /* ── Submit panel ── */
+    .bd-submit { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:1.25rem; width:100%; }
+    .bd-submit-title { font-size:.875rem; font-weight:900; color:rgba(255,255,255,.9); margin-bottom:1rem; display:flex; align-items:center; gap:.45rem; }
+    .bd-submit-title i { color:var(--green); }
+    .bd-fg { margin-bottom:.875rem; }
+    .bd-fg label { display:block; font-size:.67rem; font-weight:800; color:rgba(255,255,255,.32); text-transform:uppercase; letter-spacing:.07em; margin-bottom:.35rem; }
+    .bd-fg input, .bd-fg textarea { width:100%; min-width:0; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09); border-radius:10px; color:rgba(255,255,255,.88); font-family:'Outfit',sans-serif; font-size:.875rem; padding:.7rem .875rem; resize:vertical; box-sizing:border-box; transition:border-color .2s,background .2s; }
+    .bd-fg input:focus, .bd-fg textarea:focus { border-color:rgba(94,194,19,.4); outline:none; background:rgba(255,255,255,.06); }
+    .bd-fg input::placeholder, .bd-fg textarea::placeholder { color:rgba(255,255,255,.22); font-size:.84rem; }
+    .bd-submit-btn { width:100%; padding:.85rem; border-radius:11px; background:var(--green); color:#000; font-family:'Outfit',sans-serif; font-size:.9rem; font-weight:900; border:none; cursor:pointer; transition:all .22s; letter-spacing:-.01em; }
+    .bd-submit-btn:hover:not(:disabled) { opacity:.88; transform:translateY(-1px); box-shadow:0 6px 18px rgba(94,194,19,.35); }
+    .bd-submit-btn:disabled { opacity:.42; cursor:not-allowed; }
 
-      /* Submission cards */
-      .sub-card { gap:.5rem; padding:.75rem; }
-      .sub-pfp { width:32px; height:32px; font-size:.8rem; border-radius:8px; flex-shrink:0; }
-      .sub-name { font-size:.8rem; }
-      .sub-title { font-size:.75rem; }
-      .sub-desc { font-size:.72rem; }
-      .sub-winner-badge { font-size:.58rem; padding:.15rem .5rem; }
+    /* ── Status states ── */
+    .bd-status { text-align:center; padding:1.25rem .5rem; }
+    .bd-status i { font-size:2.25rem; display:block; margin-bottom:.75rem; }
+    .bd-status h3 { font-size:.9375rem; font-weight:900; margin-bottom:.375rem; }
+    .bd-status p { font-size:.8rem; color:rgba(255,255,255,.38); line-height:1.55; }
+    .bd-my-sub { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:10px; padding:.75rem .875rem; text-align:left; margin-top:.75rem; }
+    .bd-my-sub strong { font-size:.82rem; color:rgba(255,255,255,.85); font-weight:800; display:block; margin-bottom:.25rem; }
+    .bd-my-sub p { font-size:.75rem; color:rgba(255,255,255,.38); margin:0; line-height:1.5; }
+
+    /* ── Empty ── */
+    .bd-empty { text-align:center; padding:2.5rem 1rem; color:rgba(255,255,255,.28); font-size:.84rem; }
+    .bd-empty i { display:block; font-size:1.5rem; margin-bottom:.5rem; opacity:.35; }
+
+    /* ── Mobile ── */
+    @media (max-width:480px) {
+      .bd-hero-inner { padding:1.25rem 1rem 1.125rem; }
+      .bd-back { font-size:.74rem; margin-bottom:.875rem; }
+      .bd-title { font-size:1.2rem; }
+      .bd-short { font-size:.83rem; }
+      .bd-pill { font-size:.74rem; padding:.35rem .75rem; }
+      .bd-box-head { padding:.75rem 1rem; }
+      .bd-box-body { padding:1rem; }
+      .bd-submit { padding:1rem; }
+      .bd-countdown { padding:.875rem; }
+      .bd-cd-val { font-size:1.25rem; }
+      .bd-winner { padding:.75rem; gap:.625rem; }
+      .bd-sub { padding:.75rem; gap:.625rem; }
+      .bd-sub-pfp { width:30px; height:30px; font-size:.78rem; }
+      .bd-w-pfp { width:32px; height:32px; }
+      .bd-w-rank { width:30px; height:30px; font-size:.85rem; }
     }
   </style>
 </head>
@@ -127,53 +144,55 @@
 <%- include('../partials/sidebar', { user, currentPage }) %>
 <div class="dashboard-container">
   <main class="main-content">
-    <div class="content" style="gap:0;padding-bottom:2.5rem">
+    <div class="content" style="gap:0;padding-bottom:3rem">
 
-    <!-- Hero -->
+    <!-- ═══ HERO ═══ -->
     <div class="bd-hero">
       <div class="bd-hero-bg"></div>
       <div class="bd-hero-overlay"></div>
       <% if (bounty.image) { %><div class="bd-hero-img"></div><% } %>
-      <div class="bd-hero-content">
-        <div style="flex:1;min-width:0">
-          <a href="/dashboard/bounties" class="bd-back"><i class="fas fa-arrow-left"></i> All Bounties</a>
-          <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
-            <span class="bd-badge bd-badge--int">ONBOARD3</span>
-            <% if (bounty.status === 'winners_announced') { %>
-              <span class="bd-badge bd-badge--win"><i class="fas fa-trophy"></i> Winners Announced</span>
-            <% } else if (bounty.hasEnded || (bounty.endDate && new Date() > new Date(bounty.endDate))) { %>
-              <span class="bd-badge bd-badge--ended">Ended</span>
-            <% } else { %>
-              <span class="bd-badge bd-badge--live"><i class="fas fa-circle" style="font-size:.5rem"></i> Live</span>
-            <% } %>
-            <% if (bounty.category) { %><span class="bd-badge" style="background:rgba(255,255,255,.06);color:var(--text-2);border:1px solid rgba(255,255,255,.1);text-transform:capitalize"><%= bounty.category %></span><% } %>
-          </div>
-          <h1 class="bd-title"><%= bounty.title %></h1>
-          <p style="color:var(--text-2);font-size:.9375rem;line-height:1.65"><%= bounty.shortDescription %></p>
-          <div class="reward-strip">
-            <span class="reward-pill reward-pill--pool"><i class="fas fa-coins"></i> <%= (bounty.rewardPool||0).toLocaleString() %> <%= bounty.rewardToken || 'USDC' %> Pool</span>
-            <span class="reward-pill reward-pill--subs"><i class="fas fa-file-alt"></i> <%= submissions.length %> Submission<%= submissions.length !== 1 ? 's' : '' %></span>
-          </div>
+      <div class="bd-hero-inner">
+        <a href="/dashboard/bounties" class="bd-back"><i class="fas fa-arrow-left"></i> All Bounties</a>
+        <div class="bd-badges">
+          <span class="bdb bdb-int">ONBOARD3</span>
+          <% if (bounty.status === 'winners_announced') { %>
+            <span class="bdb bdb-win"><i class="fas fa-trophy"></i> Winners Announced</span>
+          <% } else if (bounty.hasEnded || (bounty.endDate && new Date() > new Date(bounty.endDate))) { %>
+            <span class="bdb bdb-ended">Ended</span>
+          <% } else { %>
+            <span class="bdb bdb-live"><i class="fas fa-circle" style="font-size:.4rem"></i> Live</span>
+          <% } %>
+          <% if (bounty.category) { %><span class="bdb bdb-cat"><%= bounty.category %></span><% } %>
+        </div>
+        <h1 class="bd-title"><%= bounty.title %></h1>
+        <p class="bd-short"><%= bounty.shortDescription %></p>
+        <div class="bd-pills">
+          <span class="bd-pill bd-pill-pool"><i class="fas fa-coins"></i> <%= (bounty.rewardPool||0).toLocaleString() %> <%= bounty.rewardToken || 'USDC' %> Pool</span>
+          <span class="bd-pill bd-pill-subs"><i class="fas fa-file-alt"></i> <%= submissions.length %> Submission<%= submissions.length !== 1 ? 's' : '' %></span>
         </div>
       </div>
     </div>
 
+    <!-- ═══ LAYOUT ═══ -->
     <div class="bd-layout">
-      <!-- Left: description + submissions -->
+
+      <!-- Left column: content -->
       <div>
 
-        <!-- Description -->
-        <div class="card" style="margin-bottom:1.25rem">
-          <div class="card-header"><h3><i class="fas fa-info-circle"></i> About This Bounty</h3></div>
-          <div class="bd-section-body bd-desc" style="color:var(--text-2);line-height:1.75;font-size:.9rem"><%= bounty.description %></div>
+        <!-- About -->
+        <div class="bd-box">
+          <div class="bd-box-head"><h3><i class="fas fa-info-circle"></i> About This Bounty</h3></div>
+          <div class="bd-box-body">
+            <div class="bd-desc-text"><%= bounty.description %></div>
+          </div>
         </div>
 
         <!-- Reward split -->
         <% if (bounty.rewardSplit && bounty.rewardSplit.length > 0) { %>
-        <div class="card" style="margin-bottom:1.25rem">
-          <div class="card-header"><h3><i class="fas fa-chart-pie"></i> Reward Split</h3></div>
-          <div class="bd-section-body">
-            <table class="split-table">
+        <div class="bd-box">
+          <div class="bd-box-head"><h3><i class="fas fa-chart-pie"></i> Reward Split</h3></div>
+          <div class="bd-table-wrap">
+            <table class="bd-split">
               <thead><tr><th>Rank</th><th>%</th><th>Amount</th></tr></thead>
               <tbody>
               <% bounty.rewardSplit.forEach(function(s, i) { %>
@@ -189,134 +208,134 @@
         </div>
         <% } %>
 
-        <!-- Winners (if announced) -->
+        <!-- Winners -->
         <% if (bounty.status === 'winners_announced' && bounty.winners && bounty.winners.length > 0) { %>
-        <div class="card" style="margin-bottom:1.25rem">
-          <div class="card-header"><h3><i class="fas fa-trophy" style="color:#fbbf24"></i> Winners</h3></div>
-          <div class="bd-section-body" style="display:flex;flex-direction:column;gap:.75rem">
+        <div class="bd-box">
+          <div class="bd-box-head"><h3><i class="fas fa-trophy" style="color:#fbbf24"></i> Winners</h3></div>
+          <div class="bd-box-body" style="display:flex;flex-direction:column;gap:.75rem">
             <% bounty.winners.forEach(function(w) {
               const winSub = submissions.find(s => s._id.toString() === (w.submissionId||'').toString());
             %>
-            <div class="winner-card">
-              <div class="winner-rank winner-rank-<%= Math.min(w.rank,3) %>"><%= w.rank===1?'🥇':w.rank===2?'🥈':w.rank===3?'🥉':'#'+w.rank %></div>
-              <div class="winner-pfp">
+            <div class="bd-winner">
+              <div class="bd-w-rank bd-w-rank-<%= Math.min(w.rank,3) %>"><%= w.rank===1?'🥇':w.rank===2?'🥈':w.rank===3?'🥉':'#'+w.rank %></div>
+              <div class="bd-w-pfp">
                 <% if (winSub?.userId?.profilePicture) { %>
                 <img src="<%= winSub.userId.profilePicture %>" alt="">
                 <% } else { %><span><%= (winSub?.userId?.username || '?').charAt(0).toUpperCase() %></span><% } %>
               </div>
-              <div style="flex:1;min-width:0">
-                <div style="font-weight:800;color:var(--text)"><%= winSub?.userId?.username || 'Unknown' %></div>
-                <% if (winSub) { %><div style="font-size:.8rem;color:var(--text-3);margin-top:2px"><%= winSub.title %></div><% } %>
+              <div class="bd-w-info">
+                <div class="bd-w-name"><%= winSub?.userId?.username || 'Unknown' %></div>
+                <% if (winSub) { %><div class="bd-w-sub"><%= winSub.title %></div><% } %>
               </div>
-              <div style="text-align:right;flex-shrink:0">
-                <div style="font-size:1rem;font-weight:900;color:#fbbf24"><%= (w.amountWon||0).toLocaleString() %> <%= bounty.rewardToken||'USDC' %></div>
-              </div>
+              <div class="bd-w-amt"><%= (w.amountWon||0).toLocaleString() %> <%= bounty.rewardToken||'USDC' %></div>
             </div>
             <% }); %>
           </div>
         </div>
         <% } %>
 
-        <!-- All submissions -->
-        <div class="card">
-          <div class="card-header" style="flex-wrap:wrap;gap:.5rem">
-            <h3><i class="fas fa-file-alt"></i> Submissions (<%= submissions.length %>)</h3>
-          </div>
-          <div class="bd-section-body" style="display:flex;flex-direction:column;gap:.75rem">
+        <!-- Submissions -->
+        <div class="bd-box">
+          <div class="bd-box-head"><h3><i class="fas fa-file-alt"></i> Submissions (<%= submissions.length %>)</h3></div>
+          <div class="bd-box-body" style="display:flex;flex-direction:column;gap:.625rem">
             <% if (submissions.length === 0) { %>
-            <div style="text-align:center;padding:2rem;color:var(--text-3);font-size:.875rem"><i class="fas fa-inbox" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No submissions yet. Be the first!</div>
+            <div class="bd-empty"><i class="fas fa-inbox"></i>No submissions yet. Be the first!</div>
             <% } %>
             <% submissions.forEach(function(sub) { %>
-            <div class="sub-card" style="<%= sub.status==='winner'?'border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.04)':'' %>">
-              <div class="sub-pfp">
+            <div class="bd-sub" style="<%= sub.status==='winner'?'border-color:rgba(251,191,36,.28);background:rgba(251,191,36,.03)':'' %>">
+              <div class="bd-sub-pfp">
                 <% if (sub.userId?.profilePicture) { %>
                 <img src="<%= sub.userId.profilePicture %>" alt="">
                 <% } else { %><span><%= (sub.userId?.username||'?').charAt(0).toUpperCase() %></span><% } %>
               </div>
-              <div style="flex:1;min-width:0">
-                <div class="sub-name">
+              <div class="bd-sub-body">
+                <div class="bd-sub-name">
                   <%= sub.userId?.username || 'Anonymous' %>
-                  <% if (sub.status === 'winner') { %><span class="sub-winner-badge"><i class="fas fa-trophy"></i> #<%= sub.rank %> Winner</span><% } %>
+                  <% if (sub.status === 'winner') { %><span class="bd-sub-badge"><i class="fas fa-trophy"></i> #<%= sub.rank %> Winner</span><% } %>
                 </div>
-                <div class="sub-title"><%= sub.title %></div>
-                <div class="sub-desc"><%= sub.description %></div>
+                <div class="bd-sub-title"><%= sub.title %></div>
+                <div class="bd-sub-desc"><%= sub.description %></div>
                 <% if (sub.submissionUrl) { %>
-                <a href="<%= sub.submissionUrl %>" target="_blank" style="font-size:.75rem;color:var(--green);font-weight:700;text-decoration:none;margin-top:.3rem;display:inline-flex;align-items:center;gap:.3rem"><i class="fas fa-external-link-alt"></i> View Work</a>
+                <a href="<%= sub.submissionUrl %>" target="_blank" class="bd-sub-link"><i class="fas fa-external-link-alt"></i> View Work</a>
                 <% } %>
-                <div class="sub-meta"><%= new Date(sub.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></div>
+                <div class="bd-sub-meta"><%= new Date(sub.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></div>
               </div>
-              <% if (sub.amountWon) { %><div style="flex-shrink:0;font-weight:900;color:#fbbf24;font-size:.875rem"><%= sub.amountWon.toLocaleString() %> <%= bounty.rewardToken||'USDC' %></div><% } %>
+              <% if (sub.amountWon) { %><div class="bd-sub-won"><%= sub.amountWon.toLocaleString() %> <%= bounty.rewardToken||'USDC' %></div><% } %>
             </div>
             <% }); %>
           </div>
         </div>
-      </div>
 
-      <!-- Right: submit + countdown sidebar -->
-      <div>
+      </div><!-- /left -->
+
+      <!-- Right column: sidebar -->
+      <div class="bd-sidebar">
+
         <!-- Countdown -->
         <% if (bounty.endDate) { %>
-        <div class="countdown-box" style="margin-bottom:1.25rem">
+        <div class="bd-countdown">
           <% const ended = new Date() > new Date(bounty.endDate); %>
           <% if (ended || bounty.status === 'winners_announced') { %>
-          <div class="countdown-val">Ended</div>
-          <div class="countdown-lbl">This bounty is closed</div>
+          <div class="bd-cd-val">Ended</div>
+          <div class="bd-cd-lbl">This bounty is closed</div>
           <% } else { %>
-          <div class="countdown-val" id="cdVal">--</div>
-          <div class="countdown-lbl">Time Remaining</div>
+          <div class="bd-cd-val" id="cdVal">--</div>
+          <div class="bd-cd-lbl">Time Remaining</div>
           <% } %>
         </div>
         <% } %>
 
-        <!-- Submit card -->
+        <!-- Submit -->
         <%
           const isEnded = bounty.endDate && new Date() > new Date(bounty.endDate);
           const winnersOut = bounty.status === 'winners_announced';
         %>
-        <div class="submit-card">
+        <div class="bd-submit">
           <% if (winnersOut) { %>
-          <div style="text-align:center;padding:1rem 0">
-            <i class="fas fa-trophy" style="font-size:2.5rem;color:#fbbf24;display:block;margin-bottom:.75rem"></i>
+          <div class="bd-status">
+            <i class="fas fa-trophy" style="color:#fbbf24"></i>
             <h3 style="color:#fbbf24">Winners Announced</h3>
-            <p style="color:var(--text-3);font-size:.8125rem">This bounty has concluded.</p>
+            <p>This bounty has concluded. Check the winners section.</p>
           </div>
           <% } else if (mySubmission) { %>
-          <div style="text-align:center;padding:1rem 0">
-            <i class="fas fa-check-circle" style="font-size:2.5rem;color:var(--green);display:block;margin-bottom:.75rem"></i>
+          <div class="bd-status">
+            <i class="fas fa-check-circle" style="color:var(--green)"></i>
             <h3 style="color:var(--green)">Submitted!</h3>
-            <p style="color:var(--text-3);font-size:.8125rem;margin-bottom:.5rem">Your submission is in.</p>
-            <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:.75rem;text-align:left;font-size:.8rem">
-              <strong style="color:var(--text)"><%= mySubmission.title %></strong>
-              <p style="color:var(--text-3);margin-top:.3rem"><%= mySubmission.description.substring(0,100) %><%= mySubmission.description.length>100?'...':'' %></p>
+            <p>Your entry is in. Good luck!</p>
+            <div class="bd-my-sub">
+              <strong><%= mySubmission.title %></strong>
+              <p><%= mySubmission.description.substring(0,100) %><%= mySubmission.description.length>100?'...':'' %></p>
             </div>
           </div>
           <% } else if (isEnded) { %>
-          <div style="text-align:center;padding:1rem 0">
-            <i class="fas fa-lock" style="font-size:2rem;color:var(--text-3);display:block;margin-bottom:.75rem"></i>
-            <h3 style="color:var(--text-3)">Submissions Closed</h3>
-            <p style="color:var(--text-3);font-size:.8125rem">This bounty has ended.</p>
+          <div class="bd-status">
+            <i class="fas fa-lock" style="color:rgba(255,255,255,.22)"></i>
+            <h3 style="color:rgba(255,255,255,.38)">Submissions Closed</h3>
+            <p>This bounty has ended.</p>
           </div>
           <% } else { %>
-          <h3><i class="fas fa-paper-plane" style="color:var(--green)"></i> Submit Your Work</h3>
+          <div class="bd-submit-title"><i class="fas fa-paper-plane"></i> Submit Your Work</div>
           <form id="submitForm">
-            <div class="form-group">
-              <label>Submission Title *</label>
+            <div class="bd-fg">
+              <label>Title *</label>
               <input type="text" id="subTitle" placeholder="Give your submission a title" required>
             </div>
-            <div class="form-group">
+            <div class="bd-fg">
               <label>Description *</label>
-              <textarea id="subDesc" rows="5" placeholder="Describe what you built / delivered..." required></textarea>
+              <textarea id="subDesc" rows="4" placeholder="Describe what you built / delivered..." required></textarea>
             </div>
-            <div class="form-group">
-              <label>Work URL <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
-              <input type="url" id="subUrl" placeholder="https://github.com/... or demo link">
+            <div class="bd-fg">
+              <label>Work URL <span style="color:rgba(255,255,255,.22);font-weight:400;text-transform:none;font-size:.68rem">(optional)</span></label>
+              <input type="url" id="subUrl" placeholder="https://...">
             </div>
-            <button type="submit" class="submit-btn" id="submitBtn"><i class="fas fa-paper-plane"></i> Submit</button>
+            <button type="submit" class="bd-submit-btn" id="submitBtn"><i class="fas fa-paper-plane"></i> Submit</button>
           </form>
           <% } %>
         </div>
-      </div>
-    </div>
+
+      </div><!-- /sidebar -->
+    </div><!-- /bd-layout -->
+
     </div><!-- /.content -->
   </main>
 </div><!-- /.dashboard-container -->
