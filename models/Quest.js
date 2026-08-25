@@ -309,6 +309,13 @@ const questSchema = new mongoose.Schema({
     default: Date.now
   },
 
+  // Prize distribution tiers (e.g. rank 1-3 → $50 each)
+  prizeDistribution: [{
+    from:   { type: Number },
+    to:     { type: Number },
+    amount: { type: Number }
+  }],
+
   // Gated quest / special quest settings
   slug:           { type: String, unique: true, sparse: true },
   gated:          { type: Boolean, default: false },

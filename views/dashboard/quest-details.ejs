@@ -935,6 +935,15 @@
                 <% } %>
 
                 <!-- ══ LEADERBOARD ══ -->
+                <%
+                function getPrize(rank, tiers) {
+                    if (!tiers || !tiers.length) return 0;
+                    for (var i = 0; i < tiers.length; i++) {
+                        if (rank >= tiers[i].from && rank <= tiers[i].to) return tiers[i].amount;
+                    }
+                    return 0;
+                }
+                %>
                 <% if (leaderboard && leaderboard.length > 0) { %>
                 <div class="card" style="animation-delay:140ms">
                     <div class="card-header" style="flex-wrap:wrap;gap:.75rem">
@@ -954,6 +963,7 @@
                             var e = leaderboard[i];
                             var totalXp = e.xpBreakdown?.totalXp || e.xpEarned || 0;
                         %>
+                        <% var podiumPrize = getPrize(i+1, quest.prizeDistribution); %>
                         <div class="podium-box podium-box--<%= i+1 %>">
                             <div class="podium-medal"><%= i===0?'🥇':i===1?'🥈':'🥉' %></div>
                             <div style="width:44px;height:44px;border-radius:12px;margin:0 auto .5rem;overflow:hidden;background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.2);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--green);font-size:1rem;flex-shrink:0">
@@ -961,6 +971,7 @@
                             </div>
                             <div class="podium-name"><%= e.userId?.username || 'Anonymous' %></div>
                             <div class="podium-xp"><%= totalXp.toLocaleString() %> XP</div>
+                            <% if (podiumPrize) { %><div style="font-size:.82rem;font-weight:900;color:#4ade80;margin-top:.2rem">💵 $<%= podiumPrize %></div><% } %>
                             <div class="podium-time"><%= e.timeSpentMinutes %>m</div>
                         </div>
                         <% } %>
@@ -972,6 +983,7 @@
                         var totalXp = entry.xpBreakdown?.totalXp || entry.xpEarned || 0;
                         var isCurrentUser = entry.userId?._id?.toString() === user?._id?.toString();
                         var rankClass = idx===0?'lb-rank--1':idx===1?'lb-rank--2':idx===2?'lb-rank--3':'lb-rank--x';
+                        var rowPrize = getPrize(idx+1, quest.prizeDistribution);
                     %>
                     <div class="lb-row <%= isCurrentUser?'lb-row--me':'' %> <%= entry.isWinner?'lb-row--win':'' %>"
                          data-username="<%= (entry.userId?.username || 'Anonymous').toLowerCase() %>">
@@ -984,6 +996,7 @@
                                 <%= entry.userId?.username || 'Anonymous' %>
                                 <% if (isCurrentUser) { %><span class="lb-you">YOU</span><% } %>
                                 <% if (entry.isWinner) { %><i class="fas fa-trophy" style="color:var(--green);font-size:.75rem"></i><% } %>
+                                <% if (rowPrize) { %><span style="background:rgba(74,222,128,.12);color:#4ade80;font-size:.65rem;font-weight:900;padding:.1rem .45rem;border-radius:4px;border:1px solid rgba(74,222,128,.3)">💵 $<%= rowPrize %></span><% } %>
                             </div>
                             <div class="lb-meta">
                                 <%= entry.timeSpentMinutes %>m
