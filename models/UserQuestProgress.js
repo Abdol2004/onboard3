@@ -196,17 +196,6 @@ userQuestProgressSchema.index({ userId: 1, questId: 1 }, { unique: true });
 userQuestProgressSchema.index({ questId: 1, 'xpBreakdown.totalXp': -1 });
 userQuestProgressSchema.index({ questId: 1, completedAt: 1 });
 
-// ==================== CAP TASK XP AT 300 FOR ALL QUESTS ====================
-// This prevents any user from having Task XP > 300
-userQuestProgressSchema.pre('save', function(next) {
-  // Cap Task XP at 300 for ALL quests
-  if (this.xpBreakdown.taskXp > 300) {
-    console.log(`⚠️  Capping Task XP from ${this.xpBreakdown.taskXp} to 300 for user ${this.userId}`);
-    this.xpBreakdown.taskXp = 300;
-  }
-  
-  next();
-});
 
 // Update timestamp on save
 userQuestProgressSchema.pre('save', function(next) {
@@ -248,12 +237,6 @@ userQuestProgressSchema.methods.recalculateAllXp = function() {
     let calculatedTaskXp = this.taskProgress
       .filter(t => t.isCompleted)
       .reduce((sum, t) => sum + (t.xpEarned || 0), 0);
-    
-    // ⚠️ CAP AT 300 - THIS IS CRITICAL
-    if (calculatedTaskXp > 300) {
-      console.log(`⚠️  recalculateAllXp: Capping Task XP from ${calculatedTaskXp} to 300`);
-      calculatedTaskXp = 300;
-    }
     
     this.xpBreakdown.taskXp = calculatedTaskXp;
   }

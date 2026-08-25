@@ -693,8 +693,10 @@ exports.submitTask = async (req, res) => {
     const taskXp = task.xpReward || 0;
     taskProgress.xpEarned = taskXp;
     
-    // ✅ QUEST-SPECIFIC XP (for leaderboard)
-    userProgress.xpBreakdown.taskXp += taskXp;
+    // ✅ QUEST-SPECIFIC XP (for leaderboard) — sum from real data to avoid drift
+    userProgress.xpBreakdown.taskXp = userProgress.taskProgress
+      .filter(tp => tp.isCompleted)
+      .reduce((sum, tp) => sum + (tp.xpEarned || 0), 0);
 
     // Update overall progress
     userProgress.tasksCompleted += 1;
