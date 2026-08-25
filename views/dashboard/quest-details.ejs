@@ -342,8 +342,9 @@
         .modal-close-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); transform: rotate(90deg); }
         .modal-footer { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
         @media (max-width: 600px) {
-          .modal { align-items: flex-end !important; padding: 0 !important; }
-          .modal-content { border-radius: 20px 20px 0 0; width: 100%; max-height: 92vh; padding: 1.25rem 1rem; }
+          /* Keep modal CENTERED on mobile — bottom-sheet conflicts with virtual keyboard */
+          .modal { align-items: center; padding: 1rem; }
+          .modal-content { border-radius: 18px; width: 100%; max-height: 80vh; padding: 1.25rem 1rem; }
           .modal-footer { flex-direction: column; }
           .modal-footer .btn { width: 100%; justify-content: center; font-size: 1rem; padding: .875rem; }
         }
@@ -1114,12 +1115,30 @@
         });
     });
 
-    /* ── Scroll modal to bottom so Submit button stays visible when keyboard opens ── */
+    /* ── Keep modal above virtual keyboard on mobile ── */
     function scrollModalToBottom() {
         setTimeout(function() {
             var mc = document.querySelector('#taskModal .modal-content');
             if (mc) mc.scrollTop = mc.scrollHeight;
         }, 350);
+    }
+
+    /* visualViewport: shrink modal max-height when keyboard opens so footer stays visible */
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', function() {
+            var modal = document.getElementById('taskModal');
+            if (!modal || modal.style.display !== 'flex') return;
+            var kbH = Math.max(0, window.innerHeight - window.visualViewport.height);
+            var mc  = modal.querySelector('.modal-content');
+            if (mc) {
+                if (kbH > 80) {
+                    mc.style.maxHeight = (window.visualViewport.height * 0.95) + 'px';
+                    mc.scrollTop = mc.scrollHeight;
+                } else {
+                    mc.style.maxHeight = '';
+                }
+            }
+        });
     }
 
     /* ── Track external link clicks (soft reminder only, never blocks) ── */
