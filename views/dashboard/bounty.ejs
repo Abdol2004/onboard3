@@ -189,18 +189,18 @@
 
       <!-- ── Main tabs ── -->
       <div class="b-main-tabs">
-        <button id="tab-int" class="b-main-tab" onclick="selectMain('int', this)">
+        <button id="tab-int" class="b-main-tab active-int" onclick="selectMain('int', this)">
           <i class="fas fa-coins"></i> ONBOARD3
           <span class="b-tab-count"><%= internalLive.length + internalEnded.length %></span>
         </button>
-        <button id="tab-ext" class="b-main-tab active-ext" onclick="selectMain('ext', this)">
+        <button id="tab-ext" class="b-main-tab" onclick="selectMain('ext', this)">
           <i class="fas fa-satellite-dish"></i> ZeroAuthDAO
           <span class="b-tab-count"><%= zadLive.length + zadPast.length %></span>
         </button>
       </div>
 
       <!-- ══════════════ ONBOARD3 SECTION ══════════════ -->
-      <div id="section-int" style="display:none">
+      <div id="section-int">
         <div class="b-section-hdr">
           <div class="b-section-icon" style="background:rgba(251,146,60,.15);color:#fb923c"><i class="fas fa-coins"></i></div>
           <div>
@@ -290,7 +290,7 @@
       </div>
 
       <!-- ══════════════ ZEROAUTHDAO SECTION ══════════════ -->
-      <div id="section-ext">
+      <div id="section-ext" style="display:none">
         <div class="b-section-hdr">
           <div class="b-section-icon" style="background:rgba(168,85,247,.15);color:#c084fc"><i class="fas fa-satellite-dish"></i></div>
           <div>
@@ -415,7 +415,7 @@
 </div>
 
 <script>
-var _active = 'ext'; // default to ZAD tab
+var _active = 'int'; // default to internal tab
 
 function selectMain(which, btn) {
   _active = which;
