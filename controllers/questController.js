@@ -274,32 +274,20 @@ exports.getQuestDetails = async (req, res) => {
       }
     }
 
-    // Leaderboard — cache with stampede protection
-    // Detail page only needs top 10; full list is on the /leaderboard page
+    // Leaderboard — served from 5-min cache, one DB fetch on cache miss
     let validLeaderboard = _getLbCache(questId);
     if (!validLeaderboard) {
-      if (_lbFlight.has(questId)) {
-        // Another request is already fetching — wait briefly then use cache or empty
-        await new Promise(r => setTimeout(r, 600));
-        validLeaderboard = _getLbCache(questId) || [];
-      } else {
-        _lbFlight.add(questId);
-        try {
-          const leaderboard = await UserQuestProgress.find({
-            questId: questId,
-            status: { $in: ['completed', 'in_progress'] }
-          })
-          .select('-taskProgress')
-          .populate('userId', 'username profilePicture')
-          .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 })
-          .limit(100)
-          .lean();
-          validLeaderboard = leaderboard.filter(entry => entry.userId);
-          _setLbCache(questId, validLeaderboard);
-        } finally {
-          _lbFlight.delete(questId);
-        }
-      }
+      const lb = await UserQuestProgress.find({
+        questId: questId,
+        status: { $in: ['completed', 'in_progress'] }
+      })
+      .select('-taskProgress')
+      .populate('userId', 'username profilePicture')
+      .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 })
+      .limit(100)
+      .lean();
+      validLeaderboard = lb.filter(entry => entry.userId);
+      _setLbCache(questId, validLeaderboard);
     }
     // Render top 30 on detail page (covers all prize winners) — full list on /leaderboard
     const detailLeaderboard = validLeaderboard.slice(0, 30);
