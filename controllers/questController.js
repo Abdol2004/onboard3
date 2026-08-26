@@ -24,8 +24,8 @@ exports.getAllQuests = async (req, res) => {
       return res.redirect('/auth');
     }
 
-    const user = await User.findById(req.session.userId).select('-password');
-    
+    const user = await User.findById(req.session.userId).select('-password -recentActivity -notifications');
+
     if (!user) {
       return res.redirect('/auth');
     }
@@ -46,21 +46,26 @@ exports.getAllQuests = async (req, res) => {
     
     const now = new Date();
 
-    // Get ALL active quests
+    // Get ALL active quests — skip heavy sub-arrays not needed for the list view
     const allQuests = await Quest.find({
       isActive: true
-    }).sort({ createdAt: -1 });
+    })
+    .select('-tasks -dailyTasks -resources')
+    .sort({ createdAt: -1 })
+    .lean();
 
-    // Get user's progress for all quests
+    // Get user's progress — only need status/progress fields, not taskProgress arrays
     const userProgress = await UserQuestProgress.find({
       userId: req.session.userId
-    });
+    })
+    .select('questId status progress tasksCompleted totalTasks')
+    .lean();
 
     // Get user's quest applications for gated quests
     const gatedQuestIds = allQuests.filter(q => q.gated).map(q => q._id);
     const appMap = {};
     if (gatedQuestIds.length > 0) {
-      const apps = await QuestApplication.find({ userId: req.session.userId, questId: { $in: gatedQuestIds } });
+      const apps = await QuestApplication.find({ userId: req.session.userId, questId: { $in: gatedQuestIds } }).select('questId status').lean();
       apps.forEach(a => { appMap[a.questId.toString()] = a; });
     }
 
@@ -82,8 +87,8 @@ exports.getAllQuests = async (req, res) => {
       const app = appMap[quest._id.toString()];
 
       const questData = {
-        ...quest.toObject(),
-        userProgress: progress ? progress.toObject() : null,
+        ...quest,
+        userProgress: progress || null,
         appStatus: app ? app.status : 'none'
       };
 
@@ -138,7 +143,7 @@ exports.getQuestDetails = async (req, res) => {
       return res.redirect('/auth');
     }
     const { questId } = req.params;
-    const user = await User.findById(req.session.userId).select('-password');
+    const user = await User.findById(req.session.userId).select('-password -recentActivity -notifications');
     
 
     // 🚫 CHECK IF USER IS BANNED
@@ -294,7 +299,7 @@ exports.getQuestDetails = async (req, res) => {
       application: null,
       participantCount,
       userProgress: userProgress.toObject(),
-      leaderboard: validLeaderboard.map(item => item.toObject()),
+      leaderboard: validLeaderboard,
       userRank: userRank || null,
       isBanned: false
     });
@@ -903,7 +908,7 @@ exports.getQuestLeaderboard = async (req, res) => {
     }
 
     const { questId } = req.params;
-    const user = await User.findById(req.session.userId).select('-password');
+    const user = await User.findById(req.session.userId).select('-password -recentActivity -notifications');
 
     const quest = await Quest.findById(questId);
     if (!quest) {
@@ -947,11 +952,11 @@ exports.getQuestLeaderboard = async (req, res) => {
       console.log(`   User tasks: ${userProgress.tasksCompleted}/${userProgress.totalTasks}`);
     }
 
-    res.render('dashboard/quest-leaderboard', { 
+    res.render('dashboard/quest-leaderboard', {
       title: `${quest.title} - Leaderboard`,
       user: user.toObject(),
       quest: quest.toObject(),
-      leaderboard: validLeaderboard.map(item => item.toObject()),
+      leaderboard: validLeaderboard,
       userRank: userRank || null,
       userProgress: userProgress ? userProgress.toObject() : null
     });
