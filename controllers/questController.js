@@ -301,8 +301,8 @@ exports.getQuestDetails = async (req, res) => {
         }
       }
     }
-    // Only render top 10 on the detail page — cuts EJS render time significantly
-    const detailLeaderboard = validLeaderboard.slice(0, 10);
+    // Render top 30 on detail page (covers all prize winners) — full list on /leaderboard
+    const detailLeaderboard = validLeaderboard.slice(0, 30);
 
     // Find user's rank
     const userRank = validLeaderboard.findIndex(
