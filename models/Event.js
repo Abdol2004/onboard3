@@ -23,39 +23,11 @@ const eventSchema = new mongoose.Schema({
   },
   venue: {
     type: String,
-    // Only validate if eventType is physical or hybrid
-    validate: {
-      validator: function(value) {
-        // If it's virtual, venue is optional
-        if (this.eventType === 'virtual') {
-          return true;
-        }
-        // For physical and hybrid, venue is required
-        if (this.eventType === 'physical' || this.eventType === 'hybrid') {
-          return !!value && value.trim().length > 0;
-        }
-        return true;
-      },
-      message: 'Venue is required for physical and hybrid events'
-    }
+    default: null
   },
   virtualLink: {
     type: String,
-    // Only validate if eventType is virtual or hybrid
-    validate: {
-      validator: function(value) {
-        // If it's physical, virtualLink is optional
-        if (this.eventType === 'physical') {
-          return true;
-        }
-        // For virtual and hybrid, virtualLink is required
-        if (this.eventType === 'virtual' || this.eventType === 'hybrid') {
-          return !!value && value.trim().length > 0;
-        }
-        return true;
-      },
-      message: 'Virtual link is required for virtual and hybrid events'
-    }
+    default: null
   },
   startDate: {
     type: Date,
@@ -93,6 +65,13 @@ const eventSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // Business sponsor (if created/managed by a business account)
+  sponsoredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Business',
+    default: null
+  },
+
   // Approval settings
   approvalType: {
     type: String,

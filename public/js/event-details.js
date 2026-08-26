@@ -75,31 +75,14 @@ function displayEventDetails() {
     bannerDate.textContent = `📅 ${formattedDate} • ${currentEvent.startTime}`;
   }
 
-  // Banner image (only on public page with banner element)
-  const eventBanner = document.getElementById('eventBanner');
-  if (eventBanner && currentEvent.bannerImage) {
-    // Set banner image as background
-    eventBanner.style.backgroundImage = `url(${currentEvent.bannerImage})`;
-
-    // Show dark overlay for text readability
+  // Banner image (only on public page)
+  const bannerBgLayer = document.getElementById('bannerBgLayer');
+  if (bannerBgLayer && currentEvent.bannerImage) {
+    bannerBgLayer.style.backgroundImage = `url(${currentEvent.bannerImage})`;
     const overlay = document.getElementById('bannerOverlay');
     if (overlay) overlay.style.display = 'block';
-
-    // Hide decorative circles (they're for gradient only)
-    const circle1 = document.getElementById('decorCircle1');
-    const circle2 = document.getElementById('decorCircle2');
-    if (circle1) circle1.style.display = 'none';
-    if (circle2) circle2.style.display = 'none';
-
-    // Update text colors for better visibility on image
-    if (bannerTitle) {
-      bannerTitle.style.color = '#fff';
-      bannerTitle.style.textShadow = '2px 2px 8px rgba(0,0,0,0.8)';
-    }
-    if (bannerDate) {
-      bannerDate.style.color = '#fff';
-      bannerDate.style.textShadow = '1px 1px 4px rgba(0,0,0,0.8)';
-    }
+    const decorCircle = document.getElementById('decorCircle1');
+    if (decorCircle) decorCircle.style.display = 'none';
   }
 
   // Check if user is registered and approved (for privacy controls)

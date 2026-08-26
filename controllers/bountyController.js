@@ -180,8 +180,8 @@ exports.submitToInternalBounty = async (req, res) => {
     const { title, description, submissionUrl } = req.body;
     const bountyId = req.params.id;
 
-    if (!title?.trim() || !description?.trim()) {
-      return res.status(400).json({ success: false, message: 'Title and description are required' });
+    if (!title?.trim() || !description?.trim() || !submissionUrl?.trim()) {
+      return res.status(400).json({ success: false, message: 'Title, description, and work URL are required' });
     }
 
     const bounty = await Bounty.findById(bountyId);
@@ -249,7 +249,7 @@ exports.submitToExternalBounty = async (req, res) => {
     const { summary, submissionUrl } = req.body;
     const bountyId = req.params.id;
 
-    if (!summary?.trim()) return res.status(400).json({ success: false, message: 'Summary is required' });
+    if (!summary?.trim() || !submissionUrl?.trim()) return res.status(400).json({ success: false, message: 'Summary and work URL are required' });
 
     const existing = await ThirdPartySubmission.findOne({ externalBountyId: bountyId, userId: req.session.userId });
     if (existing) return res.status(400).json({ success: false, message: 'You have already submitted to this bounty.' });

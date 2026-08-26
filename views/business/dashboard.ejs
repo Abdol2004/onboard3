@@ -77,6 +77,9 @@
       <a href="#" class="p-nav-item" onclick="showSection('bounties',this);closeSidebar()">
         <i class="fas fa-coins"></i> Bounties
       </a>
+      <a href="#" class="p-nav-item" onclick="showSection('events',this);closeSidebar()">
+        <i class="fas fa-calendar-alt"></i> Events
+      </a>
 
       <span class="p-nav-section">Finance</span>
       <a href="#" class="p-nav-item" onclick="showSection('wallet',this);closeSidebar()">
@@ -369,6 +372,45 @@
                 <td style="color:var(--text-2)"><%= b.totalSubmissions || 0 %></td>
                 <td><span class="p-badge <%= b.approvalStatus==='pending'?'p-badge-warning':'p-badge-'+b.status %>"><%= b.approvalStatus==='pending'?'Pending Review':b.status %></span></td>
                 <td style="color:var(--text-2);font-size:.8rem"><%= b.endDate ? new Date(b.endDate).toLocaleDateString() : 'No end' %></td>
+              </tr>
+              <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- ── EVENTS ── -->
+      <div id="sec-events" class="p-section" style="display:none">
+        <div class="p-page-header">
+          <div>
+            <h1><i class="fas fa-calendar-alt" style="color:var(--green)"></i> Events</h1>
+            <p>Host events and manage registrations</p>
+          </div>
+          <button class="p-btn p-btn-bd p-btn-sm" onclick="openModal('bizEventModal')">
+            <i class="fas fa-plus"></i> Create Event
+          </button>
+        </div>
+        <% if (!events || !events.length) { %>
+        <div class="p-card"><div class="p-empty"><i class="fas fa-calendar-alt"></i><p>No events yet. Create your first event.</p></div></div>
+        <% } else { %>
+        <div class="p-card">
+          <div class="p-table-wrap">
+            <table class="pt">
+              <thead><tr><th>Event</th><th>Date</th><th>Type</th><th>Approval</th><th>Registered</th><th>Pending</th><th>Actions</th></tr></thead>
+              <tbody>
+              <% events.forEach(ev => {
+                   var pending = (ev.registrations || []).filter(r => r.status === 'pending').length;
+              %>
+              <tr>
+                <td style="font-weight:700"><%= ev.title %></td>
+                <td style="font-size:.8rem;color:var(--text-3)"><%= new Date(ev.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></td>
+                <td><span class="p-badge p-badge-info" style="text-transform:capitalize"><%= ev.eventType || 'online' %></span></td>
+                <td><span class="p-badge <%= ev.approvalType==='manual'?'p-badge-warning':'p-badge-success' %>"><%= ev.approvalType==='manual'?'Manual':'Auto' %></span></td>
+                <td style="font-weight:700"><%= ev.totalRegistrations || 0 %></td>
+                <td><% if (pending > 0) { %><span style="background:rgba(245,158,11,.15);color:#f59e0b;border-radius:20px;padding:.15rem .5rem;font-size:.72rem;font-weight:700"><%= pending %> pending</span><% } else { %>—<% } %></td>
+                <td><button onclick="bizOpenEventRegs('<%= ev._id %>','<%= ev.title.replace(/'/g,\"\\'\"  ) %>')" class="p-btn p-btn-secondary p-btn-sm"><i class="fas fa-users"></i> Manage</button></td>
               </tr>
               <% }) %>
               </tbody>
@@ -868,7 +910,7 @@
 
         <!-- Leaderboard -->
         <div style="margin-bottom:1.25rem">
-          <div style="font-weight:700;font-size:.875rem;margin-bottom:.625rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-ranking-star" style="color:var(--green)"></i> Leaderboard (Top 50)</div>
+          <div style="font-weight:700;font-size:.875rem;margin-bottom:.625rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-ranking-star" style="color:var(--green)"></i> Leaderboard (Top 100)</div>
           <div id="qmLeaderboard" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">
             <div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
           </div>
@@ -1684,23 +1726,28 @@ function loadQuestStats(questId) {
       var medals = ['🥇','🥈','🥉'];
       var rows = lb.map(function(p) {
         var medal = medals[p.rank - 1] || ('#' + p.rank);
-        var statusColor = p.status === 'completed' ? 'var(--green)' : 'var(--text-3)';
+        var statusColor = p.status === 'completed' ? 'var(--green)' : p.status === 'abandoned' ? 'var(--text-3)' : 'var(--text-3)';
+        var removeBtn = p.status === 'abandoned'
+          ? '<span style="font-size:.65rem;color:var(--text-3)">Removed</span>'
+          : '<button onclick="bizRemoveEntry(' + JSON.stringify(currentQuestId) + ',' + JSON.stringify(String(p.progressId)) + ')" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;border-radius:20px;padding:.15rem .5rem;font-size:.65rem;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif"><i class="fas fa-user-minus"></i> Remove</button>';
         return '<tr>' +
           '<td style="font-size:.8rem;color:var(--text-2);padding:.5rem .75rem">' + medal + '</td>' +
           '<td style="font-weight:600;font-size:.875rem;padding:.5rem .375rem">@' + p.username + '</td>' +
           '<td style="color:var(--green);font-weight:700;font-size:.875rem;padding:.5rem .375rem">' + (p.xp||0) + ' XP</td>' +
           '<td style="color:' + statusColor + ';font-size:.75rem;padding:.5rem .375rem;text-transform:capitalize">' + p.status + '</td>' +
-          '<td style="color:var(--text-3);font-size:.75rem;padding:.5rem .75rem">' + (p.usdcEarned > 0 ? '$'+p.usdcEarned.toFixed(2) : '—') + '</td>' +
+          '<td style="color:var(--text-3);font-size:.75rem;padding:.5rem .375rem">' + (p.usdcEarned > 0 ? '$'+p.usdcEarned.toFixed(2) : '—') + '</td>' +
+          '<td style="padding:.5rem .75rem">' + removeBtn + '</td>' +
           '</tr>';
       }).join('');
       document.getElementById('qmLeaderboard').innerHTML =
-        '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:320px">' +
+        '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:360px">' +
         '<thead><tr style="background:var(--surface-2,#111)">' +
         '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">Rank</th>' +
         '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">User</th>' +
         '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">XP</th>' +
         '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">Status</th>' +
-        '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">USDC</th>' +
+        '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .375rem;text-align:left">USDC</th>' +
+        '<th style="font-size:.7rem;color:var(--text-3);padding:.5rem .75rem;text-align:left">Action</th>' +
         '</tr></thead><tbody>' + rows + '</tbody></table></div>';
     })
     .catch(function() {
@@ -2139,6 +2186,161 @@ function showFlash(type, msg) {
   document.body.appendChild(div);
   setTimeout(function() { div.remove(); }, 4000);
 }
+
+/* ── Business Events ── */
+var _bizEventId = null;
+var _bizEventRegs = [];
+
+function bizOpenEventRegs(eventId, title) {
+  _bizEventId = eventId;
+  _bizEventRegs = [];
+  document.getElementById('bizRegModalTitle').textContent = title;
+  document.getElementById('bizRegTab').dataset.tab = 'pending';
+  document.getElementById('bizRegList').innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3)">Loading…</div>';
+  openModal('bizEventRegsModal');
+  fetch('/business/api/events/' + eventId + '/registrations')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d.success) { document.getElementById('bizRegList').innerHTML = '<div style="color:#ef4444;padding:1rem">Failed to load registrations.</div>'; return; }
+      _bizEventRegs = d.registrations || [];
+      bizRenderRegs('pending');
+    });
+}
+
+function bizRenderRegs(tab) {
+  document.querySelectorAll('.biz-reg-tab').forEach(function(t) {
+    var on = t.dataset.tab === tab;
+    t.style.background = on ? 'rgba(94,194,19,.1)' : 'none';
+    t.style.color = on ? '#5ec213' : 'var(--text-3)';
+    t.style.borderColor = on ? 'rgba(94,194,19,.25)' : 'transparent';
+    t.classList.toggle('active', on);
+  });
+  var regs = _bizEventRegs.filter(function(r) { return tab === 'all' || r.status === tab; });
+  var html = '';
+  if (!regs.length) {
+    html = '<div style="text-align:center;padding:2rem;color:var(--text-3)">No ' + (tab === 'all' ? '' : tab) + ' registrations.</div>';
+  } else {
+    regs.forEach(function(r) {
+      var u = r.user || {};
+      var name = u.username || r.username || 'Unknown';
+      var email = u.email || r.email || '';
+      var date = new Date(r.registeredAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      var statusColor = r.status === 'approved' ? '#5ec213' : r.status === 'rejected' ? '#ef4444' : '#f59e0b';
+      html += '<div style="display:flex;align-items:center;gap:.75rem;padding:.75rem;border-bottom:1px solid var(--border)">' +
+        '<div style="width:36px;height:36px;border-radius:50%;background:rgba(94,194,19,.1);border:2px solid rgba(94,194,19,.2);display:flex;align-items:center;justify-content:center;font-weight:800;color:#5ec213;font-size:.85rem;flex-shrink:0">' + name.charAt(0).toUpperCase() + '</div>' +
+        '<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.85rem">@' + name + '</div><div style="font-size:.72rem;color:var(--text-3)">' + email + '</div></div>' +
+        '<div style="font-size:.72rem;color:var(--text-3)">' + date + '</div>' +
+        '<span style="background:rgba(255,255,255,.05);border-radius:20px;padding:.1rem .5rem;font-size:.68rem;font-weight:700;color:' + statusColor + '">' + r.status + '</span>';
+      var userId = (u._id || u.id || '');
+      if (r.status === 'pending') {
+        html += '<button onclick="bizApproveReg(\'' + userId + '\')" style="background:rgba(94,194,19,.12);color:#5ec213;border:1px solid rgba(94,194,19,.3);border-radius:20px;padding:.2rem .6rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif"><i class="fas fa-check"></i> Approve</button>' +
+                '<button onclick="bizRejectReg(\'' + userId + '\')" style="background:rgba(239,68,68,.08);color:#ef4444;border:1px solid rgba(239,68,68,.25);border-radius:20px;padding:.2rem .6rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif"><i class="fas fa-times"></i> Reject</button>';
+      } else if (r.status === 'approved') {
+        html += '<button onclick="bizRejectReg(\'' + userId + '\')" style="background:rgba(255,255,255,.04);color:var(--text-3);border:1px solid var(--border);border-radius:20px;padding:.2rem .6rem;font-size:.68rem;cursor:pointer;font-family:Outfit,sans-serif"><i class="fas fa-ban"></i> Revoke</button>';
+      }
+      html += '</div>';
+    });
+  }
+  document.getElementById('bizRegList').innerHTML = html;
+}
+
+function bizApproveReg(userId) {
+  fetch('/business/api/events/' + _bizEventId + '/approve/' + userId, { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        var r = _bizEventRegs.find(function(x) { return (x.user && (x.user._id || x.user.id)) === userId; });
+        if (r) { r.status = 'approved'; r.approvedAt = new Date().toISOString(); }
+        bizRenderRegs(document.querySelector('.biz-reg-tab.active')?.dataset.tab || 'pending');
+      } else { alert(d.message || 'Error approving.'); }
+    });
+}
+
+function bizRejectReg(userId) {
+  fetch('/business/api/events/' + _bizEventId + '/reject/' + userId, { method: 'POST', headers:{'Content-Type':'application/json'}, body: '{}' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        var r = _bizEventRegs.find(function(x) { return (x.user && (x.user._id || x.user.id)) === userId; });
+        if (r) r.status = 'rejected';
+        bizRenderRegs(document.querySelector('.biz-reg-tab.active')?.dataset.tab || 'pending');
+      } else { alert(d.message || 'Error rejecting.'); }
+    });
+}
+
+document.getElementById('bizEventForm')?.addEventListener('submit', function(e) {
+  e.preventDefault();
+  var btn = document.getElementById('bizEventSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+  var data = {};
+  new FormData(this).forEach(function(v, k) { data[k] = v; });
+  fetch('/business/api/events/create', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      btn.disabled = false; btn.textContent = 'Create Event';
+      if (d.success) { closeModal('bizEventModal'); location.reload(); }
+      else { alert(d.message || 'Error creating event.'); }
+    })
+    .catch(function() { btn.disabled = false; btn.textContent = 'Create Event'; alert('Network error.'); });
+});
 </script>
+
+<!-- ── Create Event Modal ── -->
+<div class="p-modal-overlay" id="bizEventModal">
+  <div class="p-modal" style="max-width:580px">
+    <div class="p-modal-head">
+      <h3><i class="fas fa-calendar-plus" style="color:var(--green)"></i> Create Event</h3>
+      <button class="p-modal-close" onclick="closeModal('bizEventModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="bizEventForm">
+      <div class="p-modal-body">
+        <div class="p-form-group"><label>Title <span style="color:var(--red)">*</span></label><input type="text" name="title" class="p-input" required placeholder="Event name"></div>
+        <div class="p-form-group"><label>Description <span style="color:var(--red)">*</span></label><textarea name="description" class="p-input" rows="3" required placeholder="What's this event about?"></textarea></div>
+        <div class="p-form-group"><label>Event Type</label><select name="eventType" class="p-input"><option value="virtual">Virtual (Online)</option><option value="physical">In-Person</option><option value="hybrid">Hybrid</option></select></div>
+        <div class="p-form-group">
+          <label>Registration Approval <span style="color:var(--red)">*</span></label>
+          <select name="approvalType" class="p-input">
+            <option value="auto">Automatic — anyone who registers is instantly approved</option>
+            <option value="manual">Manual — you review and approve each registration</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="p-form-group"><label>Start Date <span style="color:var(--red)">*</span></label><input type="datetime-local" name="startDate" class="p-input" required></div>
+          <div class="p-form-group"><label>End Date</label><input type="datetime-local" name="endDate" class="p-input"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="p-form-group"><label>Venue / Meeting Link</label><input type="text" name="location" class="p-input" placeholder="e.g. Lagos Venue or https://meet.google.com/..."></div>
+          <div class="p-form-group"><label>Max Attendees</label><input type="number" name="maxAttendees" class="p-input" placeholder="Leave blank for unlimited"></div>
+        </div>
+        <div class="p-form-group"><label>Featured Image URL <span style="color:var(--text-3);font-weight:400;font-size:.78rem">(optional)</span></label><input type="url" name="bannerImage" class="p-input" placeholder="https://..."></div>
+      </div>
+      <div class="p-modal-foot">
+        <button type="button" onclick="closeModal('bizEventModal')" class="p-btn p-btn-ghost">Cancel</button>
+        <button type="submit" id="bizEventSubmitBtn" class="p-btn p-btn-primary"><i class="fas fa-calendar-plus"></i> Create Event</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Event Registrations Modal ── -->
+<div class="p-modal-overlay" id="bizEventRegsModal">
+  <div class="p-modal" style="max-width:620px">
+    <div class="p-modal-head">
+      <h3><i class="fas fa-users" style="color:var(--green)"></i> <span id="bizRegModalTitle">Registrations</span></h3>
+      <button class="p-modal-close" onclick="closeModal('bizEventRegsModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="p-modal-body" style="padding-top:.5rem">
+      <div id="bizRegTab" style="display:flex;gap:.4rem;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:.6rem">
+        <button class="biz-reg-tab active" data-tab="pending" onclick="bizRenderRegs('pending')" style="padding:.35rem .9rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;background:rgba(94,194,19,.1);color:#5ec213;border:1px solid rgba(94,194,19,.25);font-family:Outfit,sans-serif">Pending</button>
+        <button class="biz-reg-tab" data-tab="approved" onclick="bizRenderRegs('approved')" style="padding:.35rem .9rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;background:none;color:var(--text-3);border:1px solid transparent;font-family:Outfit,sans-serif">Approved</button>
+        <button class="biz-reg-tab" data-tab="rejected" onclick="bizRenderRegs('rejected')" style="padding:.35rem .9rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;background:none;color:var(--text-3);border:1px solid transparent;font-family:Outfit,sans-serif">Rejected</button>
+        <button class="biz-reg-tab" data-tab="all" onclick="bizRenderRegs('all')" style="padding:.35rem .9rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;background:none;color:var(--text-3);border:1px solid transparent;font-family:Outfit,sans-serif">All</button>
+      </div>
+      <div id="bizRegList" style="max-height:400px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

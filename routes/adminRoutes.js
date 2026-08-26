@@ -157,8 +157,9 @@ router.post('/quests/create',                         isAdminPage, pages.createQ
 router.post('/quests/:id/toggle',                     isAdminPage, pages.toggleQuestPage);
 router.post('/quests/:id/delete',                     isAdminPage, pages.deleteQuestPage);
 router.post('/quests/:id/add-task',                   isAdminPage, pages.addQuestTask);
-router.get( '/quests/:id/entries',                    isAdminPage, pages.getQuestEntries);
-router.post('/quests/:id/users/:userId/bonus-xp',     isAdminPage, pages.awardBonusXp);
+router.get( '/quests/:id/entries',                          isAdminPage, pages.getQuestEntries);
+router.post('/quests/:id/entries/:progressId/remove',       isAdminPage, pages.removeQuestEntry);
+router.post('/quests/:id/users/:userId/bonus-xp',           isAdminPage, pages.awardBonusXp);
 router.post('/quests/:id/submissions/:progressId/review', isAdminPage, pages.reviewTaskSubmission);
 router.post('/quests/:id/update-settings',            isAdminPage, pages.updateQuestSettings);
 
@@ -194,6 +195,10 @@ router.post('/business-quests/:id/reject', isAdminPage, async (req, res) => {
   } catch (err) { console.error(err); res.redirect('/admin/quests?error=1'); }
 });
 router.post('/events/create',              isAdminPage, requireSection('events'),            pages.createEventPage);
+router.get( '/events/:id',                 isAdminPage, requireSection('events'),            pages.getEventDetailPage);
+router.post('/events/:id/approve/:userId', isAdminPage, requireSection('events'),            pages.approveEventRegistration);
+router.post('/events/:id/reject/:userId',  isAdminPage, requireSection('events'),            pages.rejectEventRegistration);
+router.post('/events/:id/banner',          isAdminPage, requireSection('events'),            pages.updateEventBanner);
 router.post('/events/:id/delete',          isAdminPage, requireSection('events'),            pages.deleteEventPage);
 router.post('/withdrawals/:id/approve',    isAdminPage, requireSection('withdrawals'),        pages.approveWithdrawal);
 router.post('/withdrawals/:id/reject',     isAdminPage, requireSection('withdrawals'),        pages.rejectWithdrawal);

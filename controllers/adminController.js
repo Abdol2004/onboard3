@@ -798,11 +798,11 @@ exports.getQuestLeaderboardAdmin = async (req, res) => {
 
     const leaderboard = await UserQuestProgress.find({
       questId: questId,
-      status: 'completed'
+      status: { $in: ['completed', 'in_progress'] }
     })
     .populate('userId', 'username email _id')
     .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 })
-    .limit(100)
+    .limit(500)
     .lean();
 
     // 🔧 FIX: Transform data to ensure userId is always a string

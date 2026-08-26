@@ -888,6 +888,10 @@ function loadQmEntries() {
         }
         if (!approvalCells) approvalCells = '<span style="color:#5a7a56;font-size:.7rem">—</span>';
 
+        var removeCell = e.status === 'abandoned'
+          ? '<span style="font-size:.68rem;color:#5a7a56;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:20px;padding:.15rem .5rem"><i class="fas fa-ban"></i> Removed</span>'
+          : '<button onclick="adminRemoveEntry(' + JSON.stringify(e._id) + ')" style="font-size:.68rem;padding:.2rem .6rem;background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.3);border-radius:20px;cursor:pointer;font-family:Outfit,sans-serif"><i class="fas fa-user-minus"></i> Remove</button>';
+
         return '<tr>' +
           '<td><span class="rank-badge ' + rankClass + '">' + rank + '</span></td>' +
           '<td><a href="/u/' + escHtml(username) + '" target="_blank" style="color:#5ec213;font-weight:700;text-decoration:none">@' + escHtml(username) + '</a><br><span style="font-size:.68rem;color:#5a7a56">' + escHtml(email) + '</span></td>' +
@@ -896,14 +900,26 @@ function loadQmEntries() {
           '<td>' + approvalCells + '</td>' +
           '<td style="font-size:.72rem;color:#8aaf85">' + completed + '</td>' +
           '<td>' + bonusCell + '</td>' +
+          '<td>' + removeCell + '</td>' +
         '</tr>';
       }).join('');
       wrap.innerHTML = '<div class="entries-wrap"><table class="entries-table">' +
-        '<thead><tr><th>#</th><th>User</th><th>' + (isFcfs?'Status':'XP') + '</th><th>Submissions</th><th>Approval</th><th>Completed</th><th>Bonus XP</th></tr></thead>' +
+        '<thead><tr><th>#</th><th>User</th><th>' + (isFcfs?'Status':'XP') + '</th><th>Submissions</th><th>Approval</th><th>Completed</th><th>Bonus XP</th><th>Remove</th></tr></thead>' +
         '<tbody>' + rows + '</tbody>' +
         '</table></div>';
     })
     .catch(function() { wrap.innerHTML = '<div style="color:#ef4444;font-size:.82rem">Error loading entries</div>'; });
+}
+
+/* ── Remove quest entry ── */
+function adminRemoveEntry(progressId) {
+  if (!confirm('Remove this participant from the quest?\n\nAll their quest XP will be deducted. This cannot be undone.')) return;
+  fetch('/admin/quests/' + _qmQuestId + '/entries/' + progressId + '/remove', { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) { alert(d.message || 'Participant removed.'); loadQmEntries(); }
+      else alert(d.message || 'Error removing participant.');
+    });
 }
 
 /* ── Bonus XP ── */

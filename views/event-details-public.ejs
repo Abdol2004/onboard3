@@ -162,17 +162,17 @@
                 <!-- Event Details Content -->
                 <div id="eventDetailsContent" style="display: none;">
                     <!-- Event Banner -->
-                    <div id="eventBanner" style="border-radius: 16px; padding: 4rem 2rem; margin-bottom: 2rem; position: relative; overflow: hidden; min-height: 300px; background: linear-gradient(135deg, #39FF14 0%, #00D9FF 100%); background-size: cover; background-position: center;">
-                        <!-- Dark overlay for text readability (only shows when image exists) -->
-                        <div id="bannerOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 100%); display: none;"></div>
+                    <div id="eventBanner" style="border-radius:16px;min-height:300px;position:relative;overflow:hidden;background:linear-gradient(135deg,#0d2b0a 0%,#112b11 50%,#0a1a1f 100%);margin-bottom:1.75rem;display:flex;align-items:flex-end">
+                        <!-- BG image layer -->
+                        <div id="bannerBgLayer" style="position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat"></div>
+                        <!-- Overlay when image exists -->
+                        <div id="bannerOverlay" style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.45) 50%,rgba(0,0,0,.1) 100%);display:none"></div>
+                        <!-- Subtle green glow when no image -->
+                        <div id="decorCircle1" style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(57,255,20,.1) 0%,rgba(0,217,255,.07) 100%)"></div>
 
-                        <!-- Decorative circles (for gradient fallback) -->
-                        <div id="decorCircle1" style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
-                        <div id="decorCircle2" style="position: absolute; bottom: -30px; left: -30px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
-
-                        <div style="position: relative; z-index: 1; text-align: center;">
-                            <h1 id="eventTitleBanner" style="color: #0a0a0a; margin: 0 0 1rem 0; font-size: 2.5rem; font-weight: 800; word-break: break-word; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);"></h1>
-                            <p id="eventDateBanner" style="color: rgba(10,10,10,0.8); font-size: 1.2rem; font-weight: 600; margin: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);"></p>
+                        <div style="position:relative;z-index:2;padding:2.25rem 2rem;width:100%">
+                            <h1 id="eventTitleBanner" style="color:#fff;margin:0 0 .6rem 0;font-size:clamp(1.5rem,5vw,2.4rem);font-weight:800;word-break:break-word;text-shadow:0 2px 12px rgba(0,0,0,.6);line-height:1.2"></h1>
+                            <p id="eventDateBanner" style="color:rgba(255,255,255,.75);font-size:1rem;font-weight:600;margin:0;text-shadow:0 1px 6px rgba(0,0,0,.5)"></p>
                         </div>
                     </div>
 

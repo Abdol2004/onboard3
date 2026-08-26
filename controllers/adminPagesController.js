@@ -454,6 +454,28 @@ exports.awardBonusXp = async (req, res) => {
     }
 };
 
+// ── POST /admin/quests/:id/entries/:progressId/remove ────────────────────────
+exports.removeQuestEntry = async (req, res) => {
+    try {
+        const progress = await UserQuestProgress.findById(req.params.progressId);
+        if (!progress || String(progress.questId) !== req.params.id) {
+            return res.json({ success: false, message: 'Entry not found' });
+        }
+        if (progress.status === 'abandoned') {
+            return res.json({ success: false, message: 'Entry already removed' });
+        }
+        const xpToDeduct = progress.xpBreakdown?.totalXp || 0;
+        await UserQuestProgress.updateOne({ _id: progress._id }, { $set: { status: 'abandoned' } });
+        if (xpToDeduct > 0) {
+            await User.findByIdAndUpdate(progress.userId, { $inc: { xp: -xpToDeduct } });
+        }
+        res.json({ success: true, message: 'Participant removed.' + (xpToDeduct > 0 ? ' ' + xpToDeduct + ' XP deducted.' : '') });
+    } catch (err) {
+        console.error('[removeQuestEntry]', err);
+        res.json({ success: false, message: err.message });
+    }
+};
+
 // ── POST /admin/quests/:id/toggle ────────────────────────────────────────────
 exports.toggleQuestPage = async (req, res) => {
     try {
@@ -544,10 +566,85 @@ exports.updateQuestSettings = async (req, res) => {
 // ── POST /admin/events/create ────────────────────────────────────────────────
 exports.createEventPage = async (req, res) => {
     try {
-        const { title, description, eventType, startDate, endDate, location, maxAttendees } = req.body;
-        await Event.create({ title, description, eventType:eventType||'Online', startDate, endDate:endDate||null, location:location||null, maxAttendees:maxAttendees?+maxAttendees:null, isActive:true, createdBy:req.session.userId });
+        const { title, description, eventType, startDate, endDate, location, maxAttendees, approvalType, bannerImage } = req.body;
+        const et = ['virtual', 'physical', 'hybrid'].includes(eventType) ? eventType : 'virtual';
+        const loc = location?.trim() || null;
+        await Event.create({
+            title, description,
+            eventType: et,
+            startDate, endDate: endDate || startDate,
+            startTime: '10:00', endTime: '17:00',
+            venue: (et === 'physical' || et === 'hybrid') ? loc : null,
+            virtualLink: (et === 'virtual' || et === 'hybrid') ? loc : null,
+            maxAttendees: maxAttendees ? +maxAttendees : null,
+            approvalType: approvalType === 'manual' ? 'manual' : 'auto',
+            bannerImage: bannerImage?.trim() || null,
+            isActive: true, createdBy: req.session.userId
+        });
         res.redirect('/admin/events?created=1');
     } catch (err) { console.error(err); res.redirect('/admin/events?error=1'); }
+};
+
+// ── GET /admin/events/:id ────────────────────────────────────────────────────
+exports.getEventDetailPage = async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.id)
+            .populate('registrations.user', 'username email profilePicture')
+            .lean();
+        if (!event) return res.redirect('/admin/events');
+        const user = await User.findById(req.session.userId).select('username role').lean();
+        res.render('admin/pages/event-detail', { event, user });
+    } catch (err) { console.error(err); res.redirect('/admin/events'); }
+};
+
+// ── POST /admin/events/:id/approve/:userId ───────────────────────────────────
+exports.approveEventRegistration = async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.id);
+        if (!event) return res.json({ success: false, message: 'Event not found' });
+        const reg = event.registrations.find(r => String(r.user) === req.params.userId);
+        if (!reg) return res.json({ success: false, message: 'Registration not found' });
+        if (event.maxAttendees && event.totalApproved >= event.maxAttendees) {
+            return res.json({ success: false, message: 'Event has reached maximum capacity' });
+        }
+        reg.status = 'approved';
+        reg.approvedAt = new Date();
+        reg.approvedBy = req.session.userId;
+        await event.save();
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[approveEventReg]', err);
+        res.json({ success: false, message: err.message });
+    }
+};
+
+// ── POST /admin/events/:id/reject/:userId ────────────────────────────────────
+exports.rejectEventRegistration = async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.id);
+        if (!event) return res.json({ success: false, message: 'Event not found' });
+        const reg = event.registrations.find(r => String(r.user) === req.params.userId);
+        if (!reg) return res.json({ success: false, message: 'Registration not found' });
+        reg.status = 'rejected';
+        reg.rejectionReason = req.body.reason || null;
+        await event.save();
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[rejectEventReg]', err);
+        res.json({ success: false, message: err.message });
+    }
+};
+
+// ── POST /admin/events/:id/banner ────────────────────────────────────────────
+exports.updateEventBanner = async (req, res) => {
+    try {
+        const { bannerImage } = req.body;
+        await Event.findByIdAndUpdate(req.params.id, { bannerImage: bannerImage?.trim() || null });
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[updateEventBanner]', err);
+        res.json({ success: false, message: err.message });
+    }
 };
 
 // ── POST /admin/events/:id/delete ────────────────────────────────────────────

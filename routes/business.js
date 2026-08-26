@@ -133,12 +133,14 @@ router.get('/dashboard', businessAuth, async (req, res) => {
     const business = req.business;
     const settings = await CommissionSettings.getCurrent();
 
-    const [quests, bounties, fundRequests, transactions, walletAddresses] = await Promise.all([
+    const Event = require('../models/Event');
+    const [quests, bounties, fundRequests, transactions, walletAddresses, events] = await Promise.all([
       Quest.find({ sponsoredBy: business._id }).sort({ createdAt: -1 }),
       Bounty.find({ sponsoredBy: business._id }).sort({ createdAt: -1 }),
       BusinessFundRequest.find({ businessId: business._id }).sort({ createdAt: -1 }).limit(10),
       BusinessTransaction.find({ businessId: business._id }).sort({ createdAt: -1 }).limit(10),
-      WalletAddress.find({ isActive: true }).sort({ token: 1, network: 1 })
+      WalletAddress.find({ isActive: true }).sort({ token: 1, network: 1 }),
+      Event.find({ sponsoredBy: business._id }).sort({ startDate: -1 }),
     ]);
 
     let totalQuestCompletions = 0;
@@ -165,6 +167,7 @@ router.get('/dashboard', businessAuth, async (req, res) => {
       fundRequests,
       transactions,
       walletAddresses,
+      events,
       totalQuestCompletions,
       totalBountySubmissions
     });
@@ -454,7 +457,7 @@ router.get('/api/quest/:id/stats', businessAuth, async (req, res) => {
     const [leaderboard, completions, participants] = await Promise.all([
       UserQuestProgress.find({ questId: quest._id })
         .sort({ 'xpBreakdown.totalXp': -1 })
-        .limit(50)
+        .limit(100)
         .populate('userId', 'username')
         .lean(),
       UserQuestProgress.countDocuments({ questId: quest._id, status: 'completed' }),
@@ -475,6 +478,7 @@ router.get('/api/quest/:id/stats', businessAuth, async (req, res) => {
       },
       leaderboard: leaderboard.map((p, i) => ({
         rank:        i + 1,
+        progressId:  p._id,
         username:    p.userId?.username || 'Unknown',
         xp:          p.xpBreakdown?.totalXp || 0,
         status:      p.status,
@@ -953,6 +957,101 @@ router.get('/api/commission-preview', businessAuth, async (req, res) => {
     res.json({ bdAmt, platAmt, poolAmt, bdRate: settings.bdCommissionRate, platRate: settings.platformCommissionRate });
   } catch (err) {
     res.json({ error: true });
+  }
+});
+
+// ── Events API ────────────────────────────────────────────────────────────────
+
+router.post('/api/events/create', businessAuth, async (req, res) => {
+  try {
+    const Event = require('../models/Event');
+    const business = req.business;
+    const { title, description, eventType, startDate, endDate, location, maxAttendees, approvalType, bannerImage } = req.body;
+    if (!title?.trim() || !description?.trim() || !startDate) {
+      return res.json({ success: false, message: 'Title, description and start date are required' });
+    }
+    const et = ['virtual', 'physical', 'hybrid'].includes(eventType) ? eventType : 'virtual';
+    const loc = location?.trim() || null;
+    await Event.create({
+      title: title.trim(),
+      description: description.trim(),
+      eventType: et,
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : new Date(startDate),
+      startTime: '10:00', endTime: '17:00',
+      venue: (et === 'physical' || et === 'hybrid') ? loc : null,
+      virtualLink: (et === 'virtual' || et === 'hybrid') ? loc : null,
+      maxAttendees: maxAttendees ? +maxAttendees : null,
+      approvalType: approvalType === 'manual' ? 'manual' : 'auto',
+      bannerImage: bannerImage?.trim() || null,
+      sponsoredBy: business._id,
+      isActive: true,
+      organizer: business.name,
+    });
+    res.json({ success: true, message: 'Event created.' });
+  } catch (err) {
+    console.error('Business create event error:', err);
+    res.json({ success: false, message: err.message || 'Server error' });
+  }
+});
+
+router.get('/api/events/:id/registrations', businessAuth, async (req, res) => {
+  try {
+    const Event = require('../models/Event');
+    const business = req.business;
+    const event = await Event.findById(req.params.id)
+      .populate('registrations.user', 'username email profilePicture')
+      .lean();
+    if (!event || String(event.sponsoredBy) !== String(business._id)) {
+      return res.json({ success: false, message: 'Event not found' });
+    }
+    res.json({ success: true, event, registrations: event.registrations || [] });
+  } catch (err) {
+    console.error('Business event registrations error:', err);
+    res.json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/api/events/:id/approve/:userId', businessAuth, async (req, res) => {
+  try {
+    const Event = require('../models/Event');
+    const business = req.business;
+    const event = await Event.findById(req.params.id);
+    if (!event || String(event.sponsoredBy) !== String(business._id)) {
+      return res.json({ success: false, message: 'Event not found' });
+    }
+    const reg = event.registrations.find(r => String(r.user) === req.params.userId);
+    if (!reg) return res.json({ success: false, message: 'Registration not found' });
+    if (event.maxAttendees && event.totalApproved >= event.maxAttendees) {
+      return res.json({ success: false, message: 'Event has reached maximum capacity' });
+    }
+    reg.status = 'approved';
+    reg.approvedAt = new Date();
+    await event.save();
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Business approve reg error:', err);
+    res.json({ success: false, message: 'Server error' });
+  }
+});
+
+router.post('/api/events/:id/reject/:userId', businessAuth, async (req, res) => {
+  try {
+    const Event = require('../models/Event');
+    const business = req.business;
+    const event = await Event.findById(req.params.id);
+    if (!event || String(event.sponsoredBy) !== String(business._id)) {
+      return res.json({ success: false, message: 'Event not found' });
+    }
+    const reg = event.registrations.find(r => String(r.user) === req.params.userId);
+    if (!reg) return res.json({ success: false, message: 'Registration not found' });
+    reg.status = 'rejected';
+    reg.rejectionReason = req.body.reason || null;
+    await event.save();
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Business reject reg error:', err);
+    res.json({ success: false, message: 'Server error' });
   }
 });
 

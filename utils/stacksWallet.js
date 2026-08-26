@@ -298,24 +298,68 @@ async function authenticateWithZAD(privKey, profile = {}) {
   return { cookieStr, address, signinUser: signinData };
 }
 
-// Try to update the ZAD user profile via their settings Server Actions
-async function tryUpdateZADProfile(cookieStr, username, avatarUrl) {
+// Try to update the ZAD user profile — attempts session-based Server Actions,
+// REST endpoints, and admin-API-key approaches (in order of reliability)
+async function tryUpdateZADProfile(cookieStr, username, avatarUrl, walletAddress, signinUser) {
   if (!username) return;
 
+  // Skip if ZAD already has this username on the account
+  const existingUsername = signinUser?.username || signinUser?.name || signinUser?.displayName;
+  if (existingUsername && existingUsername.toLowerCase() === username.toLowerCase()) {
+    console.log('[ZAD] Profile already has correct username, skipping update');
+    return;
+  }
+
+  const profileBody = { username, name: username, displayName: username, ...(avatarUrl ? { image: avatarUrl } : {}) };
   const jsonHeaders = { 'Content-Type': 'application/json', 'Cookie': cookieStr };
+
+  // ── 1. Admin API key approach (most reliable — same key that fetches bounties) ──
+  const adminHeaders = { 'Authorization': `Bearer ${ZAD_API_KEY()}`, 'Content-Type': 'application/json' };
+  const zadUserId = signinUser?.id || signinUser?._id || signinUser?.userId;
+
+  const adminTargets = [
+    // By wallet address (most likely)
+    ...(walletAddress ? [
+      `${ZAD_BASE}/api/users/${walletAddress}`,
+      `${ZAD_BASE}/api/users/${walletAddress}/profile`,
+      `${ZAD_BASE}/api/admin/users/${walletAddress}`,
+    ] : []),
+    // By ZAD user ID if we got one from signin
+    ...(zadUserId ? [
+      `${ZAD_BASE}/api/users/${zadUserId}`,
+      `${ZAD_BASE}/api/users/${zadUserId}/profile`,
+    ] : []),
+    // Generic admin profile endpoint
+    `${ZAD_BASE}/api/admin/profile`,
+  ];
+
+  for (const url of adminTargets) {
+    for (const method of ['PATCH', 'PUT']) {
+      try {
+        const body = { ...profileBody, ...(walletAddress ? { walletAddress, address: walletAddress } : {}) };
+        const r = await axios({ method, url, data: body, headers: adminHeaders, timeout: 6000 });
+        console.log('[ZAD] Admin profile update OK:', method, url, '→', r.status);
+        return;
+      } catch (e) {
+        const s = e.response?.status;
+        if (s && s !== 404 && s !== 405) {
+          console.log('[ZAD] Admin profile:', method, url, '→', s, JSON.stringify(e.response?.data || '').slice(0, 100));
+        }
+      }
+    }
+  }
+
+  // ── 2. Session-based Server Actions (Next.js — hashes may be stale after ZAD deploys) ──
   const saHeaders = {
     'Cookie':                 cookieStr,
     'Next-Router-State-Tree': '%5B%22%22%2C%7B%7D%5D',
     'Origin':                 ZAD_BASE,
     'Referer':                `${ZAD_BASE}/settings`,
   };
-
-  // ZAD uses Next.js Server Actions for settings — hashes found in their bundle chunk 4832
-  // Try each one with profile data until one accepts it (200/201)
   const ACTION_HASHES = [
-    '13b35c40ed6572e56004b9107158ff6031eba5e8', // exported as Rx
-    'db8221deb5eda1ebffe98847f0cd72065ad7b73e', // exported as uv
-    '684e86e176ad10a5d14dd6b0be2f5a86fe221e02', // exported as lP
+    '13b35c40ed6572e56004b9107158ff6031eba5e8',
+    'db8221deb5eda1ebffe98847f0cd72065ad7b73e',
+    '684e86e176ad10a5d14dd6b0be2f5a86fe221e02',
     '004c6de5f1cfefc9965c7ac5a3e051a07fcde1b2',
     '6cbe8c93fb710967f41684e2d03c495d8895a393',
     'ec0c4ba5407f61380e08ea5eb0b2d3f3cadd361a',
@@ -324,39 +368,41 @@ async function tryUpdateZADProfile(cookieStr, username, avatarUrl) {
     '4d7f511e3aed9967f55c6be56bef6bffb0c7bb8b',
   ];
 
-  const payload = [{ username, name: username, displayName: username, ...(avatarUrl ? { image: avatarUrl } : {}) }];
-
   for (const hash of ACTION_HASHES) {
     try {
-      const r = await axios.post(`${ZAD_BASE}/settings`, payload, {
+      const r = await axios.post(`${ZAD_BASE}/settings`, [profileBody], {
         headers: { ...saHeaders, 'Next-Action': hash, 'Content-Type': 'application/json' },
         timeout: 8000,
       });
       const text = typeof r.data === 'string' ? r.data : JSON.stringify(r.data);
-      console.log('[ZAD] Profile SA', hash.slice(0, 8), '→', r.status, text.slice(0, 150));
-      // If response looks like success (not an error message), stop
+      console.log('[ZAD] Profile SA', hash.slice(0, 8), '→', r.status, text.slice(0, 100));
       if (r.status < 400 && !text.includes('"error"') && !text.includes('Error')) return;
     } catch (e) {
-      console.log('[ZAD] Profile SA', hash.slice(0, 8), '→', e.response?.status || e.message);
+      // silently skip stale hashes
     }
   }
 
-  // Fallback: try REST endpoints
-  const body = { username, name: username, displayName: username, ...(avatarUrl ? { image: avatarUrl } : {}) };
+  // ── 3. Session REST fallbacks ──
   for (const [url, method] of [
     [`${ZAD_BASE}/api/user`, 'PATCH'],
     [`${ZAD_BASE}/api/users/me`, 'PATCH'],
     [`${ZAD_BASE}/api/profile`, 'PATCH'],
+    [`${ZAD_BASE}/api/user/profile`, 'PATCH'],
+    [`${ZAD_BASE}/api/me`, 'PATCH'],
   ]) {
     try {
-      const r = await axios({ method, url, data: body, headers: jsonHeaders, timeout: 6000 });
+      const r = await axios({ method, url, data: profileBody, headers: jsonHeaders, timeout: 6000 });
       console.log('[ZAD] Profile REST', method, url, '→', r.status);
       return;
     } catch (e) {
-      console.log('[ZAD] Profile REST', method, url, '→', e.response?.status || e.message);
+      const s = e.response?.status;
+      if (s && s !== 404 && s !== 405) {
+        console.log('[ZAD] Profile REST', method, url, '→', s);
+      }
     }
   }
-  console.log('[ZAD] Profile update: no working endpoint found');
+
+  console.log('[ZAD] Profile update: no working endpoint found (username will show as wallet address or Anonymous)');
 }
 
 // Submit a bounty via ZAD's Next.js Server Action — this broadcasts the tx AND creates the DB record
@@ -368,10 +414,10 @@ async function submitToZADWebAPI(privKey, bountyId, summary, submissionUrl, sign
       const parent = await getParent();
       privKey = derivePrivKey(parent, 0);
     }
-    const { cookieStr, address } = await authenticateWithZAD(privKey, profile);
+    const { cookieStr, address, signinUser } = await authenticateWithZAD(privKey, profile);
 
     // Update ZAD profile with ONBOARD3 username so submissions don't show as Anonymous
-    await tryUpdateZADProfile(cookieStr, profile.username, profile.avatarUrl);
+    await tryUpdateZADProfile(cookieStr, profile.username, profile.avatarUrl, address, signinUser);
 
     // ZAD uses a Next.js Server Action for submissions (not a REST endpoint)
     // Action ID found in their bundle: 3412751565eefa5c83032aedc403d0a6c1808442
@@ -384,8 +430,11 @@ async function submitToZADWebAPI(privKey, bountyId, summary, submissionUrl, sign
       'Referer':                 `${ZAD_BASE}/bounty/${bountyId}`,
     };
 
-    // Server Action payload must be wrapped in an array
-    const payload = [{ bountyId, submitterAddress: address, signedTxHex, summary, submissionUrl: submissionUrl || null }];
+    // Include username in payload — ZAD may read it to display on their site
+    const payload = [{
+      bountyId, submitterAddress: address, signedTxHex, summary, submissionUrl: submissionUrl || null,
+      ...(profile.username ? { username: profile.username, name: profile.username, displayName: profile.username } : {}),
+    }];
 
     const subRes = await axios.post(`${ZAD_BASE}/bounty/${bountyId}`, payload, { headers, timeout: 30000 });
     console.log('[ZAD] Server Action status:', subRes.status);

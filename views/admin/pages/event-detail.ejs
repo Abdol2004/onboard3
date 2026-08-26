@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title><%= event.title %> — ONBOARD3 Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        .ev-reg-card { background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;margin-bottom:.6rem; }
+        .ev-reg-avatar { width:38px;height:38px;border-radius:50%;background:rgba(94,194,19,.12);border:2px solid rgba(94,194,19,.25);display:flex;align-items:center;justify-content:center;font-weight:800;color:#5ec213;font-size:.9rem;flex-shrink:0;overflow:hidden; }
+        .ev-reg-avatar img { width:100%;height:100%;object-fit:cover; }
+        .ev-reg-info { flex:1;min-width:0; }
+        .ev-reg-name { font-weight:700;color:var(--text);font-size:.9rem; }
+        .ev-reg-email { font-size:.72rem;color:var(--text-3);margin-top:.1rem; }
+        .ev-reg-date { font-size:.72rem;color:var(--text-3);white-space:nowrap; }
+        .ev-reg-actions { display:flex;gap:.4rem;flex-shrink:0; }
+        .ev-badge-pending  { background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.3);border-radius:20px;padding:.15rem .6rem;font-size:.72rem;font-weight:700; }
+        .ev-badge-approved { background:rgba(94,194,19,.12);color:#5ec213;border:1px solid rgba(94,194,19,.3);border-radius:20px;padding:.15rem .6rem;font-size:.72rem;font-weight:700; }
+        .ev-badge-rejected { background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.25);border-radius:20px;padding:.15rem .6rem;font-size:.72rem;font-weight:700; }
+        .ev-tabs { display:flex;gap:.4rem;margin-bottom:1.25rem;border-bottom:1px solid var(--border);padding-bottom:.75rem; }
+        .ev-tab { padding:.4rem 1rem;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;border:1px solid transparent;color:var(--text-3);background:none; }
+        .ev-tab.active { background:rgba(94,194,19,.1);color:#5ec213;border-color:rgba(94,194,19,.25); }
+        .ev-section { display:none; }
+        .ev-section.active { display:block; }
+        .ev-stat { text-align:center;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px; }
+        .ev-stat-val { font-size:1.5rem;font-weight:800;color:var(--text); }
+        .ev-stat-lbl { font-size:.72rem;color:var(--text-3);margin-top:.2rem; }
+    </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'events', admin:user }) %>
+
+<div class="a-main">
+    <div class="a-content">
+        <div class="a-page-header">
+            <div>
+                <a href="/admin/events" style="font-size:.8rem;color:var(--text-3);text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;margin-bottom:.4rem"><i class="fas fa-arrow-left"></i> Back to Events</a>
+                <h1 style="font-size:1.4rem"><i class="fas fa-calendar-alt"></i> <%= event.title %></h1>
+                <p style="font-size:.8rem;color:var(--text-3)">
+                    <%= new Date(event.startDate).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) %>
+                    &nbsp;·&nbsp; <span class="a-badge <%= event.isActive ? 'a-badge-success':'a-badge-neutral' %>"><%= event.isActive ? 'Active':'Ended' %></span>
+                    &nbsp;·&nbsp; <span class="a-badge <%= event.approvalType === 'manual' ? 'a-badge-warning':'a-badge-neutral' %>"><%= event.approvalType === 'manual' ? 'Manual Approval':'Auto Approval' %></span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Featured Image -->
+        <div class="a-card" style="margin-bottom:1.5rem;padding:1.25rem">
+            <div style="display:flex;align-items:flex-start;gap:1.25rem;flex-wrap:wrap">
+                <div id="bannerPreviewWrap" style="flex-shrink:0;width:180px;height:100px;border-radius:10px;overflow:hidden;background:rgba(94,194,19,.06);border:1px solid var(--border);display:flex;align-items:center;justify-content:center">
+                    <% if (event.bannerImage) { %>
+                    <img id="bannerPreviewImg" src="<%= event.bannerImage %>" alt="Banner" style="width:100%;height:100%;object-fit:cover">
+                    <% } else { %>
+                    <span id="bannerNoImg" style="font-size:.75rem;color:var(--text-3)"><i class="fas fa-image" style="display:block;font-size:1.5rem;margin-bottom:.3rem;opacity:.3"></i>No image</span>
+                    <% } %>
+                </div>
+                <div style="flex:1;min-width:220px">
+                    <div style="font-weight:700;color:var(--text);font-size:.9rem;margin-bottom:.3rem">Featured Image</div>
+                    <div style="font-size:.78rem;color:var(--text-3);margin-bottom:.75rem">Paste an image URL to set the event banner. It appears on the public event page.</div>
+                    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                        <input type="url" id="bannerImageInput" placeholder="https://..." value="<%= event.bannerImage || '' %>" class="a-input" style="flex:1;min-width:200px;font-size:.82rem">
+                        <button onclick="saveBanner()" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-save"></i> Save</button>
+                        <% if (event.bannerImage) { %><button onclick="clearBanner()" class="a-btn a-btn-secondary a-btn-sm"><i class="fas fa-trash"></i></button><% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem;margin-bottom:1.5rem">
+            <div class="ev-stat"><div class="ev-stat-val"><%= event.totalRegistrations || 0 %></div><div class="ev-stat-lbl">Total Registered</div></div>
+            <div class="ev-stat"><div class="ev-stat-val" style="color:#5ec213"><%= event.totalApproved || 0 %></div><div class="ev-stat-lbl">Approved</div></div>
+            <div class="ev-stat"><div class="ev-stat-val" style="color:#f59e0b"><%= (event.registrations || []).filter(r => r.status === 'pending').length %></div><div class="ev-stat-lbl">Pending</div></div>
+            <div class="ev-stat"><div class="ev-stat-val" style="color:#ef4444"><%= (event.registrations || []).filter(r => r.status === 'rejected').length %></div><div class="ev-stat-lbl">Rejected</div></div>
+            <div class="ev-stat"><div class="ev-stat-val"><%= event.totalCheckedIn || 0 %></div><div class="ev-stat-lbl">Checked In</div></div>
+            <% if (event.maxAttendees) { %><div class="ev-stat"><div class="ev-stat-val"><%= event.maxAttendees %></div><div class="ev-stat-lbl">Capacity</div></div><% } %>
+        </div>
+
+        <!-- Tabs -->
+        <div class="ev-tabs">
+            <button class="ev-tab active" onclick="switchTab('pending')"><i class="fas fa-clock"></i> Pending <span id="pendingCount" style="background:rgba(245,158,11,.2);color:#f59e0b;border-radius:20px;padding:.05rem .4rem;font-size:.68rem;margin-left:.25rem"><%= (event.registrations || []).filter(r => r.status === 'pending').length %></span></button>
+            <button class="ev-tab" onclick="switchTab('approved')"><i class="fas fa-check-circle"></i> Approved</button>
+            <button class="ev-tab" onclick="switchTab('rejected')"><i class="fas fa-times-circle"></i> Rejected</button>
+            <button class="ev-tab" onclick="switchTab('all')"><i class="fas fa-list"></i> All</button>
+        </div>
+
+        <!-- Registration sections -->
+        <% ['pending','approved','rejected','all'].forEach(function(tabName) { %>
+        <div class="ev-section <%= tabName === 'pending' ? 'active' : '' %>" id="section-<%= tabName %>">
+            <% var regs = (event.registrations || []).filter(function(r) {
+                if (tabName === 'all') return true;
+                return r.status === tabName;
+            }); %>
+            <% if (!regs.length) { %>
+            <div style="text-align:center;padding:3rem;color:var(--text-3)">
+                <i class="fas fa-users" style="display:block;font-size:1.5rem;margin-bottom:.5rem;opacity:.4"></i>
+                No <%= tabName === 'all' ? '' : tabName %> registrations
+            </div>
+            <% } else { %>
+            <% regs.forEach(function(reg) {
+                var u = reg.user || {};
+                var initial = (u.username || '?').charAt(0).toUpperCase();
+                var regDate = new Date(reg.registeredAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+            %>
+            <div class="ev-reg-card" id="reg-<%= reg._id %>">
+                <div class="ev-reg-avatar">
+                    <% if (u.profilePicture) { %><img src="<%= u.profilePicture %>" alt=""><% } else { %><%= initial %><% } %>
+                </div>
+                <div class="ev-reg-info">
+                    <div class="ev-reg-name">@<%= u.username || 'Unknown' %></div>
+                    <div class="ev-reg-email"><%= u.email || reg.email || '' %></div>
+                </div>
+                <div class="ev-reg-date"><%= regDate %></div>
+                <div>
+                    <span class="ev-badge-<%= reg.status %>"><%= reg.status.charAt(0).toUpperCase() + reg.status.slice(1) %></span>
+                </div>
+                <% if (reg.status === 'pending') { %>
+                <div class="ev-reg-actions">
+                    <button onclick="approveReg('<%= event._id %>','<%= u._id %>','<%= reg._id %>')" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-check"></i> Approve</button>
+                    <button onclick="rejectReg('<%= event._id %>','<%= u._id %>','<%= reg._id %>')" class="a-btn a-btn-danger a-btn-sm"><i class="fas fa-times"></i> Reject</button>
+                </div>
+                <% } else if (reg.status === 'approved') { %>
+                <div class="ev-reg-actions">
+                    <button onclick="rejectReg('<%= event._id %>','<%= u._id %>','<%= reg._id %>')" class="a-btn a-btn-secondary a-btn-sm" style="font-size:.72rem"><i class="fas fa-ban"></i> Revoke</button>
+                </div>
+                <% } %>
+            </div>
+            <% }); %>
+            <% } %>
+        </div>
+        <% }); %>
+
+    </div>
+</div>
+
+<script>
+function switchTab(name) {
+    document.querySelectorAll('.ev-tab').forEach(function(t,i) {
+        var names = ['pending','approved','rejected','all'];
+        t.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.ev-section').forEach(function(s) {
+        s.classList.toggle('active', s.id === 'section-' + name);
+    });
+}
+
+function approveReg(eventId, userId, regId) {
+    if (!confirm('Approve this registration?')) return;
+    fetch('/admin/events/' + eventId + '/approve/' + userId, { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.success) location.reload();
+            else alert(d.message || 'Error approving registration.');
+        });
+}
+
+function rejectReg(eventId, userId, regId) {
+    if (!confirm('Reject / revoke this registration?')) return;
+    fetch('/admin/events/' + eventId + '/reject/' + userId, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({}) })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.success) location.reload();
+            else alert(d.message || 'Error rejecting registration.');
+        });
+}
+
+function saveBanner() {
+    var url = document.getElementById('bannerImageInput').value.trim();
+    fetch('/admin/events/<%= event._id %>/banner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bannerImage: url })
+    }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.success) {
+            var wrap = document.getElementById('bannerPreviewWrap');
+            if (url) {
+                wrap.innerHTML = '<img src="' + url + '" alt="Banner" style="width:100%;height:100%;object-fit:cover">';
+            } else {
+                wrap.innerHTML = '<span style="font-size:.75rem;color:var(--text-3)"><i class="fas fa-image" style="display:block;font-size:1.5rem;margin-bottom:.3rem;opacity:.3"></i>No image</span>';
+            }
+            alert('Banner image saved!');
+        } else { alert(d.message || 'Failed to save banner.'); }
+    });
+}
+
+function clearBanner() {
+    if (!confirm('Remove the featured image?')) return;
+    document.getElementById('bannerImageInput').value = '';
+    saveBanner();
+}
+</script>
+</body>
+</html>
