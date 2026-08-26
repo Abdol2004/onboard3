@@ -259,12 +259,14 @@ exports.getQuestDetails = async (req, res) => {
       questId: questId,
       status: { $in: ['completed', 'in_progress'] }
     })
+    .select('-taskProgress')
     .populate('userId', 'username profilePicture')
-    .sort({ 
+    .sort({
       'xpBreakdown.totalXp': -1,  // Sort by total XP (highest first)
       completedAt: 1               // Then by completion time (earliest first)
     })
-    .limit(100);
+    .limit(100)
+    .lean();
 
     // Filter out deleted users
     const validLeaderboard = leaderboard.filter(entry => entry.userId);
@@ -913,12 +915,14 @@ exports.getQuestLeaderboard = async (req, res) => {
       questId: questId,
       status: { $in: ['completed', 'in_progress'] }
     })
+    .select('-taskProgress')
     .populate('userId', 'username profilePicture')
-    .sort({ 
+    .sort({
       'xpBreakdown.totalXp': -1,  // Sort by total XP (highest first)
       completedAt: 1               // Then by completion time (earliest first)
     })
-    .limit(500);
+    .limit(150)
+    .lean();
 
     // Filter out deleted users
     const validLeaderboard = leaderboard.filter(entry => entry.userId);

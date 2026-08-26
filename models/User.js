@@ -435,4 +435,7 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
+userSchema.index({ xp: -1 });        // leaderboard sort
+userSchema.index({ username: 1 });   // lookup by username
+
 module.exports = mongoose.model("User", userSchema);

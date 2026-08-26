@@ -642,17 +642,20 @@ exports.getLeaderboard = async (req, res) => {
             })
                 .select('username xp profilePicture')
                 .sort({ xp: -1 })
-                .limit(100);
+                .limit(100)
+                .lean();
         } else if (type === 'streaks') {
             leaderboard = await Streak.find()
                 .populate('userId', 'username profilePicture')
                 .sort({ currentStreak: -1 })
-                .limit(100);
+                .limit(100)
+                .lean();
         } else if (type === 'quests') {
             leaderboard = await User.find()
                 .select('username completedQuests profilePicture')
                 .sort({ 'completedQuests.length': -1 })
-                .limit(100);
+                .limit(100)
+                .lean();
         }
 
         res.json({
@@ -695,26 +698,29 @@ exports.checkAndAwardRoleBadges = async (userId, currentXP) => {
         // Role order from lowest to highest XP requirement
         const roleOrder = ['citizen', 'contributor', 'captain', 'maxi', 'legend', 'major', 'core_team'];
 
+        // Batch fetch existing role badges to avoid N+1 queries
+        const existingRoleBadges = await Badge.find({ userId, badgeType: { $in: roleOrder } }).select('badgeType').lean();
+        const existingRoleTypes = new Set(existingRoleBadges.map(b => b.badgeType));
+
+        const badgesToCreate = [];
         for (const roleKey of roleOrder) {
             const roleConfig = ROLES[roleKey];
             if (!roleConfig || roleConfig.special) continue;
-
-            // Check if user's XP is >= this role's minimum XP
-            if (currentXP >= roleConfig.minXP) {
-                const existingRoleBadge = await Badge.findOne({ userId, badgeType: roleKey });
-                if (!existingRoleBadge && BADGES[roleKey]) {
-                    await Badge.create({
-                        userId,
-                        badgeType: roleKey,
-                        name: BADGES[roleKey].name,
-                        description: BADGES[roleKey].description || `Achieved ${BADGES[roleKey].name} role`,
-                        icon: BADGES[roleKey].icon,
-                        color: BADGES[roleKey].color,
-                        xpReward: BADGES[roleKey].xpReward
-                    });
-                    console.log(`✅ Awarded ${roleKey} badge to user ${userId}`);
-                }
+            if (currentXP >= roleConfig.minXP && !existingRoleTypes.has(roleKey) && BADGES[roleKey]) {
+                badgesToCreate.push({
+                    userId,
+                    badgeType: roleKey,
+                    name: BADGES[roleKey].name,
+                    description: BADGES[roleKey].description || `Achieved ${BADGES[roleKey].name} role`,
+                    icon: BADGES[roleKey].icon,
+                    color: BADGES[roleKey].color,
+                    xpReward: BADGES[roleKey].xpReward
+                });
             }
+        }
+        if (badgesToCreate.length > 0) {
+            await Badge.insertMany(badgesToCreate);
+            badgesToCreate.forEach(b => console.log(`✅ Awarded ${b.badgeType} badge to user ${userId}`));
         }
 
     } catch (error) {
