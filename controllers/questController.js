@@ -46,13 +46,10 @@ exports.getAllQuests = async (req, res) => {
     
     const now = new Date();
 
-    // Get ALL active quests — skip heavy sub-arrays not needed for the list view
+    // Get ALL active quests
     const allQuests = await Quest.find({
       isActive: true
-    })
-    .select('-tasks -dailyTasks -resources')
-    .sort({ createdAt: -1 })
-    .lean();
+    }).sort({ createdAt: -1 });
 
     // Get user's progress — only need status/progress fields, not taskProgress arrays
     const userProgress = await UserQuestProgress.find({
@@ -87,7 +84,7 @@ exports.getAllQuests = async (req, res) => {
       const app = appMap[quest._id.toString()];
 
       const questData = {
-        ...quest,
+        ...quest.toObject(),
         userProgress: progress || null,
         appStatus: app ? app.status : 'none'
       };
