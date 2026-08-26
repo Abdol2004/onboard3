@@ -10,4 +10,5 @@ const questApplicationSchema = new mongoose.Schema({
   reviewedBy:       { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 questApplicationSchema.index({ questId: 1, userId: 1 }, { unique: true });
+questApplicationSchema.index({ questId: 1, status: 1 }); // participantCount query
 module.exports = mongoose.model('QuestApplication', questApplicationSchema);

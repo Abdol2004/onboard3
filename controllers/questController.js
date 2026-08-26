@@ -267,7 +267,8 @@ exports.getQuestDetails = async (req, res) => {
           userProgress.completedAt = new Date();
         }
 
-        await userProgress.save();
+        // Fire-and-forget — don't block the page render for a housekeeping write
+        userProgress.save().catch(e => console.error('Progress sync save error:', e));
         console.log(`✅ User progress synced - ${userProgress.tasksCompleted}/${userProgress.totalTasks} tasks`);
       }
     }
@@ -1134,53 +1135,53 @@ async function processReferralCompleteBonus(referralCode, referredUserId, questI
 
 async function updateQuestLeaderboard(questId, quest) {
   try {
-    // Only assign winners after the quest has ended (if an end date is set)
-    const questEnded = !quest.endDate || new Date() >= new Date(quest.endDate);
-
+    const questEnded    = !quest.endDate || new Date() >= new Date(quest.endDate);
     const topWinners    = quest.competitionConfig?.topWinnersCount || 10;
     const winnerBonusXp = questEnded ? (quest.competitionConfig?.winnerBonusXP || 0) : 0;
 
+    // Only fetch the fields we actually write — avoids loading taskProgress arrays
     const allCompleted = await UserQuestProgress.find({
       questId: questId,
       status: 'completed'
-    }).sort({ completedAt: 1 });
+    })
+    .select('userId leaderboardRank isWinner winnerRank xpBreakdown')
+    .sort({ completedAt: 1 })
+    .lean();
+
+    if (!allCompleted.length) return;
+
+    const bulkOps = [];
+    const winnerUserUpdates = []; // userId + xpBonus pairs
 
     for (let i = 0; i < allCompleted.length; i++) {
-      const progress = allCompleted[i];
-      progress.leaderboardRank = i + 1;
+      const progress  = allCompleted[i];
+      const rank      = i + 1;
+      const isWinner  = questEnded && i < topWinners;
+      const update    = { leaderboardRank: rank, isWinner, winnerRank: isWinner ? rank : null };
 
-      if (questEnded && i < topWinners) {
-        progress.isWinner   = true;
-        progress.winnerRank = i + 1;
-
-        if (winnerBonusXp > 0 && progress.xpBreakdown.winnerBonus === 0) {
-          progress.xpBreakdown.winnerBonus = winnerBonusXp;
-          progress.xpBreakdown.totalXp =
-            (progress.xpBreakdown.taskXp || 0) +
-            (progress.xpBreakdown.baseXp || 0) +
-            (progress.xpBreakdown.referralJoinBonus || 0) +
-            (progress.xpBreakdown.referralCompleteBonus || 0) +
-            winnerBonusXp;
-          progress.markModified('xpBreakdown');
-
-          const user = await User.findById(progress.userId);
-          if (user) {
-            user.xp += winnerBonusXp;
-            user.recentActivity.unshift({
-              action: `🥇 Won #${i + 1} in quest! (+${winnerBonusXp} bonus XP)`,
-              timestamp: new Date()
-            });
-            if (user.recentActivity.length > 10) user.recentActivity = user.recentActivity.slice(0, 10);
-            await user.save();
-          }
-        }
-      } else if (!questEnded) {
-        // Quest still active — don't mark anyone as winner yet
-        progress.isWinner   = false;
-        progress.winnerRank = null;
+      if (isWinner && winnerBonusXp > 0 && !(progress.xpBreakdown?.winnerBonus > 0)) {
+        const newTotal = (progress.xpBreakdown?.taskXp || 0) +
+                         (progress.xpBreakdown?.baseXp || 0) +
+                         (progress.xpBreakdown?.referralJoinBonus || 0) +
+                         (progress.xpBreakdown?.referralCompleteBonus || 0) +
+                         winnerBonusXp;
+        update['xpBreakdown.winnerBonus'] = winnerBonusXp;
+        update['xpBreakdown.totalXp']     = newTotal;
+        winnerUserUpdates.push({ userId: progress.userId, bonus: winnerBonusXp, rank });
       }
 
-      await progress.save();
+      bulkOps.push({ updateOne: { filter: { _id: progress._id }, update: { $set: update } } });
+    }
+
+    // Single bulkWrite instead of N sequential saves
+    await UserQuestProgress.bulkWrite(bulkOps, { ordered: false });
+
+    // Award winner bonus XP to users (only when quest ended and bonus configured)
+    for (const { userId, bonus, rank } of winnerUserUpdates) {
+      await User.findByIdAndUpdate(userId, {
+        $inc: { xp: bonus },
+        $push: { recentActivity: { $each: [{ action: `🥇 Won #${rank} in quest! (+${bonus} bonus XP)`, timestamp: new Date() }], $position: 0, $slice: 10 } }
+      });
     }
   } catch (error) {
     console.error("Update leaderboard error:", error);

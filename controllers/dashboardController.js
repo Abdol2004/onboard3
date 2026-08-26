@@ -63,17 +63,10 @@ exports.getDashboard = async (req, res) => {
     );
 
     if (!hasRecentLogin) {
-      user.recentActivity.unshift({
-        action: 'Logged in to dashboard',
-        timestamp: new Date()
-      });
-
-      // Keep only last 10 activities
-      if (user.recentActivity.length > 10) {
-        user.recentActivity = user.recentActivity.slice(0, 10);
-      }
-
-      await user.save();
+      // Atomic update — avoids VersionError from concurrent saves
+      User.findByIdAndUpdate(user._id, {
+        $push: { recentActivity: { $each: [{ action: 'Logged in to dashboard', timestamp: new Date() }], $position: 0, $slice: 10 } }
+      }).catch(() => {});
     }
 
     res.render('dashboard', {

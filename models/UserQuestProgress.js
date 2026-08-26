@@ -192,8 +192,8 @@ const userQuestProgressSchema = new mongoose.Schema({
 // Compound index for unique user-quest combination
 userQuestProgressSchema.index({ userId: 1, questId: 1 }, { unique: true });
 
-// Index for leaderboard queries
-userQuestProgressSchema.index({ questId: 1, 'xpBreakdown.totalXp': -1 });
+// Leaderboard query: questId + status filter + xp sort (covers the full query)
+userQuestProgressSchema.index({ questId: 1, status: 1, 'xpBreakdown.totalXp': -1 });
 userQuestProgressSchema.index({ questId: 1, completedAt: 1 });
 
 
