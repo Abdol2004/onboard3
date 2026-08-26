@@ -2654,4 +2654,49 @@ router.post('/api/apex/add-discord-task', isAdminPage, async (req, res) => {
   }
 });
 
+// ── ONE-TIME: retroactively fix XP for users whose taskXp was under-counted ──
+router.post('/fix-all-quest-xp', isAdmin, async (req, res) => {
+  try {
+    const UserQuestProgress = require('../models/UserQuestProgress');
+    const User = require('../models/User');
+    const all = await UserQuestProgress.find({});
+    const results = [];
+    let fixed = 0;
+
+    for (const prog of all) {
+      const actualTaskXp = prog.taskProgress
+        .filter(t => t.isCompleted)
+        .reduce((s, t) => s + (t.xpEarned || 0), 0);
+
+      const storedTaskXp = prog.xpBreakdown?.taskXp || 0;
+      const diff = actualTaskXp - storedTaskXp;
+      if (diff === 0) continue;
+
+      const user = await User.findById(prog.userId);
+      if (!user) continue;
+
+      results.push({ username: user.username, questId: prog.questId, diff });
+
+      prog.xpBreakdown.taskXp = actualTaskXp;
+      prog.xpBreakdown.totalXp =
+        actualTaskXp +
+        (prog.xpBreakdown.baseXp || 0) +
+        (prog.xpBreakdown.referralJoinBonus || 0) +
+        (prog.xpBreakdown.referralCompleteBonus || 0) +
+        (prog.xpBreakdown.winnerBonus || 0);
+      prog.markModified('xpBreakdown');
+      await prog.save();
+
+      user.xp += diff;
+      await user.save();
+      fixed++;
+    }
+
+    res.json({ success: true, fixed, results });
+  } catch (err) {
+    console.error('[fix-all-quest-xp]', err);
+    res.json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;
