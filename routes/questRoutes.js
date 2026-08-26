@@ -14,6 +14,7 @@ const isAuthenticated = (req, res, next) => {
 };
 
 router.get("/", isAuthenticated, questController.getAllQuests);
+router.get("/api/:questId/leaderboard", isAuthenticated, questController.getQuestLeaderboardJSON);
 router.get("/:questId", isAuthenticated, questController.getQuestDetails);
 router.post("/start", isAuthenticated, questController.startQuest);
 router.post("/submit-task", isAuthenticated, questController.submitTask);

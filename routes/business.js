@@ -453,9 +453,10 @@ router.get('/api/quest/:id/stats', businessAuth, async (req, res) => {
 
     const [leaderboard, completions, participants] = await Promise.all([
       UserQuestProgress.find({ questId: quest._id })
-        .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 })
+        .sort({ 'xpBreakdown.totalXp': -1 })
         .limit(50)
-        .populate('userId', 'username'),
+        .populate('userId', 'username')
+        .lean(),
       UserQuestProgress.countDocuments({ questId: quest._id, status: 'completed' }),
       UserQuestProgress.countDocuments({ questId: quest._id })
     ]);
@@ -654,6 +655,35 @@ router.post('/api/quest/:id/entries/:progressId/flag', businessAuth, async (req,
     res.json({ success: true, message: `Entry flagged. Removed ${penaltyXp} XP.` });
   } catch (err) {
     console.error('Flag entry error:', err);
+    res.json({ success: false, message: 'Server error' });
+  }
+});
+
+// ── Remove entry from leaderboard ────────────────────────────────────────────
+
+router.post('/api/quest/:id/entries/:progressId/remove', businessAuth, async (req, res) => {
+  try {
+    const business = req.business;
+    const quest = await Quest.findById(req.params.id);
+    if (!quest || String(quest.sponsoredBy) !== String(business._id)) {
+      return res.json({ success: false, message: 'Quest not found' });
+    }
+    const progress = await UserQuestProgress.findById(req.params.progressId);
+    if (!progress || String(progress.questId) !== String(quest._id)) {
+      return res.json({ success: false, message: 'Entry not found' });
+    }
+    if (progress.status === 'abandoned') {
+      return res.json({ success: false, message: 'Entry already removed' });
+    }
+    const xpToDeduct = progress.xpBreakdown?.totalXp || 0;
+    await UserQuestProgress.updateOne({ _id: progress._id }, { $set: { status: 'abandoned' } });
+    if (xpToDeduct > 0) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(progress.userId, { $inc: { xp: -xpToDeduct } });
+    }
+    res.json({ success: true, message: 'Participant removed from leaderboard.' + (xpToDeduct > 0 ? ' ' + xpToDeduct + ' XP deducted.' : '') });
+  } catch (err) {
+    console.error('Remove entry error:', err);
     res.json({ success: false, message: 'Server error' });
   }
 });

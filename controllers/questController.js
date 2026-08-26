@@ -21,6 +21,19 @@ function _invalidateLbCache(questId) {
   _lbCache.delete(questId.toString());
 }
 
+// Tiebreaker: same XP → completed beats in_progress; both completed → earlier completedAt wins; both in_progress → earlier startedAt wins
+function _sortLeaderboard(entries) {
+  return entries.sort((a, b) => {
+    const xpDiff = (b.xpBreakdown?.totalXp || 0) - (a.xpBreakdown?.totalXp || 0);
+    if (xpDiff !== 0) return xpDiff;
+    const aC = a.status === 'completed', bC = b.status === 'completed';
+    if (aC !== bC) return aC ? -1 : 1;
+    if (aC && bC) return new Date(a.completedAt) - new Date(b.completedAt);
+    const aT = a.startedAt || a.createdAt, bT = b.startedAt || b.createdAt;
+    return (aT && bT) ? new Date(aT) - new Date(bT) : 0;
+  });
+}
+
 // Add this at the top of your quest controller functions
 const checkIfBanned = async (userId) => {
   const user = await User.findById(userId);
@@ -283,14 +296,12 @@ exports.getQuestDetails = async (req, res) => {
       })
       .select('-taskProgress')
       .populate('userId', 'username profilePicture')
-      .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 })
-      .limit(100)
+      .sort({ 'xpBreakdown.totalXp': -1 })
+      .limit(500)
       .lean();
-      validLeaderboard = lb.filter(entry => entry.userId);
+      validLeaderboard = _sortLeaderboard(lb.filter(entry => entry.userId));
       _setLbCache(questId, validLeaderboard);
     }
-    // Render top 30 on detail page (covers all prize winners) — full list on /leaderboard
-    const detailLeaderboard = validLeaderboard.slice(0, 30);
 
     // Find user's rank
     const userRank = validLeaderboard.findIndex(
@@ -321,7 +332,7 @@ exports.getQuestDetails = async (req, res) => {
       application: null,
       participantCount,
       userProgress: userProgress.toObject(),
-      leaderboard: detailLeaderboard,
+      leaderboard: [],
       userRank: userRank || null,
       isBanned: false
     });
@@ -947,13 +958,10 @@ exports.getQuestLeaderboard = async (req, res) => {
       })
       .select('-taskProgress')
       .populate('userId', 'username profilePicture')
-      .sort({
-        'xpBreakdown.totalXp': -1,
-        completedAt: 1
-      })
-      .limit(150)
+      .sort({ 'xpBreakdown.totalXp': -1 })
+      .limit(500)
       .lean();
-      validLeaderboard = leaderboard.filter(entry => entry.userId);
+      validLeaderboard = _sortLeaderboard(leaderboard.filter(entry => entry.userId));
       _setLbCache(questId, validLeaderboard);
     }
 
@@ -989,6 +997,45 @@ exports.getQuestLeaderboard = async (req, res) => {
   } catch (error) {
     console.error("Get leaderboard error:", error);
     res.status(500).send("Error loading leaderboard");
+  }
+};
+
+// ==================== QUEST LEADERBOARD JSON API ====================
+exports.getQuestLeaderboardJSON = async (req, res) => {
+  try {
+    const { questId } = req.params;
+    const userId = req.session.userId;
+
+    let validLeaderboard = _getLbCache(questId);
+    if (!validLeaderboard) {
+      const lb = await UserQuestProgress.find({
+        questId: questId,
+        status: { $in: ['completed', 'in_progress'] }
+      })
+      .select('-taskProgress')
+      .populate('userId', 'username profilePicture')
+      .sort({ 'xpBreakdown.totalXp': -1 })
+      .limit(500)
+      .lean();
+      validLeaderboard = _sortLeaderboard(lb.filter(entry => entry.userId));
+      _setLbCache(questId, validLeaderboard);
+    }
+
+    const entries = validLeaderboard.map((entry, idx) => ({
+      rank: idx + 1,
+      username: entry.userId?.username || 'Anonymous',
+      profilePicture: entry.userId?.profilePicture || null,
+      totalXp: entry.xpBreakdown?.totalXp || 0,
+      timeSpentMinutes: entry.timeSpentMinutes || 0,
+      completedAt: entry.completedAt || null,
+      isWinner: entry.isWinner || false,
+      isCurrentUser: entry.userId?._id?.toString() === userId?.toString()
+    }));
+
+    res.json({ success: true, entries, total: entries.length });
+  } catch (error) {
+    console.error('Quest leaderboard JSON error:', error);
+    res.json({ success: false, entries: [], total: 0 });
   }
 };
 

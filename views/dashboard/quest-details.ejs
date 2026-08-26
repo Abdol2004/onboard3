@@ -938,84 +938,24 @@
                 </div>
                 <% } %>
 
-                <!-- ══ LEADERBOARD ══ -->
-                <%
-                function getPrize(rank, tiers) {
-                    if (!tiers || !tiers.length) return 0;
-                    for (var i = 0; i < tiers.length; i++) {
-                        if (rank >= tiers[i].from && rank <= tiers[i].to) return tiers[i].amount;
-                    }
-                    return 0;
-                }
-                %>
-                <% if (leaderboard && leaderboard.length > 0) { %>
-                <div class="card" style="animation-delay:140ms">
+                <!-- ══ LEADERBOARD (loaded via AJAX after page render) ══ -->
+                <div class="card" id="lbCard" style="animation-delay:140ms">
                     <div class="card-header" style="flex-wrap:wrap;gap:.75rem">
                         <div>
                             <h3><i class="fas fa-ranking-star"></i> Leaderboard</h3>
-                            <p style="color:var(--text-3);font-size:.78rem;margin-top:2px"><%= leaderboard.length %> participants • ranked by total XP</p>
+                            <p style="color:var(--text-3);font-size:.78rem;margin-top:2px" id="lbCount">Loading…</p>
                         </div>
                         <div class="lb-search" style="flex:1;max-width:260px;min-width:160px">
                             <i class="fas fa-search"></i>
                             <input type="text" id="leaderboardSearch" placeholder="Search username..." onkeyup="filterLeaderboard()">
                         </div>
                     </div>
-
-                    <!-- Podium -->
-                    <div class="podium-row">
-                        <% for (let i = 0; i < Math.min(3, leaderboard.length); i++) {
-                            var e = leaderboard[i];
-                            var totalXp = e.xpBreakdown?.totalXp || e.xpEarned || 0;
-                        %>
-                        <% var podiumPrize = getPrize(i+1, quest.prizeDistribution); %>
-                        <div class="podium-box podium-box--<%= i+1 %>">
-                            <div class="podium-medal"><%= i===0?'🥇':i===1?'🥈':'🥉' %></div>
-                            <div style="width:44px;height:44px;border-radius:12px;margin:0 auto .5rem;overflow:hidden;background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.2);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--green);font-size:1rem;flex-shrink:0">
-                                <% if (e.userId?.profilePicture) { %><img src="<%= e.userId.profilePicture %>" style="width:100%;height:100%;object-fit:cover" alt=""><% } else { %><span><%= (e.userId?.username||'?').charAt(0).toUpperCase() %></span><% } %>
-                            </div>
-                            <div class="podium-name"><%= e.userId?.username || 'Anonymous' %></div>
-                            <div class="podium-xp"><%= totalXp.toLocaleString() %> XP</div>
-                            <% if (podiumPrize) { %><div style="font-size:.82rem;font-weight:900;color:#4ade80;margin-top:.2rem">💵 $<%= podiumPrize %></div><% } %>
-                            <div class="podium-time"><%= e.timeSpentMinutes %>m</div>
-                        </div>
-                        <% } %>
+                    <div class="podium-row" id="lbPodium" style="display:none"></div>
+                    <div id="lbSpinner" style="text-align:center;padding:2.5rem 1rem;color:var(--text-3)">
+                        <i class="fas fa-spinner fa-spin" style="font-size:1.4rem;display:block;margin-bottom:.75rem"></i>
+                        Loading leaderboard…
                     </div>
-
-                    <!-- Scrollable list -->
-                    <div class="lb-list" id="leaderboardList">
-                    <% leaderboard.forEach(function(entry, idx) {
-                        var totalXp = entry.xpBreakdown?.totalXp || entry.xpEarned || 0;
-                        var isCurrentUser = entry.userId?._id?.toString() === user?._id?.toString();
-                        var rankClass = idx===0?'lb-rank--1':idx===1?'lb-rank--2':idx===2?'lb-rank--3':'lb-rank--x';
-                        var rowPrize = getPrize(idx+1, quest.prizeDistribution);
-                    %>
-                    <div class="lb-row <%= isCurrentUser?'lb-row--me':'' %> <%= entry.isWinner?'lb-row--win':'' %>"
-                         data-username="<%= (entry.userId?.username || 'Anonymous').toLowerCase() %>">
-                        <span class="lb-rank <%= rankClass %>">#<%= idx+1 %></span>
-                        <div style="width:34px;height:34px;border-radius:9px;flex-shrink:0;overflow:hidden;background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.15);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--green);font-size:.875rem">
-                            <% if (entry.userId?.profilePicture) { %><img src="<%= entry.userId.profilePicture %>" style="width:100%;height:100%;object-fit:cover" alt=""><% } else { %><span><%= (entry.userId?.username||'?').charAt(0).toUpperCase() %></span><% } %>
-                        </div>
-                        <div class="lb-name">
-                            <div class="lb-username">
-                                <%= entry.userId?.username || 'Anonymous' %>
-                                <% if (isCurrentUser) { %><span class="lb-you">YOU</span><% } %>
-                                <% if (entry.isWinner) { %><i class="fas fa-trophy" style="color:var(--green);font-size:.75rem"></i><% } %>
-                                <% if (rowPrize) { %><span style="background:rgba(74,222,128,.12);color:#4ade80;font-size:.65rem;font-weight:900;padding:.1rem .45rem;border-radius:4px;border:1px solid rgba(74,222,128,.3)">💵 $<%= rowPrize %></span><% } %>
-                            </div>
-                            <div class="lb-meta">
-                                <%= entry.timeSpentMinutes %>m
-                                <% if (entry.completedAt) { %> • <%= Math.floor((Date.now()-new Date(entry.completedAt))/(1000*60*60*24)) %>d ago<% } else { %> • In progress<% } %>
-                            </div>
-                        </div>
-                        <div class="lb-xp">
-                            <div class="lb-xp-val"><%= totalXp.toLocaleString() %></div>
-                            <div class="lb-xp-lbl">XP</div>
-                        </div>
-                    </div>
-                    <% }); %>
-                    </div>
-
-                    <!-- My progress (if not completed) -->
+                    <div class="lb-list" id="leaderboardList"></div>
                     <% if (userProgress.status !== 'completed') { %>
                     <div class="lb-my-progress">
                         <div class="lb-my-progress-left">
@@ -1025,7 +965,6 @@
                     </div>
                     <% } %>
                 </div>
-                <% } %>
 
                 <!-- ══ STATISTICS ══ -->
                 <div class="card" style="animation-delay:160ms">
@@ -1163,11 +1102,8 @@
             var fill = document.getElementById('progFill');
             if (fill) fill.style.width = '<%= userProgress ? userProgress.progress : 0 %>%';
         }, 300);
-        /* leaderboard scroll */
-        setTimeout(function() {
-            var me = document.querySelector('.lb-row--me');
-            if (me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 700);
+        /* Load leaderboard via AJAX so page renders fast */
+        loadLeaderboard();
         /* backdrop + Escape */
         var modal = document.getElementById('taskModal');
         if (modal) {
@@ -1588,6 +1524,100 @@
         document.getElementById('imgPreviewWrap').style.display = 'none';
         document.getElementById('imgUploadArea').style.display = 'block';
         document.getElementById('imgFileInput').value = '';
+    }
+
+    /* ── Leaderboard AJAX loader ── */
+    var _lbPrizeTiers = <%- JSON.stringify(quest.prizeDistribution || []) %>;
+
+    function getPrizeLb(rank, tiers) {
+        if (!tiers || !tiers.length) return 0;
+        for (var i = 0; i < tiers.length; i++) {
+            if (rank >= tiers[i].from && rank <= tiers[i].to) return tiers[i].amount;
+        }
+        return 0;
+    }
+
+    function loadLeaderboard() {
+        fetch('/dashboard/quests/api/<%= quest._id %>/leaderboard')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var spinner = document.getElementById('lbSpinner');
+                var podium  = document.getElementById('lbPodium');
+                var list    = document.getElementById('leaderboardList');
+                var count   = document.getElementById('lbCount');
+                if (spinner) spinner.style.display = 'none';
+
+                if (!data.entries || data.entries.length === 0) {
+                    if (count) count.textContent = '0 participants';
+                    if (list) list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);font-size:.875rem">No participants yet — be the first!</div>';
+                    return;
+                }
+
+                var total = data.total;
+                if (count) count.textContent = total + ' participant' + (total !== 1 ? 's' : '') + ' • ranked by total XP';
+
+                // Podium (top 3)
+                if (podium) {
+                    podium.style.display = 'flex';
+                    var medals = ['🥇', '🥈', '🥉'];
+                    var pH = '';
+                    for (var i = 0; i < Math.min(3, data.entries.length); i++) {
+                        var e = data.entries[i];
+                        var prize = getPrizeLb(e.rank, _lbPrizeTiers);
+                        var ini = (e.username || '?').charAt(0).toUpperCase();
+                        var av = e.profilePicture
+                            ? '<img src="' + e.profilePicture + '" style="width:100%;height:100%;object-fit:cover" alt="">'
+                            : '<span>' + ini + '</span>';
+                        pH += '<div class="podium-box podium-box--' + (i + 1) + '">' +
+                            '<div class="podium-medal">' + medals[i] + '</div>' +
+                            '<div style="width:44px;height:44px;border-radius:12px;margin:0 auto .5rem;overflow:hidden;background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.2);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--green);font-size:1rem;flex-shrink:0">' + av + '</div>' +
+                            '<div class="podium-name">' + (e.username || 'Anonymous') + '</div>' +
+                            '<div class="podium-xp">' + e.totalXp.toLocaleString() + ' XP</div>' +
+                            (prize ? '<div style="font-size:.82rem;font-weight:900;color:#4ade80;margin-top:.2rem">💵 $' + prize + '</div>' : '') +
+                            '<div class="podium-time">' + (e.timeSpentMinutes || 0) + 'm</div>' +
+                        '</div>';
+                    }
+                    podium.innerHTML = pH;
+                }
+
+                // Full list
+                if (list) {
+                    var lH = '';
+                    for (var j = 0; j < data.entries.length; j++) {
+                        var entry = data.entries[j];
+                        var isMe  = entry.isCurrentUser;
+                        var rc    = j === 0 ? 'lb-rank--1' : j === 1 ? 'lb-rank--2' : j === 2 ? 'lb-rank--3' : 'lb-rank--x';
+                        var rp    = getPrizeLb(entry.rank, _lbPrizeTiers);
+                        var dAgo  = entry.completedAt ? Math.floor((Date.now() - new Date(entry.completedAt)) / 86400000) : null;
+                        var ini2  = (entry.username || '?').charAt(0).toUpperCase();
+                        var av2   = entry.profilePicture
+                            ? '<img src="' + entry.profilePicture + '" style="width:100%;height:100%;object-fit:cover" alt="">'
+                            : '<span>' + ini2 + '</span>';
+                        lH += '<div class="lb-row' + (isMe ? ' lb-row--me' : '') + (entry.isWinner ? ' lb-row--win' : '') + '" data-username="' + (entry.username || '').toLowerCase() + '">' +
+                            '<span class="lb-rank ' + rc + '">#' + entry.rank + '</span>' +
+                            '<div style="width:34px;height:34px;border-radius:9px;flex-shrink:0;overflow:hidden;background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.15);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--green);font-size:.875rem">' + av2 + '</div>' +
+                            '<div class="lb-name">' +
+                                '<div class="lb-username">' + (entry.username || 'Anonymous') +
+                                    (isMe ? '<span class="lb-you">YOU</span>' : '') +
+                                    (entry.isWinner ? '<i class="fas fa-trophy" style="color:var(--green);font-size:.75rem"></i>' : '') +
+                                    (rp ? '<span style="background:rgba(74,222,128,.12);color:#4ade80;font-size:.65rem;font-weight:900;padding:.1rem .45rem;border-radius:4px;border:1px solid rgba(74,222,128,.3)">💵 $' + rp + '</span>' : '') +
+                                '</div>' +
+                                '<div class="lb-meta">' + (entry.timeSpentMinutes || 0) + 'm' + (dAgo !== null ? ' • ' + dAgo + 'd ago' : ' • In progress') + '</div>' +
+                            '</div>' +
+                            '<div class="lb-xp"><div class="lb-xp-val">' + entry.totalXp.toLocaleString() + '</div><div class="lb-xp-lbl">XP</div></div>' +
+                        '</div>';
+                    }
+                    list.innerHTML = lH;
+                    setTimeout(function() {
+                        var me = document.querySelector('.lb-row--me');
+                        if (me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 200);
+                }
+            })
+            .catch(function() {
+                var spinner = document.getElementById('lbSpinner');
+                if (spinner) spinner.innerHTML = '<span style="color:var(--text-3);font-size:.875rem">Could not load leaderboard.</span>';
+            });
     }
 
     /* ── Leaderboard search ── */

@@ -1,6 +1,15 @@
 const User = require("../models/User");
 const { ROLES } = require("../config/gamification");
 
+// Cache total verified-user count — changes slowly, safe to cache 5 min
+let _totalUsersCache = { count: 0, ts: 0 };
+async function getTotalUsers() {
+  if (Date.now() - _totalUsersCache.ts < 5 * 60 * 1000) return _totalUsersCache.count;
+  const count = await User.countDocuments({ isVerified: true });
+  _totalUsersCache = { count, ts: Date.now() };
+  return count;
+}
+
 // Get user's current role
 const getUserRole = (xp, joinDate) => {
     const earlyStart = new Date('2024-11-15');
@@ -37,7 +46,8 @@ exports.getDashboard = async (req, res) => {
       return res.redirect('/auth');
     }
 
-    const user = await User.findById(req.session.userId).select('-password');
+    const user = await User.findById(req.session.userId)
+      .select('-password -notifications -activeQuests -activeBounties -courseApplications');
 
     if (!user) {
       return res.redirect('/auth');
@@ -48,8 +58,8 @@ exports.getDashboard = async (req, res) => {
       return res.redirect('/onboarding?launch=1');
     }
 
-    // Get total users for ranking
-    const totalUsers = await User.countDocuments({ isVerified: true });
+    // Get total users (cached 5 min)
+    const totalUsers = await getTotalUsers();
 
     // Get user role data
     const roleData = getUserRole(user.xp || 0, user.createdAt);
