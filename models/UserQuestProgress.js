@@ -76,6 +76,11 @@ const userQuestProgressSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  // Timestamp of the most recent task completion that awarded XP (used for tiebreaker)
+  lastXpAt: {
+    type: Date,
+    default: null
+  },
   timeSpentMinutes: {
     type: Number,
     default: 0

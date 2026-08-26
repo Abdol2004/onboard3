@@ -26,10 +26,9 @@ function _sortLeaderboard(entries) {
   return entries.sort((a, b) => {
     const xpDiff = (b.xpBreakdown?.totalXp || 0) - (a.xpBreakdown?.totalXp || 0);
     if (xpDiff !== 0) return xpDiff;
-    const aC = a.status === 'completed', bC = b.status === 'completed';
-    if (aC !== bC) return aC ? -1 : 1;
-    if (aC && bC) return new Date(a.completedAt) - new Date(b.completedAt);
-    const aT = a.startedAt || a.createdAt, bT = b.startedAt || b.createdAt;
+    // Same XP: whoever earned it first (did their tasks earlier) ranks higher
+    const aT = a.lastXpAt || a.completedAt || a.startedAt || a.createdAt;
+    const bT = b.lastXpAt || b.completedAt || b.startedAt || b.createdAt;
     return (aT && bT) ? new Date(aT) - new Date(bT) : 0;
   });
 }
@@ -728,7 +727,8 @@ exports.submitTask = async (req, res) => {
 
     taskProgress.isCompleted = true;
     taskProgress.completedAt = new Date();
-    
+    userProgress.lastXpAt = new Date();
+
     // Award XP for this specific task
     const taskXp = task.xpReward || 0;
     taskProgress.xpEarned = taskXp;
