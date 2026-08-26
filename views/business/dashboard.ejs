@@ -880,9 +880,29 @@
             <span><i class="fas fa-list-ol" style="color:var(--green)"></i> Entries & Submissions</span>
             <button class="p-btn p-btn-ghost p-btn-sm" onclick="loadQuestEntries(currentQuestId)"><i class="fas fa-refresh"></i> Refresh</button>
           </div>
-          <div id="qmEntriesWrap" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
+            <div style="flex:1;position:relative">
+              <i class="fas fa-search" style="position:absolute;left:.6rem;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:.75rem;pointer-events:none"></i>
+              <input id="entrySearchInput" type="text" placeholder="Search participant..." oninput="filterEntries(this.value)"
+                style="width:100%;padding:.35rem .75rem .35rem 1.75rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:.8rem;font-family:'Outfit',sans-serif;box-sizing:border-box">
+            </div>
+            <span id="entryCountBadge" style="font-size:.72rem;color:var(--text-3);white-space:nowrap"></span>
+          </div>
+          <div id="qmEntriesWrap" style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">
             <div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">Click Refresh to load entries</div>
           </div>
+        </div>
+
+        <!-- Telegram Group Link -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;margin-top:1rem">
+          <div style="font-weight:700;font-size:.875rem;margin-bottom:.75rem"><i class="fab fa-telegram" style="color:#229ED9"></i> Community Telegram Group</div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <input class="p-input" id="tgLinkInput" placeholder="https://t.me/+..." style="flex:1;font-size:.8rem">
+            <button class="p-btn p-btn-bd p-btn-sm" onclick="saveTelegramLink()" style="white-space:nowrap"><i class="fas fa-save"></i> Save</button>
+            <button class="p-btn p-btn-ghost p-btn-sm" onclick="clearTelegramLink()" title="Remove link"><i class="fas fa-times"></i></button>
+          </div>
+          <div id="tgLinkMsg" style="display:none;margin-top:.5rem;font-size:.8rem;padding:.35rem .625rem;border-radius:6px"></div>
+          <p style="font-size:.72rem;color:var(--text-3);margin-top:.5rem">When set, a "Join Community" button appears on the quest page for all participants.</p>
         </div>
 
         <!-- Award XP -->
@@ -1621,6 +1641,13 @@ function openQuestManager(questId, questTitle) {
   document.getElementById('disburseMsg').style.display  = 'none';
   document.getElementById('disburseSection').style.display  = 'none';
   document.getElementById('distributedBadge').style.display = 'none';
+  document.getElementById('tgLinkMsg').style.display    = 'none';
+  document.getElementById('tgLinkInput').value          = '';
+  var si = document.getElementById('entrySearchInput');
+  if (si) si.value = '';
+  var cb = document.getElementById('entryCountBadge');
+  if (cb) cb.textContent = '';
+  document.getElementById('qmEntriesWrap').innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">Click Refresh to load entries</div>';
   document.getElementById('qmLeaderboard').innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
   document.getElementById('qmApplicationsWrap').innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">Click Refresh to load applications</div>';
   switchQMTab('leaderboard');
@@ -1645,6 +1672,9 @@ function loadQuestStats(questId) {
       } else if (s.hasEnded) {
         document.getElementById('disburseSection').style.display = '';
       }
+      // Pre-fill Telegram link input
+      var tgInput = document.getElementById('tgLinkInput');
+      if (tgInput) tgInput.value = s.telegramGroupLink || '';
 
       var lb = d.leaderboard;
       if (!lb || !lb.length) {
@@ -1678,69 +1708,93 @@ function loadQuestStats(questId) {
     });
 }
 
+var _bizAllEntries = [];
+var _bizEntriesQuestId = null;
+
+function renderEntryCards(entries, questId) {
+  var wrap = document.getElementById('qmEntriesWrap');
+  var cb   = document.getElementById('entryCountBadge');
+  if (!entries.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">No entries found.</div>';
+    if (cb) cb.textContent = '';
+    return;
+  }
+  if (cb) cb.textContent = entries.length + ' / ' + _bizAllEntries.length;
+  var cards = entries.map(function(e, i) {
+    var tasks = e.taskProgress || [];
+    var pendingTasks = tasks.filter(function(t) { return t.approvalStatus === 'pending'; });
+    var reviewBtns = pendingTasks.map(function(t) {
+      return '<div style="display:flex;align-items:center;gap:.5rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:.375rem .625rem;margin:.25rem 0">' +
+        '<span style="font-size:.72rem;color:#f59e0b;font-weight:700;flex:1"><i class="fas fa-clock"></i> Pending review</span>' +
+        '<button onclick="bizReviewTask(\'' + questId + '\',\'' + e._id + '\',\'' + t.taskId + '\',\'approve\')" style="background:rgba(94,194,19,.15);border:1px solid rgba(94,194,19,.3);color:#5ec213;border-radius:6px;padding:.2rem .5rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-check"></i> Approve</button>' +
+        '<button onclick="bizReviewTask(\'' + questId + '\',\'' + e._id + '\',\'' + t.taskId + '\',\'reject\')" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#ef4444;border-radius:6px;padding:.2rem .5rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-times"></i> Reject</button>' +
+        '</div>';
+    }).join('');
+    var subItems = tasks.filter(function(t) {
+      return t.submissionUrl || t.submissionText || (t.submissionData && Object.keys(t.submissionData).length);
+    }).map(function(t) {
+      if (t.submissionUrl) return '<a href="' + t.submissionUrl + '" target="_blank" style="display:block;color:#60a5fa;font-size:.75rem;word-break:break-all;margin:.1rem 0">' + t.submissionUrl + '</a>';
+      if (t.submissionText) return '<span style="display:block;font-size:.75rem;color:var(--text-2);word-break:break-all;margin:.1rem 0">' + String(t.submissionText) + '</span>';
+      if (t.submissionData && typeof t.submissionData === 'object') {
+        return Object.values(t.submissionData).filter(function(v){ return v; }).map(function(v) {
+          var sv = String(v).trim();
+          if (/^https?:\/\//.test(sv)) return '<a href="' + sv + '" target="_blank" style="display:block;color:#60a5fa;font-size:.75rem;word-break:break-all;margin:.1rem 0">' + sv + '</a>';
+          return '<span style="display:block;font-size:.75rem;color:var(--text-2);word-break:break-all;margin:.1rem 0">' + sv + '</span>';
+        }).join('');
+      }
+      return '';
+    }).join('');
+    var username   = (e.userId && e.userId.username) ? '@' + e.userId.username : 'Unknown';
+    var xp         = (e.xpBreakdown && e.xpBreakdown.totalXp) ? e.xpBreakdown.totalXp : 0;
+    var statusColor = e.status === 'completed' ? 'var(--green)' : e.status === 'not_started' ? 'var(--text-3)' : e.status === 'abandoned' ? '#6b7280' : '#f59e0b';
+    return '<div style="padding:.75rem 1rem;border-bottom:1px solid var(--border)">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.375rem">' +
+        '<div style="display:flex;align-items:center;gap:.5rem">' +
+          '<span style="font-size:.72rem;color:var(--text-3);min-width:1.5rem">#' + (i+1) + '</span>' +
+          '<span style="font-weight:700;font-size:.875rem">' + username + '</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:.5rem">' +
+          '<span style="color:var(--green);font-weight:800;font-size:.8rem">' + xp + ' XP</span>' +
+          '<span style="font-size:.68rem;color:' + statusColor + ';text-transform:capitalize;background:rgba(255,255,255,.05);border-radius:20px;padding:.1rem .45rem">' + (e.status||'—') + '</span>' +
+        '</div>' +
+      '</div>' +
+      (subItems ? '<div style="margin:.375rem 0;padding:.375rem .5rem;background:var(--surface);border-radius:6px;border-left:2px solid rgba(96,165,250,.4)">' + subItems + '</div>' : '') +
+      (reviewBtns ? '<div style="margin-top:.375rem">' + reviewBtns + '</div>' : '') +
+      '<div style="margin-top:.5rem;display:flex;gap:.4rem;flex-wrap:wrap">' +
+        '<button onclick="bizFlagEntry(\'' + questId + '\',\'' + e._id + '\')" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;border-radius:20px;padding:.25rem .75rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-flag"></i> Flag -50XP</button>' +
+        (e.status !== 'abandoned' ? '<button onclick="bizRemoveEntry(\'' + questId + '\',\'' + e._id + '\')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#ef4444;border-radius:20px;padding:.25rem .75rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-user-minus"></i> Remove from Quest</button>' : '<span style="font-size:.7rem;color:var(--text-3);padding:.25rem .5rem;border-radius:20px;background:rgba(255,255,255,.04);border:1px solid var(--border)"><i class="fas fa-ban"></i> Removed</span>') +
+      '</div>' +
+    '</div>';
+  }).join('');
+  wrap.innerHTML = '<div>' + cards + '</div>';
+}
+
+function filterEntries(query) {
+  if (!_bizAllEntries.length) return;
+  var q = (query || '').toLowerCase().trim();
+  var filtered = q ? _bizAllEntries.filter(function(e) {
+    return ((e.userId && e.userId.username) || '').toLowerCase().includes(q);
+  }) : _bizAllEntries;
+  renderEntryCards(filtered, _bizEntriesQuestId);
+}
+
 function loadQuestEntries(questId) {
+  _bizEntriesQuestId = questId;
+  _bizAllEntries = [];
+  var si = document.getElementById('entrySearchInput');
+  if (si) si.value = '';
+  var cb = document.getElementById('entryCountBadge');
+  if (cb) cb.textContent = '';
   var wrap = document.getElementById('qmEntriesWrap');
   wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem"><i class="fas fa-spinner fa-spin"></i> Loading entries...</div>';
   fetch('/business/api/quest/' + questId + '/entries')
     .then(r => r.json())
     .then(d => {
       if (!d.success) { wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--red);font-size:.8rem">Failed to load entries.</div>'; return; }
-      var entries = d.entries;
-      if (!entries || !entries.length) {
-        wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-3);font-size:.8rem">No entries yet.</div>';
-        return;
-      }
-      var cards = entries.map(function(e, i) {
-        var tasks = e.taskProgress || [];
-        var pendingTasks = tasks.filter(function(t) { return t.approvalStatus === 'pending'; });
-        var reviewBtns = pendingTasks.map(function(t) {
-          return '<div style="display:flex;align-items:center;gap:.5rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:.375rem .625rem;margin:.25rem 0">' +
-            '<span style="font-size:.72rem;color:#f59e0b;font-weight:700;flex:1"><i class="fas fa-clock"></i> Pending review</span>' +
-            '<button onclick="bizReviewTask(\'' + questId + '\',\'' + e._id + '\',\'' + t.taskId + '\',\'approve\')" style="background:rgba(94,194,19,.15);border:1px solid rgba(94,194,19,.3);color:#5ec213;border-radius:6px;padding:.2rem .5rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-check"></i> Approve</button>' +
-            '<button onclick="bizReviewTask(\'' + questId + '\',\'' + e._id + '\',\'' + t.taskId + '\',\'reject\')" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#ef4444;border-radius:6px;padding:.2rem .5rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-times"></i> Reject</button>' +
-            '</div>';
-        }).join('');
-        var subItems = tasks.filter(function(t) {
-          return t.submissionUrl || t.submissionText || (t.submissionData && Object.keys(t.submissionData).length);
-        }).map(function(t) {
-          if (t.submissionUrl) {
-            return '<a href="' + t.submissionUrl + '" target="_blank" style="display:block;color:#60a5fa;font-size:.75rem;word-break:break-all;margin:.1rem 0">' + t.submissionUrl + '</a>';
-          }
-          if (t.submissionText) {
-            return '<span style="display:block;font-size:.75rem;color:var(--text-2);word-break:break-all;margin:.1rem 0">' + String(t.submissionText) + '</span>';
-          }
-          if (t.submissionData && typeof t.submissionData === 'object') {
-            return Object.values(t.submissionData).filter(function(v){ return v; }).map(function(v) {
-              var sv = String(v).trim();
-              if (/^https?:\/\//.test(sv)) return '<a href="' + sv + '" target="_blank" style="display:block;color:#60a5fa;font-size:.75rem;word-break:break-all;margin:.1rem 0">' + sv + '</a>';
-              return '<span style="display:block;font-size:.75rem;color:var(--text-2);word-break:break-all;margin:.1rem 0">' + sv + '</span>';
-            }).join('');
-          }
-          return '';
-        }).join('');
-        var username = (e.userId && e.userId.username) ? '@' + e.userId.username : 'Unknown';
-        var xp = (e.xpBreakdown && e.xpBreakdown.totalXp) ? e.xpBreakdown.totalXp : 0;
-        var statusColor = e.status === 'completed' ? 'var(--green)' : e.status === 'not_started' ? 'var(--text-3)' : '#f59e0b';
-        return '<div style="padding:.75rem 1rem;border-bottom:1px solid var(--border)">' +
-          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.375rem">' +
-            '<div style="display:flex;align-items:center;gap:.5rem">' +
-              '<span style="font-size:.72rem;color:var(--text-3);min-width:1.5rem">#' + (i+1) + '</span>' +
-              '<span style="font-weight:700;font-size:.875rem">' + username + '</span>' +
-            '</div>' +
-            '<div style="display:flex;align-items:center;gap:.5rem">' +
-              '<span style="color:var(--green);font-weight:800;font-size:.8rem">' + xp + ' XP</span>' +
-              '<span style="font-size:.68rem;color:' + statusColor + ';text-transform:capitalize;background:rgba(255,255,255,.05);border-radius:20px;padding:.1rem .45rem">' + (e.status||'—') + '</span>' +
-            '</div>' +
-          '</div>' +
-          (subItems ? '<div style="margin:.375rem 0;padding:.375rem .5rem;background:var(--surface);border-radius:6px;border-left:2px solid rgba(96,165,250,.4)">' + subItems + '</div>' : '') +
-          (reviewBtns ? '<div style="margin-top:.375rem">' + reviewBtns + '</div>' : '') +
-          '<div style="margin-top:.5rem;display:flex;gap:.4rem;flex-wrap:wrap">' +
-            '<button onclick="bizFlagEntry(\'' + questId + '\',\'' + e._id + '\')" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;border-radius:20px;padding:.25rem .75rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-flag"></i> Flag -50XP</button>' +
-            (e.status !== 'abandoned' ? '<button onclick="bizRemoveEntry(\'' + questId + '\',\'' + e._id + '\')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#ef4444;border-radius:20px;padding:.25rem .75rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:\'Outfit\',sans-serif"><i class="fas fa-user-minus"></i> Remove from Leaderboard</button>' : '<span style="font-size:.7rem;color:var(--text-3);padding:.25rem .5rem;border-radius:20px;background:rgba(255,255,255,.04);border:1px solid var(--border)"><i class="fas fa-ban"></i> Removed</span>') +
-          '</div>' +
-        '</div>';
-      }).join('');
-      wrap.innerHTML = '<div>' + cards + '</div>';
+      _bizAllEntries = d.entries || [];
+      var cb = document.getElementById('entryCountBadge');
+      if (cb) cb.textContent = _bizAllEntries.length + ' total';
+      renderEntryCards(_bizAllEntries, questId);
     })
     .catch(function() {
       wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--red);font-size:.8rem">Failed to load entries.</div>';
@@ -1766,6 +1820,42 @@ function bizRemoveEntry(questId, progressId) {
       else alert(d.message || 'Error removing participant.');
     })
     .catch(function() { alert('Network error. Please try again.'); });
+}
+
+function saveTelegramLink() {
+  var link  = (document.getElementById('tgLinkInput').value || '').trim();
+  var msgEl = document.getElementById('tgLinkMsg');
+  if (link && !link.startsWith('https://t.me/')) {
+    msgEl.style.display = '';
+    msgEl.style.background = 'rgba(239,68,68,.1)';
+    msgEl.style.color = '#ef4444';
+    msgEl.textContent = 'Link must start with https://t.me/';
+    return;
+  }
+  fetch('/business/api/quest/' + currentQuestId + '/telegram-link', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ link: link || null })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    msgEl.style.display = '';
+    if (d.success) {
+      msgEl.style.background = 'rgba(94,194,19,.1)';
+      msgEl.style.color = 'var(--green)';
+      msgEl.textContent = link ? 'Group link saved! Participants will now see a Join Community button.' : 'Link removed.';
+    } else {
+      msgEl.style.background = 'rgba(239,68,68,.1)';
+      msgEl.style.color = '#ef4444';
+      msgEl.textContent = d.message || 'Error saving link.';
+    }
+    setTimeout(function() { msgEl.style.display = 'none'; }, 4000);
+  });
+}
+
+function clearTelegramLink() {
+  document.getElementById('tgLinkInput').value = '';
+  saveTelegramLink();
 }
 
 function bizReviewTask(questId, progressId, taskId, action) {

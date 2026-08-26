@@ -464,13 +464,14 @@ router.get('/api/quest/:id/stats', businessAuth, async (req, res) => {
     res.json({
       success: true,
       stats: {
-        totalParticipants: participants,
-        totalCompletions:  completions,
-        completionRate:    participants > 0 ? ((completions / participants) * 100).toFixed(1) : '0.0',
-        rewardPool:        quest.usdcReward,
+        totalParticipants:  participants,
+        totalCompletions:   completions,
+        completionRate:     participants > 0 ? ((completions / participants) * 100).toFixed(1) : '0.0',
+        rewardPool:         quest.usdcReward,
         rewardsDistributed: quest.rewardsDistributed,
-        hasEnded:          quest.endDate ? new Date() > new Date(quest.endDate) : false,
-        questType:         quest.questType
+        hasEnded:           quest.endDate ? new Date() > new Date(quest.endDate) : false,
+        questType:          quest.questType,
+        telegramGroupLink:  quest.telegramGroupLink || null
       },
       leaderboard: leaderboard.map((p, i) => ({
         rank:        i + 1,
@@ -655,6 +656,25 @@ router.post('/api/quest/:id/entries/:progressId/flag', businessAuth, async (req,
     res.json({ success: true, message: `Entry flagged. Removed ${penaltyXp} XP.` });
   } catch (err) {
     console.error('Flag entry error:', err);
+    res.json({ success: false, message: 'Server error' });
+  }
+});
+
+// ── Set Telegram group link ───────────────────────────────────────────────────
+
+router.patch('/api/quest/:id/telegram-link', businessAuth, async (req, res) => {
+  try {
+    const business = req.business;
+    const quest = await Quest.findById(req.params.id);
+    if (!quest || String(quest.sponsoredBy) !== String(business._id)) {
+      return res.json({ success: false, message: 'Quest not found' });
+    }
+    const { link } = req.body;
+    quest.telegramGroupLink = link ? link.trim() : null;
+    await quest.save();
+    res.json({ success: true, message: 'Telegram group link updated.' });
+  } catch (err) {
+    console.error('Telegram link update error:', err);
     res.json({ success: false, message: 'Server error' });
   }
 });

@@ -321,8 +321,9 @@ const questSchema = new mongoose.Schema({
   gated:          { type: Boolean, default: false },
   accessCode:     { type: String,  default: null },
   memberApproval: { type: Boolean, default: false },
-  sponsors:       [{ name: { type: String }, logo: { type: String } }],
-  isSpecialQuest: { type: Boolean, default: false }
+  sponsors:          [{ name: { type: String }, logo: { type: String } }],
+  isSpecialQuest:    { type: Boolean, default: false },
+  telegramGroupLink: { type: String, default: null }
 });
 
 // Update timestamp on save
