@@ -4,6 +4,22 @@ const User = require("../models/User");
 const QuestApplication = require("../models/QuestApplication");
 const { notify } = require('../utils/notificationService');
 
+// In-memory leaderboard cache — avoids re-querying on every page view
+// Each quest's leaderboard is cached for 45 seconds
+const _lbCache = new Map();
+const _LB_TTL = 45 * 1000;
+function _getLbCache(questId) {
+  const e = _lbCache.get(questId.toString());
+  if (e && Date.now() - e.ts < _LB_TTL) return e.data;
+  return null;
+}
+function _setLbCache(questId, data) {
+  _lbCache.set(questId.toString(), { data, ts: Date.now() });
+}
+function _invalidateLbCache(questId) {
+  _lbCache.delete(questId.toString());
+}
+
 // Add this at the top of your quest controller functions
 const checkIfBanned = async (userId) => {
   const user = await User.findById(userId);
@@ -256,22 +272,24 @@ exports.getQuestDetails = async (req, res) => {
       }
     }
 
-    // ✅ FIXED: Get leaderboard - Sort by XP only, not by status
-    const leaderboard = await UserQuestProgress.find({
-      questId: questId,
-      status: { $in: ['completed', 'in_progress'] }
-    })
-    .select('-taskProgress')
-    .populate('userId', 'username profilePicture')
-    .sort({
-      'xpBreakdown.totalXp': -1,  // Sort by total XP (highest first)
-      completedAt: 1               // Then by completion time (earliest first)
-    })
-    .limit(100)
-    .lean();
-
-    // Filter out deleted users
-    const validLeaderboard = leaderboard.filter(entry => entry.userId);
+    // Leaderboard — served from cache if fresh (avoids heavy query on every page view)
+    let validLeaderboard = _getLbCache(questId);
+    if (!validLeaderboard) {
+      const leaderboard = await UserQuestProgress.find({
+        questId: questId,
+        status: { $in: ['completed', 'in_progress'] }
+      })
+      .select('-taskProgress')
+      .populate('userId', 'username profilePicture')
+      .sort({
+        'xpBreakdown.totalXp': -1,
+        completedAt: 1
+      })
+      .limit(100)
+      .lean();
+      validLeaderboard = leaderboard.filter(entry => entry.userId);
+      _setLbCache(questId, validLeaderboard);
+    }
 
     // Find user's rank
     const userRank = validLeaderboard.findIndex(
@@ -854,6 +872,7 @@ exports.submitTask = async (req, res) => {
 
     await user.save();
     await userProgress.save();
+    _invalidateLbCache(questId);
 
     // ── Notifications ───────────────────────────────────────────────────────
     if (userProgress.status === 'completed') {
@@ -912,22 +931,24 @@ exports.getQuestLeaderboard = async (req, res) => {
       return res.status(404).send("Quest not found");
     }
 
-    // ✅ FIXED: Get ALL participants - Sort by XP only, not by status
-    const leaderboard = await UserQuestProgress.find({
-      questId: questId,
-      status: { $in: ['completed', 'in_progress'] }
-    })
-    .select('-taskProgress')
-    .populate('userId', 'username profilePicture')
-    .sort({
-      'xpBreakdown.totalXp': -1,  // Sort by total XP (highest first)
-      completedAt: 1               // Then by completion time (earliest first)
-    })
-    .limit(150)
-    .lean();
-
-    // Filter out deleted users
-    const validLeaderboard = leaderboard.filter(entry => entry.userId);
+    // Leaderboard — served from cache if fresh
+    let validLeaderboard = _getLbCache(questId);
+    if (!validLeaderboard) {
+      const leaderboard = await UserQuestProgress.find({
+        questId: questId,
+        status: { $in: ['completed', 'in_progress'] }
+      })
+      .select('-taskProgress')
+      .populate('userId', 'username profilePicture')
+      .sort({
+        'xpBreakdown.totalXp': -1,
+        completedAt: 1
+      })
+      .limit(150)
+      .lean();
+      validLeaderboard = leaderboard.filter(entry => entry.userId);
+      _setLbCache(questId, validLeaderboard);
+    }
 
     // Find user's rank
     const userRank = validLeaderboard.findIndex(
