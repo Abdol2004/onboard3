@@ -4,10 +4,11 @@ const User = require("../models/User");
 const QuestApplication = require("../models/QuestApplication");
 const { notify } = require('../utils/notificationService');
 
-// In-memory leaderboard cache — avoids re-querying on every page view
-// Each quest's leaderboard is cached for 45 seconds
-const _lbCache = new Map();
-const _LB_TTL = 45 * 1000;
+// In-memory leaderboard cache — 5 min TTL, stampede protection
+const _lbCache   = new Map();
+const _lbFlight  = new Set(); // prevents multiple concurrent DB fetches
+const _LB_TTL    = 5 * 60 * 1000;
+
 function _getLbCache(questId) {
   const e = _lbCache.get(questId.toString());
   if (e && Date.now() - e.ts < _LB_TTL) return e.data;
@@ -273,24 +274,35 @@ exports.getQuestDetails = async (req, res) => {
       }
     }
 
-    // Leaderboard — served from cache if fresh (avoids heavy query on every page view)
+    // Leaderboard — cache with stampede protection
+    // Detail page only needs top 10; full list is on the /leaderboard page
     let validLeaderboard = _getLbCache(questId);
     if (!validLeaderboard) {
-      const leaderboard = await UserQuestProgress.find({
-        questId: questId,
-        status: { $in: ['completed', 'in_progress'] }
-      })
-      .select('-taskProgress')
-      .populate('userId', 'username profilePicture')
-      .sort({
-        'xpBreakdown.totalXp': -1,
-        completedAt: 1
-      })
-      .limit(100)
-      .lean();
-      validLeaderboard = leaderboard.filter(entry => entry.userId);
-      _setLbCache(questId, validLeaderboard);
+      if (_lbFlight.has(questId)) {
+        // Another request is already fetching — wait briefly then use cache or empty
+        await new Promise(r => setTimeout(r, 600));
+        validLeaderboard = _getLbCache(questId) || [];
+      } else {
+        _lbFlight.add(questId);
+        try {
+          const leaderboard = await UserQuestProgress.find({
+            questId: questId,
+            status: { $in: ['completed', 'in_progress'] }
+          })
+          .select('-taskProgress')
+          .populate('userId', 'username profilePicture')
+          .sort({ 'xpBreakdown.totalXp': -1, completedAt: 1 })
+          .limit(100)
+          .lean();
+          validLeaderboard = leaderboard.filter(entry => entry.userId);
+          _setLbCache(questId, validLeaderboard);
+        } finally {
+          _lbFlight.delete(questId);
+        }
+      }
     }
+    // Only render top 10 on the detail page — cuts EJS render time significantly
+    const detailLeaderboard = validLeaderboard.slice(0, 10);
 
     // Find user's rank
     const userRank = validLeaderboard.findIndex(
@@ -300,10 +312,16 @@ exports.getQuestDetails = async (req, res) => {
     // Get quest display status
     const questStatus = quest.getDisplayStatus();
 
-    // For approved gated quest members: get participant count
+    // For approved gated quest members: get participant count (cached with leaderboard)
     let participantCount = 0;
     if (quest.gated && quest.memberApproval) {
-      participantCount = await QuestApplication.countDocuments({ questId: quest._id, status: 'approved' });
+      const cached = _lbCache.get(questId.toString() + '_pc');
+      if (cached && Date.now() - cached.ts < _LB_TTL) {
+        participantCount = cached.data;
+      } else {
+        participantCount = await QuestApplication.countDocuments({ questId: quest._id, status: 'approved' });
+        _lbCache.set(questId.toString() + '_pc', { data: participantCount, ts: Date.now() });
+      }
     }
 
     res.render('dashboard/quest-details', {
@@ -315,7 +333,7 @@ exports.getQuestDetails = async (req, res) => {
       application: null,
       participantCount,
       userProgress: userProgress.toObject(),
-      leaderboard: validLeaderboard,
+      leaderboard: detailLeaderboard,
       userRank: userRank || null,
       isBanned: false
     });
