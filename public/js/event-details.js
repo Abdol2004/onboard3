@@ -143,24 +143,30 @@ function displayEventDetails() {
   // Registrations
   document.getElementById('eventRegistrations').textContent = `${currentEvent.totalRegistrations} attendees`;
 
-  // Badges
+  // Badges (guarded — elements may not exist on all page variants)
   const typeBadge = document.getElementById('eventTypeBadge');
-  typeBadge.textContent = currentEvent.eventType.charAt(0).toUpperCase() + currentEvent.eventType.slice(1);
-  typeBadge.style.color = '#fff';
+  if (typeBadge) {
+    typeBadge.textContent = currentEvent.eventType.charAt(0).toUpperCase() + currentEvent.eventType.slice(1);
+    typeBadge.style.color = '#fff';
+  }
 
   const categoryBadge = document.getElementById('eventCategoryBadge');
-  categoryBadge.textContent = currentEvent.category.charAt(0).toUpperCase() + currentEvent.category.slice(1);
-  categoryBadge.style.color = '#fff';
+  if (categoryBadge) {
+    categoryBadge.textContent = (currentEvent.category || '').charAt(0).toUpperCase() + (currentEvent.category || '').slice(1);
+    categoryBadge.style.color = '#fff';
+  }
 
   const statusBadge = document.getElementById('eventStatusBadge');
-  if (isPastEvent) {
-    statusBadge.textContent = 'Completed';
-    statusBadge.style.background = 'rgba(100,100,100,0.2)';
-    statusBadge.style.color = '#fff';
-  } else {
-    statusBadge.textContent = currentEvent.status.charAt(0).toUpperCase() + currentEvent.status.slice(1);
-    statusBadge.style.background = 'rgba(57,255,20,0.2)';
-    statusBadge.style.color = '#fff';
+  if (statusBadge) {
+    if (isPastEvent) {
+      statusBadge.textContent = 'Completed';
+      statusBadge.style.background = 'rgba(100,100,100,0.2)';
+      statusBadge.style.color = '#fff';
+    } else {
+      statusBadge.textContent = (currentEvent.status || '').charAt(0).toUpperCase() + (currentEvent.status || '').slice(1);
+      statusBadge.style.background = 'rgba(57,255,20,0.2)';
+      statusBadge.style.color = '#fff';
+    }
   }
 
   // Prize Pool
