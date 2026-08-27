@@ -293,58 +293,44 @@ function displayAttendees() {
   const attendeesList = document.getElementById('attendeesList');
   const attendeeCount = document.getElementById('attendeeCount');
 
-  // Check if user is registered and approved
-  const isApproved = userRegistration && userRegistration.status === 'approved';
+  // Use server-computed counts — don't re-filter client side
+  const total = currentEvent.totalRegistrations || 0;
+  const approved = currentEvent.totalApproved || 0;
+  const displayCount = approved > 0 ? approved : total;
+  if (attendeeCount) attendeeCount.textContent = displayCount;
 
-  // Only show approved registrations count
-  const approvedRegistrations = currentEvent.registrations.filter(r => r.status === 'approved');
-  attendeeCount.textContent = approvedRegistrations.length;
+  // Show all registrations that have a username (populated)
+  const regs = (currentEvent.registrations || []).filter(r => r.username || (r.user && r.user.username));
 
-  // Only show attendees list to APPROVED users
-  if (!isApproved) {
-    if (isRegistered && !isApproved) {
-      // User registered but not approved
-      attendeesList.innerHTML = `
-        <div style="background: rgba(255,193,7,0.1); border: 1px solid #FFC107; border-radius: 8px; padding: 1.5rem; text-align: center;">
-          <i class="fas fa-lock" style="font-size: 2rem; color: #FFC107; margin-bottom: 0.5rem;"></i>
-          <p style="color: #FFC107; margin: 0;">Attendee list will be visible once your registration is approved.</p>
-        </div>
-      `;
+  if (!regs.length) {
+    if (total > 0) {
+      attendeesList.innerHTML = '<p style="color:#888;text-align:center;padding:2rem">Attendee list not available.</p>';
     } else {
-      // User not registered
-      attendeesList.innerHTML = `
-        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 1.5rem; text-align: center;">
-          <i class="fas fa-lock" style="font-size: 2rem; color: #888; margin-bottom: 0.5rem;"></i>
-          <p style="color: #888; margin: 0;">Register for this event to see who else is attending!</p>
-        </div>
-      `;
+      attendeesList.innerHTML = '<p style="color:#888;text-align:center;padding:2rem">No registrations yet. Be the first!</p>';
     }
     return;
   }
 
-  // User is approved - show attendees list
-  if (approvedRegistrations.length === 0) {
-    attendeesList.innerHTML = '<p style="color: #888; text-align: center; padding: 2rem;">No attendees yet. Be the first to register!</p>';
-    return;
-  }
-
-  attendeesList.innerHTML = `
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
-      ${approvedRegistrations.map(reg => `
-        <div style="background: rgba(57,255,20,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(57,255,20,0.2);">
-          <div style="display: flex; align-items: center; gap: 0.8rem;">
-            <div style="width: 40px; height: 40px; background: #39FF14; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0a0a0a; font-weight: 700; font-size: 1.2rem;">
-              ${reg.username.charAt(0).toUpperCase()}
-            </div>
-            <div style="flex: 1;">
-              <p style="color: #fff; margin: 0; font-weight: 600;">${reg.username}</p>
-              ${reg.checkedIn ? '<p style="color: #39FF14; margin: 0.2rem 0 0 0; font-size: 0.8rem;"><i class="fas fa-check-circle"></i> Checked In</p>' : ''}
-            </div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `;
+  attendeesList.innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;margin-top:.25rem">' +
+    regs.map(function(reg) {
+      var name = reg.username || (reg.user && reg.user.username) || '?';
+      var ini  = name.charAt(0).toUpperCase();
+      var statusDot = reg.status === 'approved'
+        ? '<span style="color:#5ec213;font-size:.72rem"><i class="fas fa-check-circle"></i> Approved</span>'
+        : reg.status === 'pending'
+          ? '<span style="color:#f59e0b;font-size:.72rem"><i class="fas fa-clock"></i> Pending</span>'
+          : '';
+      var checkedInTag = reg.checkedIn
+        ? '<span style="color:#39FF14;font-size:.72rem;margin-left:.35rem"><i class="fas fa-qrcode"></i> Checked in</span>' : '';
+      return '<div style="background:rgba(57,255,20,.05);padding:.875rem;border-radius:10px;border:1px solid rgba(57,255,20,.15);display:flex;align-items:center;gap:.75rem">' +
+        '<div style="width:36px;height:36px;border-radius:50%;background:#39FF14;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;color:#0a0a0a;flex-shrink:0">' + ini + '</div>' +
+        '<div style="min-width:0">' +
+          '<p style="color:#fff;margin:0;font-weight:600;font-size:.875rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@' + name + '</p>' +
+          '<div style="margin-top:.15rem">' + statusDot + checkedInTag + '</div>' +
+        '</div></div>';
+    }).join('') +
+    '</div>';
 }
 
 // Register for event

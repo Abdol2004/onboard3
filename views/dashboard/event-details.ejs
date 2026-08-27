@@ -75,45 +75,18 @@
         .ev-hero-badge.type   { background: rgba(0,217,255,.1); color: #00d9ff; border: 1px solid rgba(0,217,255,.25); }
         .ev-hero-badge.manual { background: rgba(245,158,11,.12); color: #f59e0b; border: 1px solid rgba(245,158,11,.3); }
 
-        .ev-info-grid {
+        .ev-body-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            grid-template-columns: 1fr 300px;
+            gap: 1.5rem;
+            align-items: start;
             margin-bottom: 1.5rem;
         }
-        .ev-info-card {
-            background: rgba(57,255,20,.04);
-            border: 1px solid rgba(57,255,20,.15);
-            border-radius: 12px;
-            padding: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        @media (max-width: 768px) {
+            .ev-body-grid { grid-template-columns: 1fr; }
+            .ev-hero { min-height: 200px; }
+            .ev-hero-title { font-size: 1.4rem !important; }
         }
-        .ev-info-icon {
-            font-size: 1.5rem;
-            color: #39FF14;
-            flex-shrink: 0;
-        }
-        .ev-info-lbl { color: #888; font-size: .78rem; margin: 0; }
-        .ev-info-val { color: #fff; font-size: .95rem; font-weight: 600; margin: .25rem 0 0 0; word-break: break-word; }
-
-        .ev-action-bar {
-            background: rgba(57,255,20,.04);
-            border: 1px solid rgba(57,255,20,.15);
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-bottom: 1.5rem;
-        }
-        .ev-action-info { flex: 1; min-width: 200px; }
-        .ev-action-title { font-weight: 700; color: #fff; margin: 0 0 .25rem 0; font-size: 1rem; }
-        .ev-action-sub { color: #888; font-size: .82rem; margin: 0; }
-        .ev-action-btns { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
 
         .ev-section-card { margin-bottom: 1.5rem; }
         .ev-section-title {
@@ -282,51 +255,63 @@
                         </div>
                     </div>
 
-                    <!-- ── Action bar ── -->
-                    <div class="ev-action-bar">
-                        <div class="ev-action-info">
-                            <p class="ev-action-title" id="evActionTitle">Register for this Event</p>
-                            <p class="ev-action-sub" id="evActionSub"></p>
-                        </div>
-                        <div class="ev-action-btns" id="actionButtons"></div>
-                    </div>
+                    <!-- ── Two-column body ── -->
+                    <div class="ev-body-grid">
 
-                    <!-- ── Info grid ── -->
-                    <div class="ev-info-grid">
-                        <div class="ev-info-card">
-                            <i class="fas fa-calendar-alt ev-info-icon"></i>
-                            <div>
-                                <p class="ev-info-lbl">Date</p>
-                                <p class="ev-info-val" id="eventDate"></p>
-                            </div>
+                        <!-- Left: description -->
+                        <div class="card" style="margin:0">
+                            <div class="ev-section-title"><i class="fas fa-info-circle"></i> About This Event</div>
+                            <p id="eventDescription" style="color:#ccc;line-height:1.75;margin:0;font-size:.9rem"></p>
                         </div>
-                        <div class="ev-info-card">
-                            <i class="fas fa-clock ev-info-icon"></i>
-                            <div>
-                                <p class="ev-info-lbl">Time</p>
-                                <p class="ev-info-val" id="eventTime"></p>
-                            </div>
-                        </div>
-                        <div class="ev-info-card" id="venueCard" style="display:none">
-                            <i class="fas fa-map-marker-alt ev-info-icon"></i>
-                            <div>
-                                <p class="ev-info-lbl">Venue</p>
-                                <p class="ev-info-val" id="eventVenue"></p>
-                            </div>
-                        </div>
-                        <div class="ev-info-card">
-                            <i class="fas fa-users ev-info-icon"></i>
-                            <div>
-                                <p class="ev-info-lbl">Attendees</p>
-                                <p class="ev-info-val" id="eventRegistrations"></p>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- ── Description ── -->
-                    <div class="card ev-section-card">
-                        <div class="ev-section-title"><i class="fas fa-info-circle"></i> About This Event</div>
-                        <p id="eventDescription" style="color:#ccc;line-height:1.7;margin:0;font-size:.95rem"></p>
+                        <!-- Right: details + action -->
+                        <div style="display:flex;flex-direction:column;gap:.75rem">
+
+                            <!-- Quick details card -->
+                            <div class="card" style="margin:0;padding:1.25rem">
+                                <div style="display:flex;flex-direction:column;gap:.875rem">
+                                    <div style="display:flex;align-items:flex-start;gap:.75rem">
+                                        <i class="fas fa-calendar-alt" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
+                                        <div>
+                                            <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Date</p>
+                                            <p id="eventDate" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;align-items:flex-start;gap:.75rem">
+                                        <i class="fas fa-clock" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
+                                        <div>
+                                            <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Time</p>
+                                            <p id="eventTime" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
+                                        </div>
+                                    </div>
+                                    <!-- venueCard: JS sets display:block; inner div keeps flex layout -->
+                                    <div id="venueCard" style="display:none">
+                                        <div style="display:flex;align-items:flex-start;gap:.75rem">
+                                            <i class="fas fa-map-marker-alt" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
+                                            <div>
+                                                <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Venue</p>
+                                                <p id="eventVenue" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;align-items:flex-start;gap:.75rem">
+                                        <i class="fas fa-users" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
+                                        <div>
+                                            <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Registered</p>
+                                            <p id="eventRegistrations" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action card -->
+                            <div class="card" style="margin:0;padding:1.25rem;background:rgba(57,255,20,.04);border:1px solid rgba(57,255,20,.2)">
+                                <p id="evActionTitle" style="font-weight:700;color:#fff;margin:0 0 .25rem 0;font-size:.95rem">Register for this Event</p>
+                                <p id="evActionSub" style="color:#888;font-size:.78rem;margin:0 0 .875rem 0"></p>
+                                <div id="actionButtons" style="display:flex;flex-direction:column;gap:.5rem"></div>
+                            </div>
+
+                        </div>
                     </div>
 
                     <!-- ── Virtual Link ── -->
