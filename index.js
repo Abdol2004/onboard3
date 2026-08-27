@@ -546,8 +546,8 @@ app.get("/dashboard/quest-details/:questId", isAuthenticated, (req, res) => {
   res.redirect(`/dashboard/quest/${req.params.questId}`);
 });
 
-app.get("/dashboard/events", isAuthenticated, (req, res) => {
-  res.render("dashboard/event", { 
+app.get("/dashboard/events", (req, res) => {
+  res.render("dashboard/event", {
     title: "Events",
     user: req.session.userId ? { username: req.session.username } : null
   });
@@ -567,8 +567,8 @@ app.get("/dashboard/settings", isAuthenticated, (req, res) => {
 });
 
 
-app.get("/dashboard/events/:eventId", isAuthenticated, (req, res) => {
-  res.render("dashboard/event-details", { 
+app.get("/dashboard/events/:eventId", (req, res) => {
+  res.render("dashboard/event-details", {
     title: "Event Details",
     eventId: req.params.eventId,
     user: req.session.userId ? { username: req.session.username } : null

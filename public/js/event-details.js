@@ -282,6 +282,16 @@ function displayActionButtons() {
           ${approvalNote}
         `;
       } else {
+        if (typeof IS_LOGGED_IN !== 'undefined' && !IS_LOGGED_IN) {
+        // Guest — prompt login
+        const redirectUrl = encodeURIComponent(window.location.pathname);
+        actionButtons.innerHTML = `
+          <a href="/auth?redirect=${redirectUrl}" style="display:inline-flex;align-items:center;gap:.5rem;background:#39FF14;color:#0a0a0a;border:none;padding:1rem 2rem;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;text-decoration:none">
+            <i class="fas fa-sign-in-alt"></i> Login to Register
+          </a>
+          <p style="color:#888;font-size:.82rem;margin:.5rem 0 0">Create a free account to register for this event.</p>
+        `;
+      } else {
         // On dashboard page - use API registration
         actionButtons.innerHTML = `
           <button onclick="registerForEvent()" style="background: #39FF14; color: #0a0a0a; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
@@ -289,6 +299,7 @@ function displayActionButtons() {
           </button>
           ${approvalNote}
         `;
+      }
       }
     }
   }

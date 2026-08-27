@@ -40,7 +40,8 @@
                 <h1 style="font-size:1.4rem"><i class="fas fa-calendar-alt"></i> <%= event.title %></h1>
                 <p style="font-size:.8rem;color:var(--text-3)">
                     <%= new Date(event.startDate).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) %>
-                    &nbsp;·&nbsp; <span class="a-badge <%= event.isActive ? 'a-badge-success':'a-badge-neutral' %>"><%= event.isActive ? 'Active':'Ended' %></span>
+                    <% var _evEnded = new Date() > new Date(event.endDate) || event.status === 'cancelled'; %>
+                    &nbsp;·&nbsp; <span class="a-badge <%= !_evEnded ? 'a-badge-success':'a-badge-neutral' %>"><%= !_evEnded ? (event.status === 'ongoing' ? 'Live' : 'Upcoming') : 'Ended' %></span>
                     &nbsp;·&nbsp; <span class="a-badge <%= event.approvalType === 'manual' ? 'a-badge-warning':'a-badge-neutral' %>"><%= event.approvalType === 'manual' ? 'Manual Approval':'Auto Approval' %></span>
                 </p>
             </div>

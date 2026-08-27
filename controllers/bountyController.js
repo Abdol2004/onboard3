@@ -234,7 +234,7 @@ exports.externalBountyDetail = async (req, res) => {
     res.render('dashboard/bounty-external', {
       title: (zadBounty.name || 'Bounty') + ' — ONBOARD3', user, currentPage: 'bounties',
       bounty: { ...zadBounty, usdValue }, mySubmission: mySubmission || null, ourSubmissions,
-      userStacksAddress: user.stacksAddress || null,
+      userStacksAddress: user?.stacksAddress || null,
       zadBountyUrl: `https://zeroauthoritydao.com/bounty/${bountyId}`
     });
   } catch (err) {

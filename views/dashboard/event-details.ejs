@@ -363,6 +363,7 @@
 
     <script src="/js/event-details.js"></script>
     <script>
+    var IS_LOGGED_IN = <%= user ? 'true' : 'false' %>;
     /* Extend displayEventDetails to fill the new hero section */
     var _origDisplay = displayEventDetails;
     displayEventDetails = function() {
