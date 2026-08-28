@@ -311,52 +311,83 @@ async function tryUpdateZADProfile(cookieStr, username, avatarUrl, walletAddress
   }
 
   const profileBody = { username, name: username, displayName: username, ...(avatarUrl ? { image: avatarUrl } : {}) };
-  const jsonHeaders = { 'Content-Type': 'application/json', 'Cookie': cookieStr };
-
-  // ── 1. Admin API key approach (most reliable — same key that fetches bounties) ──
+  const jsonHeaders  = { 'Content-Type': 'application/json', 'Cookie': cookieStr };
   const adminHeaders = { 'Authorization': `Bearer ${ZAD_API_KEY()}`, 'Content-Type': 'application/json' };
-  const zadUserId = signinUser?.id || signinUser?._id || signinUser?.userId;
+  const zadUserId    = signinUser?.id || signinUser?._id || signinUser?.userId;
 
+  // Helper: try a Server Action call — returns true on success
+  async function trySA(pageUrl, hash) {
+    try {
+      const r = await axios.post(pageUrl, [profileBody], {
+        headers: {
+          'Cookie': cookieStr, 'Content-Type': 'application/json',
+          'Next-Action': hash, 'Next-Router-State-Tree': '%5B%22%22%2C%7B%7D%5D',
+          'Origin': ZAD_BASE, 'Referer': pageUrl,
+        },
+        timeout: 5000,
+      });
+      const text = typeof r.data === 'string' ? r.data : JSON.stringify(r.data);
+      if (r.status < 400 && !text.includes('"error"') && !text.toLowerCase().includes('unauthorized')) {
+        console.log('[ZAD] Profile SA OK hash', hash.slice(0, 8), '→', r.status);
+        return true;
+      }
+    } catch {}
+    return false;
+  }
+
+  // ── 0. Dynamically extract action hashes from the authenticated /profile page ──
+  // Next.js embeds Server Action IDs as 40-char hex in the rendered HTML/RSC payload
+  try {
+    const pageRes = await axios.get(`${ZAD_BASE}/profile`, {
+      headers: { 'Cookie': cookieStr, 'Accept': 'text/html,application/xhtml+xml' },
+      timeout: 8000,
+    });
+    const html = typeof pageRes.data === 'string' ? pageRes.data : JSON.stringify(pageRes.data);
+    const hexSet = new Set([...html.matchAll(/["'`\s]([a-f0-9]{40})["'`\s,\]]/g)].map(m => m[1]));
+    const discoveredHashes = [...hexSet].slice(0, 30); // cap at 30
+    console.log('[ZAD] Discovered', discoveredHashes.length, 'potential action hashes from /profile page');
+    for (const hash of discoveredHashes) {
+      if (await trySA(`${ZAD_BASE}/profile`, hash)) return;
+    }
+  } catch (err) {
+    console.log('[ZAD] /profile page fetch for hash discovery failed:', err.message);
+  }
+
+  // ── 1. Admin API key approach ──
+  const adminBody = { ...profileBody, ...(walletAddress ? { walletAddress, address: walletAddress } : {}) };
   const adminTargets = [
-    // By wallet address (most likely)
     ...(walletAddress ? [
       `${ZAD_BASE}/api/users/${walletAddress}`,
       `${ZAD_BASE}/api/users/${walletAddress}/profile`,
+      `${ZAD_BASE}/api/users/by-wallet/${walletAddress}`,
       `${ZAD_BASE}/api/admin/users/${walletAddress}`,
     ] : []),
-    // By ZAD user ID if we got one from signin
     ...(zadUserId ? [
       `${ZAD_BASE}/api/users/${zadUserId}`,
       `${ZAD_BASE}/api/users/${zadUserId}/profile`,
+      `${ZAD_BASE}/api/users/${zadUserId}/username`,
     ] : []),
-    // Generic admin profile endpoint
     `${ZAD_BASE}/api/admin/profile`,
+    `${ZAD_BASE}/api/admin/users/update`,
   ];
 
   for (const url of adminTargets) {
-    for (const method of ['PATCH', 'PUT']) {
+    for (const method of ['PATCH', 'PUT', 'POST']) {
       try {
-        const body = { ...profileBody, ...(walletAddress ? { walletAddress, address: walletAddress } : {}) };
-        const r = await axios({ method, url, data: body, headers: adminHeaders, timeout: 6000 });
+        const r = await axios({ method, url, data: adminBody, headers: adminHeaders, timeout: 5000 });
         console.log('[ZAD] Admin profile update OK:', method, url, '→', r.status);
         return;
       } catch (e) {
         const s = e.response?.status;
-        if (s && s !== 404 && s !== 405) {
+        if (s && s !== 404 && s !== 405 && s !== 403) {
           console.log('[ZAD] Admin profile:', method, url, '→', s, JSON.stringify(e.response?.data || '').slice(0, 100));
         }
       }
     }
   }
 
-  // ── 2. Session-based Server Actions (Next.js — hashes may be stale after ZAD deploys) ──
-  const saHeaders = {
-    'Cookie':                 cookieStr,
-    'Next-Router-State-Tree': '%5B%22%22%2C%7B%7D%5D',
-    'Origin':                 ZAD_BASE,
-    'Referer':                `${ZAD_BASE}/settings`,
-  };
-  const ACTION_HASHES = [
+  // ── 2. Known Server Action hashes — try both /profile and /settings as targets ──
+  const KNOWN_HASHES = [
     '13b35c40ed6572e56004b9107158ff6031eba5e8',
     'db8221deb5eda1ebffe98847f0cd72065ad7b73e',
     '684e86e176ad10a5d14dd6b0be2f5a86fe221e02',
@@ -367,42 +398,36 @@ async function tryUpdateZADProfile(cookieStr, username, avatarUrl, walletAddress
     '4be4bab85bfd3db5c36d84e6d5732920970a7c7f',
     '4d7f511e3aed9967f55c6be56bef6bffb0c7bb8b',
   ];
-
-  for (const hash of ACTION_HASHES) {
-    try {
-      const r = await axios.post(`${ZAD_BASE}/settings`, [profileBody], {
-        headers: { ...saHeaders, 'Next-Action': hash, 'Content-Type': 'application/json' },
-        timeout: 8000,
-      });
-      const text = typeof r.data === 'string' ? r.data : JSON.stringify(r.data);
-      console.log('[ZAD] Profile SA', hash.slice(0, 8), '→', r.status, text.slice(0, 100));
-      if (r.status < 400 && !text.includes('"error"') && !text.includes('Error')) return;
-    } catch (e) {
-      // silently skip stale hashes
+  for (const pageUrl of [`${ZAD_BASE}/profile`, `${ZAD_BASE}/settings`]) {
+    for (const hash of KNOWN_HASHES) {
+      if (await trySA(pageUrl, hash)) return;
     }
   }
 
   // ── 3. Session REST fallbacks ──
   for (const [url, method] of [
-    [`${ZAD_BASE}/api/user`, 'PATCH'],
-    [`${ZAD_BASE}/api/users/me`, 'PATCH'],
-    [`${ZAD_BASE}/api/profile`, 'PATCH'],
-    [`${ZAD_BASE}/api/user/profile`, 'PATCH'],
-    [`${ZAD_BASE}/api/me`, 'PATCH'],
+    [`${ZAD_BASE}/api/user`,          'PATCH'],
+    [`${ZAD_BASE}/api/users/me`,      'PATCH'],
+    [`${ZAD_BASE}/api/profile`,       'PATCH'],
+    [`${ZAD_BASE}/api/user/profile`,  'PATCH'],
+    [`${ZAD_BASE}/api/me`,            'PATCH'],
+    [`${ZAD_BASE}/api/users/update`,  'POST'],
+    [`${ZAD_BASE}/api/profile/update`,'POST'],
+    [`${ZAD_BASE}/api/user/update`,   'POST'],
   ]) {
     try {
-      const r = await axios({ method, url, data: profileBody, headers: jsonHeaders, timeout: 6000 });
+      const r = await axios({ method, url, data: profileBody, headers: jsonHeaders, timeout: 5000 });
       console.log('[ZAD] Profile REST', method, url, '→', r.status);
       return;
     } catch (e) {
       const s = e.response?.status;
-      if (s && s !== 404 && s !== 405) {
+      if (s && s !== 404 && s !== 405 && s !== 403) {
         console.log('[ZAD] Profile REST', method, url, '→', s);
       }
     }
   }
 
-  console.log('[ZAD] Profile update: no working endpoint found (username will show as wallet address or Anonymous)');
+  console.log('[ZAD] Profile update: no working endpoint found — username will show as blank on ZAD until fixed');
 }
 
 // Submit a bounty via ZAD's Next.js Server Action — this broadcasts the tx AND creates the DB record

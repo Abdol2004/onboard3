@@ -293,19 +293,25 @@
             <% } %>
             <% allSubs.forEach(function(sub) {
               const isWinner = bounty.winners && bounty.winners.some(function(w){ return w.id === sub.id || w.submissionId === sub.id; });
+              var rawSummary  = sub.summary || '';
+              var onb3Tag     = rawSummary.match(/^\[([^\]]+) via ONBOARD3\]\s*/);
+              var subUsername = sub.submitter?.username || (onb3Tag ? onb3Tag[1] : null);
+              var subSummary  = onb3Tag ? rawSummary.slice(onb3Tag[0].length) : rawSummary;
+              var isOnb3Sub   = !!onb3Tag;
             %>
             <div class="bde-sub" style="<%= isWinner?'border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.04)':'' %>">
               <div class="bde-sub-pfp">
                 <% if (sub.submitter?.avatarUrl) { %>
                 <img src="<%= sub.submitter.avatarUrl %>" alt="" onerror="this.style.display='none'">
-                <% } else { %><span><%= (sub.submitter?.username||'?').charAt(0).toUpperCase() %></span><% } %>
+                <% } else { %><span><%= (subUsername||'?').charAt(0).toUpperCase() %></span><% } %>
               </div>
               <div class="bde-sub-body">
                 <div class="bde-sub-name">
-                  <%= sub.submitter?.username || 'Anonymous' %>
+                  <%= subUsername || 'Anonymous' %>
+                  <% if (isOnb3Sub) { %><span style="font-size:.62rem;background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.25);padding:.15rem .4rem;border-radius:50px;margin-left:.35rem;font-weight:800">ONBOARD3</span><% } %>
                   <% if (isWinner) { %><span class="bde-sub-badge"><i class="fas fa-trophy"></i> Winner</span><% } %>
                 </div>
-                <div class="bde-sub-desc"><%= sub.summary || '' %></div>
+                <div class="bde-sub-desc"><%= subSummary %></div>
                 <% if (sub.submissionUrl) { %>
                 <a href="<%= sub.submissionUrl %>" target="_blank" class="bde-sub-link"><i class="fas fa-external-link-alt"></i> View Work</a>
                 <% } %>
