@@ -471,4 +471,22 @@ async function submitToZADWebAPI(privKey, bountyId, summary, submissionUrl, sign
   }
 }
 
-module.exports = { getAddress, getBalance, getSTXPrice, sweepWallet, assignWallet, submitBountyOnChain, getFeeWalletInfo, submitToZADWebAPI };
+// Ensure a ZAD profile exists for the user with their ONBOARD3 username.
+// Called explicitly before on-chain submission so the profile is created
+// even if the on-chain step fails (preventing entries from appearing as "anonymous").
+async function ensureZADProfile(userId) {
+  const User = require('../models/User');
+  const user = await User.findById(userId)
+    .select('stacksWalletIndex username profilePicture').lean();
+  if (!user || user.stacksWalletIndex == null) return;
+  const parent  = await getParent();
+  const privKey = derivePrivKey(parent, user.stacksWalletIndex);
+  const { cookieStr, address, signinUser } = await authenticateWithZAD(privKey, {
+    username:  user.username  || null,
+    avatarUrl: user.profilePicture || null,
+  });
+  await tryUpdateZADProfile(cookieStr, user.username, user.profilePicture, address, signinUser);
+  console.log('[ZAD] Profile ensured for:', user.username, address);
+}
+
+module.exports = { getAddress, getBalance, getSTXPrice, sweepWallet, assignWallet, submitBountyOnChain, getFeeWalletInfo, submitToZADWebAPI, ensureZADProfile };

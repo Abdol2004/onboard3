@@ -228,12 +228,40 @@ exports.externalBountyDetail = async (req, res) => {
       .populate('userId', 'username profilePicture stacksAddress')
       .sort({ createdAt: -1 }).lean();
 
+    // Match ZAD winners to ONBOARD3 users by wallet address
+    const rawWinners = zadBounty.winners || [];
+    let enrichedWinners = rawWinners;
+    if (rawWinners.length > 0) {
+      const winnerAddresses = rawWinners
+        .map(w => w.submitter?.walletAddress || w.submitterAddress || w.walletAddress)
+        .filter(Boolean);
+      const winnerUsers = winnerAddresses.length > 0
+        ? await User.find({ stacksAddress: { $in: winnerAddresses } })
+                    .select('username profilePicture stacksAddress').lean()
+        : [];
+      enrichedWinners = rawWinners.map(w => {
+        const addr = w.submitter?.walletAddress || w.submitterAddress || w.walletAddress;
+        const dbMatch = addr ? winnerUsers.find(u => u.stacksAddress === addr) : null;
+        const subMatch = !dbMatch && addr
+          ? (ourSubmissions.find(s => s.userId?.stacksAddress === addr) || null)
+          : null;
+        const onboardUser = dbMatch || (subMatch ? subMatch.userId : null);
+        return {
+          ...w,
+          onboardUsername: onboardUser?.username || null,
+          onboardPfp:      onboardUser?.profilePicture || null,
+          isOnboard3:      !!onboardUser
+        };
+      });
+    }
+
     const prices   = await getTokenPrices([zadBounty.token?.symbol].filter(Boolean));
     const usdValue = toUSD(zadBounty.totalPayment, zadBounty.token?.symbol, prices);
 
     res.render('dashboard/bounty-external', {
       title: (zadBounty.name || 'Bounty') + ' — ONBOARD3', user, currentPage: 'bounties',
       bounty: { ...zadBounty, usdValue }, mySubmission: mySubmission || null, ourSubmissions,
+      enrichedWinners,
       userStacksAddress: user?.stacksAddress || null,
       zadBountyUrl: `https://zeroauthoritydao.com/bounty/${bountyId}`
     });
@@ -264,6 +292,12 @@ exports.submitToExternalBounty = async (req, res) => {
 
     // Ensure user has a custodial Stacks wallet
     const wallet = await sw.assignWallet(req.session.userId);
+
+    // Create/update the user's ZAD profile so entries show their ONBOARD3 username
+    // Done before on-chain submission so the profile exists even if submission fails
+    try { await sw.ensureZADProfile(req.session.userId); } catch (e) {
+      console.error('[Bounty] ensureZADProfile failed (non-blocking):', e.message);
+    }
 
     // Prefix summary with ONBOARD3 username so it appears on ZAD's platform
     const submitter = await User.findById(req.session.userId).select('username').lean();
