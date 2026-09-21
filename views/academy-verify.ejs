@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title><%= cert ? 'Certificate ' + cert.certificateId : 'Certificate Not Found' %> — ONBOARD3 Academy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #5EC213;
+      --bg: #080e08;
+      --bg-card: rgba(255,255,255,.035);
+      --border: rgba(255,255,255,.09);
+      --text: #E8F5E2;
+      --text-2: #A8C8A0;
+      --text-3: #6A896A;
+      --text-4: #3D5A3D;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; }
+
+    .av-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(94,194,19,.07) 0%, transparent 70%);
+    }
+
+    .av-wrap { position: relative; z-index: 1; width: 100%; max-width: 600px; }
+
+    .av-logo { display: flex; align-items: center; gap: .625rem; margin-bottom: 2rem; justify-content: center; }
+    .av-logo img { width: 36px; height: 36px; }
+    .av-logo-text { font-size: 1.125rem; font-weight: 900; color: var(--text); letter-spacing: .5px; }
+
+    /* ── Certificate card ── */
+    .av-cert {
+      background: linear-gradient(145deg, rgba(94,194,19,.06) 0%, rgba(255,255,255,.025) 60%, rgba(94,194,19,.03) 100%);
+      border: 1.5px solid rgba(94,194,19,.25);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(94,194,19,.07), 0 24px 64px rgba(0,0,0,.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .av-cert::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 28px,
+        rgba(94,194,19,.015) 28px,
+        rgba(94,194,19,.015) 30px
+      );
+      pointer-events: none;
+    }
+
+    .av-valid-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(94,194,19,.12); border: 1px solid rgba(94,194,19,.3);
+      color: var(--green); border-radius: 50px; padding: .375rem 1rem;
+      font-size: .8rem; font-weight: 800; letter-spacing: .4px;
+      margin-bottom: 1.5rem;
+    }
+    .av-valid-badge i { font-size: .875rem; }
+
+    .av-seal {
+      width: 72px; height: 72px; border-radius: 20px;
+      background: rgba(94,194,19,.1); border: 2px solid rgba(94,194,19,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: var(--green);
+      margin: 0 auto 1.5rem;
+    }
+
+    .av-cert-label {
+      font-size: .72rem; font-weight: 800; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      margin-bottom: .5rem;
+    }
+    .av-cert-title {
+      font-size: 1.5rem; font-weight: 900; color: var(--text);
+      margin-bottom: .375rem; line-height: 1.2;
+    }
+    .av-cert-sub {
+      font-size: .9rem; color: var(--text-2); margin-bottom: 2rem;
+    }
+
+    .av-divider {
+      height: 1px; background: var(--border); margin: 0 0 1.75rem;
+    }
+
+    .av-fields {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+      text-align: left; margin-bottom: 1.75rem;
+    }
+    @media (max-width: 480px) { .av-fields { grid-template-columns: 1fr; } }
+
+    .av-field-label {
+      font-size: .68rem; font-weight: 800; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: .8px;
+      margin-bottom: .25rem;
+    }
+    .av-field-value {
+      font-size: .9375rem; font-weight: 700; color: var(--text);
+    }
+
+    .av-cert-id {
+      display: inline-block;
+      background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.2);
+      color: #fbbf24; border-radius: 8px;
+      padding: .5rem 1rem; font-size: .875rem; font-weight: 900;
+      letter-spacing: .5px; font-family: 'Courier New', monospace;
+      margin-bottom: 1.5rem;
+    }
+
+    .av-footer-note {
+      font-size: .72rem; color: var(--text-4); line-height: 1.6;
+    }
+
+    /* ── Not found ── */
+    .av-notfound {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 3rem 2rem; text-align: center;
+    }
+    .av-notfound i { font-size: 2.5rem; color: var(--text-4); display: block; margin-bottom: 1rem; }
+    .av-notfound h2 { font-size: 1.125rem; font-weight: 900; margin-bottom: .5rem; }
+    .av-notfound p { font-size: .875rem; color: var(--text-3); }
+
+    .av-home-link {
+      display: inline-flex; align-items: center; gap: .5rem;
+      margin-top: 1.5rem; color: var(--green); font-size: .875rem;
+      font-weight: 700; text-decoration: none;
+    }
+    .av-home-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="av-bg"></div>
+<div class="av-wrap">
+
+  <div class="av-logo">
+    <img src="/img/logo.png" alt="ONBOARD3">
+    <span class="av-logo-text">ONBOARD3 Academy</span>
+  </div>
+
+  <% if (cert) { %>
+  <div class="av-cert">
+    <div class="av-valid-badge"><i class="fas fa-shield-check"></i> Verified Certificate</div>
+    <div class="av-seal"><i class="fas fa-graduation-cap"></i></div>
+    <div class="av-cert-label">Certificate of Completion</div>
+    <div class="av-cert-title"><%= cert.cohortTitle %></div>
+    <% if (cert.cohortTopic) { %><div class="av-cert-sub"><%= cert.cohortTopic %></div><% } %>
+    <div class="av-divider"></div>
+    <div class="av-fields">
+      <div>
+        <div class="av-field-label">Awarded to</div>
+        <div class="av-field-value">@<%= cert.username %></div>
+      </div>
+      <div>
+        <div class="av-field-label">Issued on</div>
+        <div class="av-field-value"><%= new Date(cert.issuedAt).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }) %></div>
+      </div>
+    </div>
+    <div class="av-cert-id"><i class="fas fa-certificate"></i> <%= cert.certificateId %></div>
+    <div class="av-footer-note">
+      This certificate was issued by ONBOARD3 Academy and verifies that the holder completed the <strong style="color:var(--text-2)"><%= cert.cohortTitle %></strong> cohort program.<br>
+      Verified at onboard3.com · Certificate ID: <%= cert.certificateId %>
+    </div>
+  </div>
+  <% } else { %>
+  <div class="av-notfound">
+    <i class="fas fa-certificate"></i>
+    <h2>Certificate Not Found</h2>
+    <p>No certificate matching this ID could be found. Double-check the ID and try again.</p>
+  </div>
+  <% } %>
+
+  <div style="text-align:center;margin-top:1.5rem">
+    <a href="/dashboard/academy" class="av-home-link"><i class="fas fa-arrow-left"></i> ONBOARD3 Academy</a>
+  </div>
+
+</div>
+</body>
+</html>

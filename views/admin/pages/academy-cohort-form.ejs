@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title><%= title %> — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .cf-form { max-width:860px; }
+    .cf-card { background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.25rem; }
+    .cf-section-title { font-size:.72rem;font-weight:900;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:1.125rem;display:flex;align-items:center;gap:.5rem; }
+    .cf-row { display:grid;grid-template-columns:1fr 1fr;gap:1rem; }
+    .cf-row-3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem; }
+    @media (max-width:640px) { .cf-row,.cf-row-3 { grid-template-columns:1fr; } }
+    .cf-fg { margin-bottom:1rem; }
+    .cf-fg:last-child { margin-bottom:0; }
+    .cf-fg label { display:block;font-size:.75rem;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.375rem; }
+    .cf-fg label span { color:var(--text-4);font-weight:400;text-transform:none;letter-spacing:0;font-size:.7rem; }
+    .cf-fg input,.cf-fg select,.cf-fg textarea {
+      width:100%;box-sizing:border-box;
+      background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+      border-radius:9px;color:var(--text);font-family:'Outfit',sans-serif;
+      font-size:.875rem;padding:.7rem 1rem;resize:vertical;
+    }
+    .cf-fg input:focus,.cf-fg select:focus,.cf-fg textarea:focus { border-color:rgba(94,194,19,.5);outline:none; }
+    .cf-fg select option { background:#1a1a1a; }
+    .cf-hint { font-size:.72rem;color:var(--text-4);margin-top:.375rem;font-style:italic; }
+    .cf-json-editor { font-family:'Courier New',monospace;font-size:.78rem;min-height:120px;background:rgba(0,0,0,.3); }
+    .cf-save-btn { padding:.875rem 2rem;border-radius:12px;background:var(--green);color:#000;font-weight:900;font-size:.9375rem;border:none;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .25s; }
+    .cf-save-btn:hover { background:#6be01a; }
+    .cf-wywtl-item { display:flex;gap:.5rem;margin-bottom:.5rem; }
+    .cf-wywtl-item input { flex:1; }
+    .cf-wywtl-item button { background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:0 .625rem;cursor:pointer;flex-shrink:0; }
+  </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'academy-cohorts', admin:user }) %>
+<div class="a-main">
+  <div class="a-content cf-form">
+
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-graduation-cap"></i> <%= cohort ? 'Edit Cohort' : 'New Cohort' %></h1>
+        <p><a href="/admin/academy/cohorts" style="color:var(--text-3);text-decoration:none"><i class="fas fa-arrow-left"></i> Back to Cohorts</a></p>
+      </div>
+    </div>
+
+    <form method="POST" action="<%= cohort ? '/admin/academy/cohorts/'+cohort._id+'/edit' : '/admin/academy/cohorts/new' %>">
+
+      <!-- Basic Info -->
+      <div class="cf-card">
+        <div class="cf-section-title"><i class="fas fa-info-circle"></i> Basic Info</div>
+        <div class="cf-row">
+          <div class="cf-fg">
+            <label>Cohort Title *</label>
+            <input type="text" name="title" required placeholder="Web3 Career Cohort 01" value="<%= cohort?.title || '' %>">
+          </div>
+          <div class="cf-fg">
+            <label>URL Slug *</label>
+            <input type="text" name="slug" required placeholder="web3-career-cohort-01" value="<%= cohort?.slug || '' %>">
+            <div class="cf-hint">Used in URL: /dashboard/academy/[slug]</div>
+          </div>
+        </div>
+        <div class="cf-row">
+          <div class="cf-fg">
+            <label>Topic</label>
+            <input type="text" name="topic" placeholder="Web3 Careers" value="<%= cohort?.topic || '' %>">
+          </div>
+          <div class="cf-fg">
+            <label>Duration</label>
+            <input type="text" name="duration" placeholder="4 Weeks" value="<%= cohort?.duration || '' %>">
+          </div>
+        </div>
+        <div class="cf-fg">
+          <label>Short Description</label>
+          <textarea name="description" rows="3" placeholder="One or two sentences describing this cohort..."><%= cohort?.description || '' %></textarea>
+        </div>
+        <div class="cf-row">
+          <div class="cf-fg">
+            <label>Status</label>
+            <select name="status">
+              <% ['draft','applications_open','applications_closed','active','ended'].forEach(function(s) { %>
+              <option value="<%= s %>" <%= (cohort?.status||'draft') === s ? 'selected' : '' %>><%= s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="cf-fg">
+            <label>Seats</label>
+            <input type="number" name="seats" min="1" value="<%= cohort?.seats || 50 %>">
+          </div>
+        </div>
+      </div>
+
+      <!-- Dates -->
+      <div class="cf-card">
+        <div class="cf-section-title"><i class="fas fa-calendar"></i> Dates</div>
+        <div class="cf-row-3">
+          <div class="cf-fg">
+            <label>Start Date</label>
+            <input type="date" name="startDate" value="<%= cohort?.startDate ? new Date(cohort.startDate).toISOString().split('T')[0] : '' %>">
+          </div>
+          <div class="cf-fg">
+            <label>End Date</label>
+            <input type="date" name="endDate" value="<%= cohort?.endDate ? new Date(cohort.endDate).toISOString().split('T')[0] : '' %>">
+          </div>
+          <div class="cf-fg">
+            <label>Application Deadline</label>
+            <input type="date" name="applicationDeadline" value="<%= cohort?.applicationDeadline ? new Date(cohort.applicationDeadline).toISOString().split('T')[0] : '' %>">
+          </div>
+        </div>
+      </div>
+
+      <!-- Telegram -->
+      <div class="cf-card">
+        <div class="cf-section-title"><i class="fab fa-telegram"></i> Telegram</div>
+        <div class="cf-row">
+          <div class="cf-fg">
+            <label>Student Group Link <span>(shown after acceptance only)</span></label>
+            <input type="url" name="telegramGroupLink" placeholder="https://t.me/..." value="<%= cohort?.telegramGroupLink || '' %>">
+          </div>
+          <div class="cf-fg">
+            <label>Announcements Channel <span>(public)</span></label>
+            <input type="url" name="telegramChannelLink" placeholder="https://t.me/..." value="<%= cohort?.telegramChannelLink || '' %>">
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="cf-card">
+        <div class="cf-section-title"><i class="fas fa-book"></i> Content</div>
+        <div class="cf-fg">
+          <label>What Students Will Learn <span>(one item per line)</span></label>
+          <div id="wywtl-list">
+            <% const learns = cohort?.whatYoullLearn || ['']; %>
+            <% learns.forEach(function(item, i) { %>
+            <div class="cf-wywtl-item">
+              <input type="text" name="whatYoullLearn" placeholder="e.g. How to find Web3 jobs" value="<%= item %>">
+              <button type="button" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+            </div>
+            <% }); %>
+          </div>
+          <button type="button" onclick="addLearnItem()" style="margin-top:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text-3);border-radius:8px;padding:.375rem .75rem;font-size:.78rem;cursor:pointer;font-family:'Outfit',sans-serif"><i class="fas fa-plus"></i> Add item</button>
+        </div>
+        <div class="cf-fg">
+          <label>Requirements</label>
+          <textarea name="requirements" rows="3" placeholder="e.g. Must have internet access and a Telegram account..."><%= cohort?.requirements || '' %></textarea>
+        </div>
+        <div class="cf-fg">
+          <label>Admission Challenge <span>(optional)</span></label>
+          <textarea name="admissionChallenge" rows="3" placeholder="Optional task applicants must complete..."><%= cohort?.admissionChallenge || '' %></textarea>
+        </div>
+      </div>
+
+      <!-- Instructors JSON -->
+      <div class="cf-card">
+        <div class="cf-section-title"><i class="fas fa-chalkboard-teacher"></i> Instructors <span style="font-weight:400;font-size:.78rem;text-transform:none;letter-spacing:0;color:var(--text-4)">(JSON)</span></div>
+        <div class="cf-fg">
+          <textarea name="instructors" rows="8" class="cf-json-editor" placeholder='[{"name":"John Doe","bio":"Web3 builder","twitter":"@johndoe","avatar":"https://..."}]'><%= cohort ? JSON.stringify(cohort.instructors||[], null, 2) : '' %></textarea>
+          <div class="cf-hint">Array of objects: name, bio, twitter, avatar</div>
+        </div>
+      </div>
+
+      <!-- Weekly Schedule JSON -->
+      <div class="cf-card">
+        <div class="cf-section-title"><i class="fas fa-calendar-week"></i> Weekly Schedule <span style="font-weight:400;font-size:.78rem;text-transform:none;letter-spacing:0;color:var(--text-4)">(JSON)</span></div>
+        <div class="cf-fg">
+          <textarea name="weeklySchedule" rows="20" class="cf-json-editor" id="scheduleJson" placeholder='[{"week":1,"theme":"Introduction","topics":["Web3 basics","Career paths"],"daySchedule":[{"day":"Monday","activity":"Announcement"},{"day":"Tuesday","activity":"Live class"}],"resources":[{"name":"Starter Guide","url":"https://...","type":"pdf"}],"assignment":{"title":"Research task","description":"Find 3 Web3 job listings","required":true}}]'><%= cohort ? JSON.stringify(cohort.weeklySchedule||[], null, 2) : '' %></textarea>
+          <div class="cf-hint">Fields: week, theme, topics[], daySchedule[{day,activity}], resources[{name,url,type}], assignment{title,description,deadline,required}</div>
+        </div>
+        <button type="button" onclick="addWeekTemplate()" style="margin-top:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text-3);border-radius:8px;padding:.375rem .75rem;font-size:.78rem;cursor:pointer;font-family:'Outfit',sans-serif"><i class="fas fa-plus"></i> Add week template</button>
+      </div>
+
+      <div style="display:flex;gap:1rem;align-items:center;padding-bottom:2rem">
+        <button type="submit" class="cf-save-btn"><i class="fas fa-save"></i> Save Cohort</button>
+        <a href="/admin/academy/cohorts" style="color:var(--text-3);font-size:.875rem;font-weight:600;text-decoration:none">Cancel</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+function addLearnItem() {
+  var div = document.createElement('div');
+  div.className = 'cf-wywtl-item';
+  div.innerHTML = '<input type="text" name="whatYoullLearn" placeholder="e.g. How to find Web3 jobs"><button type="button" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
+  document.getElementById('wywtl-list').appendChild(div);
+}
+
+function addWeekTemplate() {
+  var el = document.getElementById('scheduleJson');
+  var current = [];
+  try { current = JSON.parse(el.value || '[]'); } catch {}
+  var nextWeek = current.length + 1;
+  current.push({
+    week: nextWeek,
+    theme: "Week " + nextWeek + " Theme",
+    topics: ["Topic 1", "Topic 2"],
+    daySchedule: [
+      { day: "Monday", activity: "Weekly announcement" },
+      { day: "Tuesday", activity: "Live class" },
+      { day: "Wednesday", activity: "Practical task" },
+      { day: "Thursday", activity: "Q&A session" },
+      { day: "Friday", activity: "Assignment deadline" }
+    ],
+    resources: [],
+    assignment: { title: "", description: "", required: false }
+  });
+  el.value = JSON.stringify(current, null, 2);
+}
+
+// Auto-generate slug from title
+document.querySelector('[name="title"]').addEventListener('input', function() {
+  var slugField = document.querySelector('[name="slug"]');
+  if (!slugField.dataset.manual) {
+    slugField.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+});
+document.querySelector('[name="slug"]').addEventListener('input', function() {
+  this.dataset.manual = '1';
+});
+</script>
+</body>
+</html>

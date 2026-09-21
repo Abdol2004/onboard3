@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Students — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .ast-week-checks { display:flex;gap:.375rem;flex-wrap:wrap; }
+    .ast-week-check { display:none; }
+    .ast-week-check + label {
+      width:32px;height:32px;border-radius:8px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:.72rem;font-weight:800;cursor:pointer;
+      border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);
+      color:var(--text-4);transition:all .2s;user-select:none;
+    }
+    .ast-week-check:checked + label { background:rgba(94,194,19,.15);border-color:rgba(94,194,19,.4);color:var(--green); }
+    @media (max-width:640px) {
+      .ast-table,.ast-table thead,.ast-table tbody,.ast-table th,.ast-table td,.ast-table tr { display:block; }
+      .ast-table thead tr { display:none; }
+      .ast-table tr { border:1px solid rgba(255,255,255,.08);border-radius:12px;margin-bottom:.875rem;padding:.75rem; }
+      .ast-table td { padding:.375rem .5rem;border:none;display:flex;align-items:flex-start;gap:.5rem; }
+      .ast-table td::before { content:attr(data-label);flex-shrink:0;width:90px;font-size:.68rem;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:.06em;padding-top:.15rem; }
+      .ast-table td.td-actions::before { display:none; }
+    }
+  </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'academy-cohorts', admin:user }) %>
+<div class="a-main">
+  <div class="a-content">
+
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-users"></i> <%= cohort.title %></h1>
+        <p><a href="/admin/academy/cohorts" style="color:var(--text-3);text-decoration:none"><i class="fas fa-arrow-left"></i> Cohorts</a> · Students & Progress</p>
+      </div>
+      <a href="/admin/academy/applications?cohort=<%= cohort._id %>" class="a-btn a-btn-ghost"><i class="fas fa-file-alt"></i> Applications</a>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem;margin-bottom:1.5rem">
+      <%
+        const total     = enrollments.length;
+        const active    = enrollments.filter(function(e){ return e.status==='active'; }).length;
+        const graduated = enrollments.filter(function(e){ return e.status==='graduated'; }).length;
+        const completed = enrollments.filter(function(e){ return e.status==='completed'; }).length;
+      %>
+      <div class="a-card" style="padding:.875rem;text-align:center"><div style="font-size:1.375rem;font-weight:900;color:var(--text)"><%= total %></div><div style="font-size:.72rem;color:var(--text-3)">Enrolled</div></div>
+      <div class="a-card" style="padding:.875rem;text-align:center"><div style="font-size:1.375rem;font-weight:900;color:#5EC213"><%= active %></div><div style="font-size:.72rem;color:var(--text-3)">Active</div></div>
+      <div class="a-card" style="padding:.875rem;text-align:center"><div style="font-size:1.375rem;font-weight:900;color:#c084fc"><%= completed %></div><div style="font-size:.72rem;color:var(--text-3)">Completed</div></div>
+      <div class="a-card" style="padding:.875rem;text-align:center"><div style="font-size:1.375rem;font-weight:900;color:#fbbf24"><%= graduated %></div><div style="font-size:.72rem;color:var(--text-3)">Graduated</div></div>
+    </div>
+
+    <% if (enrollments.length === 0) { %>
+    <div class="a-card" style="text-align:center;padding:3rem">
+      <i class="fas fa-users" style="font-size:2.5rem;color:var(--text-4);display:block;margin-bottom:1rem"></i>
+      <p style="color:var(--text-3)">No students enrolled yet.</p>
+    </div>
+    <% } else { %>
+    <div class="a-card" style="padding:0">
+      <div style="overflow-x:auto">
+        <table class="ast-table" style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)">
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Student</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Attendance</th>
+              <th style="padding:.875rem 1rem;text-align:center;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Assignments</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Status</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Certificate</th>
+              <th class="td-actions" style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% enrollments.forEach(function(e) {
+            const statusColors = { active:'#5EC213', completed:'#c084fc', graduated:'#fbbf24', dropped:'#ef4444' };
+            const sColor = statusColors[e.status] || '#6b7280';
+            const weekNums = Array.from({length: totalWeeks}, function(_, i){ return i+1; });
+          %>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.05)" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
+            <td data-label="Student" style="padding:.875rem 1rem">
+              <div style="display:flex;align-items:center;gap:.625rem">
+                <div style="width:36px;height:36px;border-radius:9px;background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.2);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--green);font-size:.875rem;flex-shrink:0;overflow:hidden">
+                  <% if (e.userId?.profilePicture) { %>
+                  <img src="<%= e.userId.profilePicture %>" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
+                  <% } else { %><%= (e.userId?.username||'?').charAt(0).toUpperCase() %><% } %>
+                </div>
+                <div>
+                  <div style="font-weight:800;font-size:.875rem">@<%= e.userId?.username || 'Unknown' %></div>
+                  <div style="font-size:.7rem;color:var(--text-3)"><%= e.userId?.email || '' %></div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Attendance" style="padding:.875rem 1rem">
+              <div class="ast-week-checks" id="weeks-<%= e._id %>">
+                <% weekNums.forEach(function(w) { %>
+                <input type="checkbox" class="ast-week-check" id="w-<%= e._id %>-<%= w %>"
+                  <%= (e.attendanceWeeks||[]).includes(w) ? 'checked' : '' %>
+                  onchange="saveAttendance('<%= e._id %>')">
+                <label for="w-<%= e._id %>-<%= w %>" title="Week <%= w %>">W<%= w %></label>
+                <% }); %>
+              </div>
+              <div style="font-size:.68rem;color:var(--text-4);margin-top:.3rem"><%= (e.attendanceWeeks||[]).length %> / <%= totalWeeks %> weeks</div>
+            </td>
+            <td data-label="Assignments" style="padding:.875rem 1rem;text-align:center">
+              <span style="font-weight:800;font-size:.9375rem;color:var(--text-2)"><%= e.assignmentsCompleted || 0 %></span>
+              <% if (e.assignmentSubmissions && e.assignmentSubmissions.length > 0) { %>
+              <button onclick="toggleDetail('subs-<%= e._id %>')" style="display:block;margin:.25rem auto 0;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text-3);font-size:.65rem;padding:.15rem .4rem;border-radius:4px;cursor:pointer">view</button>
+              <div id="subs-<%= e._id %>" style="display:none;text-align:left;margin-top:.375rem">
+                <% e.assignmentSubmissions.forEach(function(s) { %>
+                <div style="font-size:.72rem;margin-bottom:.25rem;color:var(--text-3)">W<%= s.week %>: <a href="<%= s.submissionUrl %>" target="_blank" style="color:var(--green);word-break:break-all"><%= s.submissionUrl %></a></div>
+                <% }); %>
+              </div>
+              <% } %>
+            </td>
+            <td data-label="Status" style="padding:.875rem 1rem">
+              <select onchange="updateStatus('<%= e._id %>', this.value)"
+                style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:<%= sColor %>;border-radius:8px;padding:.3rem .5rem;font-size:.75rem;font-family:'Outfit',sans-serif;font-weight:700;cursor:pointer">
+                <% ['active','completed','graduated','dropped'].forEach(function(s) { %>
+                <option value="<%= s %>" style="color:#e8e8e8" <%= e.status===s?'selected':'' %>><%= s.charAt(0).toUpperCase()+s.slice(1) %></option>
+                <% }); %>
+              </select>
+            </td>
+            <td data-label="Certificate" style="padding:.875rem 1rem;font-size:.78rem">
+              <% if (e.certificateId) { %>
+              <a href="/academy/verify/<%= e.certificateId %>" target="_blank" style="color:#fbbf24;font-weight:700;text-decoration:none"><i class="fas fa-certificate"></i> <%= e.certificateId %></a>
+              <% } else { %>
+              <span style="color:var(--text-4)">—</span>
+              <% } %>
+            </td>
+            <td class="td-actions" data-label="Actions" style="padding:.875rem 1rem">
+              <% if (e.status !== 'graduated') { %>
+              <button onclick="graduate('<%= e._id %>', '@<%= e.userId?.username||''%>')"
+                style="background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);border-radius:8px;padding:.375rem .75rem;font-size:.75rem;font-weight:800;cursor:pointer;white-space:nowrap">
+                <i class="fas fa-graduation-cap"></i> Graduate
+              </button>
+              <% } else { %>
+              <span style="font-size:.75rem;color:#fbbf24;font-weight:700"><i class="fas fa-graduation-cap"></i> Graduated</span>
+              <% } %>
+            </td>
+          </tr>
+          <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% } %>
+
+  </div>
+</div>
+
+<script>
+function toggleDetail(id) {
+  var el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
+function saveAttendance(enrollmentId) {
+  var container = document.getElementById('weeks-' + enrollmentId);
+  var checked = Array.from(container.querySelectorAll('input:checked')).map(function(c){ return parseInt(c.id.split('-').pop()); });
+  fetch('/admin/academy/students/' + enrollmentId + '/attendance', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ attendanceWeeks: checked })
+  }).then(function(r){ return r.json(); }).then(function(d) {
+    if (!d.ok) aToast('Error saving attendance', 'error');
+  });
+}
+
+function updateStatus(enrollmentId, status) {
+  fetch('/admin/academy/students/' + enrollmentId + '/attendance', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: status })
+  }).then(function(r){ return r.json(); }).then(function(d) {
+    if (d.ok) aToast('Status updated', 'success');
+    else aToast('Error updating status', 'error');
+  });
+}
+
+async function graduate(enrollmentId, username) {
+  if (!confirm('Mark ' + username + ' as graduated? A certificate will be issued and a graduation email sent.')) return;
+  const r = await fetch('/admin/academy/students/' + enrollmentId + '/graduate', {
+    method: 'POST',
+    headers: { 'Accept': 'application/json' }
+  });
+  const d = await r.json();
+  if (d.ok) {
+    aToast('Graduated! Certificate: ' + d.certificateId, 'success');
+    setTimeout(function(){ location.reload(); }, 1500);
+  } else {
+    aToast(d.error || 'Error', 'error');
+  }
+}
+</script>
+</body>
+</html>

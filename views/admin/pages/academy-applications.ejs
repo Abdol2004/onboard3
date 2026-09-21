@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Academy Applications — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    @media (max-width:640px) {
+      .aap-table, .aap-table thead, .aap-table tbody, .aap-table th, .aap-table td, .aap-table tr { display:block; }
+      .aap-table thead tr { display:none; }
+      .aap-table tr { border:1px solid rgba(255,255,255,.08);border-radius:12px;margin-bottom:.875rem;padding:.75rem; }
+      .aap-table td { padding:.375rem .5rem;border:none;display:flex;align-items:flex-start;gap:.5rem; }
+      .aap-table td::before { content:attr(data-label);flex-shrink:0;width:80px;font-size:.68rem;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:.06em;padding-top:.15rem; }
+      .aap-table td.td-actions::before { display:none; }
+    }
+  </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'academy-cohorts', admin:user }) %>
+<div class="a-main">
+  <div class="a-content">
+
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-file-alt"></i> Academy Applications</h1>
+        <p>Review and manage cohort applications</p>
+      </div>
+      <a href="/admin/academy/cohorts" class="a-btn a-btn-ghost"><i class="fas fa-arrow-left"></i> Cohorts</a>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem">
+      <% ['applied','under_review','accepted','waitlisted','rejected','all'].forEach(function(f) { %>
+      <a href="?filter=<%= f %><%= cohortId ? '&cohort='+cohortId : '' %>"
+         class="a-btn <%= filter===f?'a-btn-primary':'a-btn-ghost' %>" style="font-size:.78rem">
+        <%= f.replace('_',' ').replace(/\b\w/g,function(c){return c.toUpperCase()}) %>
+      </a>
+      <% }); %>
+      <% if (cohorts.length > 0) { %>
+      <select onchange="location.href='?filter=<%= filter %>&cohort='+this.value" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--text-2);border-radius:8px;padding:.375rem .75rem;font-size:.8rem;font-family:'Outfit',sans-serif;cursor:pointer">
+        <option value="">All Cohorts</option>
+        <% cohorts.forEach(function(c) { %>
+        <option value="<%= c._id %>" <%= cohortId===String(c._id)?'selected':'' %>><%= c.title %></option>
+        <% }); %>
+      </select>
+      <% } %>
+    </div>
+
+    <% if (applications.length === 0) { %>
+    <div class="a-card" style="text-align:center;padding:3rem">
+      <i class="fas fa-inbox" style="font-size:2.5rem;color:var(--text-4);display:block;margin-bottom:1rem"></i>
+      <p style="color:var(--text-3)">No applications matching this filter.</p>
+    </div>
+    <% } else { %>
+    <div class="a-card" style="padding:0">
+      <div style="overflow-x:auto">
+        <table class="aap-table" style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)">
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Applicant</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Cohort</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Level</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Status</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Applied</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Details</th>
+              <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% applications.forEach(function(app) {
+            const statusColors = { applied:'#fbbf24', under_review:'#fbbf24', accepted:'#5EC213', waitlisted:'#c084fc', rejected:'#ef4444' };
+            const sColor = statusColors[app.status] || '#6b7280';
+          %>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.05)" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
+            <td data-label="Applicant" style="padding:.875rem 1rem">
+              <div style="font-weight:700;font-size:.9rem"><%= app.name %></div>
+              <div style="font-size:.72rem;color:var(--text-3)"><%= app.email %></div>
+              <% if (app.xUsername) { %><div style="font-size:.72rem;color:#c084fc"><i class="fab fa-x-twitter"></i> <%= app.xUsername %></div><% } %>
+              <% if (app.telegramUsername) { %><div style="font-size:.72rem;color:#229ED9"><i class="fab fa-telegram"></i> <%= app.telegramUsername %></div><% } %>
+            </td>
+            <td data-label="Cohort" style="padding:.875rem 1rem;font-size:.8rem;color:var(--text-2)"><%= app.cohortId?.title || '—' %></td>
+            <td data-label="Level" style="padding:.875rem 1rem">
+              <span style="font-size:.72rem;font-weight:700;padding:.2rem .5rem;border-radius:50px;background:rgba(255,255,255,.06);color:var(--text-3);text-transform:capitalize"><%= app.experienceLevel %></span>
+            </td>
+            <td data-label="Status" style="padding:.875rem 1rem">
+              <span style="font-size:.72rem;font-weight:700;padding:.25rem .625rem;border-radius:99px;background:<%=sColor%>20;color:<%=sColor%>;text-transform:capitalize"><%= (app.status||'').replace('_',' ') %></span>
+            </td>
+            <td data-label="Applied" style="padding:.875rem 1rem;font-size:.78rem;color:var(--text-3)">
+              <%= new Date(app.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %>
+            </td>
+            <td data-label="Details" style="padding:.875rem 1rem;max-width:220px">
+              <button onclick="toggleDetail('det-<%= app._id %>')" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text-2);font-size:.72rem;padding:.2rem .5rem;border-radius:6px;cursor:pointer"><i class="fas fa-eye"></i> View</button>
+              <div id="det-<%= app._id %>" style="display:none;margin-top:.625rem;font-size:.78rem;color:var(--text-2)">
+                <div style="margin-bottom:.5rem"><strong style="color:var(--text-3);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em">Motivation</strong><div style="margin-top:.2rem;line-height:1.5;background:rgba(255,255,255,.03);padding:.4rem .6rem;border-radius:6px"><%= app.motivation %></div></div>
+                <div style="margin-bottom:.5rem"><strong style="color:var(--text-3);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em">Goal</strong><div style="margin-top:.2rem;line-height:1.5;background:rgba(255,255,255,.03);padding:.4rem .6rem;border-radius:6px"><%= app.goal %></div></div>
+                <% if (app.challengeAnswer) { %><div><strong style="color:#fbbf24;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em">Challenge Answer</strong><div style="margin-top:.2rem;line-height:1.5;background:rgba(251,191,36,.04);padding:.4rem .6rem;border-radius:6px"><%= app.challengeAnswer %></div></div><% } %>
+                <div style="margin-top:.375rem;font-size:.72rem;color:var(--text-4)">Hours/wk: <%= app.hoursPerWeek %> · Willing: <%= app.willingToComplete ? 'Yes' : 'No' %></div>
+              </div>
+            </td>
+            <td class="td-actions" data-label="Actions" style="padding:.875rem 1rem">
+              <% if (app.status !== 'accepted' && app.status !== 'rejected') { %>
+              <div style="display:flex;gap:.375rem;flex-wrap:wrap">
+                <button onclick="review('<%= app._id %>','accepted')" style="background:rgba(94,194,19,.15);color:#5EC213;border:1px solid rgba(94,194,19,.3);border-radius:7px;padding:.3rem .75rem;font-size:.75rem;font-weight:700;cursor:pointer"><i class="fas fa-check"></i> Accept</button>
+                <button onclick="review('<%= app._id %>','waitlisted')" style="background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.3);border-radius:7px;padding:.3rem .75rem;font-size:.75rem;font-weight:700;cursor:pointer"><i class="fas fa-list"></i> Waitlist</button>
+                <button onclick="review('<%= app._id %>','rejected')" style="background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.3);border-radius:7px;padding:.3rem .75rem;font-size:.75rem;font-weight:700;cursor:pointer"><i class="fas fa-times"></i> Reject</button>
+              </div>
+              <% } else { %>
+              <span style="font-size:.75rem;color:var(--text-4);font-style:italic">Reviewed</span>
+              <% } %>
+            </td>
+          </tr>
+          <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% } %>
+
+  </div>
+</div>
+
+<script>
+function toggleDetail(id) {
+  var el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
+async function review(id, status) {
+  var note = '';
+  if (status === 'rejected') {
+    note = prompt('Add a note for the applicant (optional):') || '';
+  }
+  if (status === 'accepted' && !confirm('Accept this applicant? An email will be sent with the Telegram link.')) return;
+  if (status === 'rejected' && !confirm('Reject this applicant? An email will be sent.')) return;
+
+  const r = await fetch('/admin/academy/applications/' + id + '/review', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ status, reviewNote: note })
+  });
+  const d = await r.json();
+  if (d.ok) {
+    aToast(status.charAt(0).toUpperCase() + status.slice(1) + ' — email sent', 'success');
+    setTimeout(function(){ location.reload(); }, 1200);
+  } else {
+    aToast(d.error || 'Error', 'error');
+  }
+}
+</script>
+</body>
+</html>

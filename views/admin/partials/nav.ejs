@@ -3,7 +3,7 @@ const _navUser = (typeof admin !== 'undefined' ? admin : user) || {};
 const _ar = _navUser.adminRole || 'super_admin';
 const _perms = {
   super_admin:  null,
-  operations:   ['overview','analytics','users','quests','bounties','events','withdrawals','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','leaderboard','business-developers','businesses','fund-requests','wallet-addresses','commission-settings','welcome-quest','platform-settings','settings','partners'],
+  operations:   ['overview','analytics','users','quests','bounties','events','withdrawals','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','leaderboard','business-developers','businesses','fund-requests','wallet-addresses','commission-settings','platform-settings','settings','partners','pathway-content'],
   community:    ['overview','analytics','users','applications','quest-applications','pathway-applications','support','ambassadors','banned','leaderboard'],
   partnerships: ['overview','analytics','quests','bounties','projects','partners','business-developers','businesses','fund-requests','commission-settings'],
   finance:      ['overview','analytics','withdrawals','fund-requests','wallet-addresses'],
@@ -146,6 +146,16 @@ const roleBadgeColor = { super_admin:'#5EC213', operations:'#60a5fa', community:
         <% } %>
         <% } %>
 
+        <% if (_ar === 'super_admin' || _ar === 'operations') { %>
+        <span class="a-nav-label">Programs</span>
+        <a href="/admin/academy/cohorts" class="a-nav-item <%= page==='academy-cohorts' ? 'active':'' %>">
+            <i class="fas fa-graduation-cap"></i> Academy
+        </a>
+        <a href="/admin/academy/applications" class="a-nav-item <%= page==='academy-applications' ? 'active':'' %>">
+            <i class="fas fa-file-alt"></i> Applications
+        </a>
+        <% } %>
+
         <% if (can('platform-settings') || can('settings') || _ar === 'super_admin') { %>
         <span class="a-nav-label">Tools</span>
         <% if (can('platform-settings')) { %>
@@ -156,6 +166,11 @@ const roleBadgeColor = { super_admin:'#5EC213', operations:'#60a5fa', community:
         <% if (can('settings')) { %>
         <a href="/admin/settings" class="a-nav-item <%= page==='settings' ? 'active':'' %>">
             <i class="fas fa-gear"></i> Settings
+        </a>
+        <% } %>
+        <% if (can('pathway-content')) { %>
+        <a href="/admin/pathway-content" class="a-nav-item <%= page==='pathway-content' ? 'active':'' %>">
+            <i class="fas fa-road"></i> Career Paths
         </a>
         <% } %>
         <% if (_ar === 'super_admin') { %>

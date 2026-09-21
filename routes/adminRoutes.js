@@ -2570,4 +2570,132 @@ router.post('/fix-all-quest-xp', isAdmin, async (req, res) => {
   }
 });
 
+// ── Pathway Content Management ────────────────────────────────────────────────
+const PathwayContent = require('../models/PathwayContent');
+const PathwayConfigModel = require('../models/PathwayConfig');
+
+const PW_META_ADMIN = {
+    web3_jobs: { name:'Web3 Jobs',             icon:'fa-briefcase',  color:'#fbbf24' },
+    ai:        { name:'AI & Web3',             icon:'fa-microchip',  color:'#c084fc' },
+    nft:       { name:'NFTs & Digital Assets', icon:'fa-image',      color:'#f472b6' },
+    trading:   { name:'Trading',               icon:'fa-chart-line', color:'#10b981' }
+};
+const ADMIN_PATHWAYS = ['web3_jobs','ai','nft','trading'];
+
+router.get('/pathway-content', isAdminPage, async (req, res) => {
+    try {
+        const pw = ADMIN_PATHWAYS.includes(req.query.pathway) ? req.query.pathway : 'web3_jobs';
+        const [config, content] = await Promise.all([
+            PathwayConfigModel.findOne({ pathway: pw }).lean(),
+            PathwayContent.find({ pathway: pw }).sort({ isPinned:-1, isLive:-1, createdAt:-1 }).lean()
+        ]);
+        let lead = null;
+        if (config?.leadUserId) lead = await User.findById(config.leadUserId).select('username profilePicture').lean();
+        res.render('admin/pages/pathway-content', {
+            user: req.user, admin: req.user,
+            pathway: pw, PATHWAYS: ADMIN_PATHWAYS, PW_META: PW_META_ADMIN,
+            config: config||{}, content, lead, page: 'pathway-content'
+        });
+    } catch (err) { console.error('[admin pathway-content]', err); res.status(500).send('Error'); }
+});
+
+router.post('/pathway-content/save-config', isAdminPage, async (req, res) => {
+    try {
+        const { pathway, tagline, leadUsername, leadName, leadBio } = req.body;
+        if (!ADMIN_PATHWAYS.includes(pathway)) return res.json({ success: false, message: 'Invalid pathway' });
+        let leadUserId = undefined;
+        if (leadUsername && leadUsername.trim()) {
+            const u = await User.findOne({ username: leadUsername.trim() }).select('_id').lean();
+            if (!u) return res.json({ success: false, message: `User "${leadUsername.trim()}" not found` });
+            leadUserId = u._id;
+        }
+        const upd = { tagline: tagline||'', leadName: leadName||'', leadBio: leadBio||'', updatedAt: new Date() };
+        if (leadUserId !== undefined) upd.leadUserId = leadUserId;
+        await PathwayConfigModel.findOneAndUpdate({ pathway }, { $set: upd }, { upsert: true });
+        res.json({ success: true });
+    } catch (err) { res.json({ success: false, message: err.message }); }
+});
+
+router.post('/pathway-content/create', isAdminPage, async (req, res) => {
+    try {
+        const { pathway, section, title, body, scheduledAt, endsAt, isLive, venue, resourceUrl, resourceType, resourceFilename, opportunityType, externalUrl, isPinned } = req.body;
+        if (!ADMIN_PATHWAYS.includes(pathway) || !['update','class','resource','opportunity','event'].includes(section) || !title?.trim())
+            return res.json({ success: false, message: 'Invalid fields.' });
+        const item = await PathwayContent.create({
+            pathway, section, title: title.trim(), body: body||'',
+            scheduledAt: scheduledAt||null, endsAt: endsAt||null,
+            isLive: isLive==='true'||isLive===true,
+            venue: venue||null,
+            resourceUrl: resourceUrl||null, resourceType: resourceType||null, resourceFilename: resourceFilename||null,
+            opportunityType: opportunityType||null, externalUrl: externalUrl||null,
+            isPinned: isPinned==='true'||isPinned===true, isPublished: true, createdBy: req.user._id
+        });
+        res.json({ success: true, item });
+    } catch (err) { res.json({ success: false, message: err.message }); }
+});
+
+router.post('/pathway-content/:id/update', isAdminPage, async (req, res) => {
+    try {
+        const { title, body, scheduledAt, endsAt, isLive, venue, resourceUrl, resourceType, resourceFilename, opportunityType, externalUrl, isPinned, isPublished } = req.body;
+        const item = await PathwayContent.findByIdAndUpdate(req.params.id, { $set: {
+            title: title?.trim()||'', body: body||'',
+            scheduledAt: scheduledAt||null, endsAt: endsAt||null,
+            isLive: isLive==='true'||isLive===true,
+            venue: venue||null,
+            resourceUrl: resourceUrl||null, resourceType: resourceType||null, resourceFilename: resourceFilename||null,
+            opportunityType: opportunityType||null, externalUrl: externalUrl||null,
+            isPinned: isPinned==='true'||isPinned===true,
+            isPublished: isPublished!=='false'&&isPublished!==false
+        }}, { new: true });
+        if (!item) return res.json({ success: false });
+        res.json({ success: true, item });
+    } catch (err) { res.json({ success: false, message: err.message }); }
+});
+
+router.post('/pathway-content/:id/toggle-live', isAdminPage, async (req, res) => {
+    try {
+        const item = await PathwayContent.findById(req.params.id);
+        if (!item) return res.json({ success: false });
+        item.isLive = !item.isLive;
+        await item.save();
+        res.json({ success: true, isLive: item.isLive });
+    } catch (err) { res.json({ success: false, message: err.message }); }
+});
+
+router.post('/pathway-content/:id/toggle-publish', isAdminPage, async (req, res) => {
+    try {
+        const item = await PathwayContent.findById(req.params.id);
+        if (!item) return res.json({ success: false });
+        item.isPublished = !item.isPublished;
+        await item.save();
+        res.json({ success: true, isPublished: item.isPublished });
+    } catch (err) { res.json({ success: false, message: err.message }); }
+});
+
+router.post('/pathway-content/:id/delete', isAdminPage, async (req, res) => {
+    try {
+        await PathwayContent.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (err) { res.json({ success: false, message: err.message }); }
+});
+
+// ═══════════════════════════════════════════════════════
+// ACADEMY ADMIN ROUTES
+// ═══════════════════════════════════════════════════════
+const academy = require('../controllers/academyController');
+
+router.get('/academy/cohorts',                   isAdmin, academy.adminListCohorts);
+router.get('/academy/cohorts/new',               isAdmin, academy.adminCohortForm);
+router.post('/academy/cohorts/new',              isAdmin, academy.adminSaveCohort);
+router.get('/academy/cohorts/:id/edit',          isAdmin, academy.adminCohortForm);
+router.post('/academy/cohorts/:id/edit',         isAdmin, academy.adminSaveCohort);
+router.post('/academy/cohorts/:id/delete',       isAdmin, academy.adminDeleteCohort);
+
+router.get('/academy/applications',              isAdmin, academy.adminListApplications);
+router.post('/academy/applications/:id/review',  isAdmin, academy.adminReviewApplication);
+
+router.get('/academy/cohorts/:id/students',      isAdmin, academy.adminStudents);
+router.post('/academy/students/:id/attendance',  isAdmin, academy.adminUpdateAttendance);
+router.post('/academy/students/:id/graduate',    isAdmin, academy.adminGraduate);
+
 module.exports = router;

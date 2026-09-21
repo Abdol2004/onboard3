@@ -105,7 +105,7 @@ router.post("/api/claim-monthly-xp-old", isAuthenticated, async (req, res) => {
 
     // Calculate user's current role
     const xp = user.xp || 0;
-    const roleOrder = ['core_team', 'major', 'legend', 'maxi', 'captain', 'contributor', 'citizen'];
+    const roleOrder = ['major', 'legend', 'ambassador', 'contributor', 'citizen'];
     let currentRoleKey = 'citizen';
 
     for (const roleKey of roleOrder) {
@@ -208,7 +208,7 @@ router.get("/api/monthly-claim-status", isAuthenticated, async (req, res) => {
 
     // Calculate user's current role
     const xp = user.xp || 0;
-    const roleOrder = ['core_team', 'major', 'legend', 'maxi', 'captain', 'contributor', 'citizen'];
+    const roleOrder = ['major', 'legend', 'ambassador', 'contributor', 'citizen'];
     let currentRoleKey = 'citizen';
 
     for (const roleKey of roleOrder) {
@@ -287,6 +287,160 @@ router.post('/welcome-quest/dismiss', isAuthenticated, async (req, res) => {
   } catch (err) {
     console.error('[welcome-quest dismiss]', err);
     res.status(500).json({ success: false });
+  }
+});
+
+// ── Career Paths ──────────────────────────────────────────────────────────────
+const PATHWAY_META = {
+  web3_jobs: { name:'Web3 Jobs',             icon:'fa-briefcase',  color:'#fbbf24', bg:'rgba(251,191,36,0.1)',  border:'rgba(251,191,36,0.3)',  tagline:'Find and land opportunities in Web3.' },
+  ai:        { name:'AI & Web3',             icon:'fa-microchip',  color:'#c084fc', bg:'rgba(168,85,247,0.1)',  border:'rgba(168,85,247,0.3)',  tagline:'Explore the intersection of AI and Web3.' },
+  nft:       { name:'NFTs & Digital Assets', icon:'fa-image',      color:'#f472b6', bg:'rgba(236,72,153,0.1)',  border:'rgba(236,72,153,0.3)',  tagline:'Create, trade and collect digital assets.' },
+  trading:   { name:'Trading',               icon:'fa-chart-line', color:'#10b981', bg:'rgba(16,185,129,0.1)',  border:'rgba(16,185,129,0.3)',  tagline:'Master markets and trading strategies.' }
+};
+
+router.get('/career-paths', isAuthenticated, async (req, res) => {
+  try {
+    const PathwayConfig  = require('../models/PathwayConfig');
+    const PathwayContent = require('../models/PathwayContent');
+    const PATHWAYS = ['web3_jobs','ai','nft','trading'];
+
+    const [configs, counts, liveSet] = await Promise.all([
+      PathwayConfig.find({ pathway: { $in: PATHWAYS } }).lean(),
+      PathwayContent.aggregate([
+        { $match: { isPublished: true } },
+        { $group: { _id: '$pathway', count: { $sum: 1 } } }
+      ]),
+      PathwayContent.distinct('pathway', { isLive: true, isPublished: true })
+    ]);
+
+    const leadIds = configs.map(c => c.leadUserId).filter(Boolean);
+    const leads   = leadIds.length ? await User.find({ _id: { $in: leadIds } }).select('username profilePicture').lean() : [];
+    const leadMap = {}; leads.forEach(l => { leadMap[l._id.toString()] = l; });
+    const cfgMap  = {}; configs.forEach(c => { cfgMap[c.pathway] = c; });
+    const cntMap  = {}; counts.forEach(c => { cntMap[c._id] = c.count; });
+
+    res.render('dashboard/career-paths', {
+      title: 'Career Paths — ONBOARD3',
+      user: await User.findById(req.session.userId).select('-password').lean(),
+      PATHWAYS, PATHWAY_META, cfgMap, cntMap, liveSet, leadMap,
+      currentPage: 'career-paths', pathwaySlug: null
+    });
+  } catch (err) {
+    console.error('[career-paths]', err);
+    res.redirect('/dashboard');
+  }
+});
+
+router.get('/career-paths/comments/:contentId', isAuthenticated, async (req, res) => {
+  try {
+    const PathwayComment = require('../models/PathwayComment');
+    const comments = await PathwayComment.find({ contentId: req.params.contentId })
+      .sort({ createdAt: 1 }).limit(100).lean();
+    res.json({ success: true, comments });
+  } catch (err) { res.status(500).json({ success: false, comments: [] }); }
+});
+
+router.post('/career-paths/comment', isAuthenticated, async (req, res) => {
+  try {
+    const { contentId, pathway, text } = req.body;
+    if (!text?.trim() || !contentId) return res.json({ success: false });
+    const PathwayComment = require('../models/PathwayComment');
+    const user = await User.findById(req.session.userId).select('username profilePicture').lean();
+    const comment = await PathwayComment.create({
+      contentId, pathway: pathway || '',
+      userId: req.session.userId,
+      username: user.username,
+      profilePicture: user.profilePicture || null,
+      text: text.trim().slice(0, 500)
+    });
+    res.json({ success: true, comment: comment.toObject() });
+  } catch (err) { console.error('[comment]', err); res.status(500).json({ success: false }); }
+});
+
+router.get('/career-paths/:pathway', isAuthenticated, async (req, res) => {
+  try {
+    const { pathway } = req.params;
+    if (!PATHWAY_META[pathway]) return res.redirect('/dashboard/career-paths');
+
+    const PathwayConfig  = require('../models/PathwayConfig');
+    const PathwayContent = require('../models/PathwayContent');
+
+    const user = await User.findById(req.session.userId).select('-password').lean();
+    const [config, content] = await Promise.all([
+      PathwayConfig.findOne({ pathway }).lean(),
+      PathwayContent.find({ pathway, isPublished: true })
+        .sort({ isPinned: -1, isLive: -1, createdAt: -1 })
+        .lean()
+    ]);
+
+    let lead = null;
+    if (config?.leadUserId) {
+      lead = await User.findById(config.leadUserId).select('username profilePicture').lean();
+    }
+
+    const now = new Date();
+    const liveItems   = content.filter(c => c.isLive);
+    const upcoming    = content.filter(c => !c.isLive && c.scheduledAt && new Date(c.scheduledAt) > now).sort((a,b) => new Date(a.scheduledAt)-new Date(b.scheduledAt));
+    const updates     = content.filter(c => c.section === 'update'      && !c.isLive);
+    const classes     = content.filter(c => c.section === 'class'       && !c.isLive);
+    const resources   = content.filter(c => c.section === 'resource');
+    const opportunities = content.filter(c => c.section === 'opportunity');
+    const events      = content.filter(c => c.section === 'event'       && !c.isLive);
+
+    res.render('dashboard/pathway-detail', {
+      title: `${PATHWAY_META[pathway].name} — ONBOARD3`,
+      user, pathway, meta: PATHWAY_META[pathway],
+      config: config || {},
+      lead, liveItems, upcoming, updates, classes, resources, opportunities, events,
+      currentPage: 'career-paths', pathwaySlug: pathway
+    });
+  } catch (err) {
+    console.error('[pathway-detail]', err);
+    res.redirect('/dashboard/career-paths');
+  }
+});
+
+// ── Pathway selection ─────────────────────────────────────────────────────────
+const VALID_PATHWAYS = ['web3_jobs', 'ai', 'nft', 'trading'];
+
+router.post('/select-pathway', isAuthenticated, async (req, res) => {
+  try {
+    const { pathway } = req.body;
+    if (!VALID_PATHWAYS.includes(pathway))
+      return res.json({ success: false, message: 'Invalid pathway.' });
+
+    const SiteSettings = require('../models/SiteSettings');
+    const settings = await SiteSettings.getSettings();
+    const approvalMode = settings.pathwayApprovalMode || 'auto';
+
+    const update = {
+      pathway,
+      pathwayStatus: approvalMode === 'auto' ? 'auto_approved' : 'pending',
+      'pathwayApplication.appliedAt': new Date()
+    };
+
+    await User.findByIdAndUpdate(req.session.userId, { $set: update });
+
+    const config = await require('../models/PathwayConfig').findOne({ pathway }).lean();
+    res.json({
+      success: true,
+      status: update.pathwayStatus,
+      groupLink: config?.groupLink || null,
+      xLink: config?.xLink || null
+    });
+  } catch (err) {
+    console.error('[select-pathway]', err);
+    res.status(500).json({ success: false, message: 'Error saving pathway.' });
+  }
+});
+
+// Returns community links for a pathway (used by Join Community button)
+router.get('/pathway-config/:pathway', async (req, res) => {
+  try {
+    const config = await require('../models/PathwayConfig').findOne({ pathway: req.params.pathway }).lean();
+    res.json({ success: true, config: config || {} });
+  } catch (err) {
+    res.json({ success: false, config: {} });
   }
 });
 

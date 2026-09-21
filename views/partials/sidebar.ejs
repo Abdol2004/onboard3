@@ -29,24 +29,22 @@
                 <div class="sb-icon"><i class="fas fa-house"></i></div>
                 <span>Dashboard</span>
             </a>
-            <a href="/dashboard/activity" class="sb-item <%= currentPage === 'activity' ? 'active' : '' %>">
-                <div class="sb-icon"><i class="fas fa-bolt"></i></div>
-                <span>Activity Feed</span>
-            </a>
         </div>
 
         <div class="sb-section">
             <p class="sb-section-label sb-pillar-label sb-pillar-learn">LEARN</p>
-            <div class="sb-item sb-disabled">
+            <a href="<%= user && user.pathway ? '/dashboard/career-paths/' + user.pathway : '/dashboard/career-paths' %>" class="sb-item <%= currentPage === 'career-paths' ? 'active' : '' %>">
+                <div class="sb-icon"><i class="fas fa-road"></i></div>
+                <span>Career Paths</span>
+            </a>
+            <a href="/dashboard/events" class="sb-item <%= currentPage === 'events' ? 'active' : '' %>">
+                <div class="sb-icon"><i class="fas fa-calendar-alt"></i></div>
+                <span>Events</span>
+            </a>
+            <a href="/dashboard/academy" class="sb-item <%= currentPage === 'academy' ? 'active' : '' %>">
                 <div class="sb-icon"><i class="fas fa-graduation-cap"></i></div>
                 <span>Academy</span>
-                <span class="sb-badge sb-badge--soon">Soon</span>
-            </div>
-            <div class="sb-item sb-disabled">
-                <div class="sb-icon"><i class="fas fa-book-open"></i></div>
-                <span>Courses</span>
-                <span class="sb-badge sb-badge--soon">Soon</span>
-            </div>
+            </a>
         </div>
 
         <div class="sb-section">
@@ -72,23 +70,6 @@
                 <span>Projects</span>
                 <span class="sb-badge sb-badge--soon">Soon</span>
             </div>
-            <div class="sb-item sb-disabled">
-                <div class="sb-icon"><i class="fas fa-rocket"></i></div>
-                <span>Launch</span>
-                <span class="sb-badge sb-badge--soon">Soon</span>
-            </div>
-        </div>
-
-        <div class="sb-section">
-            <p class="sb-section-label sb-pillar-label sb-pillar-onboard">ONBOARD</p>
-            <a href="/dashboard/events" class="sb-item <%= currentPage === 'events' ? 'active' : '' %>">
-                <div class="sb-icon"><i class="fas fa-calendar-alt"></i></div>
-                <span>Events</span>
-            </a>
-            <a href="/dashboard/partnership" class="sb-item sb-item--special <%= currentPage === 'partnership' ? 'active' : '' %>">
-                <div class="sb-icon"><i class="fas fa-handshake"></i></div>
-                <span>Partnership</span>
-            </a>
         </div>
 
         <div class="sb-section">

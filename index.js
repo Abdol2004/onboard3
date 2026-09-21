@@ -25,6 +25,7 @@ const bountyRoutes              = require('./routes/bountyRoutes');
 const businessDeveloperRoutes   = require('./routes/businessDevelopers');
 const businessRoutes            = require('./routes/business');
 const partnerApiRoutes          = require('./routes/partnerApiRoutes');
+const academyRoutes             = require('./routes/academyRoutes');
 const cors = require('cors');
 const http = require("http");
 const socketIO = require("socket.io");
@@ -177,6 +178,10 @@ app.use('/api/partnership', partnershipRoutes);
 app.use('/auth/twitter', twitterAuthRoutes);
 app.use('/auth/discord', discordAuthRoutes);
 app.use('/dashboard/bounties', bountyRoutes);
+app.use('/dashboard/academy', academyRoutes);
+
+// Public certificate verification (no login required)
+app.get('/academy/verify/:certId', require('./controllers/academyController').verifyCertificate);
 app.use('/api/notifications', notificationRoutes);
 app.use('/business-developers', businessDeveloperRoutes);
 app.use('/business', businessRoutes);
@@ -290,13 +295,11 @@ app.get("/u/:username", async (req, res) => {
     }
 
     const getRoleKey = (xp) => {
-      if ((xp||0) >= 500000) return { key:'core_team', name:'Core Team',   color:'#ef4444' };
-      if ((xp||0) >= 250000) return { key:'major',     name:'Major',        color:'#f97316' };
-      if ((xp||0) >= 100000) return { key:'legend',    name:'Legend',       color:'#eab308' };
-      if ((xp||0) >= 50000)  return { key:'maxi',      name:'Maxi',         color:'#a855f7' };
-      if ((xp||0) >= 25000)  return { key:'captain',   name:'Captain',      color:'#3b82f6' };
-      if ((xp||0) >= 10000)  return { key:'contributor',name:'Contributor', color:'#10b981' };
-      return                          { key:'citizen',   name:'Citizen',     color:'#6b7280' };
+      if ((xp||0) >= 250000) return { key:'major',       name:'Major',       color:'#f97316' };
+      if ((xp||0) >= 100000) return { key:'legend',      name:'Legend',      color:'#eab308' };
+      if ((xp||0) >= 25000)  return { key:'ambassador',  name:'Ambassador',  color:'#3b82f6' };
+      if ((xp||0) >= 10000)  return { key:'contributor', name:'Contributor', color:'#10b981' };
+      return                          { key:'citizen',    name:'Citizen',     color:'#6b7280' };
     };
 
     const viewerUserId = req.session.userId ? req.session.userId.toString() : null;
@@ -376,13 +379,11 @@ app.get("/card/:username", async (req, res) => {
     if (!u) return res.status(404).send('User not found');
 
     const getRoleKey = (xp) => {
-      if ((xp||0) >= 500000) return { key:'core_team', name:'Core Team',   color:'#ef4444' };
-      if ((xp||0) >= 250000) return { key:'major',     name:'Major',        color:'#f97316' };
-      if ((xp||0) >= 100000) return { key:'legend',    name:'Legend',       color:'#eab308' };
-      if ((xp||0) >= 50000)  return { key:'maxi',      name:'Maxi',         color:'#a855f7' };
-      if ((xp||0) >= 25000)  return { key:'captain',   name:'Captain',      color:'#3b82f6' };
-      if ((xp||0) >= 10000)  return { key:'contributor',name:'Contributor', color:'#10b981' };
-      return                          { key:'citizen',   name:'Citizen',     color:'#6b7280' };
+      if ((xp||0) >= 250000) return { key:'major',       name:'Major',       color:'#f97316' };
+      if ((xp||0) >= 100000) return { key:'legend',      name:'Legend',      color:'#eab308' };
+      if ((xp||0) >= 25000)  return { key:'ambassador',  name:'Ambassador',  color:'#3b82f6' };
+      if ((xp||0) >= 10000)  return { key:'contributor', name:'Contributor', color:'#10b981' };
+      return                          { key:'citizen',    name:'Citizen',     color:'#6b7280' };
     };
 
     const totalUsdc = await Transaction.aggregate([
