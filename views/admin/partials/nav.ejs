@@ -222,3 +222,15 @@ function aConfirm(msg, fn) {
     if (confirm(msg)) fn();
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script>
+  (function() {
+    var _twCfg = { folder: 'svg', ext: '.svg', base: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0/assets/' };
+    function _parseTwemoji() { twemoji.parse(document.body, _twCfg); }
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', _parseTwemoji); }
+    else { _parseTwemoji(); }
+  })();
+</script>
+<style>
+  img.emoji { height:1em;width:1em;margin:0 .05em 0 .1em;vertical-align:-0.1em;display:inline-block; }
+</style>

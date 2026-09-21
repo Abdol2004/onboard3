@@ -149,7 +149,6 @@
   var pathwayMeta = {
     web3_jobs: { fa:'fa-briefcase',  name:'Web3 Jobs',  color:'rgba(251,191,36,.1)',  border:'rgba(251,191,36,.3)',  text:'#fbbf24' },
     ai:        { fa:'fa-microchip',  name:'AI & Web3',  color:'rgba(168,85,247,.1)',  border:'rgba(168,85,247,.3)',  text:'#c084fc' },
-    building:  { fa:'fa-code',       name:'Building',   color:'rgba(59,130,246,.1)',  border:'rgba(59,130,246,.3)',  text:'#60a5fa' },
     trading:   { fa:'fa-chart-line', name:'Trading',    color:'rgba(16,185,129,.1)',  border:'rgba(16,185,129,.3)',  text:'#10b981' },
     nft:       { fa:'fa-image',      name:'NFTs',       color:'rgba(236,72,153,.1)',  border:'rgba(236,72,153,.3)',  text:'#f472b6' }
   };
@@ -159,11 +158,9 @@
   var MILESTONES = [
     { key:'citizen',     label:'Citizen',     min:0,       next:10000  },
     { key:'contributor', label:'Contributor', min:10000,   next:25000  },
-    { key:'captain',     label:'Captain',     min:25000,   next:50000  },
-    { key:'maxi',        label:'Maxi',        min:50000,   next:100000 },
+    { key:'ambassador',  label:'Ambassador',  min:25000,   next:100000 },
     { key:'legend',      label:'Legend',      min:100000,  next:250000 },
-    { key:'major',       label:'Major',       min:250000,  next:500000 },
-    { key:'core_team',   label:'Core Team',   min:500000,  next:null   }
+    { key:'major',       label:'Major',       min:250000,  next:null   }
   ];
   var xp      = profileUser.xp || 0;
   var curMile = MILESTONES.find(function(m){ return m.key === role.key; }) || MILESTONES[0];
@@ -334,7 +331,7 @@
         var evIcon = 'fa-bolt';
         var evColor = '#5ec213';
         if (ev.type === 'role_upgrade') {
-          var roleLabels = { citizen:'Citizen', contributor:'Contributor', captain:'Captain', maxi:'Maxi', legend:'Legend', major:'Major', core_team:'Core Team' };
+          var roleLabels = { citizen:'Citizen', contributor:'Contributor', ambassador:'Ambassador', legend:'Legend', major:'Major' };
           evText = 'Leveled up to ' + (roleLabels[ev.data.newRole] || ev.data.newRole);
           evIcon = 'fa-shield-halved';
           evColor = '#a855f7';
@@ -617,5 +614,8 @@
       }).catch(function(){});
   }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script>(function(){var c={folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0/assets/'};function p(){twemoji.parse(document.body,c);}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',p):p();})();</script>
+<style>img.emoji{height:1em;width:1em;margin:0 .05em 0 .1em;vertical-align:-0.1em;display:inline-block}</style>
 </body>
 </html>
