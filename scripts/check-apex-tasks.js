@@ -25,6 +25,7 @@ async function run() {
     console.log('    inputLabel:', JSON.stringify(t.inputLabel));
     console.log('    requiresApproval:', t.requiresApproval);
     console.log('    buttonLink:', t.buttonLink ? t.buttonLink.substring(0,60) : 'none');
+    console.log('    validation:', JSON.stringify(t.validation, null, 6));
   });
 
   process.exit(0);

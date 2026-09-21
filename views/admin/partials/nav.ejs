@@ -146,13 +146,8 @@ const roleBadgeColor = { super_admin:'#5EC213', operations:'#60a5fa', community:
         <% } %>
         <% } %>
 
-        <% if (can('welcome-quest') || can('platform-settings') || can('settings') || _ar === 'super_admin') { %>
+        <% if (can('platform-settings') || can('settings') || _ar === 'super_admin') { %>
         <span class="a-nav-label">Tools</span>
-        <% if (can('welcome-quest')) { %>
-        <a href="/admin/welcome-quest" class="a-nav-item <%= page==='welcome-quest' ? 'active':'' %>">
-            <i class="fas fa-gift"></i> Welcome Quest
-        </a>
-        <% } %>
         <% if (can('platform-settings')) { %>
         <a href="/admin/platform-settings" class="a-nav-item <%= page==='platform-settings' ? 'active':'' %>">
             <i class="fas fa-sliders"></i> Platform Settings

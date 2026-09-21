@@ -10,7 +10,7 @@ const QuestApplication = require('../models/QuestApplication');
 // Role-based permission map
 const ROLE_PERMISSIONS = {
   super_admin:  '*',
-  operations:   ['overview','analytics','users','quests','bounties','events','withdrawals','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','leaderboard','business-developers','businesses','fund-requests','wallet-addresses','commission-settings','welcome-quest','platform-settings','settings','partners'],
+  operations:   ['overview','analytics','users','quests','bounties','events','withdrawals','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','leaderboard','business-developers','businesses','fund-requests','wallet-addresses','commission-settings','platform-settings','settings','partners'],
   community:    ['overview','analytics','users','applications','quest-applications','pathway-applications','support','ambassadors','banned','leaderboard'],
   partnerships: ['overview','analytics','quests','bounties','projects','partners','business-developers','businesses','fund-requests','commission-settings'],
   finance:      ['overview','analytics','withdrawals','fund-requests','wallet-addresses'],
@@ -57,7 +57,7 @@ const PATH_SECTION_MAP = {
   'quest-applications': 'quest-applications', 'support': 'support', 'leaderboard': 'leaderboard',
   'business-developers': 'business-developers', 'businesses': 'businesses',
   'fund-requests': 'fund-requests', 'wallet-addresses': 'wallet-addresses',
-  'commission-settings': 'commission-settings', 'welcome-quest': 'welcome-quest',
+  'commission-settings': 'commission-settings',
   'platform-settings': 'platform-settings', 'partners': 'partners',
 };
 
@@ -294,127 +294,7 @@ router.post('/bounties/:id/toggle',       isAdminPage, bc.adminToggleBounty);
 router.post('/bounties/:id/winners',      isAdminPage, bc.adminAnnounceWinners);
 router.post('/bounties/:id/delete',       isAdminPage, bc.adminDeleteBounty);
 
-// ── Onboarding Quest Config ────────────────────────────
-const OnboardingConfig = require('../models/OnboardingConfig');
 const PlatformSettings = require('../models/PlatformSettings');
-
-// Render onboarding quest admin page
-router.get('/welcome-quest', isAdminPage, async (req, res) => {
-  try {
-    const config = await OnboardingConfig.get();
-    res.render('admin/pages/welcome-quest', { user: req.user, config: config.toObject(), query: req.query });
-  } catch (err) {
-    console.error('[admin welcome-quest]', err);
-    res.status(500).send('Error: ' + err.message);
-  }
-});
-
-// Save a single task by taskId
-router.post('/welcome-quest/task/:taskId', isAdminPage, async (req, res) => {
-  try {
-    const { title, subtitle, link, btnLabel } = req.body;
-    const config = await OnboardingConfig.get();
-    const task = config.tasks.find(t => t.taskId === req.params.taskId);
-    if (!task) return res.redirect('/admin/welcome-quest?error=notfound');
-    task.title    = title    || task.title;
-    task.subtitle = subtitle != null ? subtitle : task.subtitle;
-    task.link     = link     || task.link;
-    task.btnLabel = btnLabel || task.btnLabel;
-    await config.save();
-    res.redirect('/admin/welcome-quest?saved=1');
-  } catch (err) {
-    console.error(err);
-    res.redirect('/admin/welcome-quest?error=1');
-  }
-});
-
-// Delete a fixed task by taskId
-router.post('/welcome-quest/task/:taskId/delete', isAdminPage, async (req, res) => {
-  try {
-    const config = await OnboardingConfig.get();
-    const before = config.tasks.length;
-    config.tasks = config.tasks.filter(t => t.taskId !== req.params.taskId);
-    if (config.tasks.length === before) return res.redirect('/admin/welcome-quest?error=notfound');
-    await config.save();
-    res.redirect('/admin/welcome-quest?saved=1');
-  } catch (err) {
-    console.error(err);
-    res.redirect('/admin/welcome-quest?error=1');
-  }
-});
-
-// Save step 4 header
-router.post('/welcome-quest/step4-header', isAdminPage, async (req, res) => {
-  try {
-    const { step4Title, step4Desc } = req.body;
-    const config = await OnboardingConfig.get();
-    if (step4Title) config.step4Title = step4Title;
-    if (step4Desc)  config.step4Desc  = step4Desc;
-    await config.save();
-    res.redirect('/admin/welcome-quest?saved=1');
-  } catch (err) {
-    console.error(err);
-    res.redirect('/admin/welcome-quest?error=1');
-  }
-});
-
-// Save step 4 share task fields
-router.post('/welcome-quest/step4-share', isAdminPage, async (req, res) => {
-  try {
-    const { step4ShareTitle, step4ShareSubtitle } = req.body;
-    const config = await OnboardingConfig.get();
-    if (step4ShareTitle)    config.step4ShareTitle    = step4ShareTitle;
-    if (step4ShareSubtitle) config.step4ShareSubtitle = step4ShareSubtitle;
-    await config.save();
-    res.redirect('/admin/welcome-quest?saved=1');
-  } catch (err) {
-    console.error(err);
-    res.redirect('/admin/welcome-quest?error=1');
-  }
-});
-
-// Save step 5 header
-router.post('/welcome-quest/step5-header', isAdminPage, async (req, res) => {
-  try {
-    const { step5Title, step5Eyebrow, step5Desc } = req.body;
-    const config = await OnboardingConfig.get();
-    if (step5Title)   config.step5Title   = step5Title;
-    if (step5Eyebrow) config.step5Eyebrow = step5Eyebrow;
-    if (step5Desc)    config.step5Desc    = step5Desc;
-    await config.save();
-    res.redirect('/admin/welcome-quest?saved=1');
-  } catch (err) {
-    console.error(err);
-    res.redirect('/admin/welcome-quest?error=1');
-  }
-});
-
-// Add an extra task (iOS/Android/etc.)
-router.post('/welcome-quest/extra-task', isAdminPage, async (req, res) => {
-  try {
-    const { step, title, subtitle, link, btnLabel } = req.body;
-    const config = await OnboardingConfig.get();
-    config.extraTasks.push({ step: Number(step), title, subtitle: subtitle || '', link, btnLabel: btnLabel || 'Go', order: config.extraTasks.length });
-    await config.save();
-    res.redirect('/admin/welcome-quest?saved=1');
-  } catch (err) {
-    console.error(err);
-    res.redirect('/admin/welcome-quest?error=1');
-  }
-});
-
-// Delete an extra task
-router.post('/welcome-quest/extra-task/:id/delete', isAdminPage, async (req, res) => {
-  try {
-    const config = await OnboardingConfig.get();
-    config.extraTasks.pull({ _id: req.params.id });
-    await config.save();
-    res.redirect('/admin/welcome-quest?saved=1');
-  } catch (err) {
-    console.error(err);
-    res.redirect('/admin/welcome-quest?error=1');
-  }
-});
 
 // POST /admin/stacks-wallets/test-zad-auth — test ZAD authentication flow for index 0
 router.post('/stacks-wallets/test-zad-auth', isAdminPage, async (req, res) => {
@@ -453,18 +333,6 @@ router.post('/submissions/external/delete', isAdminPage, async (req, res) => {
   }
 });
 
-// POST /admin/welcome-quest/reset-all — reset onboarding for every user
-router.post('/welcome-quest/reset-all', isAdminPage, async (req, res) => {
-  if (req.adminRole !== 'super_admin') return res.json({ success: false, message: 'Unauthorized' });
-  try {
-    const User = require('../models/User');
-    const result = await User.updateMany({}, { $set: { onboardingCompleted: false, onboardingReward: null } });
-    res.json({ success: true, updated: result.modifiedCount });
-  } catch (err) {
-    console.error('[reset-onboarding-all]', err);
-    res.json({ success: false, message: err.message });
-  }
-});
 
 // ── Platform Settings ─────────────────────────────────
 // Render platform settings page
@@ -1142,8 +1010,6 @@ router.post('/api/launch-rewards/:rewardId/reset', isAdmin, async (req, res) => 
         failReason: null
       }
     });
-    // Clear launchDayCompleted so the user re-enters the launch onboarding flow
-    await User.collection.updateOne({ _id: existing.userId }, { $set: { launchDayCompleted: false } });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });

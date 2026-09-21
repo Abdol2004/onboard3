@@ -116,22 +116,6 @@ const userSchema = new mongoose.Schema({
     reviewedAt: { type: Date,   default: null },
     reviewNote: { type: String, default: '' }
   },
-  onboardingCompleted: {
-    type: Boolean,
-    default: false
-  },
-  onboardingReward: {
-    type: Number,
-    default: null
-  },
-  launchDayCompleted: {
-    type: Boolean,
-    default: false
-  },
-  launchDayReward: {
-    type: Number,
-    default: null
-  },
   bio: {
     type: String,
     default: ''

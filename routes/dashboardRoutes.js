@@ -12,23 +12,7 @@ const isAuthenticated = (req, res, next) => {
   res.redirect('/auth');
 };
 
-// Force launch-day re-onboarding on every dashboard GET page.
-// Skips API/JSON routes so fetch calls still work during onboarding.
-const requireLaunchOnboarding = async (req, res, next) => {
-  // Only enforce on GET page routes, not API calls
-  if (req.method !== 'GET' || req.path.startsWith('/api/')) return next();
-  if (!req.session.userId) return next();
-  try {
-    const user = await User.findById(req.session.userId).select('onboardingCompleted launchDayCompleted').lean();
-    if (!user) return next();
-    if (!user.onboardingCompleted || !user.launchDayCompleted) {
-      return res.redirect('/onboarding?launch=1');
-    }
-  } catch (_) {}
-  next();
-};
-
-router.use(isAuthenticated, requireLaunchOnboarding);
+router.use(isAuthenticated);
 
 // Dashboard routes
 router.get("/", dashboardController.getDashboard);
