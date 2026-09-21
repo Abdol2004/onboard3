@@ -176,6 +176,7 @@
  </div>
  <div class="b-card-body">
  <div class="b-tags">
+ <span class="b-tag b-tag--int">ONBOARD3</span>
  <span class="b-tag b-tag--live"><i class="fas fa-circle" style="font-size:.4rem"></i> Active</span>
  <% if (b.category) { %><span class="b-tag b-tag--cat"><%= b.category %></span><% } %>
  </div>
@@ -203,15 +204,16 @@
  var bid = b.id || b._id;
  var cat = typeof b.category === 'string' ? b.category : (typeof b.type === 'string' ? b.type : '');
  var endTs = b.deadline ? new Date(b.deadline).getTime() : (b.endDate ? new Date(b.endDate).getTime() : 0);
- var imgSrc = b.imageUrl || b.logo || '/img/partners/zeroauthdao.webp';
+ var imgSrc = b.imageUrl || b.logo || '/img/partners/zero.jpg';
  %>
  <a href="/dashboard/bounties/external/<%= bid %>" class="b-card b-card--ext" style="border-color:rgba(168,85,247,.2)">
  <div class="b-card-img" style="background:rgba(168,85,247,.06)">
  <img src="<%= imgSrc %>" alt="<%= bTitle %>"
- onerror="this.onerror=null;this.src='/img/partners/zeroauthdao.webp'" style="object-fit:contain;padding:8px">
+ onerror="this.onerror=null;this.src='/img/partners/zero.jpg'" style="object-fit:cover">
  </div>
  <div class="b-card-body">
  <div class="b-tags">
+ <span class="b-tag b-tag--ext">ZeroAuthDAO</span>
  <span class="b-tag b-tag--live"><i class="fas fa-circle" style="font-size:.4rem"></i> Active</span>
  <% if (cat) { %><span class="b-tag b-tag--cat"><%= cat %></span><% } %>
  </div>
@@ -252,6 +254,7 @@
  </div>
  <div class="b-card-body">
  <div class="b-tags">
+ <span class="b-tag b-tag--int">ONBOARD3</span>
  <% if (b.status === 'winners_announced') { %>
  <span class="b-tag b-tag--win"><i class="fas fa-trophy"></i> Winners Out</span>
  <% } else { %>
@@ -278,15 +281,16 @@
  var bid = b.id || b._id;
  var cat = typeof b.category === 'string' ? b.category : (typeof b.type === 'string' ? b.type : '');
  var hasWin = b.winners && b.winners.length > 0;
- var imgSrc = b.imageUrl || b.logo || '/img/partners/zeroauthdao.webp';
+ var imgSrc = b.imageUrl || b.logo || '/img/partners/zero.jpg';
  %>
  <a href="/dashboard/bounties/external/<%= bid %>" class="b-card b-card--ext b-card--dim" style="border-color:rgba(168,85,247,.12)">
  <div class="b-card-img" style="background:rgba(168,85,247,.04)">
  <img src="<%= imgSrc %>" alt="<%= bTitle %>"
- onerror="this.onerror=null;this.src='/img/partners/zeroauthdao.webp'" style="object-fit:contain;padding:8px">
+ onerror="this.onerror=null;this.src='/img/partners/zero.jpg'" style="object-fit:cover">
  </div>
  <div class="b-card-body">
  <div class="b-tags">
+ <span class="b-tag b-tag--ext">ZeroAuthDAO</span>
  <% if (hasWin) { %>
  <span class="b-tag b-tag--win"><i class="fas fa-trophy"></i> Winners Out</span>
  <% } else { %>
