@@ -140,7 +140,7 @@
  <h2 style="font-size:clamp(1.4rem,3vw,2rem);font-weight:900;letter-spacing:-1px;color:var(--text);margin-bottom:.375rem">
  <i class="fas fa-coins" style="color:#fbbf24;margin-right:.4rem"></i>Bounties
  </h2>
- <p style="color:var(--text-3);font-size:.875rem">Complete bounties to earn rewards. Internal bounties are run by ONBOARD3; External ones are from ZeroAuthDAO.</p>
+ <p style="color:var(--text-3);font-size:.875rem">Complete bounties to earn rewards.</p>
  </div>
 
  <%
@@ -176,7 +176,6 @@
  </div>
  <div class="b-card-body">
  <div class="b-tags">
- <span class="b-tag b-tag--int">Internal</span>
  <span class="b-tag b-tag--live"><i class="fas fa-circle" style="font-size:.4rem"></i> Active</span>
  <% if (b.category) { %><span class="b-tag b-tag--cat"><%= b.category %></span><% } %>
  </div>
@@ -213,7 +212,6 @@
  </div>
  <div class="b-card-body">
  <div class="b-tags">
- <span class="b-tag b-tag--ext">External</span>
  <span class="b-tag b-tag--live"><i class="fas fa-circle" style="font-size:.4rem"></i> Active</span>
  <% if (cat) { %><span class="b-tag b-tag--cat"><%= cat %></span><% } %>
  </div>
@@ -254,7 +252,6 @@
  </div>
  <div class="b-card-body">
  <div class="b-tags">
- <span class="b-tag b-tag--int">Internal</span>
  <% if (b.status === 'winners_announced') { %>
  <span class="b-tag b-tag--win"><i class="fas fa-trophy"></i> Winners Out</span>
  <% } else { %>
@@ -290,7 +287,6 @@
  </div>
  <div class="b-card-body">
  <div class="b-tags">
- <span class="b-tag b-tag--ext">External</span>
  <% if (hasWin) { %>
  <span class="b-tag b-tag--win"><i class="fas fa-trophy"></i> Winners Out</span>
  <% } else { %>
