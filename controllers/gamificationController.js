@@ -33,7 +33,7 @@ const getUserRole = (xp, joinDate) => {
     const isEarlyCitizen = userJoinDate >= earlyStart && userJoinDate <= earlyEnd;
 
     // Find role based on XP - check from highest to lowest to ensure correct match
-    const roleOrder = ['core_team', 'major', 'legend', 'maxi', 'captain', 'contributor', 'citizen'];
+    const roleOrder = ['major', 'legend', 'ambassador', 'contributor', 'citizen'];
     let currentRole = 'citizen'; // default
 
     for (const roleKey of roleOrder) {
@@ -117,7 +117,7 @@ exports.getActivityPage = async (req, res) => {
 
         // Get next role info - use explicit order to guarantee correct progression
         let nextRole = null;
-        const roleKeys = ['citizen', 'contributor', 'captain', 'maxi', 'legend', 'major', 'core_team'];
+        const roleKeys = ['citizen', 'contributor', 'ambassador', 'legend', 'major'];
         const currentRoleIndex = roleKeys.indexOf(roleData.roleKey);
         if (currentRoleIndex < roleKeys.length - 1) {
             const nextRoleKey = roleKeys[currentRoleIndex + 1];
@@ -696,7 +696,7 @@ exports.checkAndAwardRoleBadges = async (userId, currentXP) => {
 
         // Award ALL role badges that the user has achieved (not just current)
         // Role order from lowest to highest XP requirement
-        const roleOrder = ['citizen', 'contributor', 'captain', 'maxi', 'legend', 'major', 'core_team'];
+        const roleOrder = ['citizen', 'contributor', 'ambassador', 'legend', 'major'];
 
         // Batch fetch existing role badges to avoid N+1 queries
         const existingRoleBadges = await Badge.find({ userId, badgeType: { $in: roleOrder } }).select('badgeType').lean();

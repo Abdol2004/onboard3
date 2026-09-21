@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+ <title><%= title %></title>
+ <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+ <%- include('../partials/achievement-popup') %>
+ <link rel="stylesheet" href="/css/dashboard.css">
+<style>
+.pd-page { background: transparent }
+
+.pd-hdr {
+ padding: 1.75rem 1.75rem 1.375rem;
+ background: linear-gradient(160deg, <%= meta.bg %> 0%, transparent 75%);
+ border-bottom: 1px solid var(--border);
+}
+.pd-back { display:inline-flex;align-items:center;gap:.375rem;font-size:.775rem;font-weight:700;color:var(--text-3);text-decoration:none;margin-bottom:1.125rem;transition:color .2s }
+.pd-back:hover { color: <%= meta.color %> }
+.pd-hdr-top { display:flex;align-items:flex-start;gap:1.125rem;flex-wrap:wrap }
+.pd-hdr-icon { width:54px;height:54px;border-radius:16px;background:<%= meta.bg %>;border:1.5px solid <%= meta.border %>;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 20px <%= meta.color %>22 }
+.pd-hdr-info { flex:1;min-width:200px }
+.pd-hdr-name { font-size:1.5rem;font-weight:900;color:var(--text);line-height:1.1;margin-bottom:.3rem }
+.pd-hdr-tag { font-size:.85rem;color:var(--text-3) }
+.pd-hdr-actions { display:flex;gap:.625rem;flex-wrap:wrap;align-items:center;margin-top:1.125rem }
+
+.pd-body { padding:1.5rem 1.75rem;max-width:880px }
+.pd-sec { margin-bottom:2.5rem }
+.pd-sec-hd { display:flex;align-items:center;gap:.625rem;margin-bottom:1.125rem;padding-bottom:.75rem;border-bottom:1px solid rgba(255,255,255,.055) }
+.pd-sec-ico { width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.72rem }
+.pd-sec-title { font-size:.72rem;font-weight:900;letter-spacing:1.75px;text-transform:uppercase;color:var(--text-3) }
+.pd-sec-cnt { margin-left:auto;font-size:.65rem;font-weight:800;color:var(--text-3);background:rgba(255,255,255,.06);border-radius:99px;padding:.1rem .55rem }
+
+.pd-live-card { border-radius:16px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.28);padding:1.25rem 1.5rem;margin-bottom:.75rem }
+.pd-upcoming-row { display:flex;align-items:center;gap:1rem;padding:.875rem 1.25rem;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid var(--border);margin-bottom:.625rem;transition:border-color .2s }
+.pd-upcoming-row:hover { border-color: <%= meta.border %> }
+.pd-date-chip { text-align:center;min-width:46px;padding:.375rem .5rem;border-radius:10px;background:<%= meta.bg %>;border:1px solid <%= meta.border %>;flex-shrink:0 }
+.pd-update-card { padding:1.125rem 1.375rem;border-radius:14px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-left:3px solid <%= meta.color %>;margin-bottom:.625rem }
+.pd-res-row { display:flex;align-items:center;gap:.875rem;padding:.875rem 1.125rem;border-radius:13px;background:rgba(255,255,255,.025);border:1px solid var(--border);margin-bottom:.5rem;transition:border-color .2s }
+.pd-res-row:hover { border-color:rgba(255,255,255,.12) }
+.pd-opp-card { padding:1rem 1.25rem;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid var(--border);margin-bottom:.625rem;transition:border-color .2s }
+.pd-opp-card:hover { border-color:rgba(255,255,255,.1) }
+
+.pd-btn { display:inline-flex;align-items:center;gap:.375rem;padding:.45rem .875rem;border-radius:8px;font-size:.76rem;font-weight:700;text-decoration:none;cursor:pointer;font-family:'Outfit',sans-serif;border:none;transition:all .2s;white-space:nowrap }
+.pd-btn-primary { background:<%= meta.color %>20;border:1px solid <%= meta.color %>50;color:<%= meta.color %> }
+.pd-btn-primary:hover { background:<%= meta.color %>30 }
+.pd-btn-ghost { background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text-2) }
+.pd-btn-ghost:hover { background:rgba(255,255,255,.09) }
+.pd-btn-join { background:#ef4444;border:1px solid rgba(239,68,68,.5);color:#fff;font-size:.82rem;padding:.55rem 1.25rem }
+.pd-btn-join:hover { background:#dc2626 }
+.pd-btn-sm { padding:.3rem .65rem;font-size:.7rem }
+
+.pd-more-btn { display:flex;align-items:center;gap:.375rem;background:none;border:1px solid var(--border);border-radius:9px;padding:.45rem 1rem;font-size:.78rem;font-weight:700;color:var(--text-3);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;margin-top:.5rem }
+.pd-more-btn:hover { border-color:<%= meta.color %>66;color:<%= meta.color %> }
+
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<%- include('../partials/sidebar', { user, currentPage, pathwaySlug }) %>
+
+<div class="dashboard-container">
+<main class="main-content pd-page">
+
+<%
+const C = meta.color;
+const BG = meta.bg;
+const BR = meta.border;
+
+function timeAgo(d) {
+ if (!d) return '';
+ const s = Math.floor((Date.now() - new Date(d)) / 1000);
+ if (s < 60) return 'just now';
+ if (s < 3600) return Math.floor(s/60) + 'm ago';
+ if (s < 86400) return Math.floor(s/3600) + 'h ago';
+ return Math.floor(s/86400) + 'd ago';
+}
+function fmtDate(d, opts) {
+ if (!d) return '';
+ return new Date(d).toLocaleDateString('en-US', opts || { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+function gcalLink(item) {
+ if (!item.scheduledAt) return null;
+ const fmt = d => new Date(d).toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+ const end = item.endsAt ? fmt(item.endsAt) : fmt(new Date(new Date(item.scheduledAt).getTime() + 3600000));
+ return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+ + '&text=' + encodeURIComponent(item.title||'')
+ + '&dates=' + fmt(item.scheduledAt) + '/' + end
+ + '&details=' + encodeURIComponent(item.body||'')
+ + '&location=' + encodeURIComponent(item.venue||'');
+}
+const totalContent = updates.length + resources.length + opportunities.length;
+const sectionLabel = { class:'Class', event:'Event', update:'Update', resource:'Resource', opportunity:'Opportunity' };
+%>
+
+<!-- ══ HEADER ══════════════════════════════════════════ -->
+<div class="pd-hdr">
+ <a href="/dashboard/career-paths" class="pd-back">
+ <i class="fas fa-arrow-left" style="font-size:.625rem"></i> All Pathways
+ </a>
+ <div class="pd-hdr-top">
+ <div class="pd-hdr-icon">
+ <i class="fas <%=meta.icon%>" style="color:<%=C%>;font-size:1.5rem"></i>
+ </div>
+ <div class="pd-hdr-info">
+ <h1 class="pd-hdr-name"><%=meta.name%></h1>
+ <p class="pd-hdr-tag"><%=config.tagline||meta.tagline%></p>
+ </div>
+ </div>
+ <div class="pd-hdr-actions">
+ <% if (config.groupLink) { %>
+ <a href="<%=config.groupLink%>" target="_blank" class="pd-btn pd-btn-primary">
+ <i class="fab fa-telegram"></i> Join Community
+ </a>
+ <% } %>
+ <% if (config.xLink) { %>
+ <a href="<%=config.xLink%>" target="_blank" class="pd-btn pd-btn-ghost">
+ <i class="fab fa-x-twitter"></i> Follow on X
+ </a>
+ <% } %>
+ </div>
+ <% if (lead) { %>
+ <div style="display:flex;align-items:center;gap:1rem;margin-top:1.25rem;padding:1rem 1.25rem;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--border);flex-wrap:wrap">
+ <% if (lead.profilePicture) { %>
+ <img src="<%=lead.profilePicture%>" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid <%=BR%>" alt="">
+ <% } else { %>
+ <div style="width:48px;height:48px;border-radius:50%;background:<%=BG%>;border:2px solid <%=BR%>;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.125rem;color:<%=C%>;flex-shrink:0"><%=lead.username.charAt(0).toUpperCase()%></div>
+ <% } %>
+ <div style="flex:1;min-width:120px">
+ <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+ <p style="font-size:.9rem;font-weight:800;color:var(--text)"><%=config.leadName||lead.username%></p>
+ <span style="font-size:.62rem;font-weight:800;color:<%=C%>;background:<%=BG%>;border:1px solid <%=BR%>;border-radius:99px;padding:.1rem .45rem">Pathway Lead</span>
+ </div>
+ <% if (config.leadBio) { %><p style="font-size:.75rem;color:var(--text-3);margin-top:.2rem"><%=config.leadBio%></p><% } %>
+ </div>
+ <% if (config.xLink) { %>
+ <a href="<%=config.xLink%>" target="_blank" class="pd-btn pd-btn-ghost pd-btn-sm" style="flex-shrink:0">
+ <i class="fab fa-x-twitter"></i> Follow
+ </a>
+ <% } %>
+ </div>
+ <% } %>
+</div>
+
+<!-- ══ BODY ══════════════════════════════════════════════ -->
+<div class="pd-body">
+
+<!-- LIVE NOW -->
+<% if (liveItems.length) { %>
+<div class="pd-sec">
+ <div class="pd-sec-hd">
+ <span style="width:10px;height:10px;border-radius:50%;background:#ef4444;animation:livePulse 1.4s ease-in-out infinite;flex-shrink:0"></span>
+ <h2 class="pd-sec-title" style="color:#ef4444">Live Now</h2>
+ <span class="pd-sec-cnt" style="color:#ef4444;background:rgba(239,68,68,.12)"><%=liveItems.length%></span>
+ </div>
+ <% liveItems.forEach(item => { %>
+ <div class="pd-live-card">
+ <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+ <div style="flex:1;min-width:180px">
+ <% if (item.section !== 'update') { %>
+ <span style="font-size:.65rem;font-weight:800;color:#ef4444;letter-spacing:.75px;text-transform:uppercase;display:block;margin-bottom:.3rem">
+ <%= sectionLabel[item.section] || item.section %>
+ </span>
+ <% } %>
+ <p style="font-size:1.05rem;font-weight:800;color:var(--text);margin-bottom:.375rem"><%=item.title%></p>
+ <% if (item.body) { %><p style="font-size:.82rem;color:var(--text-2);line-height:1.55"><%=item.body%></p><% } %>
+ <% if (item.venue) { %>
+ <p style="font-size:.75rem;color:var(--text-3);margin-top:.5rem">
+ <i class="fas fa-location-dot" style="margin-right:.3rem"></i><%=item.venue%>
+ </p>
+ <% } %>
+ </div>
+ <% if (item.externalUrl) { %>
+ <a href="<%=item.externalUrl%>" target="_blank" class="pd-btn pd-btn-join">
+ <i class="fas fa-arrow-right"></i> Join Now
+ </a>
+ <% } %>
+ </div>
+ </div>
+ <% }) %>
+</div>
+<% } %>
+
+<!-- UPCOMING -->
+<% if (upcoming.length) { %>
+<div class="pd-sec">
+ <div class="pd-sec-hd">
+ <span class="pd-sec-ico" style="background:<%=BG%>;color:<%=C%>"><i class="fas fa-calendar-check"></i></span>
+ <h2 class="pd-sec-title">Upcoming</h2>
+ <span class="pd-sec-cnt"><%=upcoming.length%></span>
+ </div>
+ <% upcoming.forEach((item, i) => { %>
+ <div class="pd-upcoming-row" data-sec="upcoming" style="<%=i>=4?'display:none':''%>">
+ <div class="pd-date-chip">
+ <p style="font-size:.62rem;font-weight:800;color:<%=C%>;text-transform:uppercase;letter-spacing:.5px">
+ <%=new Date(item.scheduledAt).toLocaleDateString('en-US',{month:'short'})%>
+ </p>
+ <p style="font-size:1.25rem;font-weight:900;color:<%=C%>;line-height:1">
+ <%=new Date(item.scheduledAt).getDate()%>
+ </p>
+ </div>
+ <div style="flex:1;min-width:0">
+ <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.2rem">
+ <% if (item.section && item.section !== 'update') { %>
+ <span style="font-size:.62rem;font-weight:800;color:<%=C%>;background:<%=BG%>;border:1px solid <%=BR%>;border-radius:99px;padding:.1rem .45rem;text-transform:uppercase;letter-spacing:.5px">
+ <%=sectionLabel[item.section]||item.section%>
+ </span>
+ <% } %>
+ <p style="font-size:.9rem;font-weight:700;color:var(--text)"><%=item.title%></p>
+ </div>
+ <p style="font-size:.72rem;color:var(--text-3)">
+ <i class="fas fa-clock" style="margin-right:.3rem;color:<%=C%>"></i>
+ <%=fmtDate(item.scheduledAt,{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})%> WAT
+ </p>
+ <% if (item.venue) { %>
+ <p style="font-size:.72rem;color:var(--text-3);margin-top:.2rem">
+ <i class="fas fa-location-dot" style="margin-right:.3rem;color:<%=C%>"></i><%=item.venue%>
+ </p>
+ <% } %>
+ </div>
+ <div style="display:flex;flex-direction:column;gap:.375rem;align-items:flex-end;flex-shrink:0">
+ <% if (item.externalUrl) { %>
+ <a href="<%=item.externalUrl%>" target="_blank" class="pd-btn pd-btn-primary pd-btn-sm">
+ <i class="fas fa-link"></i> Link
+ </a>
+ <% } %>
+ <% const upCal = gcalLink(item); if (upCal) { %>
+ <a href="<%=upCal%>" target="_blank" class="pd-btn pd-btn-ghost pd-btn-sm">
+ <i class="fas fa-calendar-plus"></i> Remind me
+ </a>
+ <% } %>
+ </div>
+ </div>
+ <% }) %>
+ <% if (upcoming.length > 4) { %>
+ <button class="pd-more-btn" id="more-btn-upcoming" onclick="toggleMore('upcoming',<%=upcoming.length-4%>)">
+ <i class="fas fa-chevron-down" style="font-size:.65rem"></i> See <%=upcoming.length-4%> more
+ </button>
+ <% } %>
+</div>
+<% } %>
+
+<!-- UPDATES -->
+<% if (updates.length) { %>
+<div class="pd-sec">
+ <div class="pd-sec-hd">
+ <span class="pd-sec-ico" style="background:rgba(251,191,36,.12);color:#fbbf24"><i class="fas fa-bullhorn"></i></span>
+ <h2 class="pd-sec-title">Updates</h2>
+ <span class="pd-sec-cnt"><%=updates.length%></span>
+ </div>
+ <% updates.forEach((item, i) => { %>
+ <div class="pd-update-card" data-sec="updates" style="<%=i>=3?'display:none':''%>">
+ <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem">
+ <div style="flex:1">
+ <% if (item.isPinned) { %>
+ <span style="font-size:.6rem;font-weight:800;color:<%=C%>;letter-spacing:.75px;text-transform:uppercase;display:block;margin-bottom:.3rem">
+ <i class="fas fa-thumbtack"></i> Pinned
+ </span>
+ <% } %>
+ <p style="font-size:.975rem;font-weight:800;color:var(--text);margin-bottom:.4rem"><%=item.title%></p>
+ <% if (item.body) { %>
+ <p style="font-size:.82rem;color:var(--text-2);line-height:1.6;white-space:pre-wrap"><%=item.body%></p>
+ <% } %>
+ <% if (item.externalUrl) { %>
+ <a href="<%=item.externalUrl%>" target="_blank" class="pd-btn pd-btn-primary pd-btn-sm" style="margin-top:.625rem">
+ <i class="fas fa-arrow-up-right-from-square"></i> Open link
+ </a>
+ <% } %>
+ </div>
+ <span style="font-size:.68rem;color:var(--text-3);flex-shrink:0;margin-top:.15rem;white-space:nowrap"><%=timeAgo(item.createdAt)%></span>
+ </div>
+ </div>
+ <% }) %>
+ <% if (updates.length > 3) { %>
+ <button class="pd-more-btn" id="more-btn-updates" onclick="toggleMore('updates',<%=updates.length-3%>)">
+ <i class="fas fa-chevron-down" style="font-size:.65rem"></i> See <%=updates.length-3%> more
+ </button>
+ <% } %>
+</div>
+<% } %>
+
+<!-- RESOURCES -->
+<% if (resources.length) { %>
+<div class="pd-sec">
+ <div class="pd-sec-hd">
+ <span class="pd-sec-ico" style="background:rgba(16,185,129,.12);color:#10b981"><i class="fas fa-folder-open"></i></span>
+ <h2 class="pd-sec-title">Resources</h2>
+ <span class="pd-sec-cnt"><%=resources.length%></span>
+ </div>
+ <% resources.forEach((item, i) => {
+ const rtIcon = { pdf:'fa-file-pdf', link:'fa-link', video:'fa-circle-play', doc:'fa-file-word' }[item.resourceType] || 'fa-file';
+ const rtColor = { pdf:'#ef4444', link:C, video:'#a855f7', doc:'#3b82f6' }[item.resourceType] || C;
+ const isDl = item.resourceType === 'pdf' || item.resourceType === 'doc';
+ %>
+ <div class="pd-res-row" data-sec="resources" style="<%=i>=4?'display:none':''%>">
+ <div style="width:40px;height:40px;border-radius:11px;background:<%=rtColor%>18;border:1px solid <%=rtColor%>30;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+ <i class="fas <%=rtIcon%>" style="color:<%=rtColor%>;font-size:.95rem"></i>
+ </div>
+ <div style="flex:1;min-width:0">
+ <p style="font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:.15rem"><%=item.title%></p>
+ <p style="font-size:.72rem;color:var(--text-3)"><%- item.resourceFilename || item.body || '' %></p>
+ </div>
+ <% if (item.resourceUrl) { %>
+ <a href="<%=item.resourceUrl%>" target="_blank" class="pd-btn pd-btn-sm"
+ style="background:<%=rtColor%>18;border:1px solid <%=rtColor%>38;color:<%=rtColor%>">
+ <% if (isDl) { %>
+ <i class="fas fa-download"></i> Download
+ <% } else { %>
+ <i class="fas fa-arrow-up-right-from-square"></i> Open
+ <% } %>
+ </a>
+ <% } %>
+ </div>
+ <% }) %>
+ <% if (resources.length > 4) { %>
+ <button class="pd-more-btn" id="more-btn-resources" onclick="toggleMore('resources',<%=resources.length-4%>)">
+ <i class="fas fa-chevron-down" style="font-size:.65rem"></i> See <%=resources.length-4%> more
+ </button>
+ <% } %>
+</div>
+<% } %>
+
+<!-- OPPORTUNITIES -->
+<% if (opportunities.length) { %>
+<div class="pd-sec">
+ <div class="pd-sec-hd">
+ <span class="pd-sec-ico" style="background:rgba(249,115,22,.12);color:#f97316"><i class="fas fa-bolt"></i></span>
+ <h2 class="pd-sec-title">Opportunities</h2>
+ <span class="pd-sec-cnt"><%=opportunities.length%></span>
+ </div>
+ <% opportunities.forEach((item, i) => {
+ const otC = { job:'#fbbf24', internship:'#60a5fa', bounty:'var(--green)', gig:'#f97316', whitelist:'#a855f7', other:C }[item.opportunityType||'other'] || C;
+ const otLbl = { job:'Job', internship:'Internship', bounty:'Bounty', gig:'Gig', whitelist:'Whitelist', other:'Other' }[item.opportunityType||'other'] || 'Other';
+ %>
+ <div class="pd-opp-card" data-sec="opportunities" style="<%=i>=3?'display:none':''%>">
+ <div style="display:flex;align-items:flex-start;gap:.875rem">
+ <div style="width:10px;height:10px;border-radius:50%;background:<%=otC%>;margin-top:.45rem;flex-shrink:0"></div>
+ <div style="flex:1;min-width:0">
+ <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.3rem">
+ <p style="font-size:.975rem;font-weight:800;color:var(--text)"><%=item.title%></p>
+ <span style="font-size:.62rem;font-weight:800;color:<%=otC%>;background:<%=otC%>18;border:1px solid <%=otC%>33;border-radius:99px;padding:.1rem .5rem;text-transform:capitalize"><%=otLbl%></span>
+ </div>
+ <% if (item.body) { %>
+ <p style="font-size:.8rem;color:var(--text-3);line-height:1.55;margin-bottom:.625rem"><%=item.body%></p>
+ <% } %>
+ <% if (item.externalUrl) { %>
+ <a href="<%=item.externalUrl%>" target="_blank" class="pd-btn pd-btn-sm"
+ style="background:<%=otC%>18;border:1px solid <%=otC%>38;color:<%=otC%>">
+ Apply <i class="fas fa-arrow-right" style="font-size:.6rem"></i>
+ </a>
+ <% } %>
+ </div>
+ </div>
+ </div>
+ <% }) %>
+ <% if (opportunities.length > 3) { %>
+ <button class="pd-more-btn" id="more-btn-opportunities" onclick="toggleMore('opportunities',<%=opportunities.length-3%>)">
+ <i class="fas fa-chevron-down" style="font-size:.65rem"></i> See <%=opportunities.length-3%> more
+ </button>
+ <% } %>
+</div>
+<% } %>
+
+<!-- EMPTY -->
+<% if (!totalContent && !liveItems.length && !upcoming.length) { %>
+<div style="text-align:center;padding:5rem 2rem">
+ <div style="width:70px;height:70px;border-radius:50%;background:<%=BG%>;border:1px solid <%=BR%>;display:flex;align-items:center;justify-content:center;margin:0 auto 1.125rem;box-shadow:0 0 30px <%=C%>22">
+ <i class="fas <%=meta.icon%>" style="color:<%=C%>;font-size:1.625rem"></i>
+ </div>
+ <p style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:.375rem">Content Coming Soon</p>
+ <p style="font-size:.82rem;color:var(--text-3)">The pathway lead is setting things up. Check back soon!</p>
+</div>
+<% } %>
+
+</div>
+</main>
+</div>
+
+<script>
+function toggleMore(sec, hiddenCnt) {
+ const items = document.querySelectorAll('[data-sec="' + sec + '"]');
+ const btn = document.getElementById('more-btn-' + sec);
+ if (!items[3] && !items[4]) return;
+ const pivot = sec === 'resources' ? 4 : 3;
+ const expand = items[pivot] ? items[pivot].style.display === 'none' : false;
+ items.forEach((el, i) => { if (i >= pivot) el.style.display = expand ? '' : 'none'; });
+ btn.innerHTML = expand
+ ? '<i class="fas fa-chevron-up" style="font-size:.65rem"></i> Show less'
+ : '<i class="fas fa-chevron-down" style="font-size:.65rem"></i> See ' + hiddenCnt + ' more';
+}
+</script>
+</body>
+</html>

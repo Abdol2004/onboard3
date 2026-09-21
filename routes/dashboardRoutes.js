@@ -379,19 +379,18 @@ router.get('/career-paths/:pathway', isAuthenticated, async (req, res) => {
     }
 
     const now = new Date();
-    const liveItems   = content.filter(c => c.isLive);
-    const upcoming    = content.filter(c => !c.isLive && c.scheduledAt && new Date(c.scheduledAt) > now).sort((a,b) => new Date(a.scheduledAt)-new Date(b.scheduledAt));
-    const updates     = content.filter(c => c.section === 'update'      && !c.isLive);
-    const classes     = content.filter(c => c.section === 'class'       && !c.isLive);
-    const resources   = content.filter(c => c.section === 'resource');
+    const liveItems  = content.filter(c => c.isLive);
+    const upcoming   = content.filter(c => !c.isLive && c.scheduledAt && new Date(c.scheduledAt) > now)
+                               .sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt));
+    const updates      = content.filter(c => c.section === 'update'      && !c.isLive);
+    const resources    = content.filter(c => c.section === 'resource');
     const opportunities = content.filter(c => c.section === 'opportunity');
-    const events      = content.filter(c => c.section === 'event'       && !c.isLive);
 
     res.render('dashboard/pathway-detail', {
       title: `${PATHWAY_META[pathway].name} — ONBOARD3`,
       user, pathway, meta: PATHWAY_META[pathway],
       config: config || {},
-      lead, liveItems, upcoming, updates, classes, resources, opportunities, events,
+      lead, liveItems, upcoming, updates, resources, opportunities,
       currentPage: 'career-paths', pathwaySlug: pathway
     });
   } catch (err) {

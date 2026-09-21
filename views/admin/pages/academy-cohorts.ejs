@@ -1,98 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Academy Cohorts — ONBOARD3 Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/admin.css">
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+ <title>Academy Cohorts — ONBOARD3 Admin</title>
+ <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+ <link rel="stylesheet" href="/css/admin.css">
 </head>
 <body>
 <div class="a-bg"></div>
 <%- include('../partials/nav', { page:'academy-cohorts', admin:user }) %>
 <div class="a-main">
-  <div class="a-content">
+ <div class="a-content">
 
-    <div class="a-page-header">
-      <div>
-        <h1><i class="fas fa-graduation-cap"></i> Academy Cohorts</h1>
-        <p>Manage ONBOARD3 Academy cohort programs</p>
-      </div>
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-        <a href="/admin/academy/applications" class="a-btn a-btn-ghost"><i class="fas fa-file-alt"></i> Applications</a>
-        <a href="/admin/academy/cohorts/new" class="a-btn a-btn-primary"><i class="fas fa-plus"></i> New Cohort</a>
-      </div>
-    </div>
+ <div class="a-page-header">
+ <div>
+ <h1><i class="fas fa-graduation-cap"></i> Academy Cohorts</h1>
+ <p>Manage ONBOARD3 Academy cohort programs</p>
+ </div>
+ <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+ <a href="/admin/academy/applications" class="a-btn a-btn-ghost"><i class="fas fa-file-alt"></i> Applications</a>
+ <a href="/admin/academy/cohorts/new" class="a-btn a-btn-primary"><i class="fas fa-plus"></i> New Cohort</a>
+ </div>
+ </div>
 
-    <% if (cohorts.length === 0) { %>
-    <div class="a-card" style="text-align:center;padding:3rem">
-      <i class="fas fa-graduation-cap" style="font-size:2.5rem;color:var(--text-4);display:block;margin-bottom:1rem"></i>
-      <p style="color:var(--text-3)">No cohorts yet. <a href="/admin/academy/cohorts/new" style="color:var(--green)">Create the first one.</a></p>
-    </div>
-    <% } else { %>
-    <div class="a-card" style="padding:0">
-      <table style="width:100%;border-collapse:collapse">
-        <thead>
-          <tr style="background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)">
-            <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Cohort</th>
-            <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Status</th>
-            <th style="padding:.875rem 1rem;text-align:center;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Apps</th>
-            <th style="padding:.875rem 1rem;text-align:center;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Enrolled</th>
-            <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Dates</th>
-            <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-        <% cohorts.forEach(function(c, i) {
-          const cnt = counts[i] || { apps:0, enrolled:0 };
-          const statusColors = { draft:'#6b7280', applications_open:'#5EC213', applications_closed:'#f87171', active:'#fbbf24', ended:'#6b7280' };
-          const statusLabels = { draft:'Draft', applications_open:'Apps Open', applications_closed:'Apps Closed', active:'Active', ended:'Ended' };
-          const sColor = statusColors[c.status] || '#6b7280';
-        %>
-        <tr style="border-bottom:1px solid rgba(255,255,255,.05)" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
-          <td style="padding:.875rem 1rem">
-            <div style="font-weight:800;font-size:.9375rem"><%= c.title %></div>
-            <div style="font-size:.72rem;color:var(--text-3);margin-top:2px"><%= c.topic || '' %> <% if (c.duration) { %>· <%= c.duration %><% } %></div>
-          </td>
-          <td style="padding:.875rem 1rem">
-            <span style="font-size:.75rem;font-weight:700;padding:.25rem .625rem;border-radius:99px;background:<%=sColor%>20;color:<%=sColor%>">
-              <%= statusLabels[c.status] || c.status %>
-            </span>
-          </td>
-          <td style="padding:.875rem 1rem;text-align:center">
-            <a href="/admin/academy/applications?cohort=<%= c._id %>" style="font-weight:800;color:var(--text-2);text-decoration:none"><%= cnt.apps %></a>
-          </td>
-          <td style="padding:.875rem 1rem;text-align:center">
-            <a href="/admin/academy/cohorts/<%= c._id %>/students" style="font-weight:800;color:var(--text-2);text-decoration:none"><%= cnt.enrolled %> / <%= c.seats %></a>
-          </td>
-          <td style="padding:.875rem 1rem;font-size:.78rem;color:var(--text-3)">
-            <% if (c.startDate) { %><div>Start: <%= new Date(c.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></div><% } %>
-            <% if (c.applicationDeadline) { %><div>Apps close: <%= new Date(c.applicationDeadline).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></div><% } %>
-          </td>
-          <td style="padding:.875rem 1rem">
-            <div style="display:flex;gap:.375rem;flex-wrap:wrap">
-              <a href="/admin/academy/cohorts/<%= c._id %>/edit" class="a-btn a-btn-ghost" style="padding:.375rem .75rem;font-size:.78rem"><i class="fas fa-edit"></i> Edit</a>
-              <a href="/admin/academy/applications?cohort=<%= c._id %>" class="a-btn a-btn-ghost" style="padding:.375rem .75rem;font-size:.78rem"><i class="fas fa-file-alt"></i> Apps</a>
-              <a href="/admin/academy/cohorts/<%= c._id %>/students" class="a-btn a-btn-ghost" style="padding:.375rem .75rem;font-size:.78rem"><i class="fas fa-users"></i> Students</a>
-              <button onclick="deleteCohort('<%= c._id %>', '<%= c.title %>')" style="background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:.375rem .625rem;font-size:.78rem;cursor:pointer"><i class="fas fa-trash"></i></button>
-            </div>
-          </td>
-        </tr>
-        <% }); %>
-        </tbody>
-      </table>
-    </div>
-    <% } %>
+ <% if (cohorts.length === 0) { %>
+ <div class="a-card" style="text-align:center;padding:3rem">
+ <i class="fas fa-graduation-cap" style="font-size:2.5rem;color:var(--text-4);display:block;margin-bottom:1rem"></i>
+ <p style="color:var(--text-3)">No cohorts yet. <a href="/admin/academy/cohorts/new" style="color:var(--green)">Create the first one.</a></p>
+ </div>
+ <% } else { %>
+ <div class="a-card" style="padding:0">
+ <table style="width:100%;border-collapse:collapse">
+ <thead>
+ <tr style="background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)">
+ <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Cohort</th>
+ <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Status</th>
+ <th style="padding:.875rem 1rem;text-align:center;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Apps</th>
+ <th style="padding:.875rem 1rem;text-align:center;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Enrolled</th>
+ <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Dates</th>
+ <th style="padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase">Actions</th>
+ </tr>
+ </thead>
+ <tbody>
+ <% cohorts.forEach(function(c, i) {
+ const cnt = counts[i] || { apps:0, enrolled:0 };
+ const statusColors = { draft:'#6b7280', applications_open:'#5EC213', applications_closed:'#f87171', active:'#fbbf24', ended:'#6b7280' };
+ const statusLabels = { draft:'Draft', applications_open:'Apps Open', applications_closed:'Apps Closed', active:'Active', ended:'Ended' };
+ const sColor = statusColors[c.status] || '#6b7280';
+ %>
+ <tr style="border-bottom:1px solid rgba(255,255,255,.05)" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
+ <td style="padding:.875rem 1rem">
+ <div style="font-weight:800;font-size:.9375rem"><%= c.title %></div>
+ <div style="font-size:.72rem;color:var(--text-3);margin-top:2px"><%= c.topic || '' %> <% if (c.duration) { %>· <%= c.duration %><% } %></div>
+ </td>
+ <td style="padding:.875rem 1rem">
+ <span style="font-size:.75rem;font-weight:700;padding:.25rem .625rem;border-radius:99px;background:<%=sColor%>20;color:<%=sColor%>">
+ <%= statusLabels[c.status] || c.status %>
+ </span>
+ </td>
+ <td style="padding:.875rem 1rem;text-align:center">
+ <a href="/admin/academy/applications?cohort=<%= c._id %>" style="font-weight:800;color:var(--text-2);text-decoration:none"><%= cnt.apps %></a>
+ </td>
+ <td style="padding:.875rem 1rem;text-align:center">
+ <a href="/admin/academy/cohorts/<%= c._id %>/students" style="font-weight:800;color:var(--text-2);text-decoration:none"><%= cnt.enrolled %> / <%= c.seats %></a>
+ </td>
+ <td style="padding:.875rem 1rem;font-size:.78rem;color:var(--text-3)">
+ <% if (c.startDate) { %><div>Start: <%= new Date(c.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></div><% } %>
+ <% if (c.applicationDeadline) { %><div>Apps close: <%= new Date(c.applicationDeadline).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></div><% } %>
+ </td>
+ <td style="padding:.875rem 1rem">
+ <div style="display:flex;gap:.375rem;flex-wrap:wrap">
+ <a href="/admin/academy/cohorts/<%= c._id %>/edit" class="a-btn a-btn-ghost" style="padding:.375rem .75rem;font-size:.78rem"><i class="fas fa-edit"></i> Edit</a>
+ <a href="/admin/academy/applications?cohort=<%= c._id %>" class="a-btn a-btn-ghost" style="padding:.375rem .75rem;font-size:.78rem"><i class="fas fa-file-alt"></i> Apps</a>
+ <a href="/admin/academy/cohorts/<%= c._id %>/students" class="a-btn a-btn-ghost" style="padding:.375rem .75rem;font-size:.78rem"><i class="fas fa-users"></i> Students</a>
+ <button onclick="deleteCohort('<%= c._id %>', '<%= c.title %>')" style="background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:.375rem .625rem;font-size:.78rem;cursor:pointer"><i class="fas fa-trash"></i></button>
+ </div>
+ </td>
+ </tr>
+ <% }); %>
+ </tbody>
+ </table>
+ </div>
+ <% } %>
 
-  </div>
+ </div>
 </div>
 
 <script>
 async function deleteCohort(id, title) {
-  if (!confirm('Delete cohort "' + title + '"? This cannot be undone.')) return;
-  const r = await fetch('/admin/academy/cohorts/' + id + '/delete', { method:'POST', headers:{'Accept':'application/json'} });
-  const d = await r.json();
-  if (d.ok) { location.reload(); } else { aToast('Error deleting cohort', 'error'); }
+ if (!confirm('Delete cohort "' + title + '"? This cannot be undone.')) return;
+ const r = await fetch('/admin/academy/cohorts/' + id + '/delete', { method:'POST', headers:{'Accept':'application/json'} });
+ const d = await r.json();
+ if (d.ok) { location.reload(); } else { aToast('Error deleting cohort', 'error'); }
 }
 </script>
 </body>

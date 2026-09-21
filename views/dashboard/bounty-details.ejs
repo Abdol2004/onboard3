@@ -1,378 +1,378 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title><%= title %></title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <%- include('../partials/achievement-popup') %>
-  <link rel="stylesheet" href="/css/dashboard.css">
-  <style>
-    /* ── Reset for this page ── */
-    *, *::before, *::after { box-sizing:border-box; }
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+ <title><%= title %></title>
+ <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+ <%- include('../partials/achievement-popup') %>
+ <link rel="stylesheet" href="/css/dashboard.css">
+ <style>
+ /* ── Reset for this page ── */
+ *, *::before, *::after { box-sizing:border-box; }
 
-    /* ── Hero ── */
-    .bd-hero { border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.07); position:relative; margin-bottom:1.25rem; }
-    .bd-hero-bg { position:absolute; inset:0; background:linear-gradient(135deg,#0c170c 0%,#101a10 60%,#0d1c0c 100%); }
-    .bd-hero-overlay { position:absolute; inset:0; background:radial-gradient(ellipse at 70% 40%,rgba(94,194,19,.07) 0%,transparent 60%),radial-gradient(ellipse at 15% 85%,rgba(251,191,36,.05) 0%,transparent 50%); }
-    <% if (bounty.image) { %>.bd-hero-img { position:absolute; inset:0; background:url('<%= bounty.image %>') center/cover; opacity:.18; }<% } %>
-    .bd-hero-inner { position:relative; z-index:1; padding:1.75rem 1.75rem 1.5rem; }
-    .bd-back { display:inline-flex; align-items:center; gap:.4rem; color:rgba(255,255,255,.38); font-size:.78rem; font-weight:700; text-decoration:none; margin-bottom:1.125rem; letter-spacing:.01em; transition:color .2s; }
-    .bd-back:hover { color:var(--green); }
-    .bd-badges { display:flex; gap:.35rem; flex-wrap:wrap; margin-bottom:.75rem; }
-    .bdb { font-size:.63rem; font-weight:800; padding:.22rem .6rem; border-radius:50px; letter-spacing:.04em; white-space:nowrap; }
-    .bdb-live  { background:rgba(94,194,19,.15);  color:var(--green); border:1px solid rgba(94,194,19,.3); }
-    .bdb-ended { background:rgba(239,68,68,.12);  color:#f87171;      border:1px solid rgba(239,68,68,.25); }
-    .bdb-int   { background:rgba(251,146,60,.12); color:#fb923c;      border:1px solid rgba(251,146,60,.25); }
-    .bdb-win   { background:rgba(251,191,36,.15); color:#fbbf24;      border:1px solid rgba(251,191,36,.3); }
-    .bdb-cat   { background:rgba(255,255,255,.06); color:rgba(255,255,255,.45); border:1px solid rgba(255,255,255,.09); text-transform:capitalize; }
-    .bd-title  { font-size:clamp(1.25rem,2.8vw,1.875rem); font-weight:900; color:#fff; letter-spacing:-.03em; line-height:1.2; margin-bottom:.5rem; word-break:break-word; }
-    .bd-short  { color:rgba(255,255,255,.5); font-size:.875rem; line-height:1.65; margin-bottom:1.125rem; }
-    .bd-pills  { display:flex; gap:.5rem; flex-wrap:wrap; }
-    .bd-pill   { display:inline-flex; align-items:center; gap:.4rem; padding:.4rem .875rem; border-radius:50px; font-size:.78rem; font-weight:800; }
-    .bd-pill-pool { background:rgba(251,191,36,.12); color:#fbbf24; border:1px solid rgba(251,191,36,.25); }
-    .bd-pill-subs { background:rgba(94,194,19,.08);  color:var(--green); border:1px solid rgba(94,194,19,.18); }
+ /* ── Hero ── */
+ .bd-hero { border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.07); position:relative; margin-bottom:1.25rem; }
+ .bd-hero-bg { position:absolute; inset:0; background:linear-gradient(135deg,#0c170c 0%,#101a10 60%,#0d1c0c 100%); }
+ .bd-hero-overlay { position:absolute; inset:0; background:radial-gradient(ellipse at 70% 40%,rgba(94,194,19,.07) 0%,transparent 60%),radial-gradient(ellipse at 15% 85%,rgba(251,191,36,.05) 0%,transparent 50%); }
+ <% if (bounty.image) { %>.bd-hero-img { position:absolute; inset:0; background:url('<%= bounty.image %>') center/cover; opacity:.18; }<% } %>
+ .bd-hero-inner { position:relative; z-index:1; padding:1.75rem 1.75rem 1.5rem; }
+ .bd-back { display:inline-flex; align-items:center; gap:.4rem; color:rgba(255,255,255,.38); font-size:.78rem; font-weight:700; text-decoration:none; margin-bottom:1.125rem; letter-spacing:.01em; transition:color .2s; }
+ .bd-back:hover { color:var(--green); }
+ .bd-badges { display:flex; gap:.35rem; flex-wrap:wrap; margin-bottom:.75rem; }
+ .bdb { font-size:.63rem; font-weight:800; padding:.22rem .6rem; border-radius:50px; letter-spacing:.04em; white-space:nowrap; }
+ .bdb-live { background:rgba(94,194,19,.15); color:var(--green); border:1px solid rgba(94,194,19,.3); }
+ .bdb-ended { background:rgba(239,68,68,.12); color:#f87171; border:1px solid rgba(239,68,68,.25); }
+ .bdb-int { background:rgba(251,146,60,.12); color:#fb923c; border:1px solid rgba(251,146,60,.25); }
+ .bdb-win { background:rgba(251,191,36,.15); color:#fbbf24; border:1px solid rgba(251,191,36,.3); }
+ .bdb-cat { background:rgba(255,255,255,.06); color:rgba(255,255,255,.45); border:1px solid rgba(255,255,255,.09); text-transform:capitalize; }
+ .bd-title { font-size:clamp(1.25rem,2.8vw,1.875rem); font-weight:900; color:#fff; letter-spacing:-.03em; line-height:1.2; margin-bottom:.5rem; word-break:break-word; }
+ .bd-short { color:rgba(255,255,255,.5); font-size:.875rem; line-height:1.65; margin-bottom:1.125rem; }
+ .bd-pills { display:flex; gap:.5rem; flex-wrap:wrap; }
+ .bd-pill { display:inline-flex; align-items:center; gap:.4rem; padding:.4rem .875rem; border-radius:50px; font-size:.78rem; font-weight:800; }
+ .bd-pill-pool { background:rgba(251,191,36,.12); color:#fbbf24; border:1px solid rgba(251,191,36,.25); }
+ .bd-pill-subs { background:rgba(94,194,19,.08); color:var(--green); border:1px solid rgba(94,194,19,.18); }
 
-    /* ── Two-col layout ── */
-    .bd-layout { display:grid; grid-template-columns:1fr 290px; gap:1.125rem; align-items:start; }
-    @media (max-width:1024px) { .bd-layout { grid-template-columns:1fr 260px; } }
-    @media (max-width:768px)  {
-      .bd-layout { grid-template-columns:1fr; gap:.875rem; }
-      .bd-layout > * { min-width:0; }
-    }
+ /* ── Two-col layout ── */
+ .bd-layout { display:grid; grid-template-columns:1fr 290px; gap:1.125rem; align-items:start; }
+ @media (max-width:1024px) { .bd-layout { grid-template-columns:1fr 260px; } }
+ @media (max-width:768px) {
+ .bd-layout { grid-template-columns:1fr; gap:.875rem; }
+ .bd-layout > * { min-width:0; }
+ }
 
-    /* ── Section box ── */
-    .bd-box { background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.07); border-radius:14px; overflow:hidden; margin-bottom:.875rem; width:100%; }
-    .bd-box:last-child { margin-bottom:0; }
-    .bd-box-head { display:flex; align-items:center; gap:.5rem; padding:.875rem 1.125rem; border-bottom:1px solid rgba(255,255,255,.06); }
-    .bd-box-head h3 { font-size:.84rem; font-weight:800; color:rgba(255,255,255,.85); letter-spacing:-.01em; display:flex; align-items:center; gap:.45rem; margin:0; }
-    .bd-box-head h3 i { color:var(--green); font-size:.78rem; }
-    .bd-box-body { padding:1.125rem; }
+ /* ── Section box ── */
+ .bd-box { background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.07); border-radius:14px; overflow:hidden; margin-bottom:.875rem; width:100%; }
+ .bd-box:last-child { margin-bottom:0; }
+ .bd-box-head { display:flex; align-items:center; gap:.5rem; padding:.875rem 1.125rem; border-bottom:1px solid rgba(255,255,255,.06); }
+ .bd-box-head h3 { font-size:.84rem; font-weight:800; color:rgba(255,255,255,.85); letter-spacing:-.01em; display:flex; align-items:center; gap:.45rem; margin:0; }
+ .bd-box-head h3 i { color:var(--green); font-size:.78rem; }
+ .bd-box-body { padding:1.125rem; }
 
-    /* ── Description ── */
-    .bd-desc-text { color:rgba(255,255,255,.55); line-height:1.75; font-size:.875rem; white-space:pre-wrap; word-break:break-word; overflow-wrap:break-word; }
+ /* ── Description ── */
+ .bd-desc-text { color:rgba(255,255,255,.55); line-height:1.75; font-size:.875rem; white-space:pre-wrap; word-break:break-word; overflow-wrap:break-word; }
 
-    /* ── Reward table ── */
-    .bd-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    .bd-split { width:100%; border-collapse:collapse; font-size:.84rem; min-width:260px; }
-    .bd-split th { text-align:left; color:rgba(255,255,255,.32); font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; padding:.625rem 1.125rem; }
-    .bd-split td { padding:.6rem 1.125rem; border-top:1px solid rgba(255,255,255,.05); color:rgba(255,255,255,.82); font-weight:700; white-space:nowrap; }
-    .bd-split .gold { color:#fbbf24; }
+ /* ── Reward table ── */
+ .bd-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+ .bd-split { width:100%; border-collapse:collapse; font-size:.84rem; min-width:260px; }
+ .bd-split th { text-align:left; color:rgba(255,255,255,.32); font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; padding:.625rem 1.125rem; }
+ .bd-split td { padding:.6rem 1.125rem; border-top:1px solid rgba(255,255,255,.05); color:rgba(255,255,255,.82); font-weight:700; white-space:nowrap; }
+ .bd-split .gold { color:#fbbf24; }
 
-    /* ── Winner cards ── */
-    .bd-winner { background:linear-gradient(135deg,rgba(251,191,36,.06),rgba(251,146,60,.03)); border:1px solid rgba(251,191,36,.18); border-radius:12px; padding:.875rem 1rem; display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
-    .bd-w-rank { width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:.95rem; flex-shrink:0; }
-    .bd-w-rank-1 { background:rgba(251,191,36,.18); }
-    .bd-w-rank-2 { background:rgba(148,163,184,.12); }
-    .bd-w-rank-3 { background:rgba(180,120,80,.12); }
-    .bd-w-pfp { width:36px; height:36px; border-radius:9px; flex-shrink:0; background:rgba(94,194,19,.1); border:1px solid rgba(94,194,19,.15); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); overflow:hidden; font-size:.85rem; }
-    .bd-w-pfp img { width:100%; height:100%; object-fit:cover; }
-    .bd-w-info { flex:1; min-width:0; }
-    .bd-w-name { font-size:.84rem; font-weight:800; color:rgba(255,255,255,.9); }
-    .bd-w-sub  { font-size:.74rem; color:rgba(255,255,255,.4); margin-top:2px; }
-    .bd-w-amt  { font-size:.9rem; font-weight:900; color:#fbbf24; flex-shrink:0; }
+ /* ── Winner cards ── */
+ .bd-winner { background:linear-gradient(135deg,rgba(251,191,36,.06),rgba(251,146,60,.03)); border:1px solid rgba(251,191,36,.18); border-radius:12px; padding:.875rem 1rem; display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
+ .bd-w-rank { width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:.95rem; flex-shrink:0; }
+ .bd-w-rank-1 { background:rgba(251,191,36,.18); }
+ .bd-w-rank-2 { background:rgba(148,163,184,.12); }
+ .bd-w-rank-3 { background:rgba(180,120,80,.12); }
+ .bd-w-pfp { width:36px; height:36px; border-radius:9px; flex-shrink:0; background:rgba(94,194,19,.1); border:1px solid rgba(94,194,19,.15); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); overflow:hidden; font-size:.85rem; }
+ .bd-w-pfp img { width:100%; height:100%; object-fit:cover; }
+ .bd-w-info { flex:1; min-width:0; }
+ .bd-w-name { font-size:.84rem; font-weight:800; color:rgba(255,255,255,.9); }
+ .bd-w-sub { font-size:.74rem; color:rgba(255,255,255,.4); margin-top:2px; }
+ .bd-w-amt { font-size:.9rem; font-weight:900; color:#fbbf24; flex-shrink:0; }
 
-    /* ── Submission cards ── */
-    .bd-sub { background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.06); border-radius:11px; padding:.875rem; display:flex; gap:.75rem; align-items:flex-start; }
-    .bd-sub-pfp { width:34px; height:34px; border-radius:8px; flex-shrink:0; background:rgba(94,194,19,.08); border:1px solid rgba(94,194,19,.14); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); font-size:.82rem; overflow:hidden; }
-    .bd-sub-pfp img { width:100%; height:100%; object-fit:cover; }
-    .bd-sub-body { flex:1; min-width:0; }
-    .bd-sub-name { font-size:.82rem; font-weight:800; color:rgba(255,255,255,.9); }
-    .bd-sub-badge { display:inline-flex; align-items:center; gap:.25rem; padding:.12rem .5rem; border-radius:50px; background:rgba(251,191,36,.12); color:#fbbf24; border:1px solid rgba(251,191,36,.28); font-size:.6rem; font-weight:800; margin-left:.4rem; vertical-align:middle; }
-    .bd-sub-title { font-size:.77rem; color:rgba(255,255,255,.5); margin:.2rem 0 .3rem; font-weight:600; }
-    .bd-sub-desc  { font-size:.74rem; color:rgba(255,255,255,.38); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .bd-sub-link  { display:inline-flex; align-items:center; gap:.3rem; font-size:.71rem; color:var(--green); font-weight:700; text-decoration:none; margin-top:.4rem; }
-    .bd-sub-meta  { font-size:.67rem; color:rgba(255,255,255,.28); margin-top:.35rem; }
-    .bd-sub-won   { flex-shrink:0; font-weight:900; color:#fbbf24; font-size:.82rem; padding-top:.1rem; }
+ /* ── Submission cards ── */
+ .bd-sub { background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.06); border-radius:11px; padding:.875rem; display:flex; gap:.75rem; align-items:flex-start; }
+ .bd-sub-pfp { width:34px; height:34px; border-radius:8px; flex-shrink:0; background:rgba(94,194,19,.08); border:1px solid rgba(94,194,19,.14); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); font-size:.82rem; overflow:hidden; }
+ .bd-sub-pfp img { width:100%; height:100%; object-fit:cover; }
+ .bd-sub-body { flex:1; min-width:0; }
+ .bd-sub-name { font-size:.82rem; font-weight:800; color:rgba(255,255,255,.9); }
+ .bd-sub-badge { display:inline-flex; align-items:center; gap:.25rem; padding:.12rem .5rem; border-radius:50px; background:rgba(251,191,36,.12); color:#fbbf24; border:1px solid rgba(251,191,36,.28); font-size:.6rem; font-weight:800; margin-left:.4rem; vertical-align:middle; }
+ .bd-sub-title { font-size:.77rem; color:rgba(255,255,255,.5); margin:.2rem 0 .3rem; font-weight:600; }
+ .bd-sub-desc { font-size:.74rem; color:rgba(255,255,255,.38); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+ .bd-sub-link { display:inline-flex; align-items:center; gap:.3rem; font-size:.71rem; color:var(--green); font-weight:700; text-decoration:none; margin-top:.4rem; }
+ .bd-sub-meta { font-size:.67rem; color:rgba(255,255,255,.28); margin-top:.35rem; }
+ .bd-sub-won { flex-shrink:0; font-weight:900; color:#fbbf24; font-size:.82rem; padding-top:.1rem; }
 
-    /* ── Sidebar ── */
-    .bd-sidebar { display:flex; flex-direction:column; gap:.875rem; }
+ /* ── Sidebar ── */
+ .bd-sidebar { display:flex; flex-direction:column; gap:.875rem; }
 
-    /* ── Countdown ── */
-    .bd-countdown { background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.07); border-radius:13px; padding:1.125rem 1rem; text-align:center; }
-    .bd-cd-val { font-size:1.5rem; font-weight:900; color:#fff; font-variant-numeric:tabular-nums; letter-spacing:-.03em; }
-    .bd-cd-val.urgent { color:#f87171; }
-    .bd-cd-lbl { font-size:.67rem; color:rgba(255,255,255,.32); font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-top:.3rem; }
+ /* ── Countdown ── */
+ .bd-countdown { background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.07); border-radius:13px; padding:1.125rem 1rem; text-align:center; }
+ .bd-cd-val { font-size:1.5rem; font-weight:900; color:#fff; font-variant-numeric:tabular-nums; letter-spacing:-.03em; }
+ .bd-cd-val.urgent { color:#f87171; }
+ .bd-cd-lbl { font-size:.67rem; color:rgba(255,255,255,.32); font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-top:.3rem; }
 
-    /* ── Submit panel ── */
-    .bd-submit { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:1.25rem; width:100%; }
-    .bd-submit-title { font-size:.875rem; font-weight:900; color:rgba(255,255,255,.9); margin-bottom:1rem; display:flex; align-items:center; gap:.45rem; }
-    .bd-submit-title i { color:var(--green); }
-    .bd-fg { margin-bottom:.875rem; }
-    .bd-fg label { display:block; font-size:.67rem; font-weight:800; color:rgba(255,255,255,.32); text-transform:uppercase; letter-spacing:.07em; margin-bottom:.35rem; }
-    .bd-fg input, .bd-fg textarea { width:100%; min-width:0; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09); border-radius:10px; color:rgba(255,255,255,.88); font-family:'Outfit',sans-serif; font-size:.875rem; padding:.7rem .875rem; resize:vertical; box-sizing:border-box; transition:border-color .2s,background .2s; }
-    .bd-fg input:focus, .bd-fg textarea:focus { border-color:rgba(94,194,19,.4); outline:none; background:rgba(255,255,255,.06); }
-    .bd-fg input::placeholder, .bd-fg textarea::placeholder { color:rgba(255,255,255,.22); font-size:.84rem; }
-    .bd-submit-btn { width:100%; padding:.85rem; border-radius:11px; background:var(--green); color:#000; font-family:'Outfit',sans-serif; font-size:.9rem; font-weight:900; border:none; cursor:pointer; transition:all .22s; letter-spacing:-.01em; }
-    .bd-submit-btn:hover:not(:disabled) { opacity:.88; transform:translateY(-1px); box-shadow:0 6px 18px rgba(94,194,19,.35); }
-    .bd-submit-btn:disabled { opacity:.42; cursor:not-allowed; }
+ /* ── Submit panel ── */
+ .bd-submit { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:1.25rem; width:100%; }
+ .bd-submit-title { font-size:.875rem; font-weight:900; color:rgba(255,255,255,.9); margin-bottom:1rem; display:flex; align-items:center; gap:.45rem; }
+ .bd-submit-title i { color:var(--green); }
+ .bd-fg { margin-bottom:.875rem; }
+ .bd-fg label { display:block; font-size:.67rem; font-weight:800; color:rgba(255,255,255,.32); text-transform:uppercase; letter-spacing:.07em; margin-bottom:.35rem; }
+ .bd-fg input, .bd-fg textarea { width:100%; min-width:0; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09); border-radius:10px; color:rgba(255,255,255,.88); font-family:'Outfit',sans-serif; font-size:.875rem; padding:.7rem .875rem; resize:vertical; box-sizing:border-box; transition:border-color .2s,background .2s; }
+ .bd-fg input:focus, .bd-fg textarea:focus { border-color:rgba(94,194,19,.4); outline:none; background:rgba(255,255,255,.06); }
+ .bd-fg input::placeholder, .bd-fg textarea::placeholder { color:rgba(255,255,255,.22); font-size:.84rem; }
+ .bd-submit-btn { width:100%; padding:.85rem; border-radius:11px; background:var(--green); color:#000; font-family:'Outfit',sans-serif; font-size:.9rem; font-weight:900; border:none; cursor:pointer; transition:all .22s; letter-spacing:-.01em; }
+ .bd-submit-btn:hover:not(:disabled) { opacity:.88; transform:translateY(-1px); box-shadow:0 6px 18px rgba(94,194,19,.35); }
+ .bd-submit-btn:disabled { opacity:.42; cursor:not-allowed; }
 
-    /* ── Status states ── */
-    .bd-status { text-align:center; padding:1.25rem .5rem; }
-    .bd-status i { font-size:2.25rem; display:block; margin-bottom:.75rem; }
-    .bd-status h3 { font-size:.9375rem; font-weight:900; margin-bottom:.375rem; }
-    .bd-status p { font-size:.8rem; color:rgba(255,255,255,.38); line-height:1.55; }
-    .bd-my-sub { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:10px; padding:.75rem .875rem; text-align:left; margin-top:.75rem; }
-    .bd-my-sub strong { font-size:.82rem; color:rgba(255,255,255,.85); font-weight:800; display:block; margin-bottom:.25rem; }
-    .bd-my-sub p { font-size:.75rem; color:rgba(255,255,255,.38); margin:0; line-height:1.5; }
+ /* ── Status states ── */
+ .bd-status { text-align:center; padding:1.25rem .5rem; }
+ .bd-status i { font-size:2.25rem; display:block; margin-bottom:.75rem; }
+ .bd-status h3 { font-size:.9375rem; font-weight:900; margin-bottom:.375rem; }
+ .bd-status p { font-size:.8rem; color:rgba(255,255,255,.38); line-height:1.55; }
+ .bd-my-sub { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:10px; padding:.75rem .875rem; text-align:left; margin-top:.75rem; }
+ .bd-my-sub strong { font-size:.82rem; color:rgba(255,255,255,.85); font-weight:800; display:block; margin-bottom:.25rem; }
+ .bd-my-sub p { font-size:.75rem; color:rgba(255,255,255,.38); margin:0; line-height:1.5; }
 
-    /* ── Empty ── */
-    .bd-empty { text-align:center; padding:2.5rem 1rem; color:rgba(255,255,255,.28); font-size:.84rem; }
-    .bd-empty i { display:block; font-size:1.5rem; margin-bottom:.5rem; opacity:.35; }
+ /* ── Empty ── */
+ .bd-empty { text-align:center; padding:2.5rem 1rem; color:rgba(255,255,255,.28); font-size:.84rem; }
+ .bd-empty i { display:block; font-size:1.5rem; margin-bottom:.5rem; opacity:.35; }
 
-    /* ── Mobile ── */
-    @media (max-width:480px) {
-      .bd-hero-inner { padding:1.25rem 1rem 1.125rem; }
-      .bd-back { font-size:.74rem; margin-bottom:.875rem; }
-      .bd-title { font-size:1.2rem; }
-      .bd-short { font-size:.83rem; }
-      .bd-pill { font-size:.74rem; padding:.35rem .75rem; }
-      .bd-box-head { padding:.75rem 1rem; }
-      .bd-box-body { padding:1rem; }
-      .bd-submit { padding:1rem; }
-      .bd-countdown { padding:.875rem; }
-      .bd-cd-val { font-size:1.25rem; }
-      .bd-winner { padding:.75rem; gap:.625rem; }
-      .bd-sub { padding:.75rem; gap:.625rem; }
-      .bd-sub-pfp { width:30px; height:30px; font-size:.78rem; }
-      .bd-w-pfp { width:32px; height:32px; }
-      .bd-w-rank { width:30px; height:30px; font-size:.85rem; }
-    }
-  </style>
+ /* ── Mobile ── */
+ @media (max-width:480px) {
+ .bd-hero-inner { padding:1.25rem 1rem 1.125rem; }
+ .bd-back { font-size:.74rem; margin-bottom:.875rem; }
+ .bd-title { font-size:1.2rem; }
+ .bd-short { font-size:.83rem; }
+ .bd-pill { font-size:.74rem; padding:.35rem .75rem; }
+ .bd-box-head { padding:.75rem 1rem; }
+ .bd-box-body { padding:1rem; }
+ .bd-submit { padding:1rem; }
+ .bd-countdown { padding:.875rem; }
+ .bd-cd-val { font-size:1.25rem; }
+ .bd-winner { padding:.75rem; gap:.625rem; }
+ .bd-sub { padding:.75rem; gap:.625rem; }
+ .bd-sub-pfp { width:30px; height:30px; font-size:.78rem; }
+ .bd-w-pfp { width:32px; height:32px; }
+ .bd-w-rank { width:30px; height:30px; font-size:.85rem; }
+ }
+ </style>
 </head>
 <body>
 <%- include('../partials/sidebar', { user, currentPage }) %>
 <div class="dashboard-container">
-  <main class="main-content">
-    <div class="content" style="gap:0;padding-bottom:3rem">
+ <main class="main-content">
+ <div class="content" style="gap:0;padding-bottom:3rem">
 
-    <!-- ═══ HERO ═══ -->
-    <div class="bd-hero">
-      <div class="bd-hero-bg"></div>
-      <div class="bd-hero-overlay"></div>
-      <% if (bounty.image) { %><div class="bd-hero-img"></div><% } %>
-      <div class="bd-hero-inner">
-        <a href="/dashboard/bounties" class="bd-back"><i class="fas fa-arrow-left"></i> All Bounties</a>
-        <div class="bd-badges">
-          <span class="bdb bdb-int">ONBOARD3</span>
-          <% if (bounty.status === 'winners_announced') { %>
-            <span class="bdb bdb-win"><i class="fas fa-trophy"></i> Winners Announced</span>
-          <% } else if (bounty.hasEnded || (bounty.endDate && new Date() > new Date(bounty.endDate))) { %>
-            <span class="bdb bdb-ended">Ended</span>
-          <% } else { %>
-            <span class="bdb bdb-live"><i class="fas fa-circle" style="font-size:.4rem"></i> Live</span>
-          <% } %>
-          <% if (bounty.category) { %><span class="bdb bdb-cat"><%= bounty.category %></span><% } %>
-        </div>
-        <h1 class="bd-title"><%= bounty.title %></h1>
-        <p class="bd-short"><%= bounty.shortDescription %></p>
-        <div class="bd-pills">
-          <span class="bd-pill bd-pill-pool"><i class="fas fa-coins"></i> <%= (bounty.rewardPool||0).toLocaleString() %> <%= bounty.rewardToken || 'USDC' %> Pool</span>
-          <span class="bd-pill bd-pill-subs"><i class="fas fa-file-alt"></i> <%= submissions.length %> Submission<%= submissions.length !== 1 ? 's' : '' %></span>
-        </div>
-      </div>
-    </div>
+ <!-- ═══ HERO ═══ -->
+ <div class="bd-hero">
+ <div class="bd-hero-bg"></div>
+ <div class="bd-hero-overlay"></div>
+ <% if (bounty.image) { %><div class="bd-hero-img"></div><% } %>
+ <div class="bd-hero-inner">
+ <a href="/dashboard/bounties" class="bd-back"><i class="fas fa-arrow-left"></i> All Bounties</a>
+ <div class="bd-badges">
+ <span class="bdb bdb-int">ONBOARD3</span>
+ <% if (bounty.status === 'winners_announced') { %>
+ <span class="bdb bdb-win"><i class="fas fa-trophy"></i> Winners Announced</span>
+ <% } else if (bounty.hasEnded || (bounty.endDate && new Date() > new Date(bounty.endDate))) { %>
+ <span class="bdb bdb-ended">Ended</span>
+ <% } else { %>
+ <span class="bdb bdb-live"><i class="fas fa-circle" style="font-size:.4rem"></i> Live</span>
+ <% } %>
+ <% if (bounty.category) { %><span class="bdb bdb-cat"><%= bounty.category %></span><% } %>
+ </div>
+ <h1 class="bd-title"><%= bounty.title %></h1>
+ <p class="bd-short"><%= bounty.shortDescription %></p>
+ <div class="bd-pills">
+ <span class="bd-pill bd-pill-pool"><i class="fas fa-coins"></i> <%= (bounty.rewardPool||0).toLocaleString() %> <%= bounty.rewardToken || 'USDC' %> Pool</span>
+ <span class="bd-pill bd-pill-subs"><i class="fas fa-file-alt"></i> <%= submissions.length %> Submission<%= submissions.length !== 1 ? 's' : '' %></span>
+ </div>
+ </div>
+ </div>
 
-    <!-- ═══ LAYOUT ═══ -->
-    <div class="bd-layout">
+ <!-- ═══ LAYOUT ═══ -->
+ <div class="bd-layout">
 
-      <!-- Left column: content -->
-      <div>
+ <!-- Left column: content -->
+ <div>
 
-        <!-- About -->
-        <div class="bd-box">
-          <div class="bd-box-head"><h3><i class="fas fa-info-circle"></i> About This Bounty</h3></div>
-          <div class="bd-box-body">
-            <div class="bd-desc-text"><%= bounty.description %></div>
-          </div>
-        </div>
+ <!-- About -->
+ <div class="bd-box">
+ <div class="bd-box-head"><h3><i class="fas fa-info-circle"></i> About This Bounty</h3></div>
+ <div class="bd-box-body">
+ <div class="bd-desc-text"><%= bounty.description %></div>
+ </div>
+ </div>
 
-        <!-- Reward split -->
-        <% if (bounty.rewardSplit && bounty.rewardSplit.length > 0) { %>
-        <div class="bd-box">
-          <div class="bd-box-head"><h3><i class="fas fa-chart-pie"></i> Reward Split</h3></div>
-          <div class="bd-table-wrap">
-            <table class="bd-split">
-              <thead><tr><th>Rank</th><th>%</th><th>Amount</th></tr></thead>
-              <tbody>
-              <% bounty.rewardSplit.forEach(function(s, i) { %>
-              <tr>
-                <td class="gold"><%= i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1) %> <%= s.label %></td>
-                <td><%= s.percentage %>%</td>
-                <td class="gold"><%= (s.amount || Math.round(bounty.rewardPool * s.percentage / 100 * 100)/100).toLocaleString() %> <%= bounty.rewardToken || 'USDC' %></td>
-              </tr>
-              <% }); %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <% } %>
+ <!-- Reward split -->
+ <% if (bounty.rewardSplit && bounty.rewardSplit.length > 0) { %>
+ <div class="bd-box">
+ <div class="bd-box-head"><h3><i class="fas fa-chart-pie"></i> Reward Split</h3></div>
+ <div class="bd-table-wrap">
+ <table class="bd-split">
+ <thead><tr><th>Rank</th><th>%</th><th>Amount</th></tr></thead>
+ <tbody>
+ <% bounty.rewardSplit.forEach(function(s, i) { %>
+ <tr>
+ <td class="gold"><%= i===0?'':i===1?'':i===2?'':'#'+(i+1) %> <%= s.label %></td>
+ <td><%= s.percentage %>%</td>
+ <td class="gold"><%= (s.amount || Math.round(bounty.rewardPool * s.percentage / 100 * 100)/100).toLocaleString() %> <%= bounty.rewardToken || 'USDC' %></td>
+ </tr>
+ <% }); %>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ <% } %>
 
-        <!-- Winners -->
-        <% if (bounty.status === 'winners_announced' && bounty.winners && bounty.winners.length > 0) { %>
-        <div class="bd-box">
-          <div class="bd-box-head"><h3><i class="fas fa-trophy" style="color:#fbbf24"></i> Winners</h3></div>
-          <div class="bd-box-body" style="display:flex;flex-direction:column;gap:.75rem">
-            <% bounty.winners.forEach(function(w) {
-              const winSub = submissions.find(s => s._id.toString() === (w.submissionId||'').toString());
-            %>
-            <div class="bd-winner">
-              <div class="bd-w-rank bd-w-rank-<%= Math.min(w.rank,3) %>"><%= w.rank===1?'🥇':w.rank===2?'🥈':w.rank===3?'🥉':'#'+w.rank %></div>
-              <div class="bd-w-pfp">
-                <% if (winSub?.userId?.profilePicture) { %>
-                <img src="<%= winSub.userId.profilePicture %>" alt="">
-                <% } else { %><span><%= (winSub?.userId?.username || '?').charAt(0).toUpperCase() %></span><% } %>
-              </div>
-              <div class="bd-w-info">
-                <div class="bd-w-name"><%= winSub?.userId?.username || 'Unknown' %></div>
-                <% if (winSub) { %><div class="bd-w-sub"><%= winSub.title %></div><% } %>
-              </div>
-              <div class="bd-w-amt"><%= (w.amountWon||0).toLocaleString() %> <%= bounty.rewardToken||'USDC' %></div>
-            </div>
-            <% }); %>
-          </div>
-        </div>
-        <% } %>
+ <!-- Winners -->
+ <% if (bounty.status === 'winners_announced' && bounty.winners && bounty.winners.length > 0) { %>
+ <div class="bd-box">
+ <div class="bd-box-head"><h3><i class="fas fa-trophy" style="color:#fbbf24"></i> Winners</h3></div>
+ <div class="bd-box-body" style="display:flex;flex-direction:column;gap:.75rem">
+ <% bounty.winners.forEach(function(w) {
+ const winSub = submissions.find(s => s._id.toString() === (w.submissionId||'').toString());
+ %>
+ <div class="bd-winner">
+ <div class="bd-w-rank bd-w-rank-<%= Math.min(w.rank,3) %>"><%= w.rank===1?'':w.rank===2?'':w.rank===3?'':'#'+w.rank %></div>
+ <div class="bd-w-pfp">
+ <% if (winSub?.userId?.profilePicture) { %>
+ <img src="<%= winSub.userId.profilePicture %>" alt="">
+ <% } else { %><span><%= (winSub?.userId?.username || '?').charAt(0).toUpperCase() %></span><% } %>
+ </div>
+ <div class="bd-w-info">
+ <div class="bd-w-name"><%= winSub?.userId?.username || 'Unknown' %></div>
+ <% if (winSub) { %><div class="bd-w-sub"><%= winSub.title %></div><% } %>
+ </div>
+ <div class="bd-w-amt"><%= (w.amountWon||0).toLocaleString() %> <%= bounty.rewardToken||'USDC' %></div>
+ </div>
+ <% }); %>
+ </div>
+ </div>
+ <% } %>
 
-        <!-- Submissions -->
-        <div class="bd-box">
-          <div class="bd-box-head"><h3><i class="fas fa-file-alt"></i> Submissions (<%= submissions.length %>)</h3></div>
-          <div class="bd-box-body" style="display:flex;flex-direction:column;gap:.625rem">
-            <% if (submissions.length === 0) { %>
-            <div class="bd-empty"><i class="fas fa-inbox"></i>No submissions yet. Be the first!</div>
-            <% } %>
-            <% submissions.forEach(function(sub) { %>
-            <div class="bd-sub" style="<%= sub.status==='winner'?'border-color:rgba(251,191,36,.28);background:rgba(251,191,36,.03)':'' %>">
-              <div class="bd-sub-pfp">
-                <% if (sub.userId?.profilePicture) { %>
-                <img src="<%= sub.userId.profilePicture %>" alt="">
-                <% } else { %><span><%= (sub.userId?.username||'?').charAt(0).toUpperCase() %></span><% } %>
-              </div>
-              <div class="bd-sub-body">
-                <div class="bd-sub-name">
-                  <%= sub.userId?.username || 'Anonymous' %>
-                  <% if (sub.status === 'winner') { %><span class="bd-sub-badge"><i class="fas fa-trophy"></i> #<%= sub.rank %> Winner</span><% } %>
-                </div>
-                <div class="bd-sub-title"><%= sub.title %></div>
-                <div class="bd-sub-desc"><%= sub.description %></div>
-                <% if (sub.submissionUrl) { %>
-                <a href="<%= sub.submissionUrl %>" target="_blank" class="bd-sub-link"><i class="fas fa-external-link-alt"></i> View Work</a>
-                <% } %>
-                <div class="bd-sub-meta"><%= new Date(sub.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></div>
-              </div>
-              <% if (sub.amountWon) { %><div class="bd-sub-won"><%= sub.amountWon.toLocaleString() %> <%= bounty.rewardToken||'USDC' %></div><% } %>
-            </div>
-            <% }); %>
-          </div>
-        </div>
+ <!-- Submissions -->
+ <div class="bd-box">
+ <div class="bd-box-head"><h3><i class="fas fa-file-alt"></i> Submissions (<%= submissions.length %>)</h3></div>
+ <div class="bd-box-body" style="display:flex;flex-direction:column;gap:.625rem">
+ <% if (submissions.length === 0) { %>
+ <div class="bd-empty"><i class="fas fa-inbox"></i>No submissions yet. Be the first!</div>
+ <% } %>
+ <% submissions.forEach(function(sub) { %>
+ <div class="bd-sub" style="<%= sub.status==='winner'?'border-color:rgba(251,191,36,.28);background:rgba(251,191,36,.03)':'' %>">
+ <div class="bd-sub-pfp">
+ <% if (sub.userId?.profilePicture) { %>
+ <img src="<%= sub.userId.profilePicture %>" alt="">
+ <% } else { %><span><%= (sub.userId?.username||'?').charAt(0).toUpperCase() %></span><% } %>
+ </div>
+ <div class="bd-sub-body">
+ <div class="bd-sub-name">
+ <%= sub.userId?.username || 'Anonymous' %>
+ <% if (sub.status === 'winner') { %><span class="bd-sub-badge"><i class="fas fa-trophy"></i> #<%= sub.rank %> Winner</span><% } %>
+ </div>
+ <div class="bd-sub-title"><%= sub.title %></div>
+ <div class="bd-sub-desc"><%= sub.description %></div>
+ <% if (sub.submissionUrl) { %>
+ <a href="<%= sub.submissionUrl %>" target="_blank" class="bd-sub-link"><i class="fas fa-external-link-alt"></i> View Work</a>
+ <% } %>
+ <div class="bd-sub-meta"><%= new Date(sub.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></div>
+ </div>
+ <% if (sub.amountWon) { %><div class="bd-sub-won"><%= sub.amountWon.toLocaleString() %> <%= bounty.rewardToken||'USDC' %></div><% } %>
+ </div>
+ <% }); %>
+ </div>
+ </div>
 
-      </div><!-- /left -->
+ </div><!-- /left -->
 
-      <!-- Right column: sidebar -->
-      <div class="bd-sidebar">
+ <!-- Right column: sidebar -->
+ <div class="bd-sidebar">
 
-        <!-- Countdown -->
-        <% if (bounty.endDate) { %>
-        <div class="bd-countdown">
-          <% const ended = new Date() > new Date(bounty.endDate); %>
-          <% if (ended || bounty.status === 'winners_announced') { %>
-          <div class="bd-cd-val">Ended</div>
-          <div class="bd-cd-lbl">This bounty is closed</div>
-          <% } else { %>
-          <div class="bd-cd-val" id="cdVal">--</div>
-          <div class="bd-cd-lbl">Time Remaining</div>
-          <% } %>
-        </div>
-        <% } %>
+ <!-- Countdown -->
+ <% if (bounty.endDate) { %>
+ <div class="bd-countdown">
+ <% const ended = new Date() > new Date(bounty.endDate); %>
+ <% if (ended || bounty.status === 'winners_announced') { %>
+ <div class="bd-cd-val">Ended</div>
+ <div class="bd-cd-lbl">This bounty is closed</div>
+ <% } else { %>
+ <div class="bd-cd-val" id="cdVal">--</div>
+ <div class="bd-cd-lbl">Time Remaining</div>
+ <% } %>
+ </div>
+ <% } %>
 
-        <!-- Submit -->
-        <%
-          const isEnded = bounty.endDate && new Date() > new Date(bounty.endDate);
-          const winnersOut = bounty.status === 'winners_announced';
-        %>
-        <div class="bd-submit">
-          <% if (winnersOut) { %>
-          <div class="bd-status">
-            <i class="fas fa-trophy" style="color:#fbbf24"></i>
-            <h3 style="color:#fbbf24">Winners Announced</h3>
-            <p>This bounty has concluded. Check the winners section.</p>
-          </div>
-          <% } else if (mySubmission) { %>
-          <div class="bd-status">
-            <i class="fas fa-check-circle" style="color:var(--green)"></i>
-            <h3 style="color:var(--green)">Submitted!</h3>
-            <p>Your entry is in. Good luck!</p>
-            <div class="bd-my-sub">
-              <strong><%= mySubmission.title %></strong>
-              <p><%= mySubmission.description.substring(0,100) %><%= mySubmission.description.length>100?'...':'' %></p>
-            </div>
-          </div>
-          <% } else if (isEnded) { %>
-          <div class="bd-status">
-            <i class="fas fa-lock" style="color:rgba(255,255,255,.22)"></i>
-            <h3 style="color:rgba(255,255,255,.38)">Submissions Closed</h3>
-            <p>This bounty has ended.</p>
-          </div>
-          <% } else { %>
-          <div class="bd-submit-title"><i class="fas fa-paper-plane"></i> Submit Your Work</div>
-          <form id="submitForm">
-            <div class="bd-fg">
-              <label>Title *</label>
-              <input type="text" id="subTitle" placeholder="Give your submission a title" required>
-            </div>
-            <div class="bd-fg">
-              <label>Description *</label>
-              <textarea id="subDesc" rows="4" placeholder="Describe what you built / delivered..." required></textarea>
-            </div>
-            <div class="bd-fg">
-              <label>Work URL *</label>
-              <input type="url" id="subUrl" placeholder="http://x.com/" required>
-            </div>
-            <button type="submit" class="bd-submit-btn" id="submitBtn"><i class="fas fa-paper-plane"></i> Submit</button>
-          </form>
-          <% } %>
-        </div>
+ <!-- Submit -->
+ <%
+ const isEnded = bounty.endDate && new Date() > new Date(bounty.endDate);
+ const winnersOut = bounty.status === 'winners_announced';
+ %>
+ <div class="bd-submit">
+ <% if (winnersOut) { %>
+ <div class="bd-status">
+ <i class="fas fa-trophy" style="color:#fbbf24"></i>
+ <h3 style="color:#fbbf24">Winners Announced</h3>
+ <p>This bounty has concluded. Check the winners section.</p>
+ </div>
+ <% } else if (mySubmission) { %>
+ <div class="bd-status">
+ <i class="fas fa-check-circle" style="color:var(--green)"></i>
+ <h3 style="color:var(--green)">Submitted!</h3>
+ <p>Your entry is in. Good luck!</p>
+ <div class="bd-my-sub">
+ <strong><%= mySubmission.title %></strong>
+ <p><%= mySubmission.description.substring(0,100) %><%= mySubmission.description.length>100?'...':'' %></p>
+ </div>
+ </div>
+ <% } else if (isEnded) { %>
+ <div class="bd-status">
+ <i class="fas fa-lock" style="color:rgba(255,255,255,.22)"></i>
+ <h3 style="color:rgba(255,255,255,.38)">Submissions Closed</h3>
+ <p>This bounty has ended.</p>
+ </div>
+ <% } else { %>
+ <div class="bd-submit-title"><i class="fas fa-paper-plane"></i> Submit Your Work</div>
+ <form id="submitForm">
+ <div class="bd-fg">
+ <label>Title *</label>
+ <input type="text" id="subTitle" placeholder="Give your submission a title" required>
+ </div>
+ <div class="bd-fg">
+ <label>Description *</label>
+ <textarea id="subDesc" rows="4" placeholder="Describe what you built / delivered..." required></textarea>
+ </div>
+ <div class="bd-fg">
+ <label>Work URL *</label>
+ <input type="url" id="subUrl" placeholder="http://x.com/" required>
+ </div>
+ <button type="submit" class="bd-submit-btn" id="submitBtn"><i class="fas fa-paper-plane"></i> Submit</button>
+ </form>
+ <% } %>
+ </div>
 
-      </div><!-- /sidebar -->
-    </div><!-- /bd-layout -->
+ </div><!-- /sidebar -->
+ </div><!-- /bd-layout -->
 
-    </div><!-- /.content -->
-  </main>
+ </div><!-- /.content -->
+ </main>
 </div><!-- /.dashboard-container -->
 
 <script>
 function showToast(msg, type) {
-  var existing = document.getElementById('globalToast');
-  if (existing) existing.remove();
-  var t = document.createElement('div');
-  t.id = 'globalToast';
-  var bg = type === 'error' ? 'rgba(239,68,68,.95)' : type === 'warning' ? 'rgba(245,158,11,.95)' : 'rgba(94,194,19,.95)';
-  var icon = type === 'error' ? 'fa-times-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle';
-  t.style.cssText = 'position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-120%);background:' + bg + ';color:#fff;padding:.85rem 1.5rem;border-radius:14px;font-size:.9rem;font-weight:700;font-family:Outfit,sans-serif;z-index:99999;display:flex;align-items:center;gap:.6rem;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:transform .35s cubic-bezier(.34,1.56,.64,1);max-width:90vw;text-align:center';
-  t.innerHTML = '<i class="fas ' + icon + '"></i><span>' + msg + '</span>';
-  document.body.appendChild(t);
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() { t.style.transform = 'translateX(-50%) translateY(0)'; });
-  });
-  setTimeout(function() {
-    t.style.transform = 'translateX(-50%) translateY(-120%)';
-    setTimeout(function() { if (t.parentNode) t.remove(); }, 400);
-  }, type === 'error' ? 5000 : 3500);
+ var existing = document.getElementById('globalToast');
+ if (existing) existing.remove();
+ var t = document.createElement('div');
+ t.id = 'globalToast';
+ var bg = type === 'error' ? 'rgba(239,68,68,.95)' : type === 'warning' ? 'rgba(245,158,11,.95)' : 'rgba(94,194,19,.95)';
+ var icon = type === 'error' ? 'fa-times-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+ t.style.cssText = 'position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-120%);background:' + bg + ';color:#fff;padding:.85rem 1.5rem;border-radius:14px;font-size:.9rem;font-weight:700;font-family:Outfit,sans-serif;z-index:99999;display:flex;align-items:center;gap:.6rem;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:transform .35s cubic-bezier(.34,1.56,.64,1);max-width:90vw;text-align:center';
+ t.innerHTML = '<i class="fas ' + icon + '"></i><span>' + msg + '</span>';
+ document.body.appendChild(t);
+ requestAnimationFrame(function() {
+ requestAnimationFrame(function() { t.style.transform = 'translateX(-50%) translateY(0)'; });
+ });
+ setTimeout(function() {
+ t.style.transform = 'translateX(-50%) translateY(-120%)';
+ setTimeout(function() { if (t.parentNode) t.remove(); }, 400);
+ }, type === 'error' ? 5000 : 3500);
 }
 
 // Countdown
 <% if (bounty.endDate && new Date() < new Date(bounty.endDate)) { %>
 const endMs = <%= new Date(bounty.endDate).getTime() %>;
-const cdEl  = document.getElementById('cdVal');
+const cdEl = document.getElementById('cdVal');
 function tickCD() {
-  const ms = endMs - Date.now();
-  if (ms <= 0) { if(cdEl) cdEl.textContent='Ended'; return; }
-  const d=Math.floor(ms/86400000), h=Math.floor((ms%86400000)/3600000),
-        m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000);
-  if(cdEl) {
-    cdEl.textContent = d>0 ? d+'d '+h+'h '+m+'m' : h+'h '+m+'m '+s+'s';
-    if(ms<3600000) cdEl.classList.add('urgent');
-  }
+ const ms = endMs - Date.now();
+ if (ms <= 0) { if(cdEl) cdEl.textContent='Ended'; return; }
+ const d=Math.floor(ms/86400000), h=Math.floor((ms%86400000)/3600000),
+ m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000);
+ if(cdEl) {
+ cdEl.textContent = d>0 ? d+'d '+h+'h '+m+'m' : h+'h '+m+'m '+s+'s';
+ if(ms<3600000) cdEl.classList.add('urgent');
+ }
 }
 tickCD(); setInterval(tickCD, 1000);
 <% } %>
@@ -380,36 +380,36 @@ tickCD(); setInterval(tickCD, 1000);
 // Submit form
 const form = document.getElementById('submitForm');
 if (form) {
-  form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-    try {
-      const res = await fetch('/dashboard/bounties/internal/<%= bounty._id %>/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title:         document.getElementById('subTitle').value,
-          description:   document.getElementById('subDesc').value,
-          submissionUrl: document.getElementById('subUrl').value
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast('Submission received!', 'success');
-        setTimeout(function() { location.reload(); }, 1200);
-      } else {
-        showToast(data.message || 'Error submitting', 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
-      }
-    } catch(err) {
-      showToast('Network error. Please try again.', 'error');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
-    }
-  });
+ form.addEventListener('submit', async function(e) {
+ e.preventDefault();
+ const btn = document.getElementById('submitBtn');
+ btn.disabled = true;
+ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+ try {
+ const res = await fetch('/dashboard/bounties/internal/<%= bounty._id %>/submit', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({
+ title: document.getElementById('subTitle').value,
+ description: document.getElementById('subDesc').value,
+ submissionUrl: document.getElementById('subUrl').value
+ })
+ });
+ const data = await res.json();
+ if (data.success) {
+ showToast('Submission received!', 'success');
+ setTimeout(function() { location.reload(); }, 1200);
+ } else {
+ showToast(data.message || 'Error submitting', 'error');
+ btn.disabled = false;
+ btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
+ }
+ } catch(err) {
+ showToast('Network error. Please try again.', 'error');
+ btn.disabled = false;
+ btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit';
+ }
+ });
 }
 </script>
 </body>

@@ -174,11 +174,11 @@ exports.bannedPage = async (req, res) => {
 // ── GET /admin/settings ───────────────────────────────────────────────────────
 exports.settingsPage = async (req, res) => {
     try {
-        const OnboardingConfig = require('../models/OnboardingConfig');
-        const [pathwayConfigs, settingsDoc, obConfig, totalUsers, totalXpAgg, totalUsdcAgg, totalQuests, totalEvents] = await Promise.all([
+        const SiteSettings = require('../models/SiteSettings');
+        const [pathwayConfigs, settingsDoc, siteSettings, totalUsers, totalXpAgg, totalUsdcAgg, totalQuests, totalEvents] = await Promise.all([
             PathwayConfig.find().lean(),
             require('../models/Settings').findOne().lean().catch(()=>null),
-            OnboardingConfig.get(),
+            SiteSettings.getSettings(),
             User.countDocuments(),
             User.aggregate([{ $group:{ _id:null, total:{ $sum:'$xp' } } }]).catch(()=>[]),
             Transaction.aggregate([{ $match:{ type:{ $in:['quest_reward','referral_bonus'] }, status:'completed' } }, { $group:{ _id:null, total:{ $sum:'$amount' } } }]).catch(()=>[]),
@@ -190,7 +190,7 @@ exports.settingsPage = async (req, res) => {
             user: req.user,
             pathwayConfigs,
             settings: settingsDoc || { twitterRequired: false },
-            pathwayApprovalMode: obConfig.pathwayApprovalMode || 'manual',
+            pathwayApprovalMode: siteSettings.pathwayApprovalMode || 'auto',
             platformStats: {
                 'Total Users':    totalUsers,
                 'Total Quests':   totalQuests,
@@ -208,7 +208,7 @@ exports.settingsPage = async (req, res) => {
 // ── POST /admin/settings/pathways ─────────────────────────────────────────────
 exports.savePathways = async (req, res) => {
     try {
-        const pathways = ['web3_jobs','ai','building','nft','trading'];
+        const pathways = ['web3_jobs','ai','nft','trading'];
         for (const pw of pathways) {
             const groupLink = req.body[pw+'_groupLink'] || null;
             const xLink     = req.body[pw+'_xLink'] || null;
@@ -225,8 +225,8 @@ exports.savePathwayApprovalMode = async (req, res) => {
         const { pathwayApprovalMode } = req.body;
         if (!['auto', 'manual'].includes(pathwayApprovalMode))
             return res.redirect('/admin/settings?error=1');
-        const OnboardingConfig = require('../models/OnboardingConfig');
-        const config = await OnboardingConfig.get();
+        const SiteSettings = require('../models/SiteSettings');
+        const config = await SiteSettings.getSettings();
         config.pathwayApprovalMode = pathwayApprovalMode;
         await config.save();
         res.redirect('/admin/settings?saved=1');
@@ -268,7 +268,7 @@ exports.approvePathwayApplication = async (req, res) => {
         const PathwayConfig = require('../models/PathwayConfig');
         const config = await PathwayConfig.findOne({ pathway: user.pathway });
         const groupLink = config?.groupLink || '';
-        const pathwayNames = { web3_jobs:'Web3 Jobs', ai:'AI & Web3', building:'Building', trading:'Trading', nft:'NFTs & Digital Assets' };
+        const pathwayNames = { web3_jobs:'Web3 Jobs', ai:'AI & Web3', trading:'Trading', nft:'NFTs & Digital Assets' };
         const pathwayName  = pathwayNames[user.pathway] || user.pathway;
         await sendEmail({
             to: user.email,
@@ -300,7 +300,7 @@ exports.rejectPathwayApplication = async (req, res) => {
         await user.save();
 
         const { sendEmail } = require('../utils/emailService');
-        const pathwayNames = { web3_jobs:'Web3 Jobs', ai:'AI & Web3', building:'Building', trading:'Trading', nft:'NFTs & Digital Assets' };
+        const pathwayNames = { web3_jobs:'Web3 Jobs', ai:'AI & Web3', trading:'Trading', nft:'NFTs & Digital Assets' };
         const pathwayName  = pathwayNames[user.pathway] || user.pathway;
         await sendEmail({
             to: user.email,
@@ -765,7 +765,7 @@ exports.analyticsPage = async (req, res) => {
         ]);
 
         // Map role distribution buckets to named roles
-        const roleBucketMap = { 0: 'citizen', 10000: 'contributor', 25000: 'captain', 50000: 'maxi', 'legend_plus': 'legend+' };
+        const roleBucketMap = { 0: 'citizen', 10000: 'contributor', 25000: 'ambassador', 100000: 'legend', 250000: 'major' };
         const roleData = roleDistribution.map(b => ({
             role: roleBucketMap[b._id] || String(b._id),
             count: b.count

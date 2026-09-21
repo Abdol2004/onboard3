@@ -119,7 +119,8 @@ exports.getCohort = async (req, res) => {
     res.render('dashboard/academy-cohort', {
       title: cohort.title + ' — ONBOARD3 Academy',
       user, currentPage: 'academy',
-      cohort, myApp, myEnrollment, enrolledCount
+      cohort, myApp, myEnrollment, enrolledCount,
+      applied: req.query.applied === '1'
     });
   } catch (err) {
     console.error('[Academy] getCohort:', err);

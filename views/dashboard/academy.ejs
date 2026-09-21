@@ -1,229 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title><%= title %></title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <%- include('../partials/achievement-popup') %>
-  <link rel="stylesheet" href="/css/dashboard.css">
-  <style>
-    .ac-hero {
-      background: linear-gradient(135deg, rgba(94,194,19,.06) 0%, rgba(16,185,129,.04) 100%);
-      border: 1px solid rgba(94,194,19,.15);
-      border-radius: 20px;
-      padding: 2rem 2.25rem;
-      margin-bottom: 2rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .ac-hero::before {
-      content: '';
-      position: absolute;
-      top: -40px; right: -40px;
-      width: 200px; height: 200px;
-      background: radial-gradient(circle, rgba(94,194,19,.08) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .ac-hero-label { font-size: .72rem; font-weight: 900; color: var(--green); letter-spacing: 2px; text-transform: uppercase; margin-bottom: .5rem; }
-    .ac-hero-title { font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 900; color: var(--text); letter-spacing: -1px; margin-bottom: .5rem; }
-    .ac-hero-sub { font-size: .9rem; color: var(--text-3); line-height: 1.6; max-width: 560px; }
-    .ac-hero-pills { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1rem; }
-    .ac-hero-pill { font-size: .72rem; font-weight: 700; padding: .3rem .75rem; border-radius: 50px; background: rgba(94,194,19,.1); color: var(--green); border: 1px solid rgba(94,194,19,.2); }
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+ <title><%= title %></title>
+ <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+ <%- include('../partials/achievement-popup') %>
+ <link rel="stylesheet" href="/css/dashboard.css">
+ <style>
+ .ac-hero {
+ background: linear-gradient(135deg, rgba(94,194,19,.06) 0%, rgba(16,185,129,.04) 100%);
+ border: 1px solid rgba(94,194,19,.15);
+ border-radius: 20px;
+ padding: 2rem 2.25rem;
+ margin-bottom: 2rem;
+ position: relative;
+ overflow: hidden;
+ }
+ .ac-hero::before {
+ content: '';
+ position: absolute;
+ top: -40px; right: -40px;
+ width: 200px; height: 200px;
+ background: radial-gradient(circle, rgba(94,194,19,.08) 0%, transparent 70%);
+ border-radius: 50%;
+ }
+ .ac-hero-label { font-size: .72rem; font-weight: 900; color: var(--green); letter-spacing: 2px; text-transform: uppercase; margin-bottom: .5rem; }
+ .ac-hero-title { font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 900; color: var(--text); letter-spacing: -1px; margin-bottom: .5rem; }
+ .ac-hero-sub { font-size: .9rem; color: var(--text-3); line-height: 1.6; max-width: 560px; }
+ .ac-hero-pills { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1rem; }
+ .ac-hero-pill { font-size: .72rem; font-weight: 700; padding: .3rem .75rem; border-radius: 50px; background: rgba(94,194,19,.1); color: var(--green); border: 1px solid rgba(94,194,19,.2); }
 
-    .ac-section-label { font-size: .72rem; font-weight: 900; color: var(--text-3); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
+ .ac-section-label { font-size: .72rem; font-weight: 900; color: var(--text-3); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
 
-    /* Current cohort — big featured card */
-    .ac-featured {
-      background: var(--bg-card);
-      border: 1px solid rgba(94,194,19,.3);
-      border-radius: 20px;
-      overflow: hidden;
-      text-decoration: none;
-      display: block;
-      transition: transform .2s, box-shadow .2s;
-      margin-bottom: 2rem;
-    }
-    .ac-featured:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,.4); }
-    .ac-featured-banner {
-      height: 80px;
-      background: linear-gradient(135deg, rgba(94,194,19,.15) 0%, rgba(16,185,129,.1) 100%);
-      display: flex; align-items: center; padding: 0 1.75rem;
-      border-bottom: 1px solid rgba(94,194,19,.15);
-    }
-    .ac-featured-body { padding: 1.5rem 1.75rem; }
-    .ac-featured-topic { font-size: .72rem; font-weight: 900; color: var(--green); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: .375rem; }
-    .ac-featured-title { font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 900; color: var(--text); letter-spacing: -.5px; margin-bottom: .5rem; }
-    .ac-featured-desc { font-size: .875rem; color: var(--text-3); line-height: 1.6; margin-bottom: 1.25rem; }
-    .ac-featured-meta { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
-    .ac-meta-item { display: flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 700; color: var(--text-2); }
-    .ac-meta-item i { color: var(--green); font-size: .75rem; }
-    .ac-featured-cta { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1.5rem; background: var(--green); color: #000; font-weight: 900; font-size: .9rem; border-radius: 10px; text-decoration: none; transition: all .2s; }
-    .ac-featured-cta:hover { background: #6be01a; }
-    .ac-status-badge { display: inline-flex; align-items: center; gap: .35rem; font-size: .7rem; font-weight: 800; padding: .3rem .75rem; border-radius: 50px; margin-bottom: .875rem; }
-    .ac-status-open    { background: rgba(94,194,19,.15);  color: var(--green); border: 1px solid rgba(94,194,19,.3); }
-    .ac-status-active  { background: rgba(251,191,36,.12); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
-    .ac-status-closed  { background: rgba(239,68,68,.1);   color: #f87171; border: 1px solid rgba(239,68,68,.25); }
-    .ac-status-ended   { background: rgba(100,100,100,.12);color: var(--text-3); border: 1px solid rgba(255,255,255,.1); }
+ /* Current cohort — big featured card */
+ .ac-featured {
+ background: var(--bg-card);
+ border: 1px solid rgba(94,194,19,.3);
+ border-radius: 20px;
+ overflow: hidden;
+ text-decoration: none;
+ display: block;
+ transition: transform .2s, box-shadow .2s;
+ margin-bottom: 2rem;
+ }
+ .ac-featured:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,.4); }
+ .ac-featured-banner {
+ height: 80px;
+ background: linear-gradient(135deg, rgba(94,194,19,.15) 0%, rgba(16,185,129,.1) 100%);
+ display: flex; align-items: center; padding: 0 1.75rem;
+ border-bottom: 1px solid rgba(94,194,19,.15);
+ }
+ .ac-featured-body { padding: 1.5rem 1.75rem; }
+ .ac-featured-topic { font-size: .72rem; font-weight: 900; color: var(--green); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: .375rem; }
+ .ac-featured-title { font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 900; color: var(--text); letter-spacing: -.5px; margin-bottom: .5rem; }
+ .ac-featured-desc { font-size: .875rem; color: var(--text-3); line-height: 1.6; margin-bottom: 1.25rem; }
+ .ac-featured-meta { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+ .ac-meta-item { display: flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 700; color: var(--text-2); }
+ .ac-meta-item i { color: var(--green); font-size: .75rem; }
+ .ac-featured-cta { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1.5rem; background: var(--green); color: #000; font-weight: 900; font-size: .9rem; border-radius: 10px; text-decoration: none; transition: all .2s; }
+ .ac-featured-cta:hover { background: #6be01a; }
+ .ac-status-badge { display: inline-flex; align-items: center; gap: .35rem; font-size: .7rem; font-weight: 800; padding: .3rem .75rem; border-radius: 50px; margin-bottom: .875rem; }
+ .ac-status-open { background: rgba(94,194,19,.15); color: var(--green); border: 1px solid rgba(94,194,19,.3); }
+ .ac-status-active { background: rgba(251,191,36,.12); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+ .ac-status-closed { background: rgba(239,68,68,.1); color: #f87171; border: 1px solid rgba(239,68,68,.25); }
+ .ac-status-ended { background: rgba(100,100,100,.12);color: var(--text-3); border: 1px solid rgba(255,255,255,.1); }
 
-    /* Smaller cohort cards */
-    .ac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-    @media (max-width: 600px) { .ac-grid { grid-template-columns: 1fr; } }
-    .ac-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 1.25rem;
-      text-decoration: none;
-      display: flex; flex-direction: column;
-      transition: border-color .2s, transform .2s;
-    }
-    .ac-card:hover { border-color: rgba(94,194,19,.3); transform: translateY(-2px); }
-    .ac-card--dim { opacity: .65; }
-    .ac-card-topic { font-size: .68rem; font-weight: 800; color: var(--green); text-transform: uppercase; letter-spacing: 1px; margin-bottom: .375rem; }
-    .ac-card-title { font-size: .9375rem; font-weight: 900; color: var(--text); margin-bottom: .375rem; }
-    .ac-card-desc  { font-size: .78rem; color: var(--text-3); line-height: 1.55; flex: 1; margin-bottom: .875rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .ac-card-foot  { display: flex; gap: .625rem; flex-wrap: wrap; }
-    .ac-card-pill  { font-size: .68rem; font-weight: 700; padding: .25rem .625rem; border-radius: 50px; background: rgba(255,255,255,.05); color: var(--text-3); border: 1px solid rgba(255,255,255,.08); display: flex; align-items: center; gap: .3rem; }
+ /* Smaller cohort cards */
+ .ac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+ @media (max-width: 600px) { .ac-grid { grid-template-columns: 1fr; } }
+ .ac-card {
+ background: var(--bg-card);
+ border: 1px solid var(--border);
+ border-radius: 16px;
+ padding: 1.25rem;
+ text-decoration: none;
+ display: flex; flex-direction: column;
+ transition: border-color .2s, transform .2s;
+ }
+ .ac-card:hover { border-color: rgba(94,194,19,.3); transform: translateY(-2px); }
+ .ac-card--dim { opacity: .65; }
+ .ac-card-topic { font-size: .68rem; font-weight: 800; color: var(--green); text-transform: uppercase; letter-spacing: 1px; margin-bottom: .375rem; }
+ .ac-card-title { font-size: .9375rem; font-weight: 900; color: var(--text); margin-bottom: .375rem; }
+ .ac-card-desc { font-size: .78rem; color: var(--text-3); line-height: 1.55; flex: 1; margin-bottom: .875rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+ .ac-card-foot { display: flex; gap: .625rem; flex-wrap: wrap; }
+ .ac-card-pill { font-size: .68rem; font-weight: 700; padding: .25rem .625rem; border-radius: 50px; background: rgba(255,255,255,.05); color: var(--text-3); border: 1px solid rgba(255,255,255,.08); display: flex; align-items: center; gap: .3rem; }
 
-    .ac-empty { text-align: center; padding: 2.5rem 1rem; color: var(--text-3); font-size: .875rem; background: rgba(255,255,255,.015); border: 1px dashed rgba(255,255,255,.07); border-radius: 14px; }
-    .ac-empty i { display: block; font-size: 1.75rem; margin-bottom: .625rem; opacity: .3; }
+ .ac-empty { text-align: center; padding: 2.5rem 1rem; color: var(--text-3); font-size: .875rem; background: rgba(255,255,255,.015); border: 1px dashed rgba(255,255,255,.07); border-radius: 14px; }
+ .ac-empty i { display: block; font-size: 1.75rem; margin-bottom: .625rem; opacity: .3; }
 
-    .ac-app-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .68rem; font-weight: 800; padding: .2rem .6rem; border-radius: 50px; margin-left: .5rem; }
-    .ac-app-applied    { background: rgba(251,191,36,.12); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
-    .ac-app-accepted   { background: rgba(94,194,19,.12);  color: var(--green); border: 1px solid rgba(94,194,19,.3); }
-    .ac-app-waitlisted { background: rgba(168,85,247,.12); color: #c084fc; border: 1px solid rgba(168,85,247,.3); }
-    .ac-app-rejected   { background: rgba(239,68,68,.1);   color: #f87171; border: 1px solid rgba(239,68,68,.25); }
-  </style>
+ .ac-app-badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .68rem; font-weight: 800; padding: .2rem .6rem; border-radius: 50px; margin-left: .5rem; }
+ .ac-app-applied { background: rgba(251,191,36,.12); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+ .ac-app-accepted { background: rgba(94,194,19,.12); color: var(--green); border: 1px solid rgba(94,194,19,.3); }
+ .ac-app-waitlisted { background: rgba(168,85,247,.12); color: #c084fc; border: 1px solid rgba(168,85,247,.3); }
+ .ac-app-rejected { background: rgba(239,68,68,.1); color: #f87171; border: 1px solid rgba(239,68,68,.25); }
+ </style>
 </head>
 <body>
 <%- include('../partials/sidebar', { user, currentPage }) %>
 <div class="dashboard-container">
-  <main class="main-content">
-    <div class="content">
+ <main class="main-content">
+ <div class="content">
 
-      <!-- Hero -->
-      <div class="ac-hero">
-        <div class="ac-hero-label"><i class="fas fa-graduation-cap"></i> &nbsp;ONBOARD3 Academy</div>
-        <div class="ac-hero-sub">Structured learning programs delivered live on Telegram. Apply, get selected, learn together, and graduate with a verified certificate.</div>
-        <div class="ac-hero-pills">
-          <span class="ac-hero-pill"><i class="fas fa-check"></i> Free</span>
-          <span class="ac-hero-pill"><i class="fab fa-telegram"></i> Live on Telegram</span>
-          <span class="ac-hero-pill"><i class="fas fa-users"></i> Cohort-Based</span>
-          <span class="ac-hero-pill"><i class="fas fa-certificate"></i> Verified Certificate</span>
-        </div>
-      </div>
+ <!-- Hero -->
+ <div class="ac-hero">
+ <div class="ac-hero-label"><i class="fas fa-graduation-cap"></i> &nbsp;ONBOARD3 Academy</div>
+ <div class="ac-hero-sub">Structured learning programs delivered live on Telegram. Apply, get selected, learn together, and graduate with a verified certificate.</div>
+ <div class="ac-hero-pills">
+ <span class="ac-hero-pill"><i class="fas fa-check"></i> Free</span>
+ <span class="ac-hero-pill"><i class="fab fa-telegram"></i> Live on Telegram</span>
+ <span class="ac-hero-pill"><i class="fas fa-users"></i> Cohort-Based</span>
+ <span class="ac-hero-pill"><i class="fas fa-certificate"></i> Verified Certificate</span>
+ </div>
+ </div>
 
-      <% function statusBadge(s, appStatus) {
-        const map = {
-          applications_open:   ['ac-status-open',   'Applications Open'],
-          applications_closed: ['ac-status-closed',  'Applications Closed'],
-          active:              ['ac-status-active',  'In Progress'],
-          ended:               ['ac-status-ended',   'Ended'],
-          draft:               ['ac-status-ended',   'Coming Soon']
-        };
-        const [cls, label] = map[s] || ['ac-status-ended', s];
-        return `<span class="ac-status-badge ${cls}"><i class="fas fa-circle" style="font-size:.4rem"></i> ${label}</span>`;
-      }
-      function appBadge(status) {
-        if (!status) return '';
-        const map = { applied:'ac-app-applied', accepted:'ac-app-accepted', under_review:'ac-app-applied', waitlisted:'ac-app-waitlisted', rejected:'ac-app-rejected' };
-        const label = { applied:'Applied', accepted:'Accepted', under_review:'Under Review', waitlisted:'Waitlisted', rejected:'Not Selected' };
-        return `<span class="ac-app-badge ${map[status]||''}">${label[status]||status}</span>`;
-      }
-      %>
+ <% function statusBadge(s, appStatus) {
+ const map = {
+ applications_open: ['ac-status-open', 'Applications Open'],
+ applications_closed: ['ac-status-closed', 'Applications Closed'],
+ active: ['ac-status-active', 'In Progress'],
+ ended: ['ac-status-ended', 'Ended'],
+ draft: ['ac-status-ended', 'Coming Soon']
+ };
+ const [cls, label] = map[s] || ['ac-status-ended', s];
+ return `<span class="ac-status-badge ${cls}"><i class="fas fa-circle" style="font-size:.4rem"></i> ${label}</span>`;
+ }
+ function appBadge(status) {
+ if (!status) return '';
+ const map = { applied:'ac-app-applied', accepted:'ac-app-accepted', under_review:'ac-app-applied', waitlisted:'ac-app-waitlisted', rejected:'ac-app-rejected' };
+ const label = { applied:'Applied', accepted:'Accepted', under_review:'Under Review', waitlisted:'Waitlisted', rejected:'Not Selected' };
+ return `<span class="ac-app-badge ${map[status]||''}">${label[status]||status}</span>`;
+ }
+ %>
 
-      <!-- Current / Active Cohorts -->
-      <% if (current.length > 0) { %>
-      <div class="ac-section-label">Current</div>
+ <!-- Current / Active Cohorts -->
+ <% if (current.length > 0) { %>
+ <div class="ac-section-label">Current</div>
 
-      <% current.forEach(cohort => {
-        const myStatus = appMap[String(cohort._id)];
-        const deadline = cohort.applicationDeadline ? new Date(cohort.applicationDeadline) : null;
-        const deadlinePast = deadline && deadline < new Date();
-      %>
-      <a href="/dashboard/academy/<%= cohort.slug %>" class="ac-featured">
-        <div class="ac-featured-banner">
-          <div>
-            <div style="font-size:.68rem;font-weight:900;color:var(--green);text-transform:uppercase;letter-spacing:2px">ONBOARD3 Academy</div>
-            <div style="font-size:.8rem;font-weight:700;color:var(--text-2);margin-top:1px">Live Cohort Program</div>
-          </div>
-          <div style="margin-left:auto"><%- statusBadge(cohort.status) %><% if (myStatus) { %><%- appBadge(myStatus) %><% } %></div>
-        </div>
-        <div class="ac-featured-body">
-          <div class="ac-featured-topic"><%= cohort.topic || 'Web3 Learning' %></div>
-          <div class="ac-featured-title"><%= cohort.title %></div>
-          <div class="ac-featured-desc"><%= cohort.description || '' %></div>
-          <div class="ac-featured-meta">
-            <% if (cohort.duration) { %><div class="ac-meta-item"><i class="fas fa-clock"></i> <%= cohort.duration %></div><% } %>
-            <div class="ac-meta-item"><i class="fab fa-telegram"></i> Live on Telegram</div>
-            <div class="ac-meta-item"><i class="fas fa-users"></i> <%= cohort.seats %> Seats</div>
-            <% if (cohort.startDate) { %><div class="ac-meta-item"><i class="fas fa-calendar"></i> Starts <%= new Date(cohort.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></div><% } %>
-            <% if (deadline && !deadlinePast) { %><div class="ac-meta-item"><i class="fas fa-hourglass-half" style="color:#f87171"></i> <span style="color:#f87171">Closes <%= deadline.toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></span></div><% } %>
-          </div>
-          <% if (cohort.status === 'applications_open' && !myStatus) { %>
-          <div class="ac-featured-cta"><i class="fas fa-paper-plane"></i> Apply Now</div>
-          <% } else if (myStatus === 'accepted') { %>
-          <div class="ac-featured-cta" style="background:#c084fc;color:#000"><i class="fas fa-book-open"></i> Open Classroom</div>
-          <% } else { %>
-          <div class="ac-featured-cta" style="background:rgba(255,255,255,.07);color:var(--text-2)"><i class="fas fa-eye"></i> View Cohort</div>
-          <% } %>
-        </div>
-      </a>
-      <% }); %>
-      <% } %>
+ <% current.forEach(cohort => {
+ const myStatus = appMap[String(cohort._id)];
+ const deadline = cohort.applicationDeadline ? new Date(cohort.applicationDeadline) : null;
+ const deadlinePast = deadline && deadline < new Date();
+ %>
+ <a href="/dashboard/academy/<%= cohort.slug %>" class="ac-featured">
+ <div class="ac-featured-banner">
+ <div>
+ <div style="font-size:.68rem;font-weight:900;color:var(--green);text-transform:uppercase;letter-spacing:2px">ONBOARD3 Academy</div>
+ <div style="font-size:.8rem;font-weight:700;color:var(--text-2);margin-top:1px">Live Cohort Program</div>
+ </div>
+ <div style="margin-left:auto"><%- statusBadge(cohort.status) %><% if (myStatus) { %><%- appBadge(myStatus) %><% } %></div>
+ </div>
+ <div class="ac-featured-body">
+ <div class="ac-featured-topic"><%= cohort.topic || 'Web3 Learning' %></div>
+ <div class="ac-featured-title"><%= cohort.title %></div>
+ <div class="ac-featured-desc"><%= cohort.description || '' %></div>
+ <div class="ac-featured-meta">
+ <% if (cohort.duration) { %><div class="ac-meta-item"><i class="fas fa-clock"></i> <%= cohort.duration %></div><% } %>
+ <div class="ac-meta-item"><i class="fab fa-telegram"></i> Live on Telegram</div>
+ <div class="ac-meta-item"><i class="fas fa-users"></i> <%= cohort.seats %> Seats</div>
+ <% if (cohort.startDate) { %><div class="ac-meta-item"><i class="fas fa-calendar"></i> Starts <%= new Date(cohort.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></div><% } %>
+ <% if (deadline && !deadlinePast) { %><div class="ac-meta-item"><i class="fas fa-hourglass-half" style="color:#f87171"></i> <span style="color:#f87171">Closes <%= deadline.toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></span></div><% } %>
+ </div>
+ <% if (cohort.status === 'applications_open' && !myStatus) { %>
+ <div class="ac-featured-cta"><i class="fas fa-paper-plane"></i> Apply Now</div>
+ <% } else if (myStatus === 'accepted') { %>
+ <div class="ac-featured-cta" style="background:#c084fc;color:#000"><i class="fas fa-book-open"></i> Open Classroom</div>
+ <% } else { %>
+ <div class="ac-featured-cta" style="background:rgba(255,255,255,.07);color:var(--text-2)"><i class="fas fa-eye"></i> View Cohort</div>
+ <% } %>
+ </div>
+ </a>
+ <% }); %>
+ <% } %>
 
-      <!-- Upcoming -->
-      <% if (upcoming.length > 0) { %>
-      <div class="ac-section-label">Upcoming</div>
-      <div class="ac-grid">
-        <% upcoming.forEach(cohort => {
-          const myStatus = appMap[String(cohort._id)];
-        %>
-        <a href="/dashboard/academy/<%= cohort.slug %>" class="ac-card">
-          <div><%- statusBadge(cohort.status) %><% if (myStatus) { %><%- appBadge(myStatus) %><% } %></div>
-          <div class="ac-card-topic"><%= cohort.topic || 'Web3 Learning' %></div>
-          <div class="ac-card-title"><%= cohort.title %></div>
-          <div class="ac-card-desc"><%= cohort.description || '' %></div>
-          <div class="ac-card-foot">
-            <% if (cohort.duration) { %><span class="ac-card-pill"><i class="fas fa-clock"></i> <%= cohort.duration %></span><% } %>
-            <span class="ac-card-pill"><i class="fas fa-users"></i> <%= cohort.seats %> seats</span>
-            <% if (cohort.startDate) { %><span class="ac-card-pill"><i class="fas fa-calendar"></i> <%= new Date(cohort.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></span><% } %>
-          </div>
-        </a>
-        <% }); %>
-      </div>
-      <% } %>
+ <!-- Upcoming -->
+ <% if (upcoming.length > 0) { %>
+ <div class="ac-section-label">Upcoming</div>
+ <div class="ac-grid">
+ <% upcoming.forEach(cohort => {
+ const myStatus = appMap[String(cohort._id)];
+ %>
+ <a href="/dashboard/academy/<%= cohort.slug %>" class="ac-card">
+ <div><%- statusBadge(cohort.status) %><% if (myStatus) { %><%- appBadge(myStatus) %><% } %></div>
+ <div class="ac-card-topic"><%= cohort.topic || 'Web3 Learning' %></div>
+ <div class="ac-card-title"><%= cohort.title %></div>
+ <div class="ac-card-desc"><%= cohort.description || '' %></div>
+ <div class="ac-card-foot">
+ <% if (cohort.duration) { %><span class="ac-card-pill"><i class="fas fa-clock"></i> <%= cohort.duration %></span><% } %>
+ <span class="ac-card-pill"><i class="fas fa-users"></i> <%= cohort.seats %> seats</span>
+ <% if (cohort.startDate) { %><span class="ac-card-pill"><i class="fas fa-calendar"></i> <%= new Date(cohort.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}) %></span><% } %>
+ </div>
+ </a>
+ <% }); %>
+ </div>
+ <% } %>
 
-      <!-- Past -->
-      <% if (past.length > 0) { %>
-      <div class="ac-section-label">Past Cohorts</div>
-      <div class="ac-grid">
-        <% past.forEach(cohort => { %>
-        <a href="/dashboard/academy/<%= cohort.slug %>" class="ac-card ac-card--dim">
-          <div><%- statusBadge('ended') %></div>
-          <div class="ac-card-topic"><%= cohort.topic || 'Web3 Learning' %></div>
-          <div class="ac-card-title"><%= cohort.title %></div>
-          <div class="ac-card-desc"><%= cohort.description || '' %></div>
-          <div class="ac-card-foot">
-            <% if (cohort.duration) { %><span class="ac-card-pill"><i class="fas fa-clock"></i> <%= cohort.duration %></span><% } %>
-            <% if (cohort.endDate) { %><span class="ac-card-pill"><i class="fas fa-flag-checkered"></i> Ended <%= new Date(cohort.endDate).toLocaleDateString('en-US',{month:'short',year:'numeric'}) %></span><% } %>
-          </div>
-        </a>
-        <% }); %>
-      </div>
-      <% } %>
+ <!-- Past -->
+ <% if (past.length > 0) { %>
+ <div class="ac-section-label">Past Cohorts</div>
+ <div class="ac-grid">
+ <% past.forEach(cohort => { %>
+ <a href="/dashboard/academy/<%= cohort.slug %>" class="ac-card ac-card--dim">
+ <div><%- statusBadge('ended') %></div>
+ <div class="ac-card-topic"><%= cohort.topic || 'Web3 Learning' %></div>
+ <div class="ac-card-title"><%= cohort.title %></div>
+ <div class="ac-card-desc"><%= cohort.description || '' %></div>
+ <div class="ac-card-foot">
+ <% if (cohort.duration) { %><span class="ac-card-pill"><i class="fas fa-clock"></i> <%= cohort.duration %></span><% } %>
+ <% if (cohort.endDate) { %><span class="ac-card-pill"><i class="fas fa-flag-checkered"></i> Ended <%= new Date(cohort.endDate).toLocaleDateString('en-US',{month:'short',year:'numeric'}) %></span><% } %>
+ </div>
+ </a>
+ <% }); %>
+ </div>
+ <% } %>
 
-      <!-- Empty state -->
-      <% if (current.length === 0 && upcoming.length === 0 && past.length === 0) { %>
-      <div class="ac-empty">
-        <i class="fas fa-graduation-cap"></i>
-        No cohorts running yet — check back soon!
-      </div>
-      <% } %>
+ <!-- Empty state -->
+ <% if (current.length === 0 && upcoming.length === 0 && past.length === 0) { %>
+ <div class="ac-empty">
+ <i class="fas fa-graduation-cap"></i>
+ No cohorts running yet — check back soon!
+ </div>
+ <% } %>
 
-    </div>
-  </main>
+ </div>
+ </main>
 </div>
 </body>
 </html>

@@ -1,309 +1,309 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title><%= title %></title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <%- include('../partials/achievement-popup') %>
-  <link rel="stylesheet" href="/css/dashboard.css">
-  <style>
-    .acl-header { margin-bottom:1.5rem; }
-    .acl-back { display:inline-flex;align-items:center;gap:.5rem;color:var(--text-3);font-size:.8125rem;font-weight:700;text-decoration:none;margin-bottom:.75rem; }
-    .acl-back:hover { color:var(--green); }
-    .acl-meta { font-size:.72rem;font-weight:900;color:var(--green);text-transform:uppercase;letter-spacing:2px;margin-bottom:.375rem; }
-    .acl-title { font-size:clamp(1.2rem,2.5vw,1.75rem);font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:1rem; }
-    .acl-pills { display:flex;gap:.5rem;flex-wrap:wrap; }
-    .acl-pill { font-size:.72rem;font-weight:700;padding:.3rem .75rem;border-radius:50px;background:rgba(255,255,255,.05);color:var(--text-3);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:.35rem; }
-    .acl-pill--green { background:rgba(94,194,19,.1);color:var(--green);border-color:rgba(94,194,19,.2); }
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+ <title><%= title %></title>
+ <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+ <%- include('../partials/achievement-popup') %>
+ <link rel="stylesheet" href="/css/dashboard.css">
+ <style>
+ .acl-header { margin-bottom:1.5rem; }
+ .acl-back { display:inline-flex;align-items:center;gap:.5rem;color:var(--text-3);font-size:.8125rem;font-weight:700;text-decoration:none;margin-bottom:.75rem; }
+ .acl-back:hover { color:var(--green); }
+ .acl-meta { font-size:.72rem;font-weight:900;color:var(--green);text-transform:uppercase;letter-spacing:2px;margin-bottom:.375rem; }
+ .acl-title { font-size:clamp(1.2rem,2.5vw,1.75rem);font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:1rem; }
+ .acl-pills { display:flex;gap:.5rem;flex-wrap:wrap; }
+ .acl-pill { font-size:.72rem;font-weight:700;padding:.3rem .75rem;border-radius:50px;background:rgba(255,255,255,.05);color:var(--text-3);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:.35rem; }
+ .acl-pill--green { background:rgba(94,194,19,.1);color:var(--green);border-color:rgba(94,194,19,.2); }
 
-    .acl-layout { display:grid;grid-template-columns:1fr 260px;gap:1.25rem;align-items:start; }
-    .acl-layout > * { min-width:0; }
-    @media (max-width:768px) { .acl-layout { grid-template-columns:1fr; } }
+ .acl-layout { display:grid;grid-template-columns:1fr 260px;gap:1.25rem;align-items:start; }
+ .acl-layout > * { min-width:0; }
+ @media (max-width:768px) { .acl-layout { grid-template-columns:1fr; } }
 
-    /* Week tabs */
-    .acl-week-tabs { display:flex;gap:.375rem;flex-wrap:wrap;margin-bottom:1.25rem; }
-    .acl-week-tab {
-      padding:.5rem .875rem;border-radius:8px;font-size:.8rem;font-weight:800;
-      border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);
-      color:var(--text-3);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;
-    }
-    .acl-week-tab:hover { border-color:rgba(94,194,19,.3);color:var(--text-2); }
-    .acl-week-tab.active { background:rgba(94,194,19,.15);border-color:rgba(94,194,19,.4);color:var(--green); }
-    .acl-week-tab.completed { border-color:rgba(94,194,19,.3);color:var(--green); }
-    .acl-week-tab.completed::after { content:'✓';font-size:.65rem;margin-left:.3rem; }
+ /* Week tabs */
+ .acl-week-tabs { display:flex;gap:.375rem;flex-wrap:wrap;margin-bottom:1.25rem; }
+ .acl-week-tab {
+ padding:.5rem .875rem;border-radius:8px;font-size:.8rem;font-weight:800;
+ border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);
+ color:var(--text-3);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;
+ }
+ .acl-week-tab:hover { border-color:rgba(94,194,19,.3);color:var(--text-2); }
+ .acl-week-tab.active { background:rgba(94,194,19,.15);border-color:rgba(94,194,19,.4);color:var(--green); }
+ .acl-week-tab.completed { border-color:rgba(94,194,19,.3);color:var(--green); }
+ .acl-week-tab.completed::after { content:'\f00c';font-family:'Font Awesome 6 Free';font-weight:900;font-size:.55rem;margin-left:.3rem;color:var(--green); }
 
-    .acl-week-panel { display:none; }
-    .acl-week-panel.active { display:block; }
+ .acl-week-panel { display:none; }
+ .acl-week-panel.active { display:block; }
 
-    .acl-box { background:var(--bg-card);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:1.25rem; }
-    .acl-box-head { padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06); }
-    .acl-box-head h3 { margin:0;font-size:.9375rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:.5rem; }
-    .acl-box-body { padding:1.125rem 1.25rem; }
+ .acl-box { background:var(--bg-card);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:1.25rem; }
+ .acl-box-head { padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06); }
+ .acl-box-head h3 { margin:0;font-size:.9375rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:.5rem; }
+ .acl-box-body { padding:1.125rem 1.25rem; }
 
-    /* Resources */
-    .acl-resource { display:flex;align-items:center;gap:.75rem;padding:.625rem 0;border-bottom:1px solid rgba(255,255,255,.04); }
-    .acl-resource:last-child { border-bottom:none; }
-    .acl-res-icon { width:36px;height:36px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.875rem; }
-    .acl-res-icon--pdf   { background:rgba(239,68,68,.12);color:#f87171; }
-    .acl-res-icon--doc   { background:rgba(59,130,246,.12);color:#60a5fa; }
-    .acl-res-icon--link  { background:rgba(94,194,19,.1);color:var(--green); }
-    .acl-res-icon--video { background:rgba(251,191,36,.1);color:#fbbf24; }
-    .acl-res-icon--other { background:rgba(168,85,247,.1);color:#c084fc; }
-    .acl-res-name { font-size:.875rem;font-weight:700;color:var(--text-2);flex:1;min-width:0; }
-    .acl-res-link { font-size:.75rem;color:var(--green);font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;flex-shrink:0; }
-    .acl-res-link:hover { color:#6be01a; }
+ /* Resources */
+ .acl-resource { display:flex;align-items:center;gap:.75rem;padding:.625rem 0;border-bottom:1px solid rgba(255,255,255,.04); }
+ .acl-resource:last-child { border-bottom:none; }
+ .acl-res-icon { width:36px;height:36px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.875rem; }
+ .acl-res-icon--pdf { background:rgba(239,68,68,.12);color:#f87171; }
+ .acl-res-icon--doc { background:rgba(59,130,246,.12);color:#60a5fa; }
+ .acl-res-icon--link { background:rgba(94,194,19,.1);color:var(--green); }
+ .acl-res-icon--video { background:rgba(251,191,36,.1);color:#fbbf24; }
+ .acl-res-icon--other { background:rgba(168,85,247,.1);color:#c084fc; }
+ .acl-res-name { font-size:.875rem;font-weight:700;color:var(--text-2);flex:1;min-width:0; }
+ .acl-res-link { font-size:.75rem;color:var(--green);font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;flex-shrink:0; }
+ .acl-res-link:hover { color:#6be01a; }
 
-    /* Assignment */
-    .acl-assignment { background:rgba(94,194,19,.05);border:1px solid rgba(94,194,19,.2);border-radius:14px;padding:1.125rem; }
-    .acl-assign-title { font-size:.9375rem;font-weight:900;color:var(--text);margin-bottom:.375rem; }
-    .acl-assign-desc { font-size:.875rem;color:var(--text-2);line-height:1.65;margin-bottom:.875rem; }
-    .acl-assign-deadline { font-size:.78rem;font-weight:700;color:#fbbf24;margin-bottom:.875rem;display:flex;align-items:center;gap:.4rem; }
-    .acl-assign-fg label { font-size:.72rem;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:.375rem; }
-    .acl-assign-fg input { width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:var(--text);font-family:'Outfit',sans-serif;font-size:.875rem;padding:.675rem 1rem; }
-    .acl-assign-fg input:focus { border-color:rgba(94,194,19,.5);outline:none; }
-    .acl-assign-btn { margin-top:.75rem;padding:.625rem 1.125rem;border-radius:9px;background:var(--green);color:#000;font-weight:900;font-size:.85rem;border:none;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s; }
-    .acl-assign-btn:hover { background:#6be01a; }
-    .acl-assign-submitted { display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;color:var(--green);background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.2);border-radius:8px;padding:.5rem .75rem;margin-top:.5rem; }
+ /* Assignment */
+ .acl-assignment { background:rgba(94,194,19,.05);border:1px solid rgba(94,194,19,.2);border-radius:14px;padding:1.125rem; }
+ .acl-assign-title { font-size:.9375rem;font-weight:900;color:var(--text);margin-bottom:.375rem; }
+ .acl-assign-desc { font-size:.875rem;color:var(--text-2);line-height:1.65;margin-bottom:.875rem; }
+ .acl-assign-deadline { font-size:.78rem;font-weight:700;color:#fbbf24;margin-bottom:.875rem;display:flex;align-items:center;gap:.4rem; }
+ .acl-assign-fg label { font-size:.72rem;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:.375rem; }
+ .acl-assign-fg input { width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:var(--text);font-family:'Outfit',sans-serif;font-size:.875rem;padding:.675rem 1rem; }
+ .acl-assign-fg input:focus { border-color:rgba(94,194,19,.5);outline:none; }
+ .acl-assign-btn { margin-top:.75rem;padding:.625rem 1.125rem;border-radius:9px;background:var(--green);color:#000;font-weight:900;font-size:.85rem;border:none;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s; }
+ .acl-assign-btn:hover { background:#6be01a; }
+ .acl-assign-submitted { display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;color:var(--green);background:rgba(94,194,19,.1);border:1px solid rgba(94,194,19,.2);border-radius:8px;padding:.5rem .75rem;margin-top:.5rem; }
 
-    /* Day schedule */
-    .acl-day-row { display:flex;gap:.75rem;align-items:flex-start;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04); }
-    .acl-day-row:last-child { border-bottom:none; }
-    .acl-day-name { font-size:.75rem;font-weight:800;color:var(--text-3);width:72px;flex-shrink:0;padding-top:.1rem;text-transform:uppercase;letter-spacing:.5px; }
-    .acl-day-act  { font-size:.8375rem;color:var(--text-2);line-height:1.5; }
+ /* Day schedule */
+ .acl-day-row { display:flex;gap:.75rem;align-items:flex-start;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04); }
+ .acl-day-row:last-child { border-bottom:none; }
+ .acl-day-name { font-size:.75rem;font-weight:800;color:var(--text-3);width:72px;flex-shrink:0;padding-top:.1rem;text-transform:uppercase;letter-spacing:.5px; }
+ .acl-day-act { font-size:.8375rem;color:var(--text-2);line-height:1.5; }
 
-    /* Sidebar */
-    .acl-sidebar { position:sticky;top:1.25rem; }
-    @media (max-width:768px) { .acl-sidebar { position:static; } }
-    .acl-progress-box { background:var(--bg-card);border:1px solid rgba(94,194,19,.25);border-radius:16px;padding:1.25rem;margin-bottom:1rem; }
-    .acl-progress-title { font-size:.875rem;font-weight:900;color:var(--text);margin-bottom:1rem; }
-    .acl-prog-row { display:flex;justify-content:space-between;align-items:center;margin-bottom:.625rem; }
-    .acl-prog-label { font-size:.78rem;color:var(--text-3);font-weight:600; }
-    .acl-prog-val   { font-size:.875rem;color:var(--text);font-weight:800; }
-    .acl-status-chip { font-size:.68rem;font-weight:800;padding:.25rem .625rem;border-radius:50px;text-transform:uppercase;letter-spacing:.5px; }
-    .acl-status-active    { background:rgba(94,194,19,.15);color:var(--green); }
-    .acl-status-graduated { background:rgba(251,191,36,.15);color:#fbbf24; }
-    .acl-status-completed { background:rgba(168,85,247,.12);color:#c084fc; }
+ /* Sidebar */
+ .acl-sidebar { position:sticky;top:1.25rem; }
+ @media (max-width:768px) { .acl-sidebar { position:static; } }
+ .acl-progress-box { background:var(--bg-card);border:1px solid rgba(94,194,19,.25);border-radius:16px;padding:1.25rem;margin-bottom:1rem; }
+ .acl-progress-title { font-size:.875rem;font-weight:900;color:var(--text);margin-bottom:1rem; }
+ .acl-prog-row { display:flex;justify-content:space-between;align-items:center;margin-bottom:.625rem; }
+ .acl-prog-label { font-size:.78rem;color:var(--text-3);font-weight:600; }
+ .acl-prog-val { font-size:.875rem;color:var(--text);font-weight:800; }
+ .acl-status-chip { font-size:.68rem;font-weight:800;padding:.25rem .625rem;border-radius:50px;text-transform:uppercase;letter-spacing:.5px; }
+ .acl-status-active { background:rgba(94,194,19,.15);color:var(--green); }
+ .acl-status-graduated { background:rgba(251,191,36,.15);color:#fbbf24; }
+ .acl-status-completed { background:rgba(168,85,247,.12);color:#c084fc; }
 
-    .acl-telegram-box { background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.125rem;text-align:center; }
-  </style>
+ .acl-telegram-box { background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.125rem;text-align:center; }
+ </style>
 </head>
 <body>
 <%- include('../partials/sidebar', { user, currentPage }) %>
 <div class="dashboard-container">
-  <main class="main-content">
-    <div class="content" style="padding-bottom:2.5rem">
+ <main class="main-content">
+ <div class="content" style="padding-bottom:2.5rem">
 
-    <%
-      const weeks    = cohort.weeklySchedule || [];
-      const attended = enrollment.attendanceWeeks || [];
-      const subs     = enrollment.assignmentSubmissions || [];
-      const subMap   = {};
-      subs.forEach(s => { subMap[s.week] = s.submissionUrl; });
-      const statusMap = { active:'acl-status-active', graduated:'acl-status-graduated', completed:'acl-status-completed', dropped:'' };
-    %>
+ <%
+ const weeks = cohort.weeklySchedule || [];
+ const attended = enrollment.attendanceWeeks || [];
+ const subs = enrollment.assignmentSubmissions || [];
+ const subMap = {};
+ subs.forEach(s => { subMap[s.week] = s.submissionUrl; });
+ const statusMap = { active:'acl-status-active', graduated:'acl-status-graduated', completed:'acl-status-completed', dropped:'' };
+ %>
 
-    <div class="acl-header">
-      <a href="/dashboard/academy/<%= cohort.slug %>" class="acl-back"><i class="fas fa-arrow-left"></i> Cohort Page</a>
-      <div class="acl-meta">ONBOARD3 Academy · Classroom</div>
-      <h1 class="acl-title"><%= cohort.title %></h1>
-      <div class="acl-pills">
-        <span class="acl-pill acl-pill--green"><i class="fas fa-circle" style="font-size:.4rem"></i> You're Enrolled</span>
-        <% if (cohort.duration) { %><span class="acl-pill"><i class="fas fa-clock"></i> <%= cohort.duration %></span><% } %>
-        <span class="acl-pill"><i class="fab fa-telegram"></i> Live on Telegram</span>
-      </div>
-    </div>
+ <div class="acl-header">
+ <a href="/dashboard/academy/<%= cohort.slug %>" class="acl-back"><i class="fas fa-arrow-left"></i> Cohort Page</a>
+ <div class="acl-meta">ONBOARD3 Academy · Classroom</div>
+ <h1 class="acl-title"><%= cohort.title %></h1>
+ <div class="acl-pills">
+ <span class="acl-pill acl-pill--green"><i class="fas fa-circle" style="font-size:.4rem"></i> You're Enrolled</span>
+ <% if (cohort.duration) { %><span class="acl-pill"><i class="fas fa-clock"></i> <%= cohort.duration %></span><% } %>
+ <span class="acl-pill"><i class="fab fa-telegram"></i> Live on Telegram</span>
+ </div>
+ </div>
 
-    <!-- Telegram links bar -->
-    <% if (cohort.telegramGroupLink || cohort.telegramChannelLink) { %>
-    <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem">
-      <% if (cohort.telegramGroupLink) { %>
-      <a href="<%= cohort.telegramGroupLink %>" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;padding:.625rem 1.125rem;background:rgba(34,158,217,.12);color:#229ED9;border:1px solid rgba(34,158,217,.3);border-radius:10px;font-size:.85rem;font-weight:800;text-decoration:none"><i class="fab fa-telegram"></i> Join Student Group</a>
-      <% } %>
-      <% if (cohort.telegramChannelLink) { %>
-      <a href="<%= cohort.telegramChannelLink %>" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;padding:.625rem 1.125rem;background:rgba(255,255,255,.05);color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:.85rem;font-weight:800;text-decoration:none"><i class="fab fa-telegram"></i> Announcements Channel</a>
-      <% } %>
-    </div>
-    <% } %>
+ <!-- Telegram links bar -->
+ <% if (cohort.telegramGroupLink || cohort.telegramChannelLink) { %>
+ <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem">
+ <% if (cohort.telegramGroupLink) { %>
+ <a href="<%= cohort.telegramGroupLink %>" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;padding:.625rem 1.125rem;background:rgba(34,158,217,.12);color:#229ED9;border:1px solid rgba(34,158,217,.3);border-radius:10px;font-size:.85rem;font-weight:800;text-decoration:none"><i class="fab fa-telegram"></i> Join Student Group</a>
+ <% } %>
+ <% if (cohort.telegramChannelLink) { %>
+ <a href="<%= cohort.telegramChannelLink %>" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;padding:.625rem 1.125rem;background:rgba(255,255,255,.05);color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:.85rem;font-weight:800;text-decoration:none"><i class="fab fa-telegram"></i> Announcements Channel</a>
+ <% } %>
+ </div>
+ <% } %>
 
-    <div class="acl-layout">
-      <!-- Left: weeks -->
-      <div>
-        <% if (weeks.length === 0) { %>
-        <div style="text-align:center;padding:3rem;color:var(--text-3);background:rgba(255,255,255,.015);border:1px dashed rgba(255,255,255,.07);border-radius:14px">
-          <i class="fas fa-clock" style="display:block;font-size:1.75rem;margin-bottom:.625rem;opacity:.3"></i>
-          Materials will be published each week — check back soon!
-        </div>
-        <% } else { %>
+ <div class="acl-layout">
+ <!-- Left: weeks -->
+ <div>
+ <% if (weeks.length === 0) { %>
+ <div style="text-align:center;padding:3rem;color:var(--text-3);background:rgba(255,255,255,.015);border:1px dashed rgba(255,255,255,.07);border-radius:14px">
+ <i class="fas fa-clock" style="display:block;font-size:1.75rem;margin-bottom:.625rem;opacity:.3"></i>
+ Materials will be published each week — check back soon!
+ </div>
+ <% } else { %>
 
-        <!-- Week tabs -->
-        <div class="acl-week-tabs" id="weekTabs">
-          <% weeks.forEach((w, i) => { %>
-          <button class="acl-week-tab <%= i===0?'active':'' %> <%= attended.includes(w.week)?'completed':'' %>"
-            onclick="showWeek(<%= i %>, this)">Week <%= w.week %></button>
-          <% }); %>
-        </div>
+ <!-- Week tabs -->
+ <div class="acl-week-tabs" id="weekTabs">
+ <% weeks.forEach((w, i) => { %>
+ <button class="acl-week-tab <%= i===0?'active':'' %> <%= attended.includes(w.week)?'completed':'' %>"
+ onclick="showWeek(<%= i %>, this)">Week <%= w.week %></button>
+ <% }); %>
+ </div>
 
-        <!-- Week panels -->
-        <% weeks.forEach((w, i) => { %>
-        <div class="acl-week-panel <%= i===0?'active':'' %>" id="week-panel-<%= i %>">
+ <!-- Week panels -->
+ <% weeks.forEach((w, i) => { %>
+ <div class="acl-week-panel <%= i===0?'active':'' %>" id="week-panel-<%= i %>">
 
-          <!-- Week theme header -->
-          <div class="acl-box" style="border-color:rgba(94,194,19,.2)">
-            <div class="acl-box-body" style="padding:1.125rem">
-              <div style="font-size:.68rem;font-weight:900;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:.25rem">Week <%= w.week %></div>
-              <div style="font-size:1.0625rem;font-weight:900;color:var(--text);margin-bottom:.375rem"><%= w.theme || 'No theme set' %></div>
-              <% if (w.topics && w.topics.length > 0) { %>
-              <div style="display:flex;gap:.375rem;flex-wrap:wrap">
-                <% w.topics.forEach(t => { %>
-                <span style="font-size:.72rem;font-weight:700;padding:.2rem .5rem;border-radius:50px;background:rgba(255,255,255,.04);color:var(--text-3);border:1px solid rgba(255,255,255,.07)"><%= t %></span>
-                <% }); %>
-              </div>
-              <% } %>
-            </div>
-          </div>
+ <!-- Week theme header -->
+ <div class="acl-box" style="border-color:rgba(94,194,19,.2)">
+ <div class="acl-box-body" style="padding:1.125rem">
+ <div style="font-size:.68rem;font-weight:900;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:.25rem">Week <%= w.week %></div>
+ <div style="font-size:1.0625rem;font-weight:900;color:var(--text);margin-bottom:.375rem"><%= w.theme || 'No theme set' %></div>
+ <% if (w.topics && w.topics.length > 0) { %>
+ <div style="display:flex;gap:.375rem;flex-wrap:wrap">
+ <% w.topics.forEach(t => { %>
+ <span style="font-size:.72rem;font-weight:700;padding:.2rem .5rem;border-radius:50px;background:rgba(255,255,255,.04);color:var(--text-3);border:1px solid rgba(255,255,255,.07)"><%= t %></span>
+ <% }); %>
+ </div>
+ <% } %>
+ </div>
+ </div>
 
-          <!-- Day schedule -->
-          <% if (w.daySchedule && w.daySchedule.length > 0) { %>
-          <div class="acl-box">
-            <div class="acl-box-head"><h3><i class="fas fa-calendar-week" style="color:#c084fc"></i> This Week's Schedule</h3></div>
-            <div class="acl-box-body">
-              <% w.daySchedule.forEach(d => { %>
-              <div class="acl-day-row">
-                <div class="acl-day-name"><%= d.day %></div>
-                <div class="acl-day-act"><%= d.activity %></div>
-              </div>
-              <% }); %>
-            </div>
-          </div>
-          <% } %>
+ <!-- Day schedule -->
+ <% if (w.daySchedule && w.daySchedule.length > 0) { %>
+ <div class="acl-box">
+ <div class="acl-box-head"><h3><i class="fas fa-calendar-week" style="color:#c084fc"></i> This Week's Schedule</h3></div>
+ <div class="acl-box-body">
+ <% w.daySchedule.forEach(d => { %>
+ <div class="acl-day-row">
+ <div class="acl-day-name"><%= d.day %></div>
+ <div class="acl-day-act"><%= d.activity %></div>
+ </div>
+ <% }); %>
+ </div>
+ </div>
+ <% } %>
 
-          <!-- Resources -->
-          <% if (w.resources && w.resources.length > 0) { %>
-          <div class="acl-box">
-            <div class="acl-box-head"><h3><i class="fas fa-folder-open" style="color:#fbbf24"></i> Resources</h3></div>
-            <div class="acl-box-body">
-              <% w.resources.forEach(r => {
-                const iconMap = { pdf:'fa-file-pdf acl-res-icon--pdf', doc:'fa-file-word acl-res-icon--doc', link:'fa-link acl-res-icon--link', video:'fa-video acl-res-icon--video', slides:'fa-file-powerpoint acl-res-icon--other', template:'fa-file-alt acl-res-icon--other', image:'fa-image acl-res-icon--other', other:'fa-file acl-res-icon--other' };
-                const ic = iconMap[r.type] || iconMap.other;
-              %>
-              <div class="acl-resource">
-                <div class="acl-res-icon <%= ic.split(' ')[1] %>"><i class="fas <%= ic.split(' ')[0] %>"></i></div>
-                <div class="acl-res-name"><%= r.name %></div>
-                <a href="<%= r.url %>" target="_blank" class="acl-res-link"><i class="fas fa-external-link-alt"></i> Open</a>
-              </div>
-              <% }); %>
-            </div>
-          </div>
-          <% } %>
+ <!-- Resources -->
+ <% if (w.resources && w.resources.length > 0) { %>
+ <div class="acl-box">
+ <div class="acl-box-head"><h3><i class="fas fa-folder-open" style="color:#fbbf24"></i> Resources</h3></div>
+ <div class="acl-box-body">
+ <% w.resources.forEach(r => {
+ const iconMap = { pdf:'fa-file-pdf acl-res-icon--pdf', doc:'fa-file-word acl-res-icon--doc', link:'fa-link acl-res-icon--link', video:'fa-video acl-res-icon--video', slides:'fa-file-powerpoint acl-res-icon--other', template:'fa-file-alt acl-res-icon--other', image:'fa-image acl-res-icon--other', other:'fa-file acl-res-icon--other' };
+ const ic = iconMap[r.type] || iconMap.other;
+ %>
+ <div class="acl-resource">
+ <div class="acl-res-icon <%= ic.split(' ')[1] %>"><i class="fas <%= ic.split(' ')[0] %>"></i></div>
+ <div class="acl-res-name"><%= r.name %></div>
+ <a href="<%= r.url %>" target="_blank" class="acl-res-link"><i class="fas fa-external-link-alt"></i> Open</a>
+ </div>
+ <% }); %>
+ </div>
+ </div>
+ <% } %>
 
-          <!-- Assignment -->
-          <% if (w.assignment && w.assignment.title) { %>
-          <div class="acl-box" style="border-color:rgba(94,194,19,.2)">
-            <div class="acl-box-head"><h3><i class="fas fa-pencil-alt" style="color:var(--green)"></i> Assignment</h3></div>
-            <div class="acl-box-body">
-              <div class="acl-assignment">
-                <div class="acl-assign-title"><%= w.assignment.title %></div>
-                <% if (w.assignment.description) { %><div class="acl-assign-desc"><%= w.assignment.description %></div><% } %>
-                <% if (w.assignment.deadline) { %><div class="acl-assign-deadline"><i class="fas fa-clock"></i> Deadline: <%= new Date(w.assignment.deadline).toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) %></div><% } %>
-                <% const prevSub = subMap[w.week]; %>
-                <% if (prevSub) { %>
-                <div class="acl-assign-submitted"><i class="fas fa-check-circle"></i> Submitted — <a href="<%= prevSub %>" target="_blank" style="color:var(--green);text-decoration:none"><%= prevSub.length > 40 ? prevSub.substring(0,40)+'…' : prevSub %></a></div>
-                <div style="margin-top:.625rem">
-                  <div class="acl-assign-fg">
-                    <label>Update submission</label>
-                    <input type="url" id="url-<%= w.week %>" placeholder="https://..." value="<%= prevSub %>">
-                  </div>
-                  <button class="acl-assign-btn" onclick="submitAssignment(<%= w.week %>)"><i class="fas fa-rotate"></i> Update</button>
-                </div>
-                <% } else { %>
-                <div class="acl-assign-fg">
-                  <label>Your submission URL</label>
-                  <input type="url" id="url-<%= w.week %>" placeholder="https://drive.google.com/... or your work link">
-                </div>
-                <button class="acl-assign-btn" onclick="submitAssignment(<%= w.week %>)"><i class="fas fa-paper-plane"></i> Submit</button>
-                <% } %>
-              </div>
-            </div>
-          </div>
-          <% } %>
+ <!-- Assignment -->
+ <% if (w.assignment && w.assignment.title) { %>
+ <div class="acl-box" style="border-color:rgba(94,194,19,.2)">
+ <div class="acl-box-head"><h3><i class="fas fa-pencil-alt" style="color:var(--green)"></i> Assignment</h3></div>
+ <div class="acl-box-body">
+ <div class="acl-assignment">
+ <div class="acl-assign-title"><%= w.assignment.title %></div>
+ <% if (w.assignment.description) { %><div class="acl-assign-desc"><%= w.assignment.description %></div><% } %>
+ <% if (w.assignment.deadline) { %><div class="acl-assign-deadline"><i class="fas fa-clock"></i> Deadline: <%= new Date(w.assignment.deadline).toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) %></div><% } %>
+ <% const prevSub = subMap[w.week]; %>
+ <% if (prevSub) { %>
+ <div class="acl-assign-submitted"><i class="fas fa-check-circle"></i> Submitted — <a href="<%= prevSub %>" target="_blank" style="color:var(--green);text-decoration:none"><%= prevSub.length > 40 ? prevSub.substring(0,40)+'…' : prevSub %></a></div>
+ <div style="margin-top:.625rem">
+ <div class="acl-assign-fg">
+ <label>Update submission</label>
+ <input type="url" id="url-<%= w.week %>" placeholder="https://..." value="<%= prevSub %>">
+ </div>
+ <button class="acl-assign-btn" onclick="submitAssignment(<%= w.week %>)"><i class="fas fa-rotate"></i> Update</button>
+ </div>
+ <% } else { %>
+ <div class="acl-assign-fg">
+ <label>Your submission URL</label>
+ <input type="url" id="url-<%= w.week %>" placeholder="https://drive.google.com/... or your work link">
+ </div>
+ <button class="acl-assign-btn" onclick="submitAssignment(<%= w.week %>)"><i class="fas fa-paper-plane"></i> Submit</button>
+ <% } %>
+ </div>
+ </div>
+ </div>
+ <% } %>
 
-        </div><!-- /week-panel -->
-        <% }); %>
-        <% } %>
+ </div><!-- /week-panel -->
+ <% }); %>
+ <% } %>
 
-      </div><!-- /left -->
+ </div><!-- /left -->
 
-      <!-- Sidebar -->
-      <div class="acl-sidebar">
-        <div class="acl-progress-box">
-          <div class="acl-progress-title">Your Progress</div>
-          <div class="acl-prog-row"><span class="acl-prog-label">Status</span><span class="acl-status-chip <%= statusMap[enrollment.status]||'' %>"><%= enrollment.status.charAt(0).toUpperCase()+enrollment.status.slice(1) %></span></div>
-          <div class="acl-prog-row"><span class="acl-prog-label">Attendance</span><span class="acl-prog-val"><%= attended.length %> / <%= weeks.length %> weeks</span></div>
-          <div class="acl-prog-row"><span class="acl-prog-label">Assignments</span><span class="acl-prog-val"><%= enrollment.assignmentsCompleted %></span></div>
-          <% if (enrollment.certificateId) { %>
-          <div style="margin-top:1rem;padding-top:.875rem;border-top:1px solid rgba(255,255,255,.06)">
-            <div style="font-size:.75rem;font-weight:700;color:#fbbf24;margin-bottom:.5rem"><i class="fas fa-certificate"></i> Certificate Issued</div>
-            <a href="/academy/verify/<%= enrollment.certificateId %>" target="_blank" style="font-size:.78rem;color:#fbbf24;font-weight:700;text-decoration:none"><%= enrollment.certificateId %> <i class="fas fa-external-link-alt" style="font-size:.65rem"></i></a>
-          </div>
-          <% } %>
-        </div>
+ <!-- Sidebar -->
+ <div class="acl-sidebar">
+ <div class="acl-progress-box">
+ <div class="acl-progress-title">Your Progress</div>
+ <div class="acl-prog-row"><span class="acl-prog-label">Status</span><span class="acl-status-chip <%= statusMap[enrollment.status]||'' %>"><%= enrollment.status.charAt(0).toUpperCase()+enrollment.status.slice(1) %></span></div>
+ <div class="acl-prog-row"><span class="acl-prog-label">Attendance</span><span class="acl-prog-val"><%= attended.length %> / <%= weeks.length %> weeks</span></div>
+ <div class="acl-prog-row"><span class="acl-prog-label">Assignments</span><span class="acl-prog-val"><%= enrollment.assignmentsCompleted %></span></div>
+ <% if (enrollment.certificateId) { %>
+ <div style="margin-top:1rem;padding-top:.875rem;border-top:1px solid rgba(255,255,255,.06)">
+ <div style="font-size:.75rem;font-weight:700;color:#fbbf24;margin-bottom:.5rem"><i class="fas fa-certificate"></i> Certificate Issued</div>
+ <a href="/academy/verify/<%= enrollment.certificateId %>" target="_blank" style="font-size:.78rem;color:#fbbf24;font-weight:700;text-decoration:none"><%= enrollment.certificateId %> <i class="fas fa-external-link-alt" style="font-size:.65rem"></i></a>
+ </div>
+ <% } %>
+ </div>
 
-        <!-- Week attendance indicator -->
-        <% if (weeks.length > 0) { %>
-        <div class="acl-box">
-          <div class="acl-box-head"><h3><i class="fas fa-calendar-check"></i> Attendance</h3></div>
-          <div class="acl-box-body" style="display:flex;gap:.5rem;flex-wrap:wrap">
-            <% weeks.forEach(w => { %>
-            <div style="width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;border:1px solid <%= attended.includes(w.week)?'rgba(94,194,19,.4)':'rgba(255,255,255,.08)' %>;background:<%= attended.includes(w.week)?'rgba(94,194,19,.12)':'rgba(255,255,255,.02)' %>;color:<%= attended.includes(w.week)?'var(--green)':'var(--text-4)' %>">W<%= w.week %></div>
-            <% }); %>
-          </div>
-        </div>
-        <% } %>
+ <!-- Week attendance indicator -->
+ <% if (weeks.length > 0) { %>
+ <div class="acl-box">
+ <div class="acl-box-head"><h3><i class="fas fa-calendar-check"></i> Attendance</h3></div>
+ <div class="acl-box-body" style="display:flex;gap:.5rem;flex-wrap:wrap">
+ <% weeks.forEach(w => { %>
+ <div style="width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;border:1px solid <%= attended.includes(w.week)?'rgba(94,194,19,.4)':'rgba(255,255,255,.08)' %>;background:<%= attended.includes(w.week)?'rgba(94,194,19,.12)':'rgba(255,255,255,.02)' %>;color:<%= attended.includes(w.week)?'var(--green)':'var(--text-4)' %>">W<%= w.week %></div>
+ <% }); %>
+ </div>
+ </div>
+ <% } %>
 
-        <!-- Telegram quick link -->
-        <% if (cohort.telegramGroupLink) { %>
-        <div class="acl-telegram-box">
-          <i class="fab fa-telegram" style="font-size:1.5rem;color:#229ED9;display:block;margin-bottom:.5rem"></i>
-          <div style="font-size:.8375rem;font-weight:800;color:var(--text);margin-bottom:.25rem">Student Group</div>
-          <div style="font-size:.75rem;color:var(--text-3);margin-bottom:.75rem">Classes, Q&A and community</div>
-          <a href="<%= cohort.telegramGroupLink %>" target="_blank" style="display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:rgba(34,158,217,.15);color:#229ED9;border:1px solid rgba(34,158,217,.3);border-radius:8px;font-size:.8rem;font-weight:700;text-decoration:none"><i class="fab fa-telegram"></i> Open Group</a>
-        </div>
-        <% } %>
-      </div>
+ <!-- Telegram quick link -->
+ <% if (cohort.telegramGroupLink) { %>
+ <div class="acl-telegram-box">
+ <i class="fab fa-telegram" style="font-size:1.5rem;color:#229ED9;display:block;margin-bottom:.5rem"></i>
+ <div style="font-size:.8375rem;font-weight:800;color:var(--text);margin-bottom:.25rem">Student Group</div>
+ <div style="font-size:.75rem;color:var(--text-3);margin-bottom:.75rem">Classes, Q&A and community</div>
+ <a href="<%= cohort.telegramGroupLink %>" target="_blank" style="display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:rgba(34,158,217,.15);color:#229ED9;border:1px solid rgba(34,158,217,.3);border-radius:8px;font-size:.8rem;font-weight:700;text-decoration:none"><i class="fab fa-telegram"></i> Open Group</a>
+ </div>
+ <% } %>
+ </div>
 
-    </div>
+ </div>
 
-    </div>
-  </main>
+ </div>
+ </main>
 </div>
 
 <script>
 function showWeek(idx, btn) {
-  document.querySelectorAll('.acl-week-panel').forEach(function(p){ p.classList.remove('active'); });
-  document.querySelectorAll('.acl-week-tab').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById('week-panel-' + idx).classList.add('active');
-  btn.classList.add('active');
+ document.querySelectorAll('.acl-week-panel').forEach(function(p){ p.classList.remove('active'); });
+ document.querySelectorAll('.acl-week-tab').forEach(function(b){ b.classList.remove('active'); });
+ document.getElementById('week-panel-' + idx).classList.add('active');
+ btn.classList.add('active');
 }
 
 function submitAssignment(week) {
-  var url = document.getElementById('url-' + week).value.trim();
-  if (!url) { alert('Please enter a URL'); return; }
-  fetch('/dashboard/academy/<%= cohort.slug %>/classroom/submit/' + week, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ submissionUrl: url })
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(d) {
-    if (d.success) {
-      showToast(d.message, 'success');
-      setTimeout(function(){ location.reload(); }, 1200);
-    } else {
-      showToast(d.message || 'Error submitting', 'error');
-    }
-  })
-  .catch(function(){ showToast('Network error', 'error'); });
+ var url = document.getElementById('url-' + week).value.trim();
+ if (!url) { alert('Please enter a URL'); return; }
+ fetch('/dashboard/academy/<%= cohort.slug %>/classroom/submit/' + week, {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ submissionUrl: url })
+ })
+ .then(function(r){ return r.json(); })
+ .then(function(d) {
+ if (d.success) {
+ showToast(d.message, 'success');
+ setTimeout(function(){ location.reload(); }, 1200);
+ } else {
+ showToast(d.message || 'Error submitting', 'error');
+ }
+ })
+ .catch(function(){ showToast('Network error', 'error'); });
 }
 </script>
 </body>

@@ -53,39 +53,22 @@ const ROLES = {
         },
         description: 'Active contributor to the ecosystem. Unlocked multiplayer challenges!'
     },
-    captain: {
-        name: 'Captain',
+    ambassador: {
+        name: 'Ambassador',
         minXP: 25000,
-        maxXP: 49999,
-        color: '#FF6B35',
-        icon: 'fa-rocket',
-        benefits: {
-            classDiscount: 15,
-            jobBoardAccess: false,
-            multiplayerAccess: true,
-            prioritySupport: false,
-            exclusiveQuests: true,
-            customBadge: true,
-            monthlyBonus: 5000
-        },
-        description: 'Leading the crew! Enhanced benefits across the platform.'
-    },
-    maxi: {
-        name: 'Maxi',
-        minXP: 50000,
         maxXP: 99999,
-        color: '#00D9FF',
-        icon: 'fa-layer-group',
+        color: '#3b82f6',
+        icon: 'fa-globe',
         benefits: {
             classDiscount: 20,
             jobBoardAccess: true,
             multiplayerAccess: true,
-            prioritySupport: true,
+            prioritySupport: false,
             exclusiveQuests: true,
             customBadge: true,
-            monthlyBonus: 10000
+            monthlyBonus: 7500
         },
-        description: 'True believer! Job board access unlocked.'
+        description: 'Representing ONBOARD3! Enhanced benefits and job board access.'
     },
     legend: {
         name: 'Legend',
@@ -107,7 +90,7 @@ const ROLES = {
     major: {
         name: 'Major',
         minXP: 250000,
-        maxXP: 499999,
+        maxXP: Infinity,
         color: '#FF0080',
         icon: 'fa-shield-alt',
         benefits: {
@@ -120,23 +103,6 @@ const ROLES = {
             monthlyBonus: 35000
         },
         description: 'Major player in the ecosystem! Top-tier benefits.'
-    },
-    core_team: {
-        name: 'Core Team',
-        minXP: 500000,
-        maxXP: Infinity,
-        color: '#FFD700',
-        icon: 'fa-crown',
-        benefits: {
-            classDiscount: 50,
-            jobBoardAccess: true,
-            multiplayerAccess: true,
-            prioritySupport: true,
-            exclusiveQuests: true,
-            customBadge: true,
-            monthlyBonus: 50000
-        },
-        description: 'Elite status! Maximum benefits and recognition.'
     }
 };
 
@@ -236,11 +202,9 @@ const BADGES = {
     citizen: { name: 'Citizen', icon: 'fa-user', color: '#888888', xpReward: 50 },
     early_citizen: { name: 'Early Citizen', icon: 'fa-star', color: '#FFD700', xpReward: 100 },
     contributor: { name: 'Contributor', icon: 'fa-code-branch', color: '#39FF14', xpReward: 150 },
-    captain: { name: 'Captain', icon: 'fa-rocket', color: '#FF6B35', xpReward: 250 },
-    maxi: { name: 'Maxi', icon: 'fa-layer-group', color: '#00D9FF', xpReward: 350 },
+    ambassador: { name: 'Ambassador', icon: 'fa-globe', color: '#3b82f6', xpReward: 300 },
     legend: { name: 'Legend', icon: 'fa-bolt', color: '#9D4EDD', xpReward: 500 },
     major: { name: 'Major', icon: 'fa-shield-alt', color: '#FF0080', xpReward: 750 },
-    core_team: { name: 'Core Team', icon: 'fa-crown', color: '#FFD700', xpReward: 1000 },
 
     // Achievement Badges
     first_quest: { name: 'First Quest', description: 'Completed your first quest', icon: 'fa-flag-checkered', color: '#39FF14', xpReward: 25 },

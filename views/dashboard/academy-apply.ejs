@@ -1,193 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title><%= title %></title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <%- include('../partials/achievement-popup') %>
-  <link rel="stylesheet" href="/css/dashboard.css">
-  <style>
-    .aca-wrap { max-width:680px; margin:0 auto; }
-    .aca-header { margin-bottom:1.75rem; }
-    .aca-back { display:inline-flex; align-items:center; gap:.5rem; color:var(--text-3); font-size:.8125rem; font-weight:700; text-decoration:none; margin-bottom:1rem; }
-    .aca-back:hover { color:var(--green); }
-    .aca-for { font-size:.72rem; font-weight:900; color:var(--green); text-transform:uppercase; letter-spacing:2px; margin-bottom:.375rem; }
-    .aca-title { font-size:clamp(1.25rem,3vw,1.75rem); font-weight:900; color:var(--text); letter-spacing:-.5px; }
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+ <title><%= title %></title>
+ <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+ <%- include('../partials/achievement-popup') %>
+ <link rel="stylesheet" href="/css/dashboard.css">
+ <style>
+ .aca-wrap { max-width:680px; margin:0 auto; }
+ .aca-header { margin-bottom:1.75rem; }
+ .aca-back { display:inline-flex; align-items:center; gap:.5rem; color:var(--text-3); font-size:.8125rem; font-weight:700; text-decoration:none; margin-bottom:1rem; }
+ .aca-back:hover { color:var(--green); }
+ .aca-for { font-size:.72rem; font-weight:900; color:var(--green); text-transform:uppercase; letter-spacing:2px; margin-bottom:.375rem; }
+ .aca-title { font-size:clamp(1.25rem,3vw,1.75rem); font-weight:900; color:var(--text); letter-spacing:-.5px; }
 
-    .aca-form { background:var(--bg-card); border:1px solid var(--border); border-radius:20px; padding:1.75rem; }
-    .aca-section { margin-bottom:1.75rem; }
-    .aca-section-title { font-size:.72rem; font-weight:900; color:var(--green); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:1rem; padding-bottom:.625rem; border-bottom:1px solid rgba(94,194,19,.12); display:flex; align-items:center; gap:.5rem; }
-    .aca-section:last-child { margin-bottom:0; }
+ .aca-form { background:var(--bg-card); border:1px solid var(--border); border-radius:20px; padding:1.75rem; }
+ .aca-section { margin-bottom:1.75rem; }
+ .aca-section-title { font-size:.72rem; font-weight:900; color:var(--green); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:1rem; padding-bottom:.625rem; border-bottom:1px solid rgba(94,194,19,.12); display:flex; align-items:center; gap:.5rem; }
+ .aca-section:last-child { margin-bottom:0; }
 
-    .aca-fg { margin-bottom:1rem; }
-    .aca-fg:last-child { margin-bottom:0; }
-    .aca-fg label { display:block; font-size:.78rem; font-weight:800; color:var(--text-3); text-transform:uppercase; letter-spacing:.8px; margin-bottom:.4rem; }
-    .aca-fg label span { color:var(--text-4); font-weight:400; text-transform:none; letter-spacing:0; }
-    .aca-fg input,
-    .aca-fg select,
-    .aca-fg textarea {
-      width:100%; box-sizing:border-box;
-      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
-      border-radius:10px; color:var(--text); font-family:'Outfit',sans-serif;
-      font-size:.875rem; padding:.75rem 1rem; resize:vertical;
-    }
-    .aca-fg input:focus,
-    .aca-fg select:focus,
-    .aca-fg textarea:focus { border-color:rgba(94,194,19,.5); outline:none; }
-    .aca-fg select option { background:#1a1a1a; color:#e8e8e8; }
+ .aca-fg { margin-bottom:1rem; }
+ .aca-fg:last-child { margin-bottom:0; }
+ .aca-fg label { display:block; font-size:.78rem; font-weight:800; color:var(--text-3); text-transform:uppercase; letter-spacing:.8px; margin-bottom:.4rem; }
+ .aca-fg label span { color:var(--text-4); font-weight:400; text-transform:none; letter-spacing:0; }
+ .aca-fg input,
+ .aca-fg select,
+ .aca-fg textarea {
+ width:100%; box-sizing:border-box;
+ background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+ border-radius:10px; color:var(--text); font-family:'Outfit',sans-serif;
+ font-size:.875rem; padding:.75rem 1rem; resize:vertical;
+ }
+ .aca-fg input:focus,
+ .aca-fg select:focus,
+ .aca-fg textarea:focus { border-color:rgba(94,194,19,.5); outline:none; }
+ .aca-fg select option { background:#1a1a1a; color:#e8e8e8; }
 
-    .aca-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
-    @media (max-width:480px) { .aca-row { grid-template-columns:1fr; } }
+ .aca-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+ @media (max-width:480px) { .aca-row { grid-template-columns:1fr; } }
 
-    .aca-radio-group { display:flex; gap:.5rem; flex-wrap:wrap; }
-    .aca-radio { display:none; }
-    .aca-radio + label {
-      padding:.5rem 1rem; border-radius:8px; border:1px solid rgba(255,255,255,.1);
-      background:rgba(255,255,255,.04); color:var(--text-3); font-size:.8rem; font-weight:700;
-      cursor:pointer; transition:all .2s; user-select:none;
-      text-transform:none; letter-spacing:0;
-    }
-    .aca-radio:checked + label { background:rgba(94,194,19,.15); border-color:rgba(94,194,19,.4); color:var(--green); }
+ .aca-radio-group { display:flex; gap:.5rem; flex-wrap:wrap; }
+ .aca-radio { display:none; }
+ .aca-radio + label {
+ padding:.5rem 1rem; border-radius:8px; border:1px solid rgba(255,255,255,.1);
+ background:rgba(255,255,255,.04); color:var(--text-3); font-size:.8rem; font-weight:700;
+ cursor:pointer; transition:all .2s; user-select:none;
+ text-transform:none; letter-spacing:0;
+ }
+ .aca-radio:checked + label { background:rgba(94,194,19,.15); border-color:rgba(94,194,19,.4); color:var(--green); }
 
-    .aca-submit-btn {
-      width:100%; padding:.9375rem; border-radius:12px;
-      background:var(--green); color:#000; font-family:'Outfit',sans-serif;
-      font-size:.9375rem; font-weight:900; border:none; cursor:pointer;
-      transition:all .25s; margin-top:1.5rem;
-    }
-    .aca-submit-btn:hover { background:#6be01a; transform:translateY(-1px); }
-    .aca-submit-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+ .aca-submit-btn {
+ width:100%; padding:.9375rem; border-radius:12px;
+ background:var(--green); color:#000; font-family:'Outfit',sans-serif;
+ font-size:.9375rem; font-weight:900; border:none; cursor:pointer;
+ transition:all .25s; margin-top:1.5rem;
+ }
+ .aca-submit-btn:hover { background:#6be01a; transform:translateY(-1px); }
+ .aca-submit-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
 
-    .aca-error { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25); border-radius:10px; padding:.75rem 1rem; color:#f87171; font-size:.875rem; font-weight:700; margin-bottom:1.25rem; display:flex; align-items:center; gap:.5rem; }
+ .aca-error { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25); border-radius:10px; padding:.75rem 1rem; color:#f87171; font-size:.875rem; font-weight:700; margin-bottom:1.25rem; display:flex; align-items:center; gap:.5rem; }
 
-    .aca-challenge-box { background:rgba(251,191,36,.06); border:1px solid rgba(251,191,36,.2); border-radius:12px; padding:1rem; margin-bottom:1rem; }
-    .aca-challenge-label { font-size:.72rem; font-weight:900; color:#fbbf24; text-transform:uppercase; letter-spacing:1px; margin-bottom:.5rem; }
-    .aca-challenge-text { font-size:.875rem; color:var(--text-2); line-height:1.65; }
-  </style>
+ .aca-challenge-box { background:rgba(251,191,36,.06); border:1px solid rgba(251,191,36,.2); border-radius:12px; padding:1rem; margin-bottom:1rem; }
+ .aca-challenge-label { font-size:.72rem; font-weight:900; color:#fbbf24; text-transform:uppercase; letter-spacing:1px; margin-bottom:.5rem; }
+ .aca-challenge-text { font-size:.875rem; color:var(--text-2); line-height:1.65; }
+ </style>
 </head>
 <body>
 <%- include('../partials/sidebar', { user, currentPage }) %>
 <div class="dashboard-container">
-  <main class="main-content">
-    <div class="content">
-      <div class="aca-wrap">
+ <main class="main-content">
+ <div class="content">
+ <div class="aca-wrap">
 
-        <div class="aca-header">
-          <a href="/dashboard/academy/<%= cohort.slug %>" class="aca-back"><i class="fas fa-arrow-left"></i> Back to cohort</a>
-          <div class="aca-for">Apply · <%= cohort.title %></div>
-          <h1 class="aca-title">ONBOARD3 Academy Application</h1>
-        </div>
+ <div class="aca-header">
+ <a href="/dashboard/academy/<%= cohort.slug %>" class="aca-back"><i class="fas fa-arrow-left"></i> Back to cohort</a>
+ <div class="aca-for">Apply · <%= cohort.title %></div>
+ <h1 class="aca-title">ONBOARD3 Academy Application</h1>
+ </div>
 
-        <% if (error) { %>
-        <div class="aca-error"><i class="fas fa-exclamation-circle"></i> <%= error %></div>
-        <% } %>
+ <% if (error) { %>
+ <div class="aca-error"><i class="fas fa-exclamation-circle"></i> <%= error %></div>
+ <% } %>
 
-        <form method="POST" action="/dashboard/academy/<%= cohort.slug %>/apply" class="aca-form" id="applyForm">
+ <form method="POST" action="/dashboard/academy/<%= cohort.slug %>/apply" class="aca-form" id="applyForm">
 
-          <!-- Personal info -->
-          <div class="aca-section">
-            <div class="aca-section-title"><i class="fas fa-user"></i> Personal Info</div>
-            <div class="aca-row">
-              <div class="aca-fg">
-                <label>Full Name *</label>
-                <input type="text" name="name" required placeholder="Your full name" value="<%= user.username %>">
-              </div>
-              <div class="aca-fg">
-                <label>Email *</label>
-                <input type="email" name="email" required placeholder="your@email.com" value="<%= user.email %>">
-              </div>
-            </div>
-            <div class="aca-row">
-              <div class="aca-fg">
-                <label>X (Twitter) Username <span>(optional)</span></label>
-                <input type="text" name="xUsername" placeholder="@handle">
-              </div>
-              <div class="aca-fg">
-                <label>Telegram Username *</label>
-                <input type="text" name="telegramUsername" required placeholder="@handle">
-              </div>
-            </div>
-          </div>
+ <!-- Personal info -->
+ <div class="aca-section">
+ <div class="aca-section-title"><i class="fas fa-user"></i> Personal Info</div>
+ <div class="aca-row">
+ <div class="aca-fg">
+ <label>Full Name *</label>
+ <input type="text" name="name" required placeholder="Your full name" value="<%= user.username %>">
+ </div>
+ <div class="aca-fg">
+ <label>Email *</label>
+ <input type="email" name="email" required placeholder="your@email.com" value="<%= user.email %>">
+ </div>
+ </div>
+ <div class="aca-row">
+ <div class="aca-fg">
+ <label>X (Twitter) Username <span>(optional)</span></label>
+ <input type="text" name="xUsername" placeholder="@handle">
+ </div>
+ <div class="aca-fg">
+ <label>Telegram Username *</label>
+ <input type="text" name="telegramUsername" required placeholder="@handle">
+ </div>
+ </div>
+ </div>
 
-          <!-- Background -->
-          <div class="aca-section">
-            <div class="aca-section-title"><i class="fas fa-chart-bar"></i> Your Background</div>
-            <div class="aca-fg">
-              <label>Experience Level *</label>
-              <div class="aca-radio-group">
-                <input type="radio" id="exp-beg" name="experienceLevel" value="beginner" class="aca-radio" checked>
-                <label for="exp-beg">Beginner</label>
-                <input type="radio" id="exp-int" name="experienceLevel" value="intermediate" class="aca-radio">
-                <label for="exp-int">Intermediate</label>
-                <input type="radio" id="exp-adv" name="experienceLevel" value="advanced" class="aca-radio">
-                <label for="exp-adv">Advanced</label>
-              </div>
-            </div>
-            <div class="aca-fg">
-              <label>How many hours per week can you dedicate? *</label>
-              <div class="aca-radio-group">
-                <input type="radio" id="hrs-5" name="hoursPerWeek" value="<5" class="aca-radio" checked>
-                <label for="hrs-5">Less than 5 hrs</label>
-                <input type="radio" id="hrs-10" name="hoursPerWeek" value="5-10" class="aca-radio">
-                <label for="hrs-10">5 – 10 hrs</label>
-                <input type="radio" id="hrs-10p" name="hoursPerWeek" value="10+" class="aca-radio">
-                <label for="hrs-10p">10+ hrs</label>
-              </div>
-            </div>
-            <div class="aca-fg">
-              <label>Are you willing to complete all assignments? *</label>
-              <div class="aca-radio-group">
-                <input type="radio" id="will-yes" name="willingToComplete" value="yes" class="aca-radio" checked>
-                <label for="will-yes">Yes, absolutely</label>
-                <input type="radio" id="will-no" name="willingToComplete" value="no" class="aca-radio">
-                <label for="will-no">Not sure</label>
-              </div>
-            </div>
-          </div>
+ <!-- Background -->
+ <div class="aca-section">
+ <div class="aca-section-title"><i class="fas fa-chart-bar"></i> Your Background</div>
+ <div class="aca-fg">
+ <label>Experience Level *</label>
+ <div class="aca-radio-group">
+ <input type="radio" id="exp-beg" name="experienceLevel" value="beginner" class="aca-radio" checked>
+ <label for="exp-beg">Beginner</label>
+ <input type="radio" id="exp-int" name="experienceLevel" value="intermediate" class="aca-radio">
+ <label for="exp-int">Intermediate</label>
+ <input type="radio" id="exp-adv" name="experienceLevel" value="advanced" class="aca-radio">
+ <label for="exp-adv">Advanced</label>
+ </div>
+ </div>
+ <div class="aca-fg">
+ <label>How many hours per week can you dedicate? *</label>
+ <div class="aca-radio-group">
+ <input type="radio" id="hrs-5" name="hoursPerWeek" value="<5" class="aca-radio" checked>
+ <label for="hrs-5">Less than 5 hrs</label>
+ <input type="radio" id="hrs-10" name="hoursPerWeek" value="5-10" class="aca-radio">
+ <label for="hrs-10">5 – 10 hrs</label>
+ <input type="radio" id="hrs-10p" name="hoursPerWeek" value="10+" class="aca-radio">
+ <label for="hrs-10p">10+ hrs</label>
+ </div>
+ </div>
+ <div class="aca-fg">
+ <label>Are you willing to complete all assignments? *</label>
+ <div class="aca-radio-group">
+ <input type="radio" id="will-yes" name="willingToComplete" value="yes" class="aca-radio" checked>
+ <label for="will-yes">Yes, absolutely</label>
+ <input type="radio" id="will-no" name="willingToComplete" value="no" class="aca-radio">
+ <label for="will-no">Not sure</label>
+ </div>
+ </div>
+ </div>
 
-          <!-- Motivation -->
-          <div class="aca-section">
-            <div class="aca-section-title"><i class="fas fa-fire"></i> Your Goals</div>
-            <div class="aca-fg">
-              <label>Why do you want to join this cohort? *</label>
-              <textarea name="motivation" rows="4" required placeholder="Tell us what drew you to this program and why now..."></textarea>
-            </div>
-            <div class="aca-fg">
-              <label>What do you want to achieve? *</label>
-              <textarea name="goal" rows="4" required placeholder="What specific outcome are you aiming for after completing this cohort?"></textarea>
-            </div>
-          </div>
+ <!-- Motivation -->
+ <div class="aca-section">
+ <div class="aca-section-title"><i class="fas fa-fire"></i> Your Goals</div>
+ <div class="aca-fg">
+ <label>Why do you want to join this cohort? *</label>
+ <textarea name="motivation" rows="4" required placeholder="Tell us what drew you to this program and why now..."></textarea>
+ </div>
+ <div class="aca-fg">
+ <label>What do you want to achieve? *</label>
+ <textarea name="goal" rows="4" required placeholder="What specific outcome are you aiming for after completing this cohort?"></textarea>
+ </div>
+ </div>
 
-          <!-- Admission challenge -->
-          <% if (cohort.admissionChallenge) { %>
-          <div class="aca-section">
-            <div class="aca-section-title"><i class="fas fa-star" style="color:#fbbf24"></i> Admission Challenge</div>
-            <div class="aca-challenge-box">
-              <div class="aca-challenge-label">Your task</div>
-              <div class="aca-challenge-text"><%= cohort.admissionChallenge %></div>
-            </div>
-            <div class="aca-fg">
-              <label>Your Answer</label>
-              <textarea name="challengeAnswer" rows="5" placeholder="Your response to the admission challenge..."></textarea>
-            </div>
-          </div>
-          <% } %>
+ <!-- Admission challenge -->
+ <% if (cohort.admissionChallenge) { %>
+ <div class="aca-section">
+ <div class="aca-section-title"><i class="fas fa-star" style="color:#fbbf24"></i> Admission Challenge</div>
+ <div class="aca-challenge-box">
+ <div class="aca-challenge-label">Your task</div>
+ <div class="aca-challenge-text"><%= cohort.admissionChallenge %></div>
+ </div>
+ <div class="aca-fg">
+ <label>Your Answer</label>
+ <textarea name="challengeAnswer" rows="5" placeholder="Your response to the admission challenge..."></textarea>
+ </div>
+ </div>
+ <% } %>
 
-          <button type="submit" class="aca-submit-btn" id="submitBtn">
-            <i class="fas fa-paper-plane"></i> Submit Application
-          </button>
-        </form>
+ <button type="submit" class="aca-submit-btn" id="submitBtn">
+ <i class="fas fa-paper-plane"></i> Submit Application
+ </button>
+ </form>
 
-      </div>
-    </div>
-  </main>
+ </div>
+ </div>
+ </main>
 </div>
 <script>
 document.getElementById('applyForm').addEventListener('submit', function() {
-  var btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+ var btn = document.getElementById('submitBtn');
+ btn.disabled = true;
+ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
 });
 </script>
 </body>

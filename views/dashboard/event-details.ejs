@@ -1,436 +1,436 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Details - ONBOARD3</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <%- include('../partials/achievement-popup') %>
-    <link rel="stylesheet" href="/css/dashboard.css">
-    <style>
-        .ev-hero {
-            position: relative;
-            width: 100%;
-            min-height: 280px;
-            border-radius: 16px;
-            overflow: hidden;
-            background: linear-gradient(135deg, #0d2b0a 0%, #112b11 50%, #0a1a1f 100%);
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: flex-end;
-        }
-        .ev-hero-bg {
-            position: absolute;
-            inset: 0;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        .ev-hero-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,.85) 0%, rgba(0,0,0,.4) 50%, rgba(0,0,0,.15) 100%);
-        }
-        .ev-hero-gradient-only {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(57,255,20,.12) 0%, rgba(0,217,255,.08) 100%);
-        }
-        .ev-hero-content {
-            position: relative;
-            z-index: 2;
-            padding: 2rem;
-            width: 100%;
-        }
-        .ev-hero-title {
-            font-size: clamp(1.4rem, 4vw, 2.2rem);
-            font-weight: 800;
-            color: #fff;
-            margin: 0 0 .5rem 0;
-            line-height: 1.2;
-            text-shadow: 0 2px 12px rgba(0,0,0,.6);
-        }
-        .ev-hero-meta {
-            display: flex;
-            align-items: center;
-            gap: .75rem;
-            flex-wrap: wrap;
-            color: rgba(255,255,255,.75);
-            font-size: .875rem;
-        }
-        .ev-hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: .3rem;
-            padding: .2rem .65rem;
-            border-radius: 20px;
-            font-size: .72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-        }
-        .ev-hero-badge.live   { background: rgba(57,255,20,.2); color: #5ec213; border: 1px solid rgba(57,255,20,.35); }
-        .ev-hero-badge.ended  { background: rgba(100,100,100,.2); color: #aaa; border: 1px solid rgba(150,150,150,.25); }
-        .ev-hero-badge.type   { background: rgba(0,217,255,.1); color: #00d9ff; border: 1px solid rgba(0,217,255,.25); }
-        .ev-hero-badge.manual { background: rgba(245,158,11,.12); color: #f59e0b; border: 1px solid rgba(245,158,11,.3); }
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Event Details - ONBOARD3</title>
+ <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+ <%- include('../partials/achievement-popup') %>
+ <link rel="stylesheet" href="/css/dashboard.css">
+ <style>
+ .ev-hero {
+ position: relative;
+ width: 100%;
+ min-height: 280px;
+ border-radius: 16px;
+ overflow: hidden;
+ background: linear-gradient(135deg, #0d2b0a 0%, #112b11 50%, #0a1a1f 100%);
+ margin-bottom: 1.5rem;
+ display: flex;
+ align-items: flex-end;
+ }
+ .ev-hero-bg {
+ position: absolute;
+ inset: 0;
+ background-size: cover;
+ background-position: center;
+ background-repeat: no-repeat;
+ }
+ .ev-hero-overlay {
+ position: absolute;
+ inset: 0;
+ background: linear-gradient(to top, rgba(0,0,0,.85) 0%, rgba(0,0,0,.4) 50%, rgba(0,0,0,.15) 100%);
+ }
+ .ev-hero-gradient-only {
+ position: absolute;
+ inset: 0;
+ background: linear-gradient(135deg, rgba(57,255,20,.12) 0%, rgba(0,217,255,.08) 100%);
+ }
+ .ev-hero-content {
+ position: relative;
+ z-index: 2;
+ padding: 2rem;
+ width: 100%;
+ }
+ .ev-hero-title {
+ font-size: clamp(1.4rem, 4vw, 2.2rem);
+ font-weight: 800;
+ color: #fff;
+ margin: 0 0 .5rem 0;
+ line-height: 1.2;
+ text-shadow: 0 2px 12px rgba(0,0,0,.6);
+ }
+ .ev-hero-meta {
+ display: flex;
+ align-items: center;
+ gap: .75rem;
+ flex-wrap: wrap;
+ color: rgba(255,255,255,.75);
+ font-size: .875rem;
+ }
+ .ev-hero-badge {
+ display: inline-flex;
+ align-items: center;
+ gap: .3rem;
+ padding: .2rem .65rem;
+ border-radius: 20px;
+ font-size: .72rem;
+ font-weight: 700;
+ text-transform: uppercase;
+ letter-spacing: .04em;
+ }
+ .ev-hero-badge.live { background: rgba(57,255,20,.2); color: #5ec213; border: 1px solid rgba(57,255,20,.35); }
+ .ev-hero-badge.ended { background: rgba(100,100,100,.2); color: #aaa; border: 1px solid rgba(150,150,150,.25); }
+ .ev-hero-badge.type { background: rgba(0,217,255,.1); color: #00d9ff; border: 1px solid rgba(0,217,255,.25); }
+ .ev-hero-badge.manual { background: rgba(245,158,11,.12); color: #f59e0b; border: 1px solid rgba(245,158,11,.3); }
 
-        .ev-body-grid {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 1.5rem;
-            align-items: start;
-            margin-bottom: 1.5rem;
-        }
-        @media (max-width: 768px) {
-            .ev-body-grid { grid-template-columns: 1fr; }
-            .ev-hero { min-height: 200px; }
-            .ev-hero-title { font-size: 1.4rem !important; }
-        }
+ .ev-body-grid {
+ display: grid;
+ grid-template-columns: 1fr 300px;
+ gap: 1.5rem;
+ align-items: start;
+ margin-bottom: 1.5rem;
+ }
+ @media (max-width: 768px) {
+ .ev-body-grid { grid-template-columns: 1fr; }
+ .ev-hero { min-height: 200px; }
+ .ev-hero-title { font-size: 1.4rem !important; }
+ }
 
-        .ev-section-card { margin-bottom: 1.5rem; }
-        .ev-section-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #39FF14;
-            margin: 0 0 1rem 0;
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-        }
+ .ev-section-card { margin-bottom: 1.5rem; }
+ .ev-section-title {
+ font-size: 1rem;
+ font-weight: 700;
+ color: #39FF14;
+ margin: 0 0 1rem 0;
+ display: flex;
+ align-items: center;
+ gap: .5rem;
+ }
 
-        .ev-link-card {
-            background: rgba(57,255,20,.06);
-            border: 1px solid rgba(57,255,20,.2);
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 1.5rem;
-        }
+ .ev-link-card {
+ background: rgba(57,255,20,.06);
+ border: 1px solid rgba(57,255,20,.2);
+ border-radius: 12px;
+ padding: 1.25rem 1.5rem;
+ margin-bottom: 1.5rem;
+ }
 
-        .ev-attendees-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: .75rem;
-            margin-top: .75rem;
-        }
-        .ev-attendee-chip {
-            background: rgba(57,255,20,.05);
-            border: 1px solid rgba(57,255,20,.15);
-            border-radius: 10px;
-            padding: .75rem 1rem;
-            display: flex;
-            align-items: center;
-            gap: .75rem;
-        }
-        .ev-attendee-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #39FF14;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: .95rem;
-            color: #0a0a0a;
-            flex-shrink: 0;
-        }
-        .ev-lock-box {
-            border-radius: 12px;
-            padding: 2rem;
-            text-align: center;
-        }
-        .ev-lock-box.pending { background: rgba(255,193,7,.06); border: 1px solid rgba(255,193,7,.25); }
-        .ev-lock-box.guest   { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.12); }
+ .ev-attendees-grid {
+ display: grid;
+ grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+ gap: .75rem;
+ margin-top: .75rem;
+ }
+ .ev-attendee-chip {
+ background: rgba(57,255,20,.05);
+ border: 1px solid rgba(57,255,20,.15);
+ border-radius: 10px;
+ padding: .75rem 1rem;
+ display: flex;
+ align-items: center;
+ gap: .75rem;
+ }
+ .ev-attendee-avatar {
+ width: 36px;
+ height: 36px;
+ border-radius: 50%;
+ background: #39FF14;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-weight: 800;
+ font-size: .95rem;
+ color: #0a0a0a;
+ flex-shrink: 0;
+ }
+ .ev-lock-box {
+ border-radius: 12px;
+ padding: 2rem;
+ text-align: center;
+ }
+ .ev-lock-box.pending { background: rgba(255,193,7,.06); border: 1px solid rgba(255,193,7,.25); }
+ .ev-lock-box.guest { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.12); }
 
-        .ev-agenda-row {
-            display: flex;
-            gap: 1rem;
-            padding: .875rem 1rem;
-            background: rgba(57,255,20,.04);
-            border-radius: 8px;
-            margin-bottom: .5rem;
-        }
-        .ev-agenda-time { min-width: 90px; color: #39FF14; font-weight: 600; font-size: .875rem; }
-        .ev-agenda-act  { color: #ccc; font-size: .875rem; }
+ .ev-agenda-row {
+ display: flex;
+ gap: 1rem;
+ padding: .875rem 1rem;
+ background: rgba(57,255,20,.04);
+ border-radius: 8px;
+ margin-bottom: .5rem;
+ }
+ .ev-agenda-time { min-width: 90px; color: #39FF14; font-weight: 600; font-size: .875rem; }
+ .ev-agenda-act { color: #ccc; font-size: .875rem; }
 
-        .ev-speaker-card {
-            background: rgba(57,255,20,.04);
-            border: 1px solid rgba(57,255,20,.15);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        .ev-speaker-img { width: 100%; height: 160px; object-fit: cover; }
-        .ev-speaker-body { padding: 1rem; }
-        .ev-speaker-name { color: #39FF14; font-weight: 700; margin: 0 0 .2rem 0; }
-        .ev-speaker-title { color: #888; font-size: .82rem; margin: 0 0 .5rem 0; }
-        .ev-speaker-bio   { color: #ccc; font-size: .82rem; line-height: 1.5; margin: 0; }
+ .ev-speaker-card {
+ background: rgba(57,255,20,.04);
+ border: 1px solid rgba(57,255,20,.15);
+ border-radius: 12px;
+ overflow: hidden;
+ }
+ .ev-speaker-img { width: 100%; height: 160px; object-fit: cover; }
+ .ev-speaker-body { padding: 1rem; }
+ .ev-speaker-name { color: #39FF14; font-weight: 700; margin: 0 0 .2rem 0; }
+ .ev-speaker-title { color: #888; font-size: .82rem; margin: 0 0 .5rem 0; }
+ .ev-speaker-bio { color: #ccc; font-size: .82rem; line-height: 1.5; margin: 0; }
 
-        .btn-ev-register {
-            background: #39FF14;
-            color: #0a0a0a;
-            border: none;
-            padding: .75rem 1.75rem;
-            border-radius: 10px;
-            font-size: .95rem;
-            font-weight: 800;
-            cursor: pointer;
-            font-family: 'Outfit', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            gap: .5rem;
-            transition: opacity .15s;
-        }
-        .btn-ev-register:hover { opacity: .85; }
-        .btn-ev-status {
-            border-radius: 10px;
-            padding: .75rem 1.5rem;
-            font-size: .9rem;
-            font-weight: 700;
-            cursor: default;
-            display: inline-flex;
-            align-items: center;
-            gap: .5rem;
-            font-family: 'Outfit', sans-serif;
-        }
-        .btn-ev-cancel {
-            background: rgba(239,68,68,.1);
-            color: #ef4444;
-            border: 1px solid rgba(239,68,68,.3);
-            border-radius: 10px;
-            padding: .6rem 1.25rem;
-            font-size: .82rem;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: 'Outfit', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            transition: opacity .15s;
-        }
-        .btn-ev-cancel:hover { opacity: .75; }
-    </style>
+ .btn-ev-register {
+ background: #39FF14;
+ color: #0a0a0a;
+ border: none;
+ padding: .75rem 1.75rem;
+ border-radius: 10px;
+ font-size: .95rem;
+ font-weight: 800;
+ cursor: pointer;
+ font-family: 'Outfit', sans-serif;
+ display: inline-flex;
+ align-items: center;
+ gap: .5rem;
+ transition: opacity .15s;
+ }
+ .btn-ev-register:hover { opacity: .85; }
+ .btn-ev-status {
+ border-radius: 10px;
+ padding: .75rem 1.5rem;
+ font-size: .9rem;
+ font-weight: 700;
+ cursor: default;
+ display: inline-flex;
+ align-items: center;
+ gap: .5rem;
+ font-family: 'Outfit', sans-serif;
+ }
+ .btn-ev-cancel {
+ background: rgba(239,68,68,.1);
+ color: #ef4444;
+ border: 1px solid rgba(239,68,68,.3);
+ border-radius: 10px;
+ padding: .6rem 1.25rem;
+ font-size: .82rem;
+ font-weight: 700;
+ cursor: pointer;
+ font-family: 'Outfit', sans-serif;
+ display: inline-flex;
+ align-items: center;
+ gap: .4rem;
+ transition: opacity .15s;
+ }
+ .btn-ev-cancel:hover { opacity: .75; }
+ </style>
 </head>
 <body>
-    <div class="grid-bg"></div>
-    <% const currentPage = 'events'; %>
-    <%- include('../partials/sidebar', { user, currentPage }) %>
+ <div class="grid-bg"></div>
+ <% const currentPage = 'events'; %>
+ <%- include('../partials/sidebar', { user, currentPage }) %>
 
-    <div class="dashboard-container">
-        <main class="main-content">
-            <header class="header">
-                <div class="header-content">
-                    <div class="header-title">
-                        <a href="/dashboard/events" style="color:#39FF14;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;margin-bottom:.4rem;font-size:.875rem">
-                            <i class="fas fa-arrow-left"></i> Back to Events
-                        </a>
-                        <h2 id="eventTitle" style="margin:0">Event Details</h2>
-                    </div>
-                </div>
-            </header>
+ <div class="dashboard-container">
+ <main class="main-content">
+ <header class="header">
+ <div class="header-content">
+ <div class="header-title">
+ <a href="/dashboard/events" style="color:#39FF14;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;margin-bottom:.4rem;font-size:.875rem">
+ <i class="fas fa-arrow-left"></i> Back to Events
+ </a>
+ <h2 id="eventTitle" style="margin:0">Event Details</h2>
+ </div>
+ </div>
+ </header>
 
-            <div class="content">
-                <!-- Loading -->
-                <div id="loadingState" class="card" style="text-align:center;padding:3rem">
-                    <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:#39FF14"></i>
-                    <p style="color:#888;margin-top:1rem">Loading event details…</p>
-                </div>
+ <div class="content">
+ <!-- Loading -->
+ <div id="loadingState" class="card" style="text-align:center;padding:3rem">
+ <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:#39FF14"></i>
+ <p style="color:#888;margin-top:1rem">Loading event details…</p>
+ </div>
 
-                <!-- Content -->
-                <div id="eventDetailsContent" style="display:none">
+ <!-- Content -->
+ <div id="eventDetailsContent" style="display:none">
 
-                    <!-- ── Hero Banner ── -->
-                    <div class="ev-hero" id="evHero">
-                        <div class="ev-hero-bg" id="evHeroBg"></div>
-                        <div class="ev-hero-gradient-only" id="evHeroGradient"></div>
-                        <div class="ev-hero-overlay" id="evHeroOverlay" style="display:none"></div>
-                        <div class="ev-hero-content">
-                            <h1 class="ev-hero-title" id="evHeroTitle"></h1>
-                            <div class="ev-hero-meta">
-                                <span id="evHeroBadgeType" class="ev-hero-badge type"></span>
-                                <span id="evHeroBadgeStatus" class="ev-hero-badge"></span>
-                                <span id="evHeroBadgeApproval" class="ev-hero-badge manual" style="display:none"><i class="fas fa-user-check"></i> Manual Approval</span>
-                                <span id="evHeroDate" style="display:flex;align-items:center;gap:.35rem"><i class="fas fa-calendar-alt"></i></span>
-                            </div>
-                        </div>
-                    </div>
+ <!-- ── Hero Banner ── -->
+ <div class="ev-hero" id="evHero">
+ <div class="ev-hero-bg" id="evHeroBg"></div>
+ <div class="ev-hero-gradient-only" id="evHeroGradient"></div>
+ <div class="ev-hero-overlay" id="evHeroOverlay" style="display:none"></div>
+ <div class="ev-hero-content">
+ <h1 class="ev-hero-title" id="evHeroTitle"></h1>
+ <div class="ev-hero-meta">
+ <span id="evHeroBadgeType" class="ev-hero-badge type"></span>
+ <span id="evHeroBadgeStatus" class="ev-hero-badge"></span>
+ <span id="evHeroBadgeApproval" class="ev-hero-badge manual" style="display:none"><i class="fas fa-user-check"></i> Manual Approval</span>
+ <span id="evHeroDate" style="display:flex;align-items:center;gap:.35rem"><i class="fas fa-calendar-alt"></i></span>
+ </div>
+ </div>
+ </div>
 
-                    <!-- ── Two-column body ── -->
-                    <div class="ev-body-grid">
+ <!-- ── Two-column body ── -->
+ <div class="ev-body-grid">
 
-                        <!-- Left: description -->
-                        <div class="card" style="margin:0">
-                            <div class="ev-section-title"><i class="fas fa-info-circle"></i> About This Event</div>
-                            <p id="eventDescription" style="color:#ccc;line-height:1.75;margin:0;font-size:.9rem"></p>
-                        </div>
+ <!-- Left: description -->
+ <div class="card" style="margin:0">
+ <div class="ev-section-title"><i class="fas fa-info-circle"></i> About This Event</div>
+ <p id="eventDescription" style="color:#ccc;line-height:1.75;margin:0;font-size:.9rem"></p>
+ </div>
 
-                        <!-- Right: details + action -->
-                        <div style="display:flex;flex-direction:column;gap:.75rem">
+ <!-- Right: details + action -->
+ <div style="display:flex;flex-direction:column;gap:.75rem">
 
-                            <!-- Quick details card -->
-                            <div class="card" style="margin:0;padding:1.25rem">
-                                <div style="display:flex;flex-direction:column;gap:.875rem">
-                                    <div style="display:flex;align-items:flex-start;gap:.75rem">
-                                        <i class="fas fa-calendar-alt" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
-                                        <div>
-                                            <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Date</p>
-                                            <p id="eventDate" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
-                                        </div>
-                                    </div>
-                                    <div style="display:flex;align-items:flex-start;gap:.75rem">
-                                        <i class="fas fa-clock" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
-                                        <div>
-                                            <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Time</p>
-                                            <p id="eventTime" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
-                                        </div>
-                                    </div>
-                                    <!-- venueCard: JS sets display:block; inner div keeps flex layout -->
-                                    <div id="venueCard" style="display:none">
-                                        <div style="display:flex;align-items:flex-start;gap:.75rem">
-                                            <i class="fas fa-map-marker-alt" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
-                                            <div>
-                                                <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Venue</p>
-                                                <p id="eventVenue" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div style="display:flex;align-items:flex-start;gap:.75rem">
-                                        <i class="fas fa-users" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
-                                        <div>
-                                            <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Registered</p>
-                                            <p id="eventRegistrations" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+ <!-- Quick details card -->
+ <div class="card" style="margin:0;padding:1.25rem">
+ <div style="display:flex;flex-direction:column;gap:.875rem">
+ <div style="display:flex;align-items:flex-start;gap:.75rem">
+ <i class="fas fa-calendar-alt" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
+ <div>
+ <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Date</p>
+ <p id="eventDate" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
+ </div>
+ </div>
+ <div style="display:flex;align-items:flex-start;gap:.75rem">
+ <i class="fas fa-clock" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
+ <div>
+ <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Time</p>
+ <p id="eventTime" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
+ </div>
+ </div>
+ <!-- venueCard: JS sets display:block; inner div keeps flex layout -->
+ <div id="venueCard" style="display:none">
+ <div style="display:flex;align-items:flex-start;gap:.75rem">
+ <i class="fas fa-map-marker-alt" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
+ <div>
+ <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Venue</p>
+ <p id="eventVenue" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
+ </div>
+ </div>
+ </div>
+ <div style="display:flex;align-items:flex-start;gap:.75rem">
+ <i class="fas fa-users" style="color:#39FF14;margin-top:.15rem;flex-shrink:0;font-size:.875rem"></i>
+ <div>
+ <p style="color:#888;font-size:.72rem;margin:0 0 .1rem 0;text-transform:uppercase;letter-spacing:.04em">Registered</p>
+ <p id="eventRegistrations" style="color:#fff;font-weight:600;margin:0;font-size:.875rem"></p>
+ </div>
+ </div>
+ </div>
+ </div>
 
-                            <!-- Action card -->
-                            <div class="card" style="margin:0;padding:1.25rem;background:rgba(57,255,20,.04);border:1px solid rgba(57,255,20,.2)">
-                                <p id="evActionTitle" style="font-weight:700;color:#fff;margin:0 0 .25rem 0;font-size:.95rem">Register for this Event</p>
-                                <p id="evActionSub" style="color:#888;font-size:.78rem;margin:0 0 .875rem 0"></p>
-                                <div id="actionButtons" style="display:flex;flex-direction:column;gap:.5rem"></div>
-                            </div>
+ <!-- Action card -->
+ <div class="card" style="margin:0;padding:1.25rem;background:rgba(57,255,20,.04);border:1px solid rgba(57,255,20,.2)">
+ <p id="evActionTitle" style="font-weight:700;color:#fff;margin:0 0 .25rem 0;font-size:.95rem">Register for this Event</p>
+ <p id="evActionSub" style="color:#888;font-size:.78rem;margin:0 0 .875rem 0"></p>
+ <div id="actionButtons" style="display:flex;flex-direction:column;gap:.5rem"></div>
+ </div>
 
-                        </div>
-                    </div>
+ </div>
+ </div>
 
-                    <!-- ── Virtual Link ── -->
-                    <div id="virtualLinkCard" class="ev-link-card" style="display:none">
-                        <div class="ev-section-title" style="margin-bottom:.75rem"><i class="fas fa-video"></i> Join Virtually</div>
-                        <p style="color:#ccc;font-size:.875rem;margin:0 0 .875rem 0">Click the link below to join this event online.</p>
-                        <a id="virtualLink" href="#" target="_blank" class="btn-ev-register" style="text-decoration:none">
-                            <i class="fas fa-external-link-alt"></i> Join Event
-                        </a>
-                    </div>
+ <!-- ── Virtual Link ── -->
+ <div id="virtualLinkCard" class="ev-link-card" style="display:none">
+ <div class="ev-section-title" style="margin-bottom:.75rem"><i class="fas fa-video"></i> Join Virtually</div>
+ <p style="color:#ccc;font-size:.875rem;margin:0 0 .875rem 0">Click the link below to join this event online.</p>
+ <a id="virtualLink" href="#" target="_blank" class="btn-ev-register" style="text-decoration:none">
+ <i class="fas fa-external-link-alt"></i> Join Event
+ </a>
+ </div>
 
-                    <!-- ── Prize Pool ── -->
-                    <div id="prizePoolCard" class="card ev-section-card" style="display:none">
-                        <div class="ev-section-title"><i class="fas fa-trophy"></i> Prize Pool</div>
-                        <p id="prizePool" style="color:#fff;font-size:1.75rem;font-weight:800;margin:0"></p>
-                    </div>
+ <!-- ── Prize Pool ── -->
+ <div id="prizePoolCard" class="card ev-section-card" style="display:none">
+ <div class="ev-section-title"><i class="fas fa-trophy"></i> Prize Pool</div>
+ <p id="prizePool" style="color:#fff;font-size:1.75rem;font-weight:800;margin:0"></p>
+ </div>
 
-                    <!-- ── Requirements ── -->
-                    <div id="requirementsCard" class="card ev-section-card" style="display:none">
-                        <div class="ev-section-title"><i class="fas fa-check-circle"></i> Requirements</div>
-                        <ul id="requirementsList" style="color:#ccc;line-height:2;margin:0;padding-left:1.25rem"></ul>
-                    </div>
+ <!-- ── Requirements ── -->
+ <div id="requirementsCard" class="card ev-section-card" style="display:none">
+ <div class="ev-section-title"><i class="fas fa-check-circle"></i> Requirements</div>
+ <ul id="requirementsList" style="color:#ccc;line-height:2;margin:0;padding-left:1.25rem"></ul>
+ </div>
 
-                    <!-- ── Agenda ── -->
-                    <div id="agendaCard" class="card ev-section-card" style="display:none">
-                        <div class="ev-section-title"><i class="fas fa-list-alt"></i> Agenda</div>
-                        <div id="agendaList"></div>
-                    </div>
+ <!-- ── Agenda ── -->
+ <div id="agendaCard" class="card ev-section-card" style="display:none">
+ <div class="ev-section-title"><i class="fas fa-list-alt"></i> Agenda</div>
+ <div id="agendaList"></div>
+ </div>
 
-                    <!-- ── Speakers ── -->
-                    <div id="speakersCard" class="card ev-section-card" style="display:none">
-                        <div class="ev-section-title"><i class="fas fa-microphone"></i> Speakers</div>
-                        <div id="speakersList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-top:.25rem"></div>
-                    </div>
+ <!-- ── Speakers ── -->
+ <div id="speakersCard" class="card ev-section-card" style="display:none">
+ <div class="ev-section-title"><i class="fas fa-microphone"></i> Speakers</div>
+ <div id="speakersList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-top:.25rem"></div>
+ </div>
 
-                    <!-- ── Attendees ── -->
-                    <div class="card ev-section-card">
-                        <div class="ev-section-title">
-                            <i class="fas fa-user-friends"></i> Attendees
-                            <span id="attendeeCount" style="background:rgba(57,255,20,.1);color:#5ec213;border:1px solid rgba(57,255,20,.25);border-radius:20px;padding:.1rem .55rem;font-size:.72rem;font-weight:700;margin-left:.25rem">0</span>
-                        </div>
-                        <div id="attendeesList"></div>
-                    </div>
+ <!-- ── Attendees ── -->
+ <div class="card ev-section-card">
+ <div class="ev-section-title">
+ <i class="fas fa-user-friends"></i> Attendees
+ <span id="attendeeCount" style="background:rgba(57,255,20,.1);color:#5ec213;border:1px solid rgba(57,255,20,.25);border-radius:20px;padding:.1rem .55rem;font-size:.72rem;font-weight:700;margin-left:.25rem">0</span>
+ </div>
+ <div id="attendeesList"></div>
+ </div>
 
-                </div>
-            </div>
-        </main>
-    </div>
+ </div>
+ </div>
+ </main>
+ </div>
 
-    <script src="/js/event-details.js"></script>
-    <script>
-    var IS_LOGGED_IN = <%= user ? 'true' : 'false' %>;
-    /* Extend displayEventDetails to fill the new hero section */
-    var _origDisplay = displayEventDetails;
-    displayEventDetails = function() {
-        _origDisplay();
-        var e = currentEvent;
-        if (!e) return;
+ <script src="/js/event-details.js"></script>
+ <script>
+ var IS_LOGGED_IN = <%= user ? 'true' : 'false' %>;
+ /* Extend displayEventDetails to fill the new hero section */
+ var _origDisplay = displayEventDetails;
+ displayEventDetails = function() {
+ _origDisplay();
+ var e = currentEvent;
+ if (!e) return;
 
-        /* Hero title */
-        var ht = document.getElementById('evHeroTitle');
-        if (ht) ht.textContent = e.title;
+ /* Hero title */
+ var ht = document.getElementById('evHeroTitle');
+ if (ht) ht.textContent = e.title;
 
-        /* Hero date */
-        var hd = document.getElementById('evHeroDate');
-        if (hd) {
-            var sd = new Date(e.startDate);
-            hd.innerHTML = '<i class="fas fa-calendar-alt"></i> ' +
-                sd.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}) +
-                ' &bull; ' + (e.startTime || '') + ' ' + (e.timezone || '');
-        }
+ /* Hero date */
+ var hd = document.getElementById('evHeroDate');
+ if (hd) {
+ var sd = new Date(e.startDate);
+ hd.innerHTML = '<i class="fas fa-calendar-alt"></i> ' +
+ sd.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}) +
+ ' &bull; ' + (e.startTime || '') + ' ' + (e.timezone || '');
+ }
 
-        /* Type badge */
-        var bt = document.getElementById('evHeroBadgeType');
-        if (bt) {
-            bt.innerHTML = '<i class="fas fa-' + (e.eventType==='virtual'?'video':e.eventType==='physical'?'map-marker-alt':'layer-group') + '"></i> ' +
-                e.eventType.charAt(0).toUpperCase() + e.eventType.slice(1);
-        }
+ /* Type badge */
+ var bt = document.getElementById('evHeroBadgeType');
+ if (bt) {
+ bt.innerHTML = '<i class="fas fa-' + (e.eventType==='virtual'?'video':e.eventType==='physical'?'map-marker-alt':'layer-group') + '"></i> ' +
+ e.eventType.charAt(0).toUpperCase() + e.eventType.slice(1);
+ }
 
-        /* Status badge */
-        var bs = document.getElementById('evHeroBadgeStatus');
-        if (bs) {
-            var isLive = !isPastEvent && e.status !== 'upcoming';
-            bs.className = 'ev-hero-badge ' + (isPastEvent ? 'ended' : 'live');
-            bs.innerHTML = isPastEvent
-                ? '<i class="fas fa-flag-checkered"></i> Ended'
-                : '<i class="fas fa-circle" style="font-size:.45rem;vertical-align:middle"></i> ' + (e.status.charAt(0).toUpperCase() + e.status.slice(1));
-        }
+ /* Status badge */
+ var bs = document.getElementById('evHeroBadgeStatus');
+ if (bs) {
+ var isLive = !isPastEvent && e.status !== 'upcoming';
+ bs.className = 'ev-hero-badge ' + (isPastEvent ? 'ended' : 'live');
+ bs.innerHTML = isPastEvent
+ ? '<i class="fas fa-flag-checkered"></i> Ended'
+ : '<i class="fas fa-circle" style="font-size:.45rem;vertical-align:middle"></i> ' + (e.status.charAt(0).toUpperCase() + e.status.slice(1));
+ }
 
-        /* Manual approval badge */
-        var ba = document.getElementById('evHeroBadgeApproval');
-        if (ba && e.approvalType === 'manual') ba.style.display = '';
+ /* Manual approval badge */
+ var ba = document.getElementById('evHeroBadgeApproval');
+ if (ba && e.approvalType === 'manual') ba.style.display = '';
 
-        /* Banner image */
-        var bg = document.getElementById('evHeroBg');
-        var overlay = document.getElementById('evHeroOverlay');
-        var gradient = document.getElementById('evHeroGradient');
-        if (bg && e.bannerImage) {
-            bg.style.backgroundImage = 'url(' + e.bannerImage + ')';
-            if (overlay) overlay.style.display = '';
-            if (gradient) gradient.style.display = 'none';
-        }
+ /* Banner image */
+ var bg = document.getElementById('evHeroBg');
+ var overlay = document.getElementById('evHeroOverlay');
+ var gradient = document.getElementById('evHeroGradient');
+ if (bg && e.bannerImage) {
+ bg.style.backgroundImage = 'url(' + e.bannerImage + ')';
+ if (overlay) overlay.style.display = '';
+ if (gradient) gradient.style.display = 'none';
+ }
 
-        /* Action bar text */
-        var at = document.getElementById('evActionTitle');
-        var as = document.getElementById('evActionSub');
-        if (at) {
-            if (isPastEvent) { at.textContent = 'This event has ended'; }
-            else if (isRegistered && userRegistration) {
-                var st = userRegistration.status || 'pending';
-                if (st === 'approved') at.textContent = 'You\'re in!';
-                else if (st === 'pending') at.textContent = 'Registration pending approval';
-                else at.textContent = 'Registration rejected';
-            } else { at.textContent = 'Register for this Event'; }
-        }
-        if (as && e.approvalType === 'manual' && !isRegistered && !isPastEvent) {
-            as.textContent = 'Requires manual approval from the organizer.';
-        }
-    };
-    </script>
+ /* Action bar text */
+ var at = document.getElementById('evActionTitle');
+ var as = document.getElementById('evActionSub');
+ if (at) {
+ if (isPastEvent) { at.textContent = 'This event has ended'; }
+ else if (isRegistered && userRegistration) {
+ var st = userRegistration.status || 'pending';
+ if (st === 'approved') at.textContent = 'You\'re in!';
+ else if (st === 'pending') at.textContent = 'Registration pending approval';
+ else at.textContent = 'Registration rejected';
+ } else { at.textContent = 'Register for this Event'; }
+ }
+ if (as && e.approvalType === 'manual' && !isRegistered && !isPastEvent) {
+ as.textContent = 'Requires manual approval from the organizer.';
+ }
+ };
+ </script>
 </body>
 </html>

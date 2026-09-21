@@ -22,6 +22,11 @@ const siteSettingsSchema = new mongoose.Schema({
     lastError:      { type: String, default: null },
     totalSent:      { type: Number, default: 0 },
     totalFailed:    { type: Number, default: 0 }
+  },
+  pathwayApprovalMode: {
+    type: String,
+    enum: ['auto', 'manual'],
+    default: 'auto'
   }
 }, { timestamps: true });
 

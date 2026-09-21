@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const roleSchema = new mongoose.Schema({
     name: {
         type: String,
-        enum: ['citizen', 'early_citizen', 'contributor', 'maxi', 'captain', 'legend', 'major', 'core_team'],
+        enum: ['citizen', 'early_citizen', 'contributor', 'ambassador', 'legend', 'major'],
         required: true
     },
     minXP: { type: Number, required: true },
@@ -29,7 +29,7 @@ const badgeSchema = new mongoose.Schema({
         type: String,
         enum: [
             // Role Badges
-            'citizen', 'early_citizen', 'contributor', 'maxi', 'captain', 'legend', 'major', 'core_team',
+            'citizen', 'early_citizen', 'contributor', 'ambassador', 'legend', 'major',
             // Achievement Badges
             'first_quest', 'quest_master', 'quiz_champion', 'referral_king',
             'streak_warrior', 'lucky_winner', 'multiplayer_champion',

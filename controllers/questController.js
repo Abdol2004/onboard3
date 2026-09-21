@@ -118,13 +118,7 @@ exports.getAllQuests = async (req, res) => {
         appStatus: app ? app.status : 'none'
       };
 
-      // Special/gated quests go in their own section
-      if (quest.isSpecialQuest || quest.gated) {
-        specialCampaigns.push(questData);
-        return;
-      }
-
-      // Check if quest is currently active based on dates
+      // Check dates first so ended quests always land in pastQuests
       const isAvailableNow = (!quest.startDate || quest.startDate <= now) &&
                              (!quest.endDate || quest.endDate >= now);
 
@@ -132,7 +126,16 @@ exports.getAllQuests = async (req, res) => {
 
       if (hasEnded) {
         pastQuests.push(questData);
-      } else if (isAvailableNow) {
+        return;
+      }
+
+      // Special/gated quests go in their own section (only if still active)
+      if (quest.isSpecialQuest || quest.gated) {
+        specialCampaigns.push(questData);
+        return;
+      }
+
+      if (isAvailableNow) {
         if (progress && progress.status === 'completed') {
           completedQuests.push(questData);
         } else if (progress && progress.status === 'in_progress') {
@@ -850,11 +853,9 @@ exports.submitTask = async (req, res) => {
       const io        = req.app.get('io');
 
       const getRoleKey = (xp) => {
-        if ((xp||0) >= 500000) return 'core_team';
         if ((xp||0) >= 250000) return 'major';
         if ((xp||0) >= 100000) return 'legend';
-        if ((xp||0) >= 50000)  return 'maxi';
-        if ((xp||0) >= 25000)  return 'captain';
+        if ((xp||0) >= 25000)  return 'ambassador';
         if ((xp||0) >= 10000)  return 'contributor';
         return 'citizen';
       };

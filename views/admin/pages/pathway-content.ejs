@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+ <title>Career Paths — ONBOARD3 Admin</title>
+ <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+ <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'pathway-content', admin:user }) %>
+<div class="a-main">
+<div class="a-content">
+
+<div class="a-page-header">
+ <div><h1><i class="fas fa-road"></i> Career Paths</h1><p>Manage pathway content and leads</p></div>
+</div>
+
+<!-- Pathway tab selector -->
+<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem">
+<% PATHWAYS.forEach(pw => { const m = PW_META[pw]; %>
+<a href="/admin/pathway-content?pathway=<%= pw %>"
+ style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.125rem;border-radius:10px;font-size:.85rem;font-weight:700;text-decoration:none;transition:all .2s;
+ background:<%= pathway===pw ? m.color+'22' : 'rgba(255,255,255,.04)' %>;
+ border:1px solid <%= pathway===pw ? m.color+'55' : 'var(--border)' %>;
+ color:<%= pathway===pw ? m.color : 'var(--text-2)' %>">
+ <i class="fas <%= m.icon %>"></i> <%= m.name %>
+</a>
+<% }) %>
+</div>
+
+<% const m = PW_META[pathway]; %>
+
+<!-- Pathway Lead & Config -->
+<div class="a-card" style="margin-bottom:1.25rem">
+ <div class="a-card-header">
+ <h2><i class="fas fa-user-tie"></i> Pathway Lead & Info</h2>
+ <% if (lead) { %>
+ <div style="display:flex;align-items:center;gap:.5rem">
+ <% if (lead.profilePicture) { %>
+ <img src="<%= lead.profilePicture %>" style="width:28px;height:28px;border-radius:50%;object-fit:cover" alt="">
+ <% } %>
+ <span style="font-size:.8rem;font-weight:700;color:var(--text-2)"><%= config.leadName||lead.username %></span>
+ </div>
+ <% } %>
+ </div>
+ <div class="a-form-row">
+ <div class="a-form-group"><label>Pathway Tagline</label><input type="text" id="cfg-tagline" class="a-input" value="<%= config.tagline||'' %>" placeholder="One-line description of this pathway"></div>
+ <div class="a-form-group"><label>Lead Username (ONBOARD3)</label><input type="text" id="cfg-lead-username" class="a-input" value="<%= lead ? lead.username : '' %>" placeholder="e.g. abdol2004"></div>
+ </div>
+ <div class="a-form-row">
+ <div class="a-form-group"><label>Lead Display Name</label><input type="text" id="cfg-lead-name" class="a-input" value="<%= config.leadName||'' %>" placeholder="Display name on pathway page"></div>
+ <div class="a-form-group"><label>Lead Bio</label><input type="text" id="cfg-lead-bio" class="a-input" value="<%= config.leadBio||'' %>" placeholder="Short bio or tagline"></div>
+ </div>
+ <div style="display:flex;align-items:center;gap:1rem;margin-top:.5rem">
+ <button onclick="saveConfig()" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-save"></i> Save</button>
+ <span id="cfgMsg" style="font-size:.8rem;display:none"></span>
+ </div>
+</div>
+
+<!-- Add Content -->
+<div class="a-card" style="margin-bottom:1.25rem">
+ <div class="a-card-header"><h2><i class="fas fa-plus"></i> Add Content</h2></div>
+ <div class="a-form-row">
+ <div class="a-form-group">
+ <label>Section</label>
+ <select id="new-section" class="a-input" onchange="updateFormFields()">
+ <option value="update"> Update / Announcement</option>
+ <option value="class"> Class / Session</option>
+ <option value="resource"> Resource / File</option>
+ <option value="opportunity"> Opportunity</option>
+ <option value="event"> Event</option>
+ </select>
+ </div>
+ <div class="a-form-group"><label>Title *</label><input type="text" id="new-title" class="a-input" placeholder="Content title"></div>
+ </div>
+ <div class="a-form-group"><label>Description / Body</label><textarea id="new-body" class="a-input" rows="3" placeholder="Describe this content..." style="resize:vertical"></textarea></div>
+
+ <!-- Schedule fields (class / event) -->
+ <div id="schedFields" style="display:none">
+ <div class="a-form-row">
+ <div class="a-form-group"><label>Start Date & Time</label><input type="datetime-local" id="new-scheduledAt" class="a-input"></div>
+ <div class="a-form-group"><label>End Date & Time</label><input type="datetime-local" id="new-endsAt" class="a-input"></div>
+ </div>
+ <div class="a-form-row">
+ <div class="a-form-group"><label>Venue / Location</label><input type="text" id="new-venue" class="a-input" placeholder="e.g. Google Meet, Zoom, Lagos Hub, Online"></div>
+ <div class="a-form-group"><label>Join Link (Zoom, Meet, etc.)</label><input type="url" id="new-externalUrl-sched" class="a-input" placeholder="https://..."></div>
+ </div>
+ <label style="display:flex;align-items:center;gap:.625rem;font-size:.85rem;font-weight:600;color:var(--text-2);cursor:pointer;margin-bottom:.875rem">
+ <input type="checkbox" id="new-isLive" style="width:15px;height:15px;accent-color:var(--green)">
+ Mark as LIVE NOW
+ </label>
+ </div>
+
+ <!-- Resource fields -->
+ <div id="resourceFields" style="display:none">
+ <div class="a-form-row">
+ <div class="a-form-group">
+ <label>Resource Type</label>
+ <select id="new-resourceType" class="a-input">
+ <option value="link">Link</option>
+ <option value="pdf">PDF</option>
+ <option value="doc">Document</option>
+ <option value="video">Video</option>
+ </select>
+ </div>
+ <div class="a-form-group"><label>URL / Link *</label><input type="url" id="new-resourceUrl" class="a-input" placeholder="Paste Google Drive, Dropbox, or direct link..."></div>
+ </div>
+ <div class="a-form-group"><label>File Name (optional)</label><input type="text" id="new-resourceFilename" class="a-input" placeholder="e.g. Web3 CV Template.pdf"></div>
+ </div>
+
+ <!-- Opportunity fields -->
+ <div id="oppFields" style="display:none">
+ <div class="a-form-row">
+ <div class="a-form-group">
+ <label>Opportunity Type</label>
+ <select id="new-opportunityType" class="a-input">
+ <option value="job">Job</option>
+ <option value="internship">Internship</option>
+ <option value="gig">Gig</option>
+ <option value="bounty">Bounty</option>
+ <option value="whitelist">Whitelist</option>
+ <option value="other">Other</option>
+ </select>
+ </div>
+ <div class="a-form-group"><label>Apply / External Link</label><input type="url" id="new-externalUrl-opp" class="a-input" placeholder="https://..."></div>
+ </div>
+ </div>
+
+ <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-top:.375rem">
+ <label style="display:flex;align-items:center;gap:.5rem;font-size:.83rem;font-weight:600;color:var(--text-2);cursor:pointer">
+ <input type="checkbox" id="new-isPinned" style="width:14px;height:14px;accent-color:var(--green)"> Pin to top
+ </label>
+ <button onclick="createContent()" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-plus"></i> Add Content</button>
+ <span id="createMsg" style="font-size:.8rem;display:none"></span>
+ </div>
+</div>
+
+<!-- Content list -->
+<div class="a-card">
+ <div class="a-card-header"><h2><i class="fas fa-list"></i> Content (<%= content.length %>)</h2></div>
+
+ <% if (!content.length) { %>
+ <div style="text-align:center;padding:2rem;color:var(--text-3);font-size:.85rem">No content yet for this pathway. Add some above.</div>
+ <% } %>
+
+ <%
+ const sections = ['update','class','resource','opportunity','event'];
+ const sectionMeta = {
+ update: { label:'Updates', icon:'fa-bullhorn', color:'#fbbf24' },
+ class: { label:'Classes', icon:'fa-chalkboard-teacher', color:'#60a5fa' },
+ resource: { label:'Resources', icon:'fa-folder-open', color:'#10b981' },
+ opportunity: { label:'Opportunities', icon:'fa-bolt', color:'#f97316' },
+ event: { label:'Events', icon:'fa-calendar-days', color:'#a855f7' }
+ };
+ sections.forEach(sec => {
+ const items = content.filter(c => c.section === sec);
+ if (!items.length) return;
+ %>
+ <div style="margin-bottom:1.5rem">
+ <div style="display:flex;align-items:center;gap:.5rem;padding:.625rem 0;border-bottom:1px solid var(--border);margin-bottom:.875rem">
+ <i class="fas <%= sectionMeta[sec].icon %>" style="color:<%= sectionMeta[sec].color %>;font-size:.8rem"></i>
+ <span style="font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text-3)"><%= sectionMeta[sec].label %></span>
+ <span style="font-size:.68rem;color:var(--text-3);background:rgba(255,255,255,.06);border-radius:99px;padding:.1rem .5rem"><%= items.length %></span>
+ </div>
+ <% items.forEach(item => { %>
+ <div id="item-<%= item._id %>" style="display:flex;align-items:flex-start;gap:1rem;padding:.875rem;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid var(--border);margin-bottom:.625rem">
+ <div style="flex:1;min-width:0">
+ <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.25rem">
+ <% if (item.isPinned) { %><span style="font-size:.6rem;font-weight:800;color:#fbbf24;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:99px;padding:.1rem .45rem"><i class="fas fa-thumbtack"></i> PIN</span><% } %>
+ <% if (item.isLive) { %><span style="font-size:.6rem;font-weight:800;color:#ef4444;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);border-radius:99px;padding:.1rem .45rem">● LIVE</span><% } %>
+ <% if (!item.isPublished) { %><span style="font-size:.6rem;font-weight:800;color:var(--text-3);background:rgba(255,255,255,.06);border-radius:99px;padding:.1rem .45rem">HIDDEN</span><% } %>
+ <span style="font-size:.875rem;font-weight:700;color:var(--text)"><%= item.title %></span>
+ </div>
+ <% if (item.body) { %><p style="font-size:.75rem;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:500px"><%= item.body %></p><% } %>
+ <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.375rem">
+ <% if (item.scheduledAt) { %><span style="font-size:.68rem;color:var(--text-3)"><i class="fas fa-clock"></i> <%= new Date(item.scheduledAt).toLocaleString() %></span><% } %>
+ <% if (item.resourceUrl) { %><a href="<%= item.resourceUrl %>" target="_blank" style="font-size:.68rem;color:var(--green);text-decoration:none"><i class="fas fa-link"></i> Resource</a><% } %>
+ <% if (item.externalUrl) { %><a href="<%= item.externalUrl %>" target="_blank" style="font-size:.68rem;color:var(--green);text-decoration:none"><i class="fas fa-external-link-alt"></i> Link</a><% } %>
+ <% if (item.opportunityType) { %><span style="font-size:.68rem;color:var(--text-3);text-transform:capitalize"><%= item.opportunityType %></span><% } %>
+ <span style="font-size:.68rem;color:var(--text-3)"><%= new Date(item.createdAt).toLocaleDateString() %></span>
+ </div>
+ </div>
+ <div style="display:flex;gap:.375rem;flex-shrink:0;flex-wrap:wrap">
+ <button onclick="toggleLive('<%= item._id %>')" class="a-btn a-btn-sm" style="font-size:.72rem;padding:.3rem .625rem;background:<%= item.isLive ? 'rgba(239,68,68,.15)' : 'rgba(255,255,255,.05)' %>;border-color:<%= item.isLive ? 'rgba(239,68,68,.35)' : 'var(--border)' %>;color:<%= item.isLive ? '#ef4444' : 'var(--text-2)' %>">
+ <%= item.isLive ? '● Live' : 'Go Live' %>
+ </button>
+ <button onclick="togglePublish('<%= item._id %>')" class="a-btn a-btn-sm" style="font-size:.72rem;padding:.3rem .625rem">
+ <%= item.isPublished ? 'Hide' : 'Show' %>
+ </button>
+ <button onclick="editItem('<%= item._id %>','<%= item.title.replace(/'/g,\"\\\\'\")||\"\" %>','<%= (item.body||'').replace(/'/g,\"\\\\'\")||\"\" %>','<%= item.externalUrl||item.resourceUrl||\"\" %>','<%= item.isPinned %>','<%= item.isLive %>')" class="a-btn a-btn-sm" style="font-size:.72rem;padding:.3rem .625rem">
+ Edit
+ </button>
+ <button onclick="deleteItem('<%= item._id %>')" class="a-btn a-btn-sm" style="font-size:.72rem;padding:.3rem .625rem;color:#ef4444;border-color:rgba(239,68,68,.3)">
+ <i class="fas fa-trash"></i>
+ </button>
+ </div>
+ </div>
+ <% }) %>
+ </div>
+ <% }) %>
+</div>
+
+</div>
+</div>
+
+<!-- Edit modal -->
+<div id="editModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:1rem">
+ <div style="background:var(--bg-2,#0e170e);border:1px solid var(--border);border-radius:20px;padding:1.75rem;max-width:520px;width:100%;max-height:90vh;overflow-y:auto">
+ <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+ <h3 style="font-size:1rem;font-weight:800;color:var(--text)">Edit Content</h3>
+ <button onclick="closeEditModal()" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:1.125rem"><i class="fas fa-times"></i></button>
+ </div>
+ <input type="hidden" id="edit-id">
+ <div class="a-form-group"><label>Title</label><input type="text" id="edit-title" class="a-input"></div>
+ <div class="a-form-group"><label>Description</label><textarea id="edit-body" class="a-input" rows="4" style="resize:vertical"></textarea></div>
+ <div class="a-form-group"><label>External URL / Resource URL</label><input type="url" id="edit-url" class="a-input"></div>
+ <div style="display:flex;gap:1.5rem;margin-bottom:1rem">
+ <label style="display:flex;align-items:center;gap:.5rem;font-size:.83rem;font-weight:600;color:var(--text-2);cursor:pointer">
+ <input type="checkbox" id="edit-isPinned" style="accent-color:var(--green)"> Pinned
+ </label>
+ <label style="display:flex;align-items:center;gap:.5rem;font-size:.83rem;font-weight:600;color:var(--text-2);cursor:pointer">
+ <input type="checkbox" id="edit-isLive" style="accent-color:#ef4444"> Live
+ </label>
+ </div>
+ <div style="display:flex;gap:.75rem">
+ <button onclick="saveEdit()" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-save"></i> Save</button>
+ <button onclick="closeEditModal()" class="a-btn a-btn-sm">Cancel</button>
+ <span id="editMsg" style="font-size:.8rem;display:none;align-self:center"></span>
+ </div>
+ </div>
+</div>
+
+<script>
+const _pathway = '<%= pathway %>';
+
+function updateFormFields() {
+ const sec = document.getElementById('new-section').value;
+ document.getElementById('schedFields').style.display = (sec==='class'||sec==='event') ? 'block' : 'none';
+ document.getElementById('resourceFields').style.display = sec==='resource' ? 'block' : 'none';
+ document.getElementById('oppFields').style.display = sec==='opportunity' ? 'block' : 'none';
+}
+
+async function saveConfig() {
+ const msg = document.getElementById('cfgMsg');
+ const r = await fetch('/admin/pathway-content/save-config', {
+ method:'POST', headers:{'Content-Type':'application/json'},
+ body: JSON.stringify({
+ pathway: _pathway,
+ tagline: document.getElementById('cfg-tagline').value,
+ leadUsername: document.getElementById('cfg-lead-username').value,
+ leadName: document.getElementById('cfg-lead-name').value,
+ leadBio: document.getElementById('cfg-lead-bio').value
+ })
+ });
+ const d = await r.json();
+ msg.style.display = 'inline'; msg.style.color = d.success ? 'var(--green)' : '#ef4444';
+ msg.textContent = d.success ? 'Saved!' : (d.message||'Error');
+ setTimeout(()=>{ msg.style.display='none'; }, 3000);
+}
+
+async function createContent() {
+ const sec = document.getElementById('new-section').value;
+ const msg = document.getElementById('createMsg');
+ const body = {
+ pathway: _pathway,
+ section: sec,
+ title: document.getElementById('new-title').value,
+ body: document.getElementById('new-body').value,
+ isPinned: document.getElementById('new-isPinned').checked
+ };
+ if (sec==='class'||sec==='event') {
+ body.scheduledAt = document.getElementById('new-scheduledAt').value;
+ body.endsAt = document.getElementById('new-endsAt').value;
+ body.isLive = document.getElementById('new-isLive').checked;
+ body.venue = document.getElementById('new-venue').value;
+ body.externalUrl = document.getElementById('new-externalUrl-sched').value;
+ }
+ if (sec==='resource') {
+ body.resourceUrl = document.getElementById('new-resourceUrl').value;
+ body.resourceType = document.getElementById('new-resourceType').value;
+ body.resourceFilename = document.getElementById('new-resourceFilename').value;
+ }
+ if (sec==='opportunity') {
+ body.opportunityType = document.getElementById('new-opportunityType').value;
+ body.externalUrl = document.getElementById('new-externalUrl-opp').value;
+ }
+ const r = await fetch('/admin/pathway-content/create', {
+ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+ });
+ const d = await r.json();
+ msg.style.display = 'inline'; msg.style.color = d.success ? 'var(--green)' : '#ef4444';
+ msg.textContent = d.success ? 'Added! Refreshing...' : (d.message||'Error');
+ if (d.success) setTimeout(()=>location.reload(), 800);
+}
+
+async function toggleLive(id) {
+ const r = await fetch('/admin/pathway-content/'+id+'/toggle-live', { method:'POST' });
+ const d = await r.json();
+ if (d.success) location.reload();
+}
+
+async function togglePublish(id) {
+ const r = await fetch('/admin/pathway-content/'+id+'/toggle-publish', { method:'POST' });
+ const d = await r.json();
+ if (d.success) location.reload();
+}
+
+async function deleteItem(id) {
+ if (!confirm('Delete this content item?')) return;
+ const r = await fetch('/admin/pathway-content/'+id+'/delete', { method:'POST' });
+ const d = await r.json();
+ if (d.success) { const el = document.getElementById('item-'+id); if(el) el.remove(); }
+}
+
+function editItem(id, title, body, url, pinned, live) {
+ document.getElementById('edit-id').value = id;
+ document.getElementById('edit-title').value = title;
+ document.getElementById('edit-body').value = body;
+ document.getElementById('edit-url').value = url;
+ document.getElementById('edit-isPinned').checked = pinned==='true';
+ document.getElementById('edit-isLive').checked = live==='true';
+ document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() { document.getElementById('editModal').style.display='none'; }
+
+async function saveEdit() {
+ const id = document.getElementById('edit-id').value;
+ const msg = document.getElementById('editMsg');
+ const url = document.getElementById('edit-url').value;
+ const r = await fetch('/admin/pathway-content/'+id+'/update', {
+ method:'POST', headers:{'Content-Type':'application/json'},
+ body: JSON.stringify({
+ title: document.getElementById('edit-title').value,
+ body: document.getElementById('edit-body').value,
+ externalUrl: url, resourceUrl: url,
+ isPinned: document.getElementById('edit-isPinned').checked,
+ isLive: document.getElementById('edit-isLive').checked
+ })
+ });
+ const d = await r.json();
+ msg.style.display = 'inline'; msg.style.color = d.success ? 'var(--green)' : '#ef4444';
+ msg.textContent = d.success ? 'Saved! Refreshing...' : (d.message||'Error');
+ if (d.success) setTimeout(()=>location.reload(), 600);
+}
+</script>
+</body>
+</html>

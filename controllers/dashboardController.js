@@ -18,7 +18,7 @@ const getUserRole = (xp, joinDate) => {
     const isEarlyCitizen = userJoinDate >= earlyStart && userJoinDate <= earlyEnd;
 
     // Find role based on XP - check from highest to lowest to ensure correct match
-    const roleOrder = ['core_team', 'major', 'legend', 'maxi', 'captain', 'contributor', 'citizen'];
+    const roleOrder = ['major', 'legend', 'ambassador', 'contributor', 'citizen'];
     let currentRole = 'citizen'; // default
 
     for (const roleKey of roleOrder) {

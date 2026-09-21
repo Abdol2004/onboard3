@@ -1,289 +1,289 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title><%= title %></title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <%- include('../partials/achievement-popup') %>
-  <link rel="stylesheet" href="/css/dashboard.css">
-  <style>
-    .acd-hero { border-radius:18px; overflow:hidden; border:1px solid var(--border); position:relative; margin-bottom:1.5rem; }
-    .acd-hero-bg { position:absolute; inset:0; background:linear-gradient(135deg,#060f06 0%,#0a140a 60%,#080f08 100%); }
-    .acd-hero-glow { position:absolute; inset:0; background:radial-gradient(ellipse at 70% 40%,rgba(94,194,19,.07) 0%,transparent 65%); }
-    .acd-hero-inner { position:relative; z-index:1; padding:2rem 2.25rem; }
-    .acd-back { display:inline-flex; align-items:center; gap:.5rem; color:var(--text-3); font-size:.8125rem; font-weight:700; text-decoration:none; margin-bottom:1.25rem; }
-    .acd-back:hover { color:var(--green); }
-    .acd-badge { font-size:.68rem; font-weight:800; padding:.3rem .75rem; border-radius:50px; letter-spacing:.5px; display:inline-flex; align-items:center; gap:.35rem; }
-    .acd-badge--open   { background:rgba(94,194,19,.15);  color:var(--green); border:1px solid rgba(94,194,19,.3); }
-    .acd-badge--active { background:rgba(251,191,36,.12); color:#fbbf24; border:1px solid rgba(251,191,36,.3); }
-    .acd-badge--closed { background:rgba(239,68,68,.1);   color:#f87171; border:1px solid rgba(239,68,68,.25); }
-    .acd-badge--ended  { background:rgba(100,100,100,.1); color:var(--text-3); border:1px solid rgba(255,255,255,.1); }
-    .acd-badges { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.875rem; }
-    .acd-title { font-size:clamp(1.25rem,3vw,2rem); font-weight:900; color:var(--text); letter-spacing:-1px; margin-bottom:.375rem; }
-    .acd-subtitle { font-size:.9rem; color:var(--text-3); margin-bottom:1.25rem; }
-    .acd-pills { display:flex; gap:.625rem; flex-wrap:wrap; }
-    .acd-pill { display:inline-flex; align-items:center; gap:.4rem; padding:.45rem .875rem; border-radius:50px; font-size:.8rem; font-weight:700; background:rgba(255,255,255,.06); color:var(--text-2); border:1px solid rgba(255,255,255,.09); }
-    .acd-pill--green { background:rgba(94,194,19,.12); color:var(--green); border-color:rgba(94,194,19,.25); }
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+ <title><%= title %></title>
+ <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+ <%- include('../partials/achievement-popup') %>
+ <link rel="stylesheet" href="/css/dashboard.css">
+ <style>
+ .acd-hero { border-radius:18px; overflow:hidden; border:1px solid var(--border); position:relative; margin-bottom:1.5rem; }
+ .acd-hero-bg { position:absolute; inset:0; background:linear-gradient(135deg,#060f06 0%,#0a140a 60%,#080f08 100%); }
+ .acd-hero-glow { position:absolute; inset:0; background:radial-gradient(ellipse at 70% 40%,rgba(94,194,19,.07) 0%,transparent 65%); }
+ .acd-hero-inner { position:relative; z-index:1; padding:2rem 2.25rem; }
+ .acd-back { display:inline-flex; align-items:center; gap:.5rem; color:var(--text-3); font-size:.8125rem; font-weight:700; text-decoration:none; margin-bottom:1.25rem; }
+ .acd-back:hover { color:var(--green); }
+ .acd-badge { font-size:.68rem; font-weight:800; padding:.3rem .75rem; border-radius:50px; letter-spacing:.5px; display:inline-flex; align-items:center; gap:.35rem; }
+ .acd-badge--open { background:rgba(94,194,19,.15); color:var(--green); border:1px solid rgba(94,194,19,.3); }
+ .acd-badge--active { background:rgba(251,191,36,.12); color:#fbbf24; border:1px solid rgba(251,191,36,.3); }
+ .acd-badge--closed { background:rgba(239,68,68,.1); color:#f87171; border:1px solid rgba(239,68,68,.25); }
+ .acd-badge--ended { background:rgba(100,100,100,.1); color:var(--text-3); border:1px solid rgba(255,255,255,.1); }
+ .acd-badges { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.875rem; }
+ .acd-title { font-size:clamp(1.25rem,3vw,2rem); font-weight:900; color:var(--text); letter-spacing:-1px; margin-bottom:.375rem; }
+ .acd-subtitle { font-size:.9rem; color:var(--text-3); margin-bottom:1.25rem; }
+ .acd-pills { display:flex; gap:.625rem; flex-wrap:wrap; }
+ .acd-pill { display:inline-flex; align-items:center; gap:.4rem; padding:.45rem .875rem; border-radius:50px; font-size:.8rem; font-weight:700; background:rgba(255,255,255,.06); color:var(--text-2); border:1px solid rgba(255,255,255,.09); }
+ .acd-pill--green { background:rgba(94,194,19,.12); color:var(--green); border-color:rgba(94,194,19,.25); }
 
-    .acd-layout { display:grid; grid-template-columns:1fr 300px; gap:1.25rem; align-items:start; }
-    .acd-layout > * { min-width:0; }
-    @media (max-width:768px) { .acd-layout { grid-template-columns:1fr; } }
+ .acd-layout { display:grid; grid-template-columns:1fr 300px; gap:1.25rem; align-items:start; }
+ .acd-layout > * { min-width:0; }
+ @media (max-width:768px) { .acd-layout { grid-template-columns:1fr; } }
 
-    .acd-box { background:var(--bg-card); border:1px solid var(--border); border-radius:18px; overflow:hidden; margin-bottom:1.25rem; }
-    .acd-box-head { padding:1.125rem 1.375rem; border-bottom:1px solid rgba(255,255,255,.06); }
-    .acd-box-head h3 { margin:0; font-size:.9375rem; font-weight:800; color:var(--text); display:flex; align-items:center; gap:.5rem; }
-    .acd-box-body { padding:1.25rem 1.375rem; }
+ .acd-box { background:var(--bg-card); border:1px solid var(--border); border-radius:18px; overflow:hidden; margin-bottom:1.25rem; }
+ .acd-box-head { padding:1.125rem 1.375rem; border-bottom:1px solid rgba(255,255,255,.06); }
+ .acd-box-head h3 { margin:0; font-size:.9375rem; font-weight:800; color:var(--text); display:flex; align-items:center; gap:.5rem; }
+ .acd-box-body { padding:1.25rem 1.375rem; }
 
-    .acd-sidebar { position:sticky; top:1.25rem; }
-    @media (max-width:768px) { .acd-sidebar { position:static; } }
+ .acd-sidebar { position:sticky; top:1.25rem; }
+ @media (max-width:768px) { .acd-sidebar { position:static; } }
 
-    .acd-apply-box { background:var(--bg-card); border:1px solid rgba(94,194,19,.3); border-radius:18px; padding:1.375rem; margin-bottom:1rem; }
-    .acd-apply-btn { display:block; width:100%; padding:.875rem; border-radius:12px; background:var(--green); color:#000; font-weight:900; font-size:.9375rem; text-align:center; text-decoration:none; font-family:'Outfit',sans-serif; border:none; cursor:pointer; transition:all .25s; box-sizing:border-box; }
-    .acd-apply-btn:hover { background:#6be01a; transform:translateY(-1px); }
+ .acd-apply-box { background:var(--bg-card); border:1px solid rgba(94,194,19,.3); border-radius:18px; padding:1.375rem; margin-bottom:1rem; }
+ .acd-apply-btn { display:block; width:100%; padding:.875rem; border-radius:12px; background:var(--green); color:#000; font-weight:900; font-size:.9375rem; text-align:center; text-decoration:none; font-family:'Outfit',sans-serif; border:none; cursor:pointer; transition:all .25s; box-sizing:border-box; }
+ .acd-apply-btn:hover { background:#6be01a; transform:translateY(-1px); }
 
-    .acd-week { border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:1rem 1.125rem; margin-bottom:.75rem; }
-    .acd-week:last-child { margin-bottom:0; }
-    .acd-week-num { font-size:.68rem; font-weight:900; color:var(--green); text-transform:uppercase; letter-spacing:1px; margin-bottom:.25rem; }
-    .acd-week-theme { font-size:.9375rem; font-weight:800; color:var(--text); margin-bottom:.375rem; }
-    .acd-week-topics { display:flex; gap:.375rem; flex-wrap:wrap; }
-    .acd-week-topic { font-size:.72rem; font-weight:700; padding:.2rem .5rem; border-radius:50px; background:rgba(255,255,255,.04); color:var(--text-3); border:1px solid rgba(255,255,255,.07); }
+ .acd-week { border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:1rem 1.125rem; margin-bottom:.75rem; }
+ .acd-week:last-child { margin-bottom:0; }
+ .acd-week-num { font-size:.68rem; font-weight:900; color:var(--green); text-transform:uppercase; letter-spacing:1px; margin-bottom:.25rem; }
+ .acd-week-theme { font-size:.9375rem; font-weight:800; color:var(--text); margin-bottom:.375rem; }
+ .acd-week-topics { display:flex; gap:.375rem; flex-wrap:wrap; }
+ .acd-week-topic { font-size:.72rem; font-weight:700; padding:.2rem .5rem; border-radius:50px; background:rgba(255,255,255,.04); color:var(--text-3); border:1px solid rgba(255,255,255,.07); }
 
-    .acd-instructor { display:flex; align-items:center; gap:.875rem; padding:.75rem 0; border-bottom:1px solid rgba(255,255,255,.05); }
-    .acd-instructor:last-child { border-bottom:none; padding-bottom:0; }
-    .acd-ins-avatar { width:44px; height:44px; border-radius:11px; background:rgba(94,194,19,.12); border:1px solid rgba(94,194,19,.2); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); font-size:1rem; flex-shrink:0; overflow:hidden; }
-    .acd-ins-avatar img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
-    .acd-ins-name { font-size:.9rem; font-weight:800; color:var(--text); }
-    .acd-ins-bio { font-size:.78rem; color:var(--text-3); line-height:1.5; margin-top:.15rem; }
+ .acd-instructor { display:flex; align-items:center; gap:.875rem; padding:.75rem 0; border-bottom:1px solid rgba(255,255,255,.05); }
+ .acd-instructor:last-child { border-bottom:none; padding-bottom:0; }
+ .acd-ins-avatar { width:44px; height:44px; border-radius:11px; background:rgba(94,194,19,.12); border:1px solid rgba(94,194,19,.2); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--green); font-size:1rem; flex-shrink:0; overflow:hidden; }
+ .acd-ins-avatar img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
+ .acd-ins-name { font-size:.9rem; font-weight:800; color:var(--text); }
+ .acd-ins-bio { font-size:.78rem; color:var(--text-3); line-height:1.5; margin-top:.15rem; }
 
-    .acd-learn-item { display:flex; align-items:flex-start; gap:.625rem; padding:.5rem 0; border-bottom:1px solid rgba(255,255,255,.04); }
-    .acd-learn-item:last-child { border-bottom:none; }
-    .acd-learn-icon { width:20px; height:20px; border-radius:50%; background:rgba(94,194,19,.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
-    .acd-learn-icon i { font-size:.55rem; color:var(--green); }
+ .acd-learn-item { display:flex; align-items:flex-start; gap:.625rem; padding:.5rem 0; border-bottom:1px solid rgba(255,255,255,.04); }
+ .acd-learn-item:last-child { border-bottom:none; }
+ .acd-learn-icon { width:20px; height:20px; border-radius:50%; background:rgba(94,194,19,.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+ .acd-learn-icon i { font-size:.55rem; color:var(--green); }
 
-    .acd-info-row { display:flex; justify-content:space-between; align-items:center; padding:.625rem 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:.85rem; }
-    .acd-info-row:last-child { border-bottom:none; }
-    .acd-info-label { color:var(--text-3); font-weight:600; }
-    .acd-info-val   { color:var(--text); font-weight:700; text-align:right; }
-  </style>
+ .acd-info-row { display:flex; justify-content:space-between; align-items:center; padding:.625rem 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:.85rem; }
+ .acd-info-row:last-child { border-bottom:none; }
+ .acd-info-label { color:var(--text-3); font-weight:600; }
+ .acd-info-val { color:var(--text); font-weight:700; text-align:right; }
+ </style>
 </head>
 <body>
 <%- include('../partials/sidebar', { user, currentPage }) %>
 <div class="dashboard-container">
-  <main class="main-content">
-    <div class="content" style="padding-bottom:2.5rem">
+ <main class="main-content">
+ <div class="content" style="padding-bottom:2.5rem">
 
-    <%
-      const applied  = req.query.applied === '1';
-      const isOpen   = cohort.status === 'applications_open';
-      const isActive = cohort.status === 'active';
-      const isEnded  = cohort.status === 'ended';
-      const deadline = cohort.applicationDeadline ? new Date(cohort.applicationDeadline) : null;
-      const seatsLeft = Math.max(0, cohort.seats - enrolledCount);
-    %>
+ <%
+ // applied is passed from the controller
+ const isOpen = cohort.status === 'applications_open';
+ const isActive = cohort.status === 'active';
+ const isEnded = cohort.status === 'ended';
+ const deadline = cohort.applicationDeadline ? new Date(cohort.applicationDeadline) : null;
+ const seatsLeft = Math.max(0, cohort.seats - enrolledCount);
+ %>
 
-    <!-- Hero -->
-    <div class="acd-hero">
-      <div class="acd-hero-bg"></div>
-      <div class="acd-hero-glow"></div>
-      <div class="acd-hero-inner">
-        <a href="/dashboard/academy" class="acd-back"><i class="fas fa-arrow-left"></i> All Cohorts</a>
-        <div class="acd-badges">
-          <span style="font-size:.68rem;font-weight:900;color:var(--green);letter-spacing:2px;text-transform:uppercase">ONBOARD3 Academy</span>
-          <% if (isOpen)   { %><span class="acd-badge acd-badge--open"><i class="fas fa-circle" style="font-size:.4rem"></i> Applications Open</span><% } %>
-          <% if (isActive) { %><span class="acd-badge acd-badge--active"><i class="fas fa-circle" style="font-size:.4rem"></i> In Progress</span><% } %>
-          <% if (isEnded)  { %><span class="acd-badge acd-badge--ended">Ended</span><% } %>
-          <% if (cohort.status === 'applications_closed') { %><span class="acd-badge acd-badge--closed">Applications Closed</span><% } %>
-          <% if (cohort.status === 'draft') { %><span class="acd-badge acd-badge--ended">Coming Soon</span><% } %>
-        </div>
-        <% if (cohort.topic) { %><div style="font-size:.78rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:.375rem"><%= cohort.topic %></div><% } %>
-        <h1 class="acd-title"><%= cohort.title %></h1>
-        <% if (cohort.description) { %><p class="acd-subtitle"><%= cohort.description %></p><% } %>
-        <div class="acd-pills">
-          <% if (cohort.duration) { %><span class="acd-pill acd-pill--green"><i class="fas fa-clock"></i> <%= cohort.duration %></span><% } %>
-          <span class="acd-pill"><i class="fas fa-tag"></i> Free</span>
-          <span class="acd-pill"><i class="fab fa-telegram"></i> Live on Telegram</span>
-          <span class="acd-pill"><i class="fas fa-users"></i> <%= cohort.seats %> Seats</span>
-          <% if (cohort.startDate) { %><span class="acd-pill"><i class="fas fa-calendar"></i> Starts <%= new Date(cohort.startDate).toLocaleDateString('en-US',{month:'long',day:'numeric'}) %></span><% } %>
-        </div>
-      </div>
-    </div>
+ <!-- Hero -->
+ <div class="acd-hero">
+ <div class="acd-hero-bg"></div>
+ <div class="acd-hero-glow"></div>
+ <div class="acd-hero-inner">
+ <a href="/dashboard/academy" class="acd-back"><i class="fas fa-arrow-left"></i> All Cohorts</a>
+ <div class="acd-badges">
+ <span style="font-size:.68rem;font-weight:900;color:var(--green);letter-spacing:2px;text-transform:uppercase">ONBOARD3 Academy</span>
+ <% if (isOpen) { %><span class="acd-badge acd-badge--open"><i class="fas fa-circle" style="font-size:.4rem"></i> Applications Open</span><% } %>
+ <% if (isActive) { %><span class="acd-badge acd-badge--active"><i class="fas fa-circle" style="font-size:.4rem"></i> In Progress</span><% } %>
+ <% if (isEnded) { %><span class="acd-badge acd-badge--ended">Ended</span><% } %>
+ <% if (cohort.status === 'applications_closed') { %><span class="acd-badge acd-badge--closed">Applications Closed</span><% } %>
+ <% if (cohort.status === 'draft') { %><span class="acd-badge acd-badge--ended">Coming Soon</span><% } %>
+ </div>
+ <% if (cohort.topic) { %><div style="font-size:.78rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:.375rem"><%= cohort.topic %></div><% } %>
+ <h1 class="acd-title"><%= cohort.title %></h1>
+ <% if (cohort.description) { %><p class="acd-subtitle"><%= cohort.description %></p><% } %>
+ <div class="acd-pills">
+ <% if (cohort.duration) { %><span class="acd-pill acd-pill--green"><i class="fas fa-clock"></i> <%= cohort.duration %></span><% } %>
+ <span class="acd-pill"><i class="fas fa-tag"></i> Free</span>
+ <span class="acd-pill"><i class="fab fa-telegram"></i> Live on Telegram</span>
+ <span class="acd-pill"><i class="fas fa-users"></i> <%= cohort.seats %> Seats</span>
+ <% if (cohort.startDate) { %><span class="acd-pill"><i class="fas fa-calendar"></i> Starts <%= new Date(cohort.startDate).toLocaleDateString('en-US',{month:'long',day:'numeric'}) %></span><% } %>
+ </div>
+ </div>
+ </div>
 
-    <% if (applied) { %>
-    <div style="background:rgba(94,194,19,.08);border:1px solid rgba(94,194,19,.25);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem">
-      <i class="fas fa-check-circle" style="color:var(--green);font-size:1.25rem;flex-shrink:0"></i>
-      <div><strong style="color:var(--text)">Application received!</strong> <span style="color:var(--text-3);font-size:.875rem">We'll review and get back to you before the deadline.</span></div>
-    </div>
-    <% } %>
+ <% if (applied) { %>
+ <div style="background:rgba(94,194,19,.08);border:1px solid rgba(94,194,19,.25);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem">
+ <i class="fas fa-check-circle" style="color:var(--green);font-size:1.25rem;flex-shrink:0"></i>
+ <div><strong style="color:var(--text)">Application received!</strong> <span style="color:var(--text-3);font-size:.875rem">We'll review and get back to you before the deadline.</span></div>
+ </div>
+ <% } %>
 
-    <div class="acd-layout">
-      <!-- Left -->
-      <div>
+ <div class="acd-layout">
+ <!-- Left -->
+ <div>
 
-        <!-- What you'll learn -->
-        <% if (cohort.whatYoullLearn && cohort.whatYoullLearn.length > 0) { %>
-        <div class="acd-box">
-          <div class="acd-box-head"><h3><i class="fas fa-lightbulb" style="color:#fbbf24"></i> What You'll Learn</h3></div>
-          <div class="acd-box-body">
-            <% cohort.whatYoullLearn.forEach(item => { %>
-            <div class="acd-learn-item">
-              <div class="acd-learn-icon"><i class="fas fa-check"></i></div>
-              <span style="font-size:.875rem;color:var(--text-2);line-height:1.55"><%= item %></span>
-            </div>
-            <% }); %>
-          </div>
-        </div>
-        <% } %>
+ <!-- What you'll learn -->
+ <% if (cohort.whatYoullLearn && cohort.whatYoullLearn.length > 0) { %>
+ <div class="acd-box">
+ <div class="acd-box-head"><h3><i class="fas fa-lightbulb" style="color:#fbbf24"></i> What You'll Learn</h3></div>
+ <div class="acd-box-body">
+ <% cohort.whatYoullLearn.forEach(item => { %>
+ <div class="acd-learn-item">
+ <div class="acd-learn-icon"><i class="fas fa-check"></i></div>
+ <span style="font-size:.875rem;color:var(--text-2);line-height:1.55"><%= item %></span>
+ </div>
+ <% }); %>
+ </div>
+ </div>
+ <% } %>
 
-        <!-- Weekly structure -->
-        <% if (cohort.weeklySchedule && cohort.weeklySchedule.length > 0) { %>
-        <div class="acd-box">
-          <div class="acd-box-head"><h3><i class="fas fa-calendar-week" style="color:#c084fc"></i> Weekly Structure</h3></div>
-          <div class="acd-box-body">
-            <% cohort.weeklySchedule.forEach(w => { %>
-            <div class="acd-week">
-              <div class="acd-week-num">Week <%= w.week %></div>
-              <div class="acd-week-theme"><%= w.theme %></div>
-              <% if (w.topics && w.topics.length > 0) { %>
-              <div class="acd-week-topics">
-                <% w.topics.forEach(t => { %><span class="acd-week-topic"><%= t %></span><% }); %>
-              </div>
-              <% } %>
-            </div>
-            <% }); %>
-          </div>
-        </div>
-        <% } %>
+ <!-- Weekly structure -->
+ <% if (cohort.weeklySchedule && cohort.weeklySchedule.length > 0) { %>
+ <div class="acd-box">
+ <div class="acd-box-head"><h3><i class="fas fa-calendar-week" style="color:#c084fc"></i> Weekly Structure</h3></div>
+ <div class="acd-box-body">
+ <% cohort.weeklySchedule.forEach(w => { %>
+ <div class="acd-week">
+ <div class="acd-week-num">Week <%= w.week %></div>
+ <div class="acd-week-theme"><%= w.theme %></div>
+ <% if (w.topics && w.topics.length > 0) { %>
+ <div class="acd-week-topics">
+ <% w.topics.forEach(t => { %><span class="acd-week-topic"><%= t %></span><% }); %>
+ </div>
+ <% } %>
+ </div>
+ <% }); %>
+ </div>
+ </div>
+ <% } %>
 
-        <!-- Instructors -->
-        <% if (cohort.instructors && cohort.instructors.length > 0) { %>
-        <div class="acd-box">
-          <div class="acd-box-head"><h3><i class="fas fa-chalkboard-teacher" style="color:#fb923c"></i> Instructor<%= cohort.instructors.length > 1 ? 's' : '' %></h3></div>
-          <div class="acd-box-body">
-            <% cohort.instructors.forEach(ins => { %>
-            <div class="acd-instructor">
-              <div class="acd-ins-avatar">
-                <% if (ins.avatar) { %>
-                <img src="<%= ins.avatar %>" alt="<%= ins.name %>" onerror="this.style.display='none'">
-                <% } else { %><%= ins.name.charAt(0).toUpperCase() %><% } %>
-              </div>
-              <div style="flex:1;min-width:0">
-                <div class="acd-ins-name"><%= ins.name %></div>
-                <% if (ins.bio) { %><div class="acd-ins-bio"><%= ins.bio %></div><% } %>
-                <% if (ins.twitter) { %><a href="https://x.com/<%= ins.twitter.replace('@','') %>" target="_blank" style="font-size:.72rem;color:#c084fc;font-weight:700;text-decoration:none;margin-top:.25rem;display:inline-flex;align-items:center;gap:.3rem"><i class="fab fa-x-twitter"></i> @<%= ins.twitter.replace('@','') %></a><% } %>
-              </div>
-            </div>
-            <% }); %>
-          </div>
-        </div>
-        <% } %>
+ <!-- Instructors -->
+ <% if (cohort.instructors && cohort.instructors.length > 0) { %>
+ <div class="acd-box">
+ <div class="acd-box-head"><h3><i class="fas fa-chalkboard-teacher" style="color:#fb923c"></i> Instructor<%= cohort.instructors.length > 1 ? 's' : '' %></h3></div>
+ <div class="acd-box-body">
+ <% cohort.instructors.forEach(ins => { %>
+ <div class="acd-instructor">
+ <div class="acd-ins-avatar">
+ <% if (ins.avatar) { %>
+ <img src="<%= ins.avatar %>" alt="<%= ins.name %>" onerror="this.style.display='none'">
+ <% } else { %><%= ins.name.charAt(0).toUpperCase() %><% } %>
+ </div>
+ <div style="flex:1;min-width:0">
+ <div class="acd-ins-name"><%= ins.name %></div>
+ <% if (ins.bio) { %><div class="acd-ins-bio"><%= ins.bio %></div><% } %>
+ <% if (ins.twitter) { %><a href="https://x.com/<%= ins.twitter.replace('@','') %>" target="_blank" style="font-size:.72rem;color:#c084fc;font-weight:700;text-decoration:none;margin-top:.25rem;display:inline-flex;align-items:center;gap:.3rem"><i class="fab fa-x-twitter"></i> @<%= ins.twitter.replace('@','') %></a><% } %>
+ </div>
+ </div>
+ <% }); %>
+ </div>
+ </div>
+ <% } %>
 
-        <!-- Requirements -->
-        <% if (cohort.requirements) { %>
-        <div class="acd-box">
-          <div class="acd-box-head"><h3><i class="fas fa-clipboard-list"></i> Requirements</h3></div>
-          <div class="acd-box-body" style="color:var(--text-2);font-size:.875rem;line-height:1.75;white-space:pre-wrap"><%= cohort.requirements %></div>
-        </div>
-        <% } %>
+ <!-- Requirements -->
+ <% if (cohort.requirements) { %>
+ <div class="acd-box">
+ <div class="acd-box-head"><h3><i class="fas fa-clipboard-list"></i> Requirements</h3></div>
+ <div class="acd-box-body" style="color:var(--text-2);font-size:.875rem;line-height:1.75;white-space:pre-wrap"><%= cohort.requirements %></div>
+ </div>
+ <% } %>
 
-        <!-- Admission challenge -->
-        <% if (cohort.admissionChallenge) { %>
-        <div class="acd-box" style="border-color:rgba(251,191,36,.25)">
-          <div class="acd-box-head"><h3><i class="fas fa-star" style="color:#fbbf24"></i> Admission Challenge</h3></div>
-          <div class="acd-box-body">
-            <p style="color:var(--text-2);font-size:.875rem;line-height:1.75;white-space:pre-wrap;margin:0"><%= cohort.admissionChallenge %></p>
-          </div>
-        </div>
-        <% } %>
+ <!-- Admission challenge -->
+ <% if (cohort.admissionChallenge) { %>
+ <div class="acd-box" style="border-color:rgba(251,191,36,.25)">
+ <div class="acd-box-head"><h3><i class="fas fa-star" style="color:#fbbf24"></i> Admission Challenge</h3></div>
+ <div class="acd-box-body">
+ <p style="color:var(--text-2);font-size:.875rem;line-height:1.75;white-space:pre-wrap;margin:0"><%= cohort.admissionChallenge %></p>
+ </div>
+ </div>
+ <% } %>
 
-      </div>
+ </div>
 
-      <!-- Sidebar -->
-      <div class="acd-sidebar">
+ <!-- Sidebar -->
+ <div class="acd-sidebar">
 
-        <!-- Apply / Status box -->
-        <div class="acd-apply-box">
-          <% if (myEnrollment && ['active','completed','graduated'].includes(myEnrollment.status)) { %>
-            <div style="text-align:center;padding:.5rem 0 .875rem">
-              <i class="fas fa-graduation-cap" style="font-size:2.5rem;color:var(--green);display:block;margin-bottom:.75rem"></i>
-              <div style="font-size:.9375rem;font-weight:900;color:var(--text);margin-bottom:.375rem">You're Enrolled!</div>
-              <div style="font-size:.8rem;color:var(--text-3);margin-bottom:1rem">You have access to the classroom.</div>
-            </div>
-            <a href="/dashboard/academy/<%= cohort.slug %>/classroom" class="acd-apply-btn">Open Classroom</a>
-          <% } else if (myApp) { %>
-            <div style="text-align:center;padding:.5rem 0 .875rem">
-              <% const iconMap = { applied:'fa-clock', under_review:'fa-hourglass-half', accepted:'fa-check-circle', waitlisted:'fa-list-ol', rejected:'fa-times-circle' }; %>
-              <% const colorMap = { applied:'#fbbf24', under_review:'#fbbf24', accepted:'var(--green)', waitlisted:'#c084fc', rejected:'#f87171' }; %>
-              <i class="fas <%= iconMap[myApp.status]||'fa-clock' %>" style="font-size:2rem;color:<%= colorMap[myApp.status]||'#fbbf24' %>;display:block;margin-bottom:.625rem"></i>
-              <div style="font-size:.9375rem;font-weight:900;color:var(--text);margin-bottom:.25rem">
-                <% const labelMap = { applied:'Application Received', under_review:'Under Review', accepted:'Accepted!', waitlisted:'On the Waitlist', rejected:'Not Selected' }; %>
-                <%= labelMap[myApp.status] || myApp.status %>
-              </div>
-              <div style="font-size:.78rem;color:var(--text-3)">
-                <% if (myApp.status === 'applied' || myApp.status === 'under_review') { %>We'll reach out before the deadline.<% } %>
-                <% if (myApp.status === 'accepted') { %>Check your email for the Telegram invite.<% } %>
-                <% if (myApp.status === 'waitlisted') { %>We'll let you know if a seat opens up.<% } %>
-                <% if (myApp.status === 'rejected') { %>Keep an eye out for the next cohort.<% } %>
-              </div>
-            </div>
-          <% } else if (isOpen && seatsLeft > 0) { %>
-            <div style="font-size:.9375rem;font-weight:900;color:var(--text);margin-bottom:.25rem">Apply for this cohort</div>
-            <div style="font-size:.8rem;color:var(--text-3);margin-bottom:1rem;line-height:1.5">Free program. Selected by application. Learn live on Telegram.</div>
-            <a href="/dashboard/academy/<%= cohort.slug %>/apply" class="acd-apply-btn"><i class="fas fa-paper-plane"></i> Apply Now</a>
-          <% } else if (isOpen && seatsLeft === 0) { %>
-            <div style="text-align:center;padding:.5rem 0">
-              <i class="fas fa-door-closed" style="font-size:2rem;color:var(--text-3);display:block;margin-bottom:.625rem"></i>
-              <div style="font-size:.9rem;font-weight:800;color:var(--text)">All Seats Filled</div>
-              <div style="font-size:.78rem;color:var(--text-3);margin-top:.25rem">Applications are full for this cohort.</div>
-            </div>
-          <% } else { %>
-            <div style="text-align:center;padding:.5rem 0">
-              <i class="fas fa-lock" style="font-size:2rem;color:var(--text-3);display:block;margin-bottom:.625rem"></i>
-              <div style="font-size:.9rem;font-weight:800;color:var(--text)">Applications <%= isEnded ? 'Closed' : 'Not Yet Open' %></div>
-              <% if (cohort.applicationDeadline && new Date(cohort.applicationDeadline) > new Date() && !isEnded) { %><div style="font-size:.78rem;color:var(--text-3);margin-top:.25rem">Opens soon — check back.</div><% } %>
-            </div>
-          <% } %>
-        </div>
+ <!-- Apply / Status box -->
+ <div class="acd-apply-box">
+ <% if (myEnrollment && ['active','completed','graduated'].includes(myEnrollment.status)) { %>
+ <div style="text-align:center;padding:.5rem 0 .875rem">
+ <i class="fas fa-graduation-cap" style="font-size:2.5rem;color:var(--green);display:block;margin-bottom:.75rem"></i>
+ <div style="font-size:.9375rem;font-weight:900;color:var(--text);margin-bottom:.375rem">You're Enrolled!</div>
+ <div style="font-size:.8rem;color:var(--text-3);margin-bottom:1rem">You have access to the classroom.</div>
+ </div>
+ <a href="/dashboard/academy/<%= cohort.slug %>/classroom" class="acd-apply-btn">Open Classroom</a>
+ <% } else if (myApp) { %>
+ <div style="text-align:center;padding:.5rem 0 .875rem">
+ <% const iconMap = { applied:'fa-clock', under_review:'fa-hourglass-half', accepted:'fa-check-circle', waitlisted:'fa-list-ol', rejected:'fa-times-circle' }; %>
+ <% const colorMap = { applied:'#fbbf24', under_review:'#fbbf24', accepted:'var(--green)', waitlisted:'#c084fc', rejected:'#f87171' }; %>
+ <i class="fas <%= iconMap[myApp.status]||'fa-clock' %>" style="font-size:2rem;color:<%= colorMap[myApp.status]||'#fbbf24' %>;display:block;margin-bottom:.625rem"></i>
+ <div style="font-size:.9375rem;font-weight:900;color:var(--text);margin-bottom:.25rem">
+ <% const labelMap = { applied:'Application Received', under_review:'Under Review', accepted:'Accepted!', waitlisted:'On the Waitlist', rejected:'Not Selected' }; %>
+ <%= labelMap[myApp.status] || myApp.status %>
+ </div>
+ <div style="font-size:.78rem;color:var(--text-3)">
+ <% if (myApp.status === 'applied' || myApp.status === 'under_review') { %>We'll reach out before the deadline.<% } %>
+ <% if (myApp.status === 'accepted') { %>Check your email for the Telegram invite.<% } %>
+ <% if (myApp.status === 'waitlisted') { %>We'll let you know if a seat opens up.<% } %>
+ <% if (myApp.status === 'rejected') { %>Keep an eye out for the next cohort.<% } %>
+ </div>
+ </div>
+ <% } else if (isOpen && seatsLeft > 0) { %>
+ <div style="font-size:.9375rem;font-weight:900;color:var(--text);margin-bottom:.25rem">Apply for this cohort</div>
+ <div style="font-size:.8rem;color:var(--text-3);margin-bottom:1rem;line-height:1.5">Free program. Selected by application. Learn live on Telegram.</div>
+ <a href="/dashboard/academy/<%= cohort.slug %>/apply" class="acd-apply-btn"><i class="fas fa-paper-plane"></i> Apply Now</a>
+ <% } else if (isOpen && seatsLeft === 0) { %>
+ <div style="text-align:center;padding:.5rem 0">
+ <i class="fas fa-door-closed" style="font-size:2rem;color:var(--text-3);display:block;margin-bottom:.625rem"></i>
+ <div style="font-size:.9rem;font-weight:800;color:var(--text)">All Seats Filled</div>
+ <div style="font-size:.78rem;color:var(--text-3);margin-top:.25rem">Applications are full for this cohort.</div>
+ </div>
+ <% } else { %>
+ <div style="text-align:center;padding:.5rem 0">
+ <i class="fas fa-lock" style="font-size:2rem;color:var(--text-3);display:block;margin-bottom:.625rem"></i>
+ <div style="font-size:.9rem;font-weight:800;color:var(--text)">Applications <%= isEnded ? 'Closed' : 'Not Yet Open' %></div>
+ <% if (cohort.applicationDeadline && new Date(cohort.applicationDeadline) > new Date() && !isEnded) { %><div style="font-size:.78rem;color:var(--text-3);margin-top:.25rem">Opens soon — check back.</div><% } %>
+ </div>
+ <% } %>
+ </div>
 
-        <!-- Cohort details -->
-        <div class="acd-box">
-          <div class="acd-box-head"><h3><i class="fas fa-info-circle"></i> Details</h3></div>
-          <div class="acd-box-body" style="padding:.75rem 1.125rem">
-            <% if (cohort.startDate) { %>
-            <div class="acd-info-row"><span class="acd-info-label">Starts</span><span class="acd-info-val"><%= new Date(cohort.startDate).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) %></span></div>
-            <% } %>
-            <% if (cohort.endDate) { %>
-            <div class="acd-info-row"><span class="acd-info-label">Ends</span><span class="acd-info-val"><%= new Date(cohort.endDate).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) %></span></div>
-            <% } %>
-            <% if (deadline) { %>
-            <div class="acd-info-row"><span class="acd-info-label">Apply by</span><span class="acd-info-val" style="color:<%= deadline < new Date() ? '#f87171' : '#fbbf24' %>"><%= deadline.toLocaleDateString('en-US',{month:'long',day:'numeric'}) %></span></div>
-            <% } %>
-            <div class="acd-info-row"><span class="acd-info-label">Seats</span><span class="acd-info-val"><%= enrolledCount %> / <%= cohort.seats %></span></div>
-            <% if (cohort.duration) { %>
-            <div class="acd-info-row"><span class="acd-info-label">Duration</span><span class="acd-info-val"><%= cohort.duration %></span></div>
-            <% } %>
-            <div class="acd-info-row"><span class="acd-info-label">Format</span><span class="acd-info-val"><i class="fab fa-telegram" style="color:#229ED9"></i> Telegram</span></div>
-            <div class="acd-info-row"><span class="acd-info-label">Cost</span><span class="acd-info-val" style="color:var(--green)">Free</span></div>
-          </div>
-        </div>
+ <!-- Cohort details -->
+ <div class="acd-box">
+ <div class="acd-box-head"><h3><i class="fas fa-info-circle"></i> Details</h3></div>
+ <div class="acd-box-body" style="padding:.75rem 1.125rem">
+ <% if (cohort.startDate) { %>
+ <div class="acd-info-row"><span class="acd-info-label">Starts</span><span class="acd-info-val"><%= new Date(cohort.startDate).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) %></span></div>
+ <% } %>
+ <% if (cohort.endDate) { %>
+ <div class="acd-info-row"><span class="acd-info-label">Ends</span><span class="acd-info-val"><%= new Date(cohort.endDate).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) %></span></div>
+ <% } %>
+ <% if (deadline) { %>
+ <div class="acd-info-row"><span class="acd-info-label">Apply by</span><span class="acd-info-val" style="color:<%= deadline < new Date() ? '#f87171' : '#fbbf24' %>"><%= deadline.toLocaleDateString('en-US',{month:'long',day:'numeric'}) %></span></div>
+ <% } %>
+ <div class="acd-info-row"><span class="acd-info-label">Seats</span><span class="acd-info-val"><%= enrolledCount %> / <%= cohort.seats %></span></div>
+ <% if (cohort.duration) { %>
+ <div class="acd-info-row"><span class="acd-info-label">Duration</span><span class="acd-info-val"><%= cohort.duration %></span></div>
+ <% } %>
+ <div class="acd-info-row"><span class="acd-info-label">Format</span><span class="acd-info-val"><i class="fab fa-telegram" style="color:#229ED9"></i> Telegram</span></div>
+ <div class="acd-info-row"><span class="acd-info-label">Cost</span><span class="acd-info-val" style="color:var(--green)">Free</span></div>
+ </div>
+ </div>
 
-        <!-- Telegram info -->
-        <% if (cohort.telegramChannelLink) { %>
-        <div class="acd-box">
-          <div class="acd-box-body" style="text-align:center">
-            <i class="fab fa-telegram" style="font-size:1.75rem;color:#229ED9;display:block;margin-bottom:.5rem"></i>
-            <div style="font-size:.875rem;font-weight:800;color:var(--text);margin-bottom:.25rem">Academy Announcements</div>
-            <div style="font-size:.78rem;color:var(--text-3);margin-bottom:.875rem">Follow the channel for updates</div>
-            <a href="<%= cohort.telegramChannelLink %>" target="_blank" style="display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:rgba(34,158,217,.15);color:#229ED9;border:1px solid rgba(34,158,217,.3);border-radius:8px;font-size:.8rem;font-weight:700;text-decoration:none"><i class="fab fa-telegram"></i> Follow Channel</a>
-          </div>
-        </div>
-        <% } %>
+ <!-- Telegram info -->
+ <% if (cohort.telegramChannelLink) { %>
+ <div class="acd-box">
+ <div class="acd-box-body" style="text-align:center">
+ <i class="fab fa-telegram" style="font-size:1.75rem;color:#229ED9;display:block;margin-bottom:.5rem"></i>
+ <div style="font-size:.875rem;font-weight:800;color:var(--text);margin-bottom:.25rem">Academy Announcements</div>
+ <div style="font-size:.78rem;color:var(--text-3);margin-bottom:.875rem">Follow the channel for updates</div>
+ <a href="<%= cohort.telegramChannelLink %>" target="_blank" style="display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:rgba(34,158,217,.15);color:#229ED9;border:1px solid rgba(34,158,217,.3);border-radius:8px;font-size:.8rem;font-weight:700;text-decoration:none"><i class="fab fa-telegram"></i> Follow Channel</a>
+ </div>
+ </div>
+ <% } %>
 
-      </div>
-    </div>
+ </div>
+ </div>
 
-    </div>
-  </main>
+ </div>
+ </main>
 </div>
 </body>
 </html>
