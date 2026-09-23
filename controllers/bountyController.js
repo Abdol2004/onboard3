@@ -299,10 +299,11 @@ exports.submitToExternalBounty = async (req, res) => {
       console.error('[Bounty] ensureZADProfile failed (non-blocking):', e.message);
     }
 
-    // Prefix summary with ONBOARD3 username so it appears on ZAD's platform
+    // Prefix summary with ONBOARD3 username — visible on ZAD's submission listing
+    // even when ZAD profile shows "anonymous" (profile update API is unreliable)
     const submitter = await User.findById(req.session.userId).select('username').lean();
     const taggedSummary = submitter?.username
-      ? `[${submitter.username} via ONBOARD3] ${summary.trim()}`
+      ? `Submitted by: @${submitter.username} (via ONBOARD3)\n\n${summary.trim()}`
       : summary.trim();
 
     // Submit on-chain to ZeroAuthDAO from the user's custodial wallet

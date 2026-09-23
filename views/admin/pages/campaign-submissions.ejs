@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Submissions — <%= campaign.title %> — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'campaigns', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content">
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-list"></i> Submissions</h1>
+        <p>
+          <a href="/admin/campaigns" style="color:var(--green)">← Campaigns</a>
+          <span style="color:var(--text-3);margin:0 .4rem">/</span>
+          <span style="color:var(--text-2)"><%= campaign.title %></span>
+          &nbsp;&mdash;&nbsp;<%= submissions.length %> submission<%= submissions.length === 1 ? '' : 's' %>
+        </p>
+      </div>
+      <a href="/admin/campaigns/<%= campaign._id %>/edit" class="a-btn a-btn-secondary">
+        <i class="fas fa-pen"></i> Edit Campaign
+      </a>
+    </div>
+
+    <div class="a-card">
+      <div class="a-table-wrap">
+        <table class="at">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Task</th>
+              <th>Handle</th>
+              <th>Proof</th>
+              <th>Status</th>
+              <th>XP</th>
+              <th>Submitted</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% submissions.forEach(function(s) {
+              var task = campaign.tasks && campaign.tasks[s.taskIndex];
+            %>
+            <tr id="sub-row-<%= s._id %>">
+              <td>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <% if (s.user && s.user.profilePicture) { %>
+                  <img src="<%= s.user.profilePicture %>" alt="" style="width:28px;height:28px;border-radius:7px;object-fit:cover">
+                  <% } %>
+                  <div>
+                    <p style="font-weight:700;color:var(--text);font-size:.875rem"><%= s.user ? s.user.username : 'Deleted User' %></p>
+                    <p style="font-size:.7rem;color:var(--text-3)"><%= s.user ? s.user.email : '' %></p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <p style="font-size:.8125rem;font-weight:700;color:var(--text)"><%= task ? task.title : 'Task ' + s.taskIndex %></p>
+                <p style="font-size:.72rem;color:var(--text-3);text-transform:capitalize"><%= s.taskType || '' %></p>
+              </td>
+              <td style="font-size:.8125rem;color:var(--text-2)"><%= s.proofHandle || '—' %></td>
+              <td>
+                <% if (s.proofUrl) { %>
+                <a href="<%= s.proofUrl %>" target="_blank" rel="noopener"
+                  style="font-size:.78rem;color:var(--green);font-weight:700;text-decoration:none">
+                  <i class="fas fa-external-link-alt"></i> View
+                </a>
+                <% } else { %>
+                <span style="color:var(--text-3)">—</span>
+                <% } %>
+              </td>
+              <td>
+                <span id="sub-status-<%= s._id %>" class="a-badge <%= s.status==='approved'?'a-badge-success':s.status==='rejected'?'a-badge-danger':'a-badge-warning' %>" style="text-transform:capitalize">
+                  <%= s.status %>
+                </span>
+              </td>
+              <td id="sub-xp-<%= s._id %>" style="font-weight:800;color:#5EC213"><%= s.xpAwarded || 0 %> XP</td>
+              <td style="font-size:.8125rem;color:var(--text-2)">
+                <%= new Date(s.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %>
+              </td>
+              <td>
+                <% if (s.status === 'pending') { %>
+                <div style="display:flex;gap:.4rem">
+                  <button class="a-btn a-btn-success a-btn-sm" onclick="reviewSub('<%= s._id %>','approved')">
+                    <i class="fas fa-check"></i> Approve
+                  </button>
+                  <button class="a-btn a-btn-danger a-btn-sm" onclick="reviewSub('<%= s._id %>','rejected')">
+                    <i class="fas fa-times"></i> Reject
+                  </button>
+                </div>
+                <% } else { %>
+                <span style="font-size:.78rem;color:var(--text-3)">Reviewed</span>
+                <% } %>
+              </td>
+            </tr>
+            <% }); %>
+            <% if (!submissions.length) { %>
+            <tr>
+              <td colspan="8" style="text-align:center;padding:3rem;color:var(--text-3)">
+                <i class="fas fa-inbox" style="display:block;font-size:1.5rem;margin-bottom:.5rem;opacity:.4"></i>
+                No submissions yet for this campaign.
+              </td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function reviewSub(subId, status) {
+    if (!confirm('Mark this submission as ' + status + '?')) return;
+
+    fetch('/admin/campaigns/submissions/' + subId + '/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: status })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.success) {
+        alert(data.message || 'Error updating submission.');
+        return;
+      }
+      // Update the badge
+      var badge = document.getElementById('sub-status-' + subId);
+      if (badge) {
+        badge.className = 'a-badge ' + (status === 'approved' ? 'a-badge-success' : 'a-badge-danger');
+        badge.textContent = status;
+      }
+      // Hide action buttons
+      var row = document.getElementById('sub-row-' + subId);
+      if (row) {
+        var actCell = row.querySelector('td:last-child');
+        if (actCell) actCell.innerHTML = '<span style="font-size:.78rem;color:var(--text-3)">Reviewed</span>';
+      }
+    })
+    .catch(function() { alert('Network error.'); });
+  }
+</script>
+</body>
+</html>

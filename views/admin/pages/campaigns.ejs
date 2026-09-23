@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Campaigns — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'campaigns', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content">
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-bullhorn"></i> Campaign Management</h1>
+        <p><%= campaigns.length %> campaign<%= campaigns.length === 1 ? '' : 's' %> total</p>
+      </div>
+      <a href="/admin/campaigns/new" class="a-btn a-btn-primary"><i class="fas fa-plus"></i> Create Campaign</a>
+    </div>
+
+    <% var _qs = locals.query || {}; %>
+    <% if (_qs.created) { %>
+    <div class="a-alert a-alert-success" style="margin-bottom:1rem"><i class="fas fa-check-circle"></i> Campaign created successfully.</div>
+    <% } %>
+    <% if (_qs.updated) { %>
+    <div class="a-alert a-alert-success" style="margin-bottom:1rem"><i class="fas fa-check-circle"></i> Campaign updated successfully.</div>
+    <% } %>
+    <% if (_qs.deleted) { %>
+    <div class="a-alert a-alert-warning" style="margin-bottom:1rem"><i class="fas fa-trash"></i> Campaign deleted.</div>
+    <% } %>
+
+    <div class="a-card">
+      <div class="a-table-wrap">
+        <table class="at">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Sponsor</th>
+              <th>Status</th>
+              <th>Tasks</th>
+              <th>Participants</th>
+              <th>XP</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% campaigns.forEach(function(c) { %>
+            <tr>
+              <td>
+                <p style="font-weight:700;color:var(--text);max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><%= c.title %></p>
+                <% if (c.endDate) { %>
+                <p style="font-size:.72rem;color:var(--text-3)">Ends <%= new Date(c.endDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %></p>
+                <% } %>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <% if (c.sponsor && c.sponsor.logo) { %>
+                  <img src="<%= c.sponsor.logo %>" alt="" style="width:24px;height:24px;border-radius:6px;object-fit:contain;background:#fff;padding:2px">
+                  <% } %>
+                  <span style="font-size:.8125rem;color:var(--text-2);font-weight:600"><%= (c.sponsor && c.sponsor.name) || '—' %></span>
+                </div>
+              </td>
+              <td>
+                <span class="a-badge <%= c.status==='active'?'a-badge-success':c.status==='ended'?'a-badge-neutral':'a-badge-warning' %>" style="text-transform:capitalize"><%= c.status || 'draft' %></span>
+              </td>
+              <td style="font-weight:700;color:var(--text)"><%= (c.tasks || []).length %></td>
+              <td style="font-weight:700;color:var(--text)"><%= (c.participantCount || 0).toLocaleString() %></td>
+              <td style="font-weight:800;color:#5EC213"><%= (c.totalXpReward || 0).toLocaleString() %> XP</td>
+              <td style="font-size:.8125rem;color:var(--text-2)">
+                <%= new Date(c.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) %>
+              </td>
+              <td>
+                <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+                  <a href="/admin/campaigns/<%= c._id %>/edit" class="a-btn a-btn-secondary a-btn-sm" title="Edit"><i class="fas fa-pen"></i></a>
+                  <a href="/admin/campaigns/<%= c._id %>/submissions" class="a-btn a-btn-secondary a-btn-sm" title="Submissions"><i class="fas fa-list"></i></a>
+                  <form method="POST" action="/admin/campaigns/<%= c._id %>/delete" onsubmit="return confirm('Delete this campaign and all its submissions?')">
+                    <button type="submit" class="a-btn a-btn-danger a-btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% }); %>
+            <% if (!campaigns.length) { %>
+            <tr>
+              <td colspan="8" style="text-align:center;padding:3rem;color:var(--text-3)">
+                <i class="fas fa-bullhorn" style="display:block;font-size:1.5rem;margin-bottom:.5rem;opacity:.4"></i>
+                No campaigns yet. <a href="/admin/campaigns/new" style="color:var(--green);font-weight:700">Create one</a>
+              </td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

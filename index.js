@@ -483,11 +483,38 @@ app.get("/api/users/search", async (req, res) => {
   }
 });
 
-app.get("/about", (req, res) => {
-  res.render("about", {
-    title: "About Page",
-    user: req.session.userId ? { username: req.session.username } : null
-  });
+app.get("/about", async (req, res) => {
+  try {
+    const User              = require('./models/User');
+    const Event             = require('./models/Event');
+    const ProjectSubmission = require('./models/ProjectSubmission');
+    const CampusAmbassador  = require('./models/CampusAmbassador');
+
+    const [learnersCount, irlEventsCount, projectsCount, campuses] = await Promise.all([
+      User.countDocuments(),
+      Event.countDocuments({ eventType: { $in: ['physical', 'hybrid'] } }),
+      ProjectSubmission.countDocuments(),
+      CampusAmbassador.distinct('institutionName', { status: 'approved' })
+    ]);
+
+    res.render("about", {
+      title: "About Page",
+      user: req.session.userId ? { username: req.session.username } : null,
+      stats: {
+        learners: learnersCount,
+        projects: projectsCount,
+        irlEvents: irlEventsCount,
+        campuses: campuses.length
+      }
+    });
+  } catch (err) {
+    console.error('[about]', err);
+    res.render("about", {
+      title: "About Page",
+      user: req.session.userId ? { username: req.session.username } : null,
+      stats: { learners: 0, projects: 0, irlEvents: 0, campuses: 0 }
+    });
+  }
 });
 
 app.get("/ecosystem", (req, res) => {

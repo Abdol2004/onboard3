@@ -285,6 +285,7 @@ router.post('/business-quests/:id/reject', isAdminPage, async (req, res) => {
   }
 });
 
+
 // ── Bounties ──────────────────────────────────────────
 const bc = require('../controllers/bountyController');
 router.get('/bounties',                   isAdminPage, bc.adminListBounties);
@@ -1814,22 +1815,10 @@ router.get('/quest-applications/:questId/leaderboard', isAdminPage, async (req, 
   res.redirect('/admin/quests');
 });
 
-// ── Upload logo for a quest ──────────────────────────────────────────────────
+// ── Shared image upload → base64 (works on any host, no disk dependency) ──────
 const multer = require('multer');
-const path   = require('path');
-const fs     = require('fs');
-const _questLogoUpload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      const dir = path.join(__dirname, '../public/img/quests');
-      fs.mkdirSync(dir, { recursive: true });
-      cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname) || '.jpg';
-      cb(null, 'quest-' + req.params.questId + '-' + Date.now() + ext);
-    }
-  }),
+const _memUpload = multer({
+  storage: multer.memoryStorage(),
   limits: { fileSize: 4 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith('image/')) return cb(new Error('Images only'));
@@ -1837,8 +1826,21 @@ const _questLogoUpload = multer({
   }
 });
 
+// Generic upload — returns base64 data URL, stores nothing on disk
+router.post('/upload-image', isAdminPage, (req, res, next) => {
+  _memUpload.single('image')(req, res, (err) => {
+    if (err) return res.json({ success: false, message: err.message });
+    next();
+  });
+}, (req, res) => {
+  if (!req.file) return res.json({ success: false, message: 'No file' });
+  const b64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+  res.json({ success: true, url: b64 });
+});
+
+// Upload logo for a quest (base64, stored in Quest.image)
 router.post('/quests/:questId/upload-logo', isAdminPage, (req, res, next) => {
-  _questLogoUpload.single('logo')(req, res, (err) => {
+  _memUpload.single('logo')(req, res, (err) => {
     if (err) return res.json({ success: false, message: err.message });
     next();
   });
@@ -1846,9 +1848,9 @@ router.post('/quests/:questId/upload-logo', isAdminPage, (req, res, next) => {
   try {
     const Quest = require('../models/Quest');
     if (!req.file) return res.json({ success: false, message: 'No file uploaded' });
-    const imgPath = '/img/quests/' + req.file.filename;
-    await Quest.findByIdAndUpdate(req.params.questId, { image: imgPath });
-    res.json({ success: true, image: imgPath });
+    const b64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    await Quest.findByIdAndUpdate(req.params.questId, { image: b64 });
+    res.json({ success: true, image: b64 });
   } catch (err) {
     console.error('[upload-logo]', err);
     res.json({ success: false, message: 'Server error' });

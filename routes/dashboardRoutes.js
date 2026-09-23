@@ -302,15 +302,19 @@ router.get('/career-paths', isAuthenticated, async (req, res) => {
   try {
     const PathwayConfig  = require('../models/PathwayConfig');
     const PathwayContent = require('../models/PathwayContent');
-    const PATHWAYS = ['web3_jobs','ai','nft','trading'];
+
+    const user = await User.findById(req.session.userId).select('-password').lean();
+
+    // Only show the user's own pathway; if none selected, show empty state
+    const PATHWAYS = user.pathway ? [user.pathway] : [];
 
     const [configs, counts, liveSet] = await Promise.all([
       PathwayConfig.find({ pathway: { $in: PATHWAYS } }).lean(),
       PathwayContent.aggregate([
-        { $match: { isPublished: true } },
+        { $match: { isPublished: true, pathway: { $in: PATHWAYS } } },
         { $group: { _id: '$pathway', count: { $sum: 1 } } }
       ]),
-      PathwayContent.distinct('pathway', { isLive: true, isPublished: true })
+      PathwayContent.distinct('pathway', { isLive: true, isPublished: true, pathway: { $in: PATHWAYS } })
     ]);
 
     const leadIds = configs.map(c => c.leadUserId).filter(Boolean);
@@ -321,8 +325,7 @@ router.get('/career-paths', isAuthenticated, async (req, res) => {
 
     res.render('dashboard/career-paths', {
       title: 'Career Paths — ONBOARD3',
-      user: await User.findById(req.session.userId).select('-password').lean(),
-      PATHWAYS, PATHWAY_META, cfgMap, cntMap, liveSet, leadMap,
+      user, PATHWAYS, PATHWAY_META, cfgMap, cntMap, liveSet, leadMap,
       currentPage: 'career-paths', pathwaySlug: null
     });
   } catch (err) {

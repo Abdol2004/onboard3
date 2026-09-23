@@ -90,8 +90,16 @@
  <textarea name="description" class="a-input" required placeholder="Detailed bounty description..." style="min-height:100px"></textarea>
  </div>
  <div class="a-form-group">
- <label>Banner Image URL <span style="color:var(--text-3)">(optional)</span></label>
- <input type="url" name="image" class="a-input" placeholder="https://...">
+ <label>Banner Image <span style="color:var(--text-3)">(optional)</span></label>
+ <input type="hidden" id="bountyImageData" name="image">
+ <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+ <label for="bountyImageFile" style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;border-radius:9px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text-2);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+ <i class="fas fa-upload"></i> Choose Image
+ </label>
+ <input type="file" id="bountyImageFile" accept="image/*" style="display:none" onchange="uploadBountyImage(this)">
+ <span id="bountyImageStatus" style="font-size:.78rem;color:var(--text-3)">No image selected</span>
+ </div>
+ <img id="bountyImagePreview" src="" style="display:none;margin-top:.5rem;max-height:80px;border-radius:8px;border:1px solid var(--border)">
  </div>
  <div class="a-form-row">
  <div class="a-form-group">
@@ -157,6 +165,31 @@
 <script>
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+async function uploadBountyImage(input) {
+ if (!input.files || !input.files[0]) return;
+ const status = document.getElementById('bountyImageStatus');
+ status.textContent = 'Uploading…';
+ const fd = new FormData();
+ fd.append('image', input.files[0]);
+ try {
+ const r = await fetch('/admin/upload-image', { method: 'POST', body: fd });
+ const d = await r.json();
+ if (d.success) {
+ document.getElementById('bountyImageData').value = d.url;
+ status.textContent = '✓ Image ready';
+ status.style.color = 'var(--green)';
+ const prev = document.getElementById('bountyImagePreview');
+ prev.src = d.url; prev.style.display = 'block';
+ } else {
+ status.textContent = 'Upload failed: ' + (d.message || 'error');
+ status.style.color = '#f87171';
+ }
+ } catch(e) {
+ status.textContent = 'Upload failed';
+ status.style.color = '#f87171';
+ }
+}
 document.querySelectorAll('.a-modal-overlay').forEach(function(m) {
  m.addEventListener('click', function(e) { if(e.target===m) m.classList.remove('open'); });
 });

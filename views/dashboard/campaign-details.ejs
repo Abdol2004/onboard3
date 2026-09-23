@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= campaign.title %> — ONBOARD3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <%- include('../partials/achievement-popup') %>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    .cd-page { padding: 0 0 4rem; }
+
+    /* Hero */
+    .cd-hero {
+      position: relative; border-radius: 18px; overflow: hidden;
+      margin-bottom: 2rem;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .cd-hero-bg {
+      width: 100%; height: 220px; object-fit: cover; display: block;
+    }
+    .cd-hero-gradient {
+      width: 100%; height: 220px;
+      background: linear-gradient(135deg, #0a180a 0%, #0f2010 60%, #091509 100%);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .cd-hero-gradient::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(94,194,19,.1) 0%, transparent 65%);
+    }
+    .cd-hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(8,14,8,.92) 0%, rgba(8,14,8,.2) 60%, transparent 100%);
+    }
+    .cd-hero-content {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 1.25rem 1.5rem;
+      display: flex; align-items: flex-end; gap: 1rem;
+    }
+    .cd-hero-logo {
+      width: 64px; height: 64px; border-radius: 16px;
+      overflow: hidden; background: #fff; padding: 7px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.6), 0 0 0 1.5px rgba(255,255,255,.12);
+      flex-shrink: 0;
+    }
+    .cd-hero-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 9px; }
+    .cd-hero-logo--placeholder {
+      background: rgba(94,194,19,.15);
+      border: 1.5px solid rgba(94,194,19,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: var(--green);
+    }
+    .cd-hero-text h1 {
+      font-size: 1.375rem; font-weight: 900; color: #fff;
+      margin: 0 0 .2rem; letter-spacing: -.02em; line-height: 1.25;
+    }
+    .cd-hero-text p {
+      font-size: .8125rem; color: rgba(255,255,255,.6);
+      margin: 0; display: flex; align-items: center; gap: .4rem;
+    }
+
+    /* Stats row */
+    .cd-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: .75rem; margin-bottom: 1.75rem;
+    }
+    .cd-stat {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px; padding: .875rem 1rem;
+      display: flex; flex-direction: column; gap: .25rem;
+    }
+    .cd-stat-label { font-size: .72rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; }
+    .cd-stat-value { font-size: 1.125rem; font-weight: 900; color: var(--text); }
+    .cd-stat-value.green { color: var(--green); }
+
+    /* Progress section */
+    .cd-progress-section {
+      background: rgba(94,194,19,.04);
+      border: 1px solid rgba(94,194,19,.15);
+      border-radius: 14px; padding: 1rem 1.25rem;
+      margin-bottom: 1.75rem;
+    }
+    .cd-progress-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: .75rem;
+    }
+    .cd-progress-header span {
+      font-size: .875rem; font-weight: 800; color: var(--text);
+    }
+    .cd-progress-header strong { color: var(--green); }
+    .cd-progress-bar {
+      height: 6px; border-radius: 6px;
+      background: rgba(255,255,255,.07); overflow: hidden;
+    }
+    .cd-progress-fill {
+      height: 100%; border-radius: 6px;
+      background: linear-gradient(90deg, #5EC213, #7ee82a);
+      transition: width .6s ease;
+    }
+
+    /* Section heading */
+    .cd-section-title {
+      font-size: 1rem; font-weight: 900; color: var(--text);
+      margin: 0 0 1rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .cd-section-title i { color: var(--green); font-size: .9rem; }
+
+    /* Task list */
+    .cd-tasks { display: flex; flex-direction: column; gap: .875rem; }
+
+    .cd-task {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px; overflow: hidden;
+      transition: border-color .2s;
+    }
+    .cd-task--completed { border-color: rgba(94,194,19,.25); }
+    .cd-task--pending   { border-color: rgba(251,191,36,.2); }
+    .cd-task--rejected  { border-color: rgba(239,68,68,.2); }
+
+    .cd-task-header {
+      display: flex; align-items: center; gap: .875rem;
+      padding: 1rem 1.125rem;
+    }
+    .cd-task-icon {
+      width: 40px; height: 40px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .cd-task-info { flex: 1; min-width: 0; }
+    .cd-task-title {
+      font-size: .9375rem; font-weight: 800; color: var(--text);
+      margin: 0 0 .15rem; line-height: 1.3;
+    }
+    .cd-task-desc {
+      font-size: .8125rem; color: var(--text-2);
+      margin: 0; line-height: 1.45;
+    }
+    .cd-task-right {
+      display: flex; flex-direction: column; align-items: flex-end;
+      gap: .4rem; flex-shrink: 0;
+    }
+    .cd-task-xp {
+      font-size: .8125rem; font-weight: 800; color: var(--green);
+      display: flex; align-items: center; gap: .25rem;
+    }
+
+    /* Status badges */
+    .cd-badge {
+      display: inline-flex; align-items: center; gap: .3rem;
+      padding: .22rem .6rem; border-radius: 8px;
+      font-size: .72rem; font-weight: 800; white-space: nowrap;
+    }
+    .cd-badge--done     { background: rgba(94,194,19,.12); color: #5EC213; border: 1px solid rgba(94,194,19,.25); }
+    .cd-badge--pending  { background: rgba(251,191,36,.1); color: #fbbf24; border: 1px solid rgba(251,191,36,.25); }
+    .cd-badge--rejected { background: rgba(239,68,68,.1);  color: #f87171; border: 1px solid rgba(239,68,68,.25); }
+
+    /* Visit link button */
+    .cd-visit-btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .3rem .75rem; border-radius: 9px;
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      color: var(--text-2); font-family: 'Outfit', sans-serif;
+      font-size: .78rem; font-weight: 700; text-decoration: none;
+      transition: all .2s; cursor: pointer;
+    }
+    .cd-visit-btn:hover {
+      background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.2);
+      color: var(--text);
+    }
+
+    /* Complete button */
+    .cd-complete-btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .35rem .875rem; border-radius: 9px;
+      background: rgba(94,194,19,.1); border: 1px solid rgba(94,194,19,.25);
+      color: var(--green); font-family: 'Outfit', sans-serif;
+      font-size: .8125rem; font-weight: 700; cursor: pointer;
+      transition: all .2s;
+    }
+    .cd-complete-btn:hover {
+      background: rgba(94,194,19,.18); border-color: rgba(94,194,19,.4);
+    }
+
+    /* Proof form */
+    .cd-proof-form {
+      padding: 0 1.125rem 1.125rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .cd-proof-form-inner {
+      padding-top: .875rem;
+      display: flex; flex-direction: column; gap: .6rem;
+    }
+    .cd-proof-label {
+      font-size: .78rem; font-weight: 700; color: var(--text-2);
+      margin-bottom: .2rem; display: block;
+    }
+    .cd-input {
+      width: 100%; padding: .55rem .875rem;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px; color: var(--text);
+      font-family: 'Outfit', sans-serif; font-size: .875rem;
+      outline: none; transition: border-color .2s;
+      box-sizing: border-box;
+    }
+    .cd-input:focus { border-color: rgba(94,194,19,.4); }
+    .cd-input::placeholder { color: var(--text-3); }
+    .cd-submit-btn {
+      align-self: flex-start;
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .55rem 1.25rem; border-radius: 10px;
+      background: var(--green); border: none;
+      color: #000; font-family: 'Outfit', sans-serif;
+      font-size: .875rem; font-weight: 800; cursor: pointer;
+      transition: opacity .2s, transform .15s;
+    }
+    .cd-submit-btn:hover { opacity: .88; }
+    .cd-submit-btn:active { transform: scale(.97); }
+    .cd-submit-btn:disabled {
+      opacity: .5; cursor: not-allowed; transform: none;
+    }
+
+    /* Back link */
+    .cd-back {
+      display: inline-flex; align-items: center; gap: .4rem;
+      color: var(--text-2); font-size: .875rem; font-weight: 700;
+      text-decoration: none; margin-bottom: 1.25rem;
+      transition: color .2s;
+    }
+    .cd-back:hover { color: var(--text); }
+
+    /* Sponsor info box */
+    .cd-sponsor-box {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 12px; padding: .875rem 1rem;
+      display: flex; align-items: center; gap: .875rem;
+      margin-bottom: 1.75rem;
+    }
+    .cd-sponsor-logo-sm {
+      width: 44px; height: 44px; border-radius: 11px;
+      overflow: hidden; background: #fff; padding: 5px;
+      flex-shrink: 0;
+    }
+    .cd-sponsor-logo-sm img { width: 100%; height: 100%; object-fit: contain; }
+    .cd-sponsor-logo-sm--ph {
+      background: rgba(94,194,19,.1);
+      border: 1px solid rgba(94,194,19,.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: var(--green);
+    }
+    .cd-sponsor-name { font-size: .9375rem; font-weight: 800; color: var(--text); }
+    .cd-sponsor-links { display: flex; gap: .5rem; margin-top: .2rem; }
+    .cd-sponsor-link {
+      font-size: .72rem; font-weight: 700; color: var(--text-3);
+      text-decoration: none; display: flex; align-items: center; gap: .25rem;
+      transition: color .2s;
+    }
+    .cd-sponsor-link:hover { color: var(--text-2); }
+
+    @media (max-width: 640px) {
+      .cd-stats { grid-template-columns: repeat(2, 1fr); }
+      .cd-hero-text h1 { font-size: 1.125rem; }
+    }
+  </style>
+</head>
+<body>
+<%- include('../partials/sidebar', { user, currentPage: 'campaigns' }) %>
+
+<div class="dashboard-container">
+  <main class="main-content">
+    <div class="cd-page">
+
+      <!-- Back link -->
+      <a href="/dashboard/campaigns" class="cd-back">
+        <i class="fas fa-arrow-left"></i> Back to Campaigns
+      </a>
+
+      <!-- Hero -->
+      <div class="cd-hero">
+        <% if (campaign.coverImage) { %>
+          <img class="cd-hero-bg" src="<%= campaign.coverImage %>" alt="<%= campaign.title %>">
+        <% } else { %>
+          <div class="cd-hero-gradient"></div>
+        <% } %>
+        <div class="cd-hero-overlay"></div>
+        <div class="cd-hero-content">
+          <div class="cd-hero-logo <%= campaign.sponsor && campaign.sponsor.logo ? '' : 'cd-hero-logo--placeholder' %>">
+            <% if (campaign.sponsor && campaign.sponsor.logo) { %>
+              <img src="<%= campaign.sponsor.logo %>" alt="<%= campaign.sponsor.name %>">
+            <% } else { %>
+              <i class="fas fa-bullhorn"></i>
+            <% } %>
+          </div>
+          <div class="cd-hero-text">
+            <h1><%= campaign.title %></h1>
+            <p>
+              <% if (campaign.sponsor && campaign.sponsor.name) { %>
+              <i class="fas fa-building"></i> <%= campaign.sponsor.name %>
+              <% } %>
+              <span style="margin:0 .25rem;opacity:.4">•</span>
+              <span class="cd-badge cd-badge--<%= campaign.status === 'active' ? 'done' : 'rejected' %>" style="font-size:.68rem">
+                <%= campaign.status === 'active' ? 'Live' : campaign.status %>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <% if (campaign.description) { %>
+      <p style="font-size:.9375rem;color:var(--text-2);line-height:1.7;margin:0 0 1.5rem">
+        <%= campaign.description %>
+      </p>
+      <% } %>
+
+      <!-- Stats -->
+      <div class="cd-stats">
+        <div class="cd-stat">
+          <span class="cd-stat-label">Total XP</span>
+          <span class="cd-stat-value green"><i class="fas fa-bolt" style="font-size:.85rem;margin-right:.3rem"></i><%= (campaign.totalXpReward || 0).toLocaleString() %></span>
+        </div>
+        <div class="cd-stat">
+          <span class="cd-stat-label">Tasks</span>
+          <span class="cd-stat-value"><%= totalTasks %></span>
+        </div>
+        <div class="cd-stat">
+          <span class="cd-stat-label">Participants</span>
+          <span class="cd-stat-value"><%= (campaign.participantCount || 0).toLocaleString() %></span>
+        </div>
+        <% if (campaign.endDate) { %>
+        <div class="cd-stat">
+          <span class="cd-stat-label">Deadline</span>
+          <span class="cd-stat-value" style="font-size:.9rem">
+            <%= new Date(campaign.endDate).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) %>
+          </span>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- Sponsor info -->
+      <% if (campaign.sponsor && campaign.sponsor.name) { %>
+      <div class="cd-sponsor-box">
+        <div class="cd-sponsor-logo-sm <%= campaign.sponsor.logo ? '' : 'cd-sponsor-logo-sm--ph' %>">
+          <% if (campaign.sponsor.logo) { %>
+            <img src="<%= campaign.sponsor.logo %>" alt="<%= campaign.sponsor.name %>">
+          <% } else { %>
+            <i class="fas fa-building"></i>
+          <% } %>
+        </div>
+        <div>
+          <div class="cd-sponsor-name"><%= campaign.sponsor.name %></div>
+          <div class="cd-sponsor-links">
+            <% if (campaign.sponsor.website) { %>
+            <a href="<%= campaign.sponsor.website %>" target="_blank" rel="noopener" class="cd-sponsor-link">
+              <i class="fas fa-globe"></i> Website
+            </a>
+            <% } %>
+            <% if (campaign.sponsor.twitter) { %>
+            <a href="<%= campaign.sponsor.twitter.startsWith('http') ? campaign.sponsor.twitter : 'https://twitter.com/' + campaign.sponsor.twitter.replace('@','') %>" target="_blank" rel="noopener" class="cd-sponsor-link">
+              <i class="fab fa-x-twitter"></i> Twitter
+            </a>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Progress section -->
+      <% if (completedCount > 0 || pendingCount > 0) { %>
+      <div class="cd-progress-section">
+        <div class="cd-progress-header">
+          <span>Your progress: <strong><%= completedCount %></strong> of <%= totalTasks %> tasks completed</span>
+          <% if (pendingCount > 0) { %>
+          <span style="font-size:.78rem;color:#fbbf24;font-weight:700"><i class="fas fa-clock" style="margin-right:.25rem"></i><%= pendingCount %> pending review</span>
+          <% } %>
+        </div>
+        <div class="cd-progress-bar">
+          <div class="cd-progress-fill" id="mainProgressFill" style="width:<%= totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0 %>%"></div>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Tasks -->
+      <div>
+        <h2 class="cd-section-title"><i class="fas fa-list-check"></i> Tasks</h2>
+        <div class="cd-tasks" id="tasksContainer">
+          <% tasks.forEach(function(task) {
+            var typeColors = {
+              twitter_follow:    { color:'#1DA1F2', bg:'rgba(29,161,242,.12)',  border:'rgba(29,161,242,.25)',  icon:'fa-x-twitter'  },
+              twitter_like:      { color:'#1DA1F2', bg:'rgba(29,161,242,.12)',  border:'rgba(29,161,242,.25)',  icon:'fa-x-twitter'  },
+              twitter_retweet:   { color:'#1DA1F2', bg:'rgba(29,161,242,.12)',  border:'rgba(29,161,242,.25)',  icon:'fa-x-twitter'  },
+              twitter_quote:     { color:'#1DA1F2', bg:'rgba(29,161,242,.12)',  border:'rgba(29,161,242,.25)',  icon:'fa-x-twitter'  },
+              twitter_comment:   { color:'#1DA1F2', bg:'rgba(29,161,242,.12)',  border:'rgba(29,161,242,.25)',  icon:'fa-x-twitter'  },
+              twitter_post:      { color:'#1DA1F2', bg:'rgba(29,161,242,.12)',  border:'rgba(29,161,242,.25)',  icon:'fa-x-twitter'  },
+              discord_join:      { color:'#5865F2', bg:'rgba(88,101,242,.12)',  border:'rgba(88,101,242,.25)',  icon:'fa-discord'    },
+              telegram_join:     { color:'#26A5E4', bg:'rgba(38,165,228,.12)',  border:'rgba(38,165,228,.25)',  icon:'fa-telegram'   },
+              youtube_subscribe: { color:'#FF0000', bg:'rgba(255,0,0,.1)',      border:'rgba(255,0,0,.2)',      icon:'fa-youtube'    },
+              youtube_like:      { color:'#FF0000', bg:'rgba(255,0,0,.1)',      border:'rgba(255,0,0,.2)',      icon:'fa-youtube'    },
+              instagram_follow:  { color:'#E1306C', bg:'rgba(225,48,108,.12)',  border:'rgba(225,48,108,.25)', icon:'fa-instagram'  },
+              tiktok_follow:     { color:'#fff',    bg:'rgba(255,255,255,.07)', border:'rgba(255,255,255,.15)', icon:'fa-tiktok'     },
+              visit_url:         { color:'#5EC213', bg:'rgba(94,194,19,.1)',    border:'rgba(94,194,19,.2)',    icon:'fa-globe'      },
+              download_app:      { color:'#5EC213', bg:'rgba(94,194,19,.1)',    border:'rgba(94,194,19,.2)',    icon:'fa-download'   },
+              other:             { color:'#fbbf24', bg:'rgba(251,191,36,.1)',   border:'rgba(251,191,36,.2)',  icon:'fa-star'       },
+            };
+            var tc = typeColors[task.type] || typeColors['other'];
+            var stateClass = task.isCompleted ? 'cd-task--completed' : task.isPending ? 'cd-task--pending' : task.isRejected ? 'cd-task--rejected' : '';
+          %>
+          <div class="cd-task <%= stateClass %>" id="task-<%= task.index %>">
+            <div class="cd-task-header">
+              <div class="cd-task-icon" style="background:<%= tc.bg %>;border:1px solid <%= tc.border %>">
+                <i class="fab <%= tc.icon %>" style="color:<%= tc.color %>"></i>
+              </div>
+              <div class="cd-task-info">
+                <p class="cd-task-title"><%= task.title %></p>
+                <% if (task.description) { %>
+                <p class="cd-task-desc"><%= task.description %></p>
+                <% } %>
+              </div>
+              <div class="cd-task-right">
+                <span class="cd-task-xp"><i class="fas fa-bolt"></i> +<%= task.xpReward || 0 %> XP</span>
+
+                <% if (task.isCompleted) { %>
+                  <span class="cd-badge cd-badge--done"><i class="fas fa-check"></i> Done</span>
+                <% } else if (task.isPending) { %>
+                  <span class="cd-badge cd-badge--pending"><i class="fas fa-clock"></i> Reviewing</span>
+                <% } else if (task.isRejected) { %>
+                  <span class="cd-badge cd-badge--rejected"><i class="fas fa-times"></i> Rejected</span>
+                <% } else { %>
+                  <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;justify-content:flex-end">
+                    <% if (task.url) { %>
+                    <a href="<%= task.url %>" target="_blank" rel="noopener" class="cd-visit-btn">
+                      <i class="fas fa-external-link-alt"></i> Visit Link
+                    </a>
+                    <% } %>
+                    <button class="cd-complete-btn" onclick="toggleProofForm(<%= task.index %>)">
+                      <i class="fas fa-check"></i> Complete
+                    </button>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Proof form (hidden by default, not rendered for completed/pending tasks) -->
+            <% if (!task.isCompleted && !task.isPending) { %>
+            <div class="cd-proof-form" id="proof-form-<%= task.index %>" style="display:none">
+              <div class="cd-proof-form-inner">
+                <div>
+                  <label class="cd-proof-label">Your @username / handle</label>
+                  <input type="text" class="cd-input" id="handle-<%= task.index %>"
+                    placeholder="e.g. @yourusername">
+                </div>
+                <div>
+                  <label class="cd-proof-label">Proof URL <span style="color:var(--text-3)">(optional)</span></label>
+                  <input type="url" class="cd-input" id="proof-url-<%= task.index %>"
+                    placeholder="https://...">
+                </div>
+                <button class="cd-submit-btn" id="submit-btn-<%= task.index %>"
+                  onclick="submitTask(<%= task.index %>, '<%= campaign._id %>')">
+                  <i class="fas fa-paper-plane"></i> Submit Task
+                </button>
+              </div>
+            </div>
+            <% } %>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  var campaignId = '<%= campaign._id %>';
+  var totalTasks = <%= totalTasks %>;
+  var completedCount = <%= completedCount %>;
+
+  function toggleProofForm(idx) {
+    var form = document.getElementById('proof-form-' + idx);
+    if (!form) return;
+    var isHidden = form.style.display === 'none';
+    form.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) {
+      var handle = document.getElementById('handle-' + idx);
+      if (handle) handle.focus();
+    }
+  }
+
+  function submitTask(taskIndex, campId) {
+    var handleEl  = document.getElementById('handle-'    + taskIndex);
+    var proofEl   = document.getElementById('proof-url-' + taskIndex);
+    var submitBtn = document.getElementById('submit-btn-' + taskIndex);
+
+    var proofHandle = handleEl  ? handleEl.value.trim()  : '';
+    var proofUrl    = proofEl   ? proofEl.value.trim()   : '';
+
+    if (!proofHandle) {
+      showToast('Please enter your @username or handle.', 'warning');
+      if (handleEl) handleEl.focus();
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+    fetch('/dashboard/campaigns/' + campId + '/tasks/' + taskIndex + '/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ proofHandle: proofHandle, proofUrl: proofUrl })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.sessionExpired) {
+        showToast('Session expired — please log in again.', 'error');
+        setTimeout(function() { window.location.href = '/auth'; }, 1500);
+        return;
+      }
+      if (!data.success) {
+        showToast(data.message || 'Submission failed.', 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Task';
+        return;
+      }
+
+      // Update UI
+      var taskEl = document.getElementById('task-' + taskIndex);
+      if (taskEl) {
+        taskEl.classList.remove('cd-task--rejected');
+        if (data.status === 'approved') {
+          taskEl.classList.add('cd-task--completed');
+          completedCount++;
+        } else {
+          taskEl.classList.add('cd-task--pending');
+        }
+
+        // Replace right-side buttons with badge
+        var rightEl = taskEl.querySelector('.cd-task-right div');
+        if (rightEl) {
+          if (data.status === 'approved') {
+            rightEl.outerHTML = '<span class="cd-badge cd-badge--done"><i class="fas fa-check"></i> Done</span>';
+          } else {
+            rightEl.outerHTML = '<span class="cd-badge cd-badge--pending"><i class="fas fa-clock"></i> Reviewing</span>';
+          }
+        }
+
+        // Hide proof form
+        var form = document.getElementById('proof-form-' + taskIndex);
+        if (form) form.style.display = 'none';
+      }
+
+      // Update main progress bar
+      var fillEl = document.getElementById('mainProgressFill');
+      if (fillEl && data.status === 'approved') {
+        var pct = Math.round((completedCount / totalTasks) * 100);
+        fillEl.style.width = pct + '%';
+      }
+
+      if (data.status === 'approved') {
+        showToast('+' + (data.xpAwarded || 0) + ' XP earned! Task completed.', 'success');
+      } else {
+        showToast('Task submitted! Awaiting admin review.', 'info');
+      }
+    })
+    .catch(function(err) {
+      console.error(err);
+      showToast('Network error. Please try again.', 'error');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Task';
+    });
+  }
+</script>
+</body>
+</html>

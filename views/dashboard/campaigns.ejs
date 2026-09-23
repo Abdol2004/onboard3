@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campaigns — ONBOARD3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <%- include('../partials/achievement-popup') %>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    .cmp-page { padding: 0 0 3rem; }
+    .cmp-header {
+      padding: 2rem 0 1.5rem;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+    }
+    .cmp-header h1 {
+      font-size: 1.625rem; font-weight: 900; color: var(--text);
+      margin: 0 0 .25rem; letter-spacing: -.02em;
+    }
+    .cmp-header p { font-size: .9rem; color: var(--text-2); margin: 0; }
+
+    /* Filter bar */
+    .cmp-filters {
+      display: flex; gap: .5rem; flex-wrap: wrap;
+      margin-bottom: 1.75rem;
+    }
+    .cmp-filter-btn {
+      padding: .4rem 1rem; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      color: var(--text-2); font-family: 'Outfit', sans-serif;
+      font-size: .8125rem; font-weight: 600; cursor: pointer;
+      transition: all .2s;
+    }
+    .cmp-filter-btn:hover,
+    .cmp-filter-btn.active {
+      background: rgba(94,194,19,.1);
+      border-color: rgba(94,194,19,.35);
+      color: var(--green);
+    }
+
+    /* Grid */
+    .cmp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+
+    /* Card */
+    .cmp-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: border-color .25s, transform .25s, box-shadow .25s;
+      cursor: default;
+    }
+    .cmp-card:hover {
+      border-color: rgba(94,194,19,.3);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(94,194,19,.1);
+    }
+
+    /* Cover image area */
+    .cmp-cover {
+      position: relative; height: 140px; overflow: hidden;
+      flex-shrink: 0;
+    }
+    .cmp-cover img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .cmp-cover-gradient {
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #0d1c0d 0%, #0f2010 50%, #091509 100%);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .cmp-cover-gradient::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(94,194,19,.1) 0%, transparent 70%);
+    }
+    .cmp-sponsor-logo-wrap {
+      width: 72px; height: 72px; border-radius: 18px;
+      overflow: hidden; background: #fff; padding: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.55), 0 0 0 1.5px rgba(255,255,255,.12);
+      position: relative; z-index: 1;
+      transition: transform .35s, box-shadow .35s;
+    }
+    .cmp-card:hover .cmp-sponsor-logo-wrap {
+      transform: scale(1.07);
+      box-shadow: 0 12px 40px rgba(0,0,0,.6), 0 0 24px rgba(94,194,19,.2), 0 0 0 2px rgba(94,194,19,.3);
+    }
+    .cmp-sponsor-logo-wrap img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
+    .cmp-sponsor-logo-wrap--placeholder {
+      background: rgba(94,194,19,.12);
+      border: 1.5px solid rgba(94,194,19,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: var(--green);
+    }
+
+    /* Sponsor badge (bottom of cover) */
+    .cmp-sponsor-badge {
+      position: absolute; bottom: .6rem; left: .75rem;
+      display: flex; align-items: center; gap: .5rem;
+      background: rgba(8,14,8,.85); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 20px; padding: .25rem .6rem .25rem .25rem;
+    }
+    .cmp-sponsor-badge-logo {
+      width: 22px; height: 22px; border-radius: 50%; overflow: hidden;
+      background: #fff; flex-shrink: 0;
+    }
+    .cmp-sponsor-badge-logo img { width: 100%; height: 100%; object-fit: contain; }
+    .cmp-sponsor-badge span {
+      font-size: .72rem; font-weight: 700; color: var(--text-2);
+      white-space: nowrap; max-width: 120px;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Status badge */
+    .cmp-status {
+      position: absolute; top: .6rem; right: .6rem;
+      padding: .2rem .55rem; border-radius: 10px;
+      font-size: .68rem; font-weight: 800; letter-spacing: .02em; text-transform: uppercase;
+    }
+    .cmp-status--active  { background: rgba(94,194,19,.18); color: #5EC213; border: 1px solid rgba(94,194,19,.3); }
+    .cmp-status--ended   { background: rgba(239,68,68,.12); color: #f87171; border: 1px solid rgba(239,68,68,.25); }
+
+    /* Card body */
+    .cmp-body { padding: 1rem 1.125rem 1.125rem; flex: 1; display: flex; flex-direction: column; gap: .75rem; }
+
+    .cmp-title {
+      font-size: 1rem; font-weight: 800; color: var(--text);
+      line-height: 1.35; margin: 0;
+    }
+
+    /* Platform badges */
+    .cmp-platforms { display: flex; flex-wrap: wrap; gap: .35rem; }
+    .cmp-platform-pill {
+      display: inline-flex; align-items: center; gap: .3rem;
+      padding: .18rem .5rem; border-radius: 8px;
+      font-size: .7rem; font-weight: 700;
+      border: 1px solid; line-height: 1;
+    }
+
+    /* XP */
+    .cmp-xp {
+      font-size: .9375rem; font-weight: 900;
+      color: var(--green);
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .cmp-xp i { font-size: .85rem; }
+
+    /* Meta row */
+    .cmp-meta {
+      display: flex; align-items: center; gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .cmp-meta-item {
+      display: flex; align-items: center; gap: .3rem;
+      font-size: .78rem; color: var(--text-3); font-weight: 600;
+    }
+    .cmp-meta-item i { font-size: .75rem; }
+
+    /* Progress bar */
+    .cmp-progress { }
+    .cmp-progress-label {
+      font-size: .72rem; font-weight: 700; color: var(--text-3);
+      margin-bottom: .35rem;
+      display: flex; justify-content: space-between;
+    }
+    .cmp-progress-label span:last-child { color: var(--green); }
+    .cmp-progress-bar {
+      height: 4px; border-radius: 4px;
+      background: rgba(255,255,255,.07); overflow: hidden;
+    }
+    .cmp-progress-fill {
+      height: 100%; border-radius: 4px;
+      background: linear-gradient(90deg, #5EC213, #7ee82a);
+      transition: width .5s ease;
+    }
+
+    /* Footer button */
+    .cmp-foot { margin-top: auto; padding-top: .25rem; }
+    .cmp-btn {
+      display: block; width: 100%; text-align: center; text-decoration: none;
+      padding: .65rem 1rem; border-radius: 11px;
+      background: rgba(94,194,19,.1); border: 1px solid rgba(94,194,19,.25);
+      color: var(--green); font-family: 'Outfit', sans-serif;
+      font-size: .875rem; font-weight: 700;
+      transition: all .2s;
+    }
+    .cmp-btn:hover {
+      background: rgba(94,194,19,.18); border-color: rgba(94,194,19,.45);
+    }
+
+    /* Empty state */
+    .cmp-empty {
+      grid-column: 1 / -1;
+      text-align: center; padding: 4rem 2rem;
+      color: var(--text-3);
+    }
+    .cmp-empty i {
+      font-size: 2.5rem; display: block;
+      margin-bottom: .75rem; opacity: .4;
+    }
+    .cmp-empty p { font-size: .9375rem; margin: 0; }
+
+    @media (max-width: 640px) {
+      .cmp-grid { grid-template-columns: 1fr; }
+      .cmp-header h1 { font-size: 1.375rem; }
+    }
+  </style>
+</head>
+<body>
+<%- include('../partials/sidebar', { user, currentPage: 'campaigns' }) %>
+
+<div class="dashboard-container">
+  <main class="main-content">
+    <div class="cmp-page">
+
+      <!-- Header -->
+      <div class="cmp-header">
+        <div>
+          <h1><i class="fas fa-bullhorn" style="color:var(--green);margin-right:.5rem"></i>Campaigns</h1>
+          <p>Complete social tasks and earn XP rewards.</p>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="cmp-filters">
+        <button class="cmp-filter-btn active" data-filter="all">All</button>
+        <button class="cmp-filter-btn" data-filter="twitter"><i class="fab fa-x-twitter" style="margin-right:.3rem"></i>Twitter</button>
+        <button class="cmp-filter-btn" data-filter="discord"><i class="fab fa-discord" style="margin-right:.3rem"></i>Discord</button>
+        <button class="cmp-filter-btn" data-filter="telegram"><i class="fab fa-telegram" style="margin-right:.3rem"></i>Telegram</button>
+        <button class="cmp-filter-btn" data-filter="youtube"><i class="fab fa-youtube" style="margin-right:.3rem"></i>YouTube</button>
+        <button class="cmp-filter-btn" data-filter="instagram"><i class="fab fa-instagram" style="margin-right:.3rem"></i>Instagram</button>
+        <button class="cmp-filter-btn" data-filter="other">Other</button>
+      </div>
+
+      <!-- Grid -->
+      <div class="cmp-grid" id="campaignsGrid">
+        <% if (!campaigns || campaigns.length === 0) { %>
+        <div class="cmp-empty">
+          <i class="fas fa-bullhorn"></i>
+          <p>No active campaigns right now. Check back soon!</p>
+        </div>
+        <% } else { %>
+        <% campaigns.forEach(function(c) {
+          // Determine unique platforms for this campaign
+          var platforms = [];
+          (c.tasks || []).forEach(function(t) {
+            var p = t.type.split('_')[0];
+            if (platforms.indexOf(p) === -1) platforms.push(p);
+          });
+
+          // data-platforms for JS filter
+          var platformStr = platforms.join(' ');
+
+          // Format deadline
+          var deadline = '';
+          if (c.endDate) {
+            deadline = new Date(c.endDate).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+          }
+        %>
+        <div class="cmp-card" data-platforms="<%= platformStr %>">
+          <!-- Cover -->
+          <div class="cmp-cover">
+            <% if (c.coverImage) { %>
+              <img src="<%= c.coverImage %>" alt="<%= c.title %>">
+            <% } else { %>
+              <div class="cmp-cover-gradient">
+                <div class="cmp-sponsor-logo-wrap <%= c.sponsor && c.sponsor.logo ? '' : 'cmp-sponsor-logo-wrap--placeholder' %>">
+                  <% if (c.sponsor && c.sponsor.logo) { %>
+                    <img src="<%= c.sponsor.logo %>" alt="<%= c.sponsor.name %>">
+                  <% } else { %>
+                    <i class="fas fa-bullhorn"></i>
+                  <% } %>
+                </div>
+              </div>
+            <% } %>
+
+            <!-- Status badge -->
+            <span class="cmp-status cmp-status--<%= c.isEnded ? 'ended' : 'active' %>">
+              <%= c.isEnded ? 'Ended' : 'Live' %>
+            </span>
+
+            <!-- Sponsor badge (only on cover image, not gradient — shown on gradient already) -->
+            <% if (c.coverImage && c.sponsor && c.sponsor.name) { %>
+            <div class="cmp-sponsor-badge">
+              <div class="cmp-sponsor-badge-logo">
+                <% if (c.sponsor.logo) { %>
+                  <img src="<%= c.sponsor.logo %>" alt="">
+                <% } else { %>
+                  <span style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:#5EC213;background:rgba(94,194,19,.1)"><%= c.sponsor.name.charAt(0).toUpperCase() %></span>
+                <% } %>
+              </div>
+              <span><%= c.sponsor.name %></span>
+            </div>
+            <% } %>
+          </div>
+
+          <!-- Body -->
+          <div class="cmp-body">
+            <!-- Sponsor name (if no cover image, show below gradient) -->
+            <% if (!c.coverImage && c.sponsor && c.sponsor.name) { %>
+            <p style="font-size:.75rem;font-weight:700;color:var(--text-3);margin:0">
+              <i class="fas fa-building" style="margin-right:.3rem"></i><%= c.sponsor.name %>
+            </p>
+            <% } %>
+
+            <h3 class="cmp-title"><%= c.title %></h3>
+
+            <!-- Platform badges -->
+            <% if (platforms.length > 0) { %>
+            <div class="cmp-platforms">
+              <% platforms.forEach(function(p) {
+                var info = {
+                  twitter:   { icon: 'fa-x-twitter',  color: '#1DA1F2', bg: 'rgba(29,161,242,.12)',  border: 'rgba(29,161,242,.3)',  label: 'Twitter'  },
+                  discord:   { icon: 'fa-discord',     color: '#5865F2', bg: 'rgba(88,101,242,.12)',  border: 'rgba(88,101,242,.3)',  label: 'Discord'  },
+                  telegram:  { icon: 'fa-telegram',    color: '#26A5E4', bg: 'rgba(38,165,228,.12)',  border: 'rgba(38,165,228,.3)',  label: 'Telegram' },
+                  youtube:   { icon: 'fa-youtube',     color: '#FF0000', bg: 'rgba(255,0,0,.1)',      border: 'rgba(255,0,0,.25)',    label: 'YouTube'  },
+                  instagram: { icon: 'fa-instagram',   color: '#E1306C', bg: 'rgba(225,48,108,.12)',  border: 'rgba(225,48,108,.3)',  label: 'Instagram'},
+                  tiktok:    { icon: 'fa-tiktok',      color: '#fff',    bg: 'rgba(255,255,255,.08)', border: 'rgba(255,255,255,.2)', label: 'TikTok'   },
+                  visit:     { icon: 'fa-globe',       color: '#5EC213', bg: 'rgba(94,194,19,.1)',    border: 'rgba(94,194,19,.3)',   label: 'Link'     },
+                  download:  { icon: 'fa-download',    color: '#5EC213', bg: 'rgba(94,194,19,.1)',    border: 'rgba(94,194,19,.3)',   label: 'App'      },
+                  other:     { icon: 'fa-star',        color: '#fbbf24', bg: 'rgba(251,191,36,.1)',   border: 'rgba(251,191,36,.3)', label: 'Other'    },
+                };
+                var pi = info[p] || info['other'];
+              %>
+              <span class="cmp-platform-pill" style="color:<%= pi.color %>;background:<%= pi.bg %>;border-color:<%= pi.border %>">
+                <i class="fab <%= pi.icon %>"></i><%= pi.label %>
+              </span>
+              <% }); %>
+            </div>
+            <% } %>
+
+            <!-- XP -->
+            <div class="cmp-xp">
+              <i class="fas fa-bolt"></i>
+              Earn up to <%= (c.totalXpReward || 0).toLocaleString() %> XP
+            </div>
+
+            <!-- Meta -->
+            <div class="cmp-meta">
+              <span class="cmp-meta-item">
+                <i class="fas fa-list-check"></i>
+                <%= c.tasks ? c.tasks.length : 0 %> task<%= (c.tasks && c.tasks.length === 1) ? '' : 's' %>
+              </span>
+              <% if (deadline) { %>
+              <span class="cmp-meta-item">
+                <i class="fas fa-clock"></i>
+                <%= deadline %>
+              </span>
+              <% } %>
+              <span class="cmp-meta-item">
+                <i class="fas fa-users"></i>
+                <%= (c.participantCount || 0).toLocaleString() %> joined
+              </span>
+            </div>
+
+            <!-- Progress bar (if user started) -->
+            <% if (c.completedTasks > 0) { %>
+            <div class="cmp-progress">
+              <div class="cmp-progress-label">
+                <span>Your progress</span>
+                <span><%= c.completedTasks %> / <%= c.totalTasks %></span>
+              </div>
+              <div class="cmp-progress-bar">
+                <div class="cmp-progress-fill" style="width:<%= c.totalTasks > 0 ? Math.round((c.completedTasks / c.totalTasks) * 100) : 0 %>%"></div>
+              </div>
+            </div>
+            <% } %>
+
+            <!-- CTA -->
+            <div class="cmp-foot">
+              <a href="/dashboard/campaigns/<%= c._id %>" class="cmp-btn">
+                <% if (c.isEnded) { %>
+                  <i class="fas fa-eye" style="margin-right:.4rem"></i>View Campaign
+                <% } else if (c.completedTasks > 0 && c.completedTasks < c.totalTasks) { %>
+                  <i class="fas fa-play" style="margin-right:.4rem"></i>Continue Tasks
+                <% } else if (c.completedTasks >= c.totalTasks && c.totalTasks > 0) { %>
+                  <i class="fas fa-check-circle" style="margin-right:.4rem"></i>Completed
+                <% } else { %>
+                  <i class="fas fa-rocket" style="margin-right:.4rem"></i>Start Campaign
+                <% } %>
+              </a>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+        <% } %>
+      </div><!-- /grid -->
+
+    </div>
+  </main>
+</div>
+
+<script>
+  // Filter logic
+  document.querySelectorAll('.cmp-filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.cmp-filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+
+      var filter = btn.dataset.filter;
+      document.querySelectorAll('.cmp-card').forEach(function(card) {
+        if (filter === 'all') {
+          card.style.display = '';
+        } else {
+          var platforms = (card.dataset.platforms || '').split(' ');
+          var match = platforms.some(function(p) { return p === filter; });
+          card.style.display = match ? '' : 'none';
+        }
+      });
+
+      // Show/hide empty state
+      var grid = document.getElementById('campaignsGrid');
+      var visible = grid ? grid.querySelectorAll('.cmp-card[style=""],.cmp-card:not([style])') : [];
+      // Count visible cards (not .cmp-empty)
+      var visCount = 0;
+      document.querySelectorAll('.cmp-card').forEach(function(c) {
+        if (c.style.display !== 'none' && !c.classList.contains('cmp-empty')) visCount++;
+      });
+      var emptyEl = document.querySelector('.cmp-empty');
+      if (emptyEl) emptyEl.style.display = (visCount === 0) ? 'block' : 'none';
+    });
+  });
+</script>
+</body>
+</html>

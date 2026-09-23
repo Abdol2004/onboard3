@@ -132,6 +132,15 @@ async function assignWallet(userId) {
   user.stacksAddress     = address;
   await user.save();
 
+  // Immediately register the ZAD account in background so the profile has the
+  // user's name from day one — long before their first bounty submission.
+  // Non-blocking: wallet assignment still returns instantly even if ZAD is slow.
+  setImmediate(() =>
+    ensureZADProfile(userId).catch(e =>
+      console.error('[ZAD] Initial account setup failed (non-blocking):', e.message)
+    )
+  );
+
   return { address, index };
 }
 
@@ -223,6 +232,9 @@ async function getFeeWalletInfo() {
 const ZAD_BASE = 'https://zeroauthoritydao.com';
 const ZAD_API_KEY = () => process.env.ZAD_API_KEY || '';
 
+// Cache a working profile-update Server Action hash so we don't re-scan on every submission
+let _zadSACache = { hash: null, pageUrl: null, at: 0 };
+
 // Build a SIWE/SIWS message exactly as ZeroAuthDAO's frontend does
 // They use: new SiweMessage({ statement:"Cerulean Marketplace", domain: origin, address, uri: origin, ... })
 function buildSiwsMessage(address, nonce) {
@@ -292,10 +304,11 @@ async function authenticateWithZAD(privKey, profile = {}) {
 
   const setCookie = res.headers['set-cookie'] || [];
   const cookieStr = setCookie.map(c => c.split(';')[0]).join('; ');
-  // Also log the signin response so we can see what user fields ZAD returns
   const signinData = typeof res.data === 'object' ? res.data : {};
+  // ZAD may return {user:{...}} nested or flat {id, username, ...}
+  const signinUser = signinData?.user || signinData;
   console.log('[ZAD] Auth OK | user from signin:', JSON.stringify(signinData).slice(0, 300));
-  return { cookieStr, address, signinUser: signinData };
+  return { cookieStr, address, signinUser };
 }
 
 // Try to update the ZAD user profile — attempts session-based Server Actions,
@@ -329,28 +342,53 @@ async function tryUpdateZADProfile(cookieStr, username, avatarUrl, walletAddress
       const text = typeof r.data === 'string' ? r.data : JSON.stringify(r.data);
       if (r.status < 400 && !text.includes('"error"') && !text.toLowerCase().includes('unauthorized')) {
         console.log('[ZAD] Profile SA OK hash', hash.slice(0, 8), '→', r.status);
+        _zadSACache = { hash, pageUrl, at: Date.now() };
         return true;
       }
     } catch {}
     return false;
   }
 
-  // ── 0. Dynamically extract action hashes from the authenticated /profile page ──
-  // Next.js embeds Server Action IDs as 40-char hex in the rendered HTML/RSC payload
+  // ── 0. Cached working hash — skip full scan if we found one recently ──
+  if (_zadSACache.hash && Date.now() - _zadSACache.at < 86400000) {
+    if (await trySA(_zadSACache.pageUrl, _zadSACache.hash)) return;
+    _zadSACache = { hash: null, pageUrl: null, at: 0 }; // stale — reset
+  }
+
+  // ── 0b. Scan /profile page HTML + all linked JS chunks for action hashes ──
+  // Next.js Server Action IDs are 40-char hex embedded in bundle files
   try {
     const pageRes = await axios.get(`${ZAD_BASE}/profile`, {
       headers: { 'Cookie': cookieStr, 'Accept': 'text/html,application/xhtml+xml' },
       timeout: 8000,
     });
     const html = typeof pageRes.data === 'string' ? pageRes.data : JSON.stringify(pageRes.data);
-    const hexSet = new Set([...html.matchAll(/["'`\s]([a-f0-9]{40})["'`\s,\]]/g)].map(m => m[1]));
-    const discoveredHashes = [...hexSet].slice(0, 30); // cap at 30
-    console.log('[ZAD] Discovered', discoveredHashes.length, 'potential action hashes from /profile page');
+
+    // Collect hex strings from the HTML itself
+    const hexSet = new Set([...html.matchAll(/["'`\s,\[]([a-f0-9]{40})["'`\s,\]]/g)].map(m => m[1]));
+
+    // Find all linked JS chunk URLs and scan them — profile action hashes live in bundles, not HTML
+    const scriptSrcs = [...html.matchAll(/src="(\/_next\/static\/[^"]+\.js)"/g)].map(m => m[1]);
+    console.log('[ZAD] Scanning', scriptSrcs.length, 'JS chunks for profile action hashes');
+    for (const src of scriptSrcs.slice(0, 15)) {
+      try {
+        const chunkRes = await axios.get(`${ZAD_BASE}${src}`, { timeout: 6000 });
+        const chunkText = typeof chunkRes.data === 'string' ? chunkRes.data : JSON.stringify(chunkRes.data);
+        // Prioritise hashes that appear near profile/username keywords
+        const matches = [...chunkText.matchAll(/(?:profile|username|displayName|updateUser|editProfile|updateProfile|setUsername).{0,150}/gi)];
+        for (const m of matches) {
+          for (const hm of m[0].matchAll(/([a-f0-9]{40})/g)) hexSet.add(hm[1]);
+        }
+      } catch {}
+    }
+
+    const discoveredHashes = [...hexSet];
+    console.log('[ZAD] Total potential action hashes discovered:', discoveredHashes.length);
     for (const hash of discoveredHashes) {
       if (await trySA(`${ZAD_BASE}/profile`, hash)) return;
     }
   } catch (err) {
-    console.log('[ZAD] /profile page fetch for hash discovery failed:', err.message);
+    console.log('[ZAD] /profile page scan failed:', err.message);
   }
 
   // ── 1. Admin API key approach ──

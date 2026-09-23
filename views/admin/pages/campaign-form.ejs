@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title><%= campaign ? 'Edit' : 'Create' %> Campaign — ONBOARD3 Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .task-row {
+      background: rgba(255,255,255,.02);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: .75rem;
+      position: relative;
+    }
+    .task-row:last-child { margin-bottom: 0; }
+    .remove-task-btn {
+      position: absolute; top: .75rem; right: .75rem;
+      background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2);
+      color: #f87171; border-radius: 8px;
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: .8rem; transition: background .2s;
+    }
+    .remove-task-btn:hover { background: rgba(239,68,68,.2); }
+    .task-num {
+      font-size: .72rem; font-weight: 800; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: .05em;
+      margin-bottom: .5rem;
+    }
+  </style>
+</head>
+<body>
+<div class="a-bg"></div>
+<%- include('../partials/nav', { page:'campaigns', admin:user }) %>
+
+<div class="a-main">
+  <div class="a-content">
+    <div class="a-page-header">
+      <div>
+        <h1><i class="fas fa-bullhorn"></i> <%= campaign ? 'Edit Campaign' : 'Create Campaign' %></h1>
+        <p><% if (campaign) { %><a href="/admin/campaigns" style="color:var(--green)">← Back to campaigns</a><% } %></p>
+      </div>
+    </div>
+
+    <form method="POST" action="<%= campaign ? '/admin/campaigns/' + campaign._id + '/update' : '/admin/campaigns/create' %>">
+
+      <!-- ── Campaign info ── -->
+      <div class="a-card" style="margin-bottom:1.25rem">
+        <h3 style="font-size:.9375rem;font-weight:800;color:var(--text);margin:0 0 1rem;padding:.875rem 1.25rem .875rem;border-bottom:1px solid rgba(255,255,255,.06)">
+          <i class="fas fa-info-circle" style="color:#5EC213;margin-right:.4rem"></i>Campaign Info
+        </h3>
+        <div style="padding:0 1.25rem 1.25rem">
+          <div class="a-form-row">
+            <div class="a-form-group">
+              <label>Title *</label>
+              <input type="text" name="title" class="a-input" required placeholder="Campaign title"
+                value="<%= campaign ? campaign.title : '' %>">
+            </div>
+            <div class="a-form-group">
+              <label>Status</label>
+              <select name="status" class="a-input">
+                <option value="draft"  <%= (!campaign || campaign.status === 'draft')  ? 'selected' : '' %>>Draft</option>
+                <option value="active" <%= (campaign && campaign.status === 'active')  ? 'selected' : '' %>>Active</option>
+                <option value="ended"  <%= (campaign && campaign.status === 'ended')   ? 'selected' : '' %>>Ended</option>
+              </select>
+            </div>
+          </div>
+          <div class="a-form-group">
+            <label>Description</label>
+            <textarea name="description" class="a-input" placeholder="Campaign description..." style="min-height:90px"><%= campaign ? campaign.description : '' %></textarea>
+          </div>
+          <div class="a-form-row">
+            <div class="a-form-group">
+              <label>Cover Image URL <span style="color:var(--text-3)">(optional)</span></label>
+              <input type="url" name="coverImage" class="a-input" placeholder="https://..."
+                value="<%= campaign && campaign.coverImage ? campaign.coverImage : '' %>">
+            </div>
+            <div class="a-form-group">
+              <label>Max Participants <span style="color:var(--text-3)">(0 = unlimited)</span></label>
+              <input type="number" name="maxParticipants" class="a-input" min="0"
+                value="<%= campaign ? (campaign.maxParticipants || 0) : 0 %>">
+            </div>
+          </div>
+          <div class="a-form-row">
+            <div class="a-form-group">
+              <label>Start Date <span style="color:var(--text-3)">(optional)</span></label>
+              <input type="date" name="startDate" class="a-input"
+                value="<%= campaign && campaign.startDate ? new Date(campaign.startDate).toISOString().split('T')[0] : '' %>">
+            </div>
+            <div class="a-form-group">
+              <label>End Date <span style="color:var(--text-3)">(optional)</span></label>
+              <input type="date" name="endDate" class="a-input"
+                value="<%= campaign && campaign.endDate ? new Date(campaign.endDate).toISOString().split('T')[0] : '' %>">
+            </div>
+          </div>
+          <div class="a-form-group">
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+              <input type="checkbox" name="requiresReview" value="1"
+                <%= campaign && campaign.requiresReview ? 'checked' : '' %>>
+              <span>Require manual review before awarding XP</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Sponsor info ── -->
+      <div class="a-card" style="margin-bottom:1.25rem">
+        <h3 style="font-size:.9375rem;font-weight:800;color:var(--text);margin:0 0 1rem;padding:.875rem 1.25rem .875rem;border-bottom:1px solid rgba(255,255,255,.06)">
+          <i class="fas fa-building" style="color:#5EC213;margin-right:.4rem"></i>Sponsor / Brand
+        </h3>
+        <div style="padding:0 1.25rem 1.25rem">
+          <div class="a-form-row">
+            <div class="a-form-group">
+              <label>Sponsor Name *</label>
+              <input type="text" name="sponsorName" class="a-input" required placeholder="Brand or sponsor name"
+                value="<%= campaign && campaign.sponsor ? campaign.sponsor.name : '' %>">
+            </div>
+            <div class="a-form-group">
+              <label>Logo URL <span style="color:var(--text-3)">(optional)</span></label>
+              <input type="url" name="sponsorLogo" class="a-input" placeholder="https://..."
+                value="<%= campaign && campaign.sponsor && campaign.sponsor.logo ? campaign.sponsor.logo : '' %>">
+            </div>
+          </div>
+          <div class="a-form-row">
+            <div class="a-form-group">
+              <label>Website <span style="color:var(--text-3)">(optional)</span></label>
+              <input type="url" name="sponsorWebsite" class="a-input" placeholder="https://..."
+                value="<%= campaign && campaign.sponsor && campaign.sponsor.website ? campaign.sponsor.website : '' %>">
+            </div>
+            <div class="a-form-group">
+              <label>Twitter handle <span style="color:var(--text-3)">(optional)</span></label>
+              <input type="text" name="sponsorTwitter" class="a-input" placeholder="@handle or URL"
+                value="<%= campaign && campaign.sponsor && campaign.sponsor.twitter ? campaign.sponsor.twitter : '' %>">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tasks ── -->
+      <div class="a-card" style="margin-bottom:1.5rem">
+        <div style="padding:.875rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between">
+          <h3 style="font-size:.9375rem;font-weight:800;color:var(--text);margin:0">
+            <i class="fas fa-list-check" style="color:#5EC213;margin-right:.4rem"></i>Tasks
+          </h3>
+          <button type="button" class="a-btn a-btn-secondary a-btn-sm" onclick="addTask()">
+            <i class="fas fa-plus"></i> Add Task
+          </button>
+        </div>
+        <div style="padding:1.25rem">
+          <div id="tasksContainer">
+            <% if (campaign && campaign.tasks && campaign.tasks.length > 0) { %>
+              <% campaign.tasks.forEach(function(t, i) { %>
+              <div class="task-row" id="task-row-<%= i %>">
+                <div class="task-num">Task #<span class="task-num-val"><%= i + 1 %></span></div>
+                <button type="button" class="remove-task-btn" onclick="removeTask(this)" title="Remove task"><i class="fas fa-times"></i></button>
+                <div class="a-form-row">
+                  <div class="a-form-group">
+                    <label>Type *</label>
+                    <select name="taskTypes" class="a-input" required>
+                      <%
+                        var taskTypeOptions = [
+                          ['twitter_follow','Twitter — Follow'],['twitter_like','Twitter — Like'],
+                          ['twitter_retweet','Twitter — Retweet'],['twitter_quote','Twitter — Quote'],
+                          ['twitter_comment','Twitter — Comment'],['twitter_post','Twitter — Post'],
+                          ['discord_join','Discord — Join'],['telegram_join','Telegram — Join'],
+                          ['youtube_subscribe','YouTube — Subscribe'],['youtube_like','YouTube — Like'],
+                          ['instagram_follow','Instagram — Follow'],['tiktok_follow','TikTok — Follow'],
+                          ['visit_url','Visit URL'],['download_app','Download App'],['other','Other']
+                        ];
+                      %>
+                      <% taskTypeOptions.forEach(function(opt) { %>
+                      <option value="<%= opt[0] %>" <%= t.type === opt[0] ? 'selected' : '' %>><%= opt[1] %></option>
+                      <% }); %>
+                    </select>
+                  </div>
+                  <div class="a-form-group">
+                    <label>Title *</label>
+                    <input type="text" name="taskTitles" class="a-input" required placeholder="e.g. Follow us on Twitter"
+                      value="<%= t.title || '' %>">
+                  </div>
+                </div>
+                <div class="a-form-row">
+                  <div class="a-form-group">
+                    <label>Description <span style="color:var(--text-3)">(optional)</span></label>
+                    <input type="text" name="taskDescriptions" class="a-input" placeholder="Short instructions"
+                      value="<%= t.description || '' %>">
+                  </div>
+                  <div class="a-form-group">
+                    <label>Target URL <span style="color:var(--text-3)">(optional)</span></label>
+                    <input type="url" name="taskUrls" class="a-input" placeholder="https://..."
+                      value="<%= t.url || '' %>">
+                  </div>
+                </div>
+                <div class="a-form-group" style="max-width:180px">
+                  <label>XP Reward</label>
+                  <input type="number" name="taskXpRewards" class="a-input" min="0" value="<%= t.xpReward || 50 %>">
+                </div>
+              </div>
+              <% }); %>
+            <% } %>
+          </div>
+          <p id="noTasksMsg" style="font-size:.8125rem;color:var(--text-3);text-align:center;padding:1.5rem 0;<%= campaign && campaign.tasks && campaign.tasks.length > 0 ? 'display:none' : '' %>">
+            No tasks yet. Click "Add Task" to get started.
+          </p>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:.75rem">
+        <button type="submit" class="a-btn a-btn-primary">
+          <i class="fas fa-save"></i> <%= campaign ? 'Save Changes' : 'Create Campaign' %>
+        </button>
+        <a href="/admin/campaigns" class="a-btn a-btn-secondary">Cancel</a>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+  var taskTypeOptions = [
+    ['twitter_follow','Twitter — Follow'],['twitter_like','Twitter — Like'],
+    ['twitter_retweet','Twitter — Retweet'],['twitter_quote','Twitter — Quote'],
+    ['twitter_comment','Twitter — Comment'],['twitter_post','Twitter — Post'],
+    ['discord_join','Discord — Join'],['telegram_join','Telegram — Join'],
+    ['youtube_subscribe','YouTube — Subscribe'],['youtube_like','YouTube — Like'],
+    ['instagram_follow','Instagram — Follow'],['tiktok_follow','TikTok — Follow'],
+    ['visit_url','Visit URL'],['download_app','Download App'],['other','Other']
+  ];
+
+  var taskCount = document.querySelectorAll('.task-row').length;
+
+  function addTask() {
+    var container = document.getElementById('tasksContainer');
+    var noMsg = document.getElementById('noTasksMsg');
+    if (noMsg) noMsg.style.display = 'none';
+
+    var row = document.createElement('div');
+    row.className = 'task-row';
+    row.id = 'task-row-dyn-' + taskCount;
+
+    var typeOpts = taskTypeOptions.map(function(o) {
+      return '<option value="' + o[0] + '">' + o[1] + '</option>';
+    }).join('');
+
+    row.innerHTML =
+      '<div class="task-num">Task #<span class="task-num-val">' + (taskCount + 1) + '</span></div>' +
+      '<button type="button" class="remove-task-btn" onclick="removeTask(this)" title="Remove task"><i class="fas fa-times"></i></button>' +
+      '<div class="a-form-row">' +
+        '<div class="a-form-group"><label>Type *</label><select name="taskTypes" class="a-input" required>' + typeOpts + '</select></div>' +
+        '<div class="a-form-group"><label>Title *</label><input type="text" name="taskTitles" class="a-input" required placeholder="e.g. Follow us on Twitter"></div>' +
+      '</div>' +
+      '<div class="a-form-row">' +
+        '<div class="a-form-group"><label>Description <span style="color:var(--text-3)">(optional)</span></label><input type="text" name="taskDescriptions" class="a-input" placeholder="Short instructions"></div>' +
+        '<div class="a-form-group"><label>Target URL <span style="color:var(--text-3)">(optional)</span></label><input type="url" name="taskUrls" class="a-input" placeholder="https://..."></div>' +
+      '</div>' +
+      '<div class="a-form-group" style="max-width:180px"><label>XP Reward</label><input type="number" name="taskXpRewards" class="a-input" min="0" value="50"></div>';
+
+    container.appendChild(row);
+    taskCount++;
+    renumberTasks();
+  }
+
+  function removeTask(btn) {
+    var row = btn.closest('.task-row');
+    if (row) row.remove();
+    renumberTasks();
+    var rows = document.querySelectorAll('.task-row');
+    var noMsg = document.getElementById('noTasksMsg');
+    if (noMsg) noMsg.style.display = rows.length === 0 ? 'block' : 'none';
+  }
+
+  function renumberTasks() {
+    document.querySelectorAll('.task-row').forEach(function(row, i) {
+      var numEl = row.querySelector('.task-num-val');
+      if (numEl) numEl.textContent = (i + 1);
+    });
+  }
+</script>
+</body>
+</html>
