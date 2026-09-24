@@ -286,9 +286,10 @@ async function authenticateWithZAD(privKey, profile = {}) {
       chain:      'Stacks',
       nonce,
       publicKey:  pubKey,
-      // Pass username on signin — some platforms set display name on first account creation
+      // Pass username on signin — ZAD sets display name on first account creation
       ...(profile.username ? { username: profile.username, name: profile.username, displayName: profile.username } : {}),
-      ...(profile.avatarUrl ? { image: profile.avatarUrl, avatarUrl: profile.avatarUrl } : {}),
+      // Only pass avatarUrl if it's a real hosted URL (not a base64 data URI which ZAD can't use)
+      ...(profile.avatarUrl && profile.avatarUrl.startsWith('http') ? { image: profile.avatarUrl, avatarUrl: profile.avatarUrl } : {}),
     }, {
       headers: { 'Content-Type': 'application/json' },
       timeout: 12000,
@@ -323,7 +324,10 @@ async function tryUpdateZADProfile(cookieStr, username, avatarUrl, walletAddress
     return;
   }
 
-  const profileBody = { username, name: username, displayName: username, ...(avatarUrl ? { image: avatarUrl } : {}) };
+  // Only pass avatar if it's a real hosted URL — base64 data URIs won't work on ZAD
+  const safeAvatar = avatarUrl && avatarUrl.startsWith('http') ? avatarUrl : null;
+
+  const profileBody = { username, name: username, displayName: username, ...(safeAvatar ? { image: safeAvatar, avatarUrl: safeAvatar } : {}) };
   const jsonHeaders  = { 'Content-Type': 'application/json', 'Cookie': cookieStr };
   const adminHeaders = { 'Authorization': `Bearer ${ZAD_API_KEY()}`, 'Content-Type': 'application/json' };
   const zadUserId    = signinUser?.id || signinUser?._id || signinUser?.userId;
@@ -349,7 +353,26 @@ async function tryUpdateZADProfile(cookieStr, username, avatarUrl, walletAddress
     return false;
   }
 
-  // ── 0. Cached working hash — skip full scan if we found one recently ──
+  // ── 0. Cookie-authenticated GET /api/users/update (highest-priority) ──
+  // ZAD exposes this endpoint which reads the logged-in user from the session cookie
+  try {
+    const params = new URLSearchParams({ username, name: username, displayName: username });
+    if (safeAvatar) { params.set('image', safeAvatar); params.set('avatarUrl', safeAvatar); }
+    const r = await axios.get(`${ZAD_BASE}/api/users/update?${params}`, {
+      headers: { 'Cookie': cookieStr, 'x-api-key': ZAD_API_KEY() },
+      timeout: 8000,
+    });
+    const text = typeof r.data === 'string' ? r.data : JSON.stringify(r.data);
+    if (r.status < 400 && !text.includes('"error"')) {
+      console.log('[ZAD] Profile GET update OK →', r.status, text.slice(0, 80));
+      return;
+    }
+    console.log('[ZAD] Profile GET update returned:', r.status, text.slice(0, 120));
+  } catch (e) {
+    console.log('[ZAD] Profile GET update failed:', e.response?.status || e.message, JSON.stringify(e.response?.data || '').slice(0, 100));
+  }
+
+  // ── 0b. Cached working hash — skip full scan if we found one recently ──
   if (_zadSACache.hash && Date.now() - _zadSACache.at < 86400000) {
     if (await trySA(_zadSACache.pageUrl, _zadSACache.hash)) return;
     _zadSACache = { hash: null, pageUrl: null, at: 0 }; // stale — reset
