@@ -251,8 +251,8 @@
  <div class="bde-box-head"><h3><i class="fas fa-trophy" style="color:#fbbf24"></i> Winners</h3></div>
  <div class="bde-box-body">
  <% enrichedWinners.forEach(function(w, i) {
- var displayName = w.onboardUsername || w.submitter?.username || 'Anonymous';
- var displayPfp = w.onboardPfp || w.submitter?.avatarUrl || null;
+ var displayName = w.onboardUsername || w.zadUsername || w.submitter?.username || 'Anonymous';
+ var displayPfp = w.onboardPfp || w.zadAvatar || w.submitter?.avatarUrl || null;
  var medal = i===0?'':i===1?'':i===2?'':'#'+(i+1);
  %>
  <div class="bde-winner">
@@ -294,8 +294,10 @@
  <% allSubs.forEach(function(sub) {
  const isWinner = bounty.winners && bounty.winners.some(function(w){ return w.id === sub.id || w.submissionId === sub.id; });
  var rawSummary = sub.summary || '';
- var onb3Tag = rawSummary.match(/^\[([^\]]+) via ONBOARD3\]\s*/);
- var subUsername = sub.submitter?.username || (onb3Tag ? onb3Tag[1] : null);
+ var onb3Tag = rawSummary.match(/^Submitted by:\s*@([\w.]+)\s*\(via ONBOARD3\)[^\n]*\n\n?/i) ||
+               rawSummary.match(/^\[([^\]]+) via ONBOARD3\]\s*/);
+ var taggedUser = onb3Tag ? (onb3Tag[1]) : null;
+ var subUsername = sub.submitter?.username || taggedUser || null;
  var subSummary = onb3Tag ? rawSummary.slice(onb3Tag[0].length) : rawSummary;
  var isOnb3Sub = !!onb3Tag;
  %>

@@ -229,28 +229,47 @@ exports.externalBountyDetail = async (req, res) => {
       .sort({ createdAt: -1 }).lean();
 
     // Match ZAD winners to ONBOARD3 users by wallet address
+    // ZAD API returns winners with top-level fields: username, address, avatarUrl
     const rawWinners = zadBounty.winners || [];
     let enrichedWinners = rawWinners;
     if (rawWinners.length > 0) {
       const winnerAddresses = rawWinners
-        .map(w => w.submitter?.walletAddress || w.submitterAddress || w.walletAddress)
+        .map(w => w.address || w.submitter?.walletAddress || w.submitterAddress || w.walletAddress)
         .filter(Boolean);
       const winnerUsers = winnerAddresses.length > 0
         ? await User.find({ stacksAddress: { $in: winnerAddresses } })
                     .select('username profilePicture stacksAddress').lean()
         : [];
       enrichedWinners = rawWinners.map(w => {
-        const addr = w.submitter?.walletAddress || w.submitterAddress || w.walletAddress;
+        const addr = w.address || w.submitter?.walletAddress || w.submitterAddress || w.walletAddress;
         const dbMatch = addr ? winnerUsers.find(u => u.stacksAddress === addr) : null;
         const subMatch = !dbMatch && addr
           ? (ourSubmissions.find(s => s.userId?.stacksAddress === addr) || null)
           : null;
         const onboardUser = dbMatch || (subMatch ? subMatch.userId : null);
+
+        // Extract ONBOARD3 username from summary tag as final fallback
+        // Handles: "Submitted by: @username (via ONBOARD3)" and legacy "[username via ONBOARD3]"
+        let summaryUsername = null;
+        const summary = w.summary || w.submission?.summary || '';
+        const m1 = summary.match(/^Submitted by:\s*@([\w.]+)\s*\(via ONBOARD3\)/i);
+        const m2 = !m1 && summary.match(/^\[([^\]]+) via ONBOARD3\]/i);
+        summaryUsername = m1 ? m1[1] : (m2 ? m2[1] : null);
+
+        const resolvedUsername = onboardUser?.username || summaryUsername;
+
+        // Build full avatar URL for ZAD users (avatarUrl is just a filename)
+        const zadAvatar = w.avatarUrl
+          ? (w.avatarUrl.startsWith('http') ? w.avatarUrl : `https://zeroauthoritydao.com/uploads/avatars/${w.avatarUrl}`)
+          : (w.submitter?.avatarUrl || null);
+
         return {
           ...w,
-          onboardUsername: onboardUser?.username || null,
+          onboardUsername: resolvedUsername || null,
           onboardPfp:      onboardUser?.profilePicture || null,
-          isOnboard3:      !!onboardUser
+          zadUsername:     w.username || w.submitter?.username || null,
+          zadAvatar,
+          isOnboard3:      !!(onboardUser || summaryUsername)
         };
       });
     }
