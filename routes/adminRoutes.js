@@ -1,6 +1,7 @@
 // routes/adminRoutes.js
 const express = require("express");
 const router = express.Router();
+const mongoose = require('mongoose');
 const adminController = require("../controllers/adminController");
 const pages = require("../controllers/adminPagesController");
 const QuestApplication = require('../models/QuestApplication');
@@ -10,7 +11,7 @@ const QuestApplication = require('../models/QuestApplication');
 // Role-based permission map
 const ROLE_PERMISSIONS = {
   super_admin:  '*',
-  operations:   ['overview','analytics','users','quests','bounties','events','withdrawals','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','leaderboard','business-developers','businesses','fund-requests','wallet-addresses','commission-settings','platform-settings','settings','partners'],
+  operations:   ['overview','analytics','users','quests','bounties','events','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','business-developers','businesses','partners'],
   community:    ['overview','analytics','users','applications','quest-applications','pathway-applications','support','ambassadors','banned','leaderboard'],
   partnerships: ['overview','analytics','quests','bounties','projects','partners','business-developers','businesses','fund-requests','commission-settings'],
   finance:      ['overview','analytics','withdrawals','fund-requests','wallet-addresses'],
@@ -2586,17 +2587,29 @@ const ADMIN_PATHWAYS = ['web3_jobs','ai','nft','trading'];
 
 router.get('/pathway-content', isAdminPage, async (req, res) => {
     try {
+        const User = require('../models/User');
         const pw = ADMIN_PATHWAYS.includes(req.query.pathway) ? req.query.pathway : 'web3_jobs';
         const [config, content] = await Promise.all([
             PathwayConfigModel.findOne({ pathway: pw }).lean(),
             PathwayContent.find({ pathway: pw }).sort({ isPinned:-1, isLive:-1, createdAt:-1 }).lean()
         ]);
-        let lead = null;
-        if (config?.leadUserId) lead = await User.findById(config.leadUserId).select('username profilePicture').lean();
+        // Populate all leads
+        const leads = [];
+        if (config?.leads?.length) {
+            const leadUsers = await User.find({ _id: { $in: config.leads.map(l => l.userId) } }).select('username profilePicture').lean();
+            const userMap = {}; leadUsers.forEach(u => { userMap[u._id.toString()] = u; });
+            config.leads.forEach(l => {
+                const u = userMap[l.userId?.toString()];
+                if (u) leads.push({ ...l, user: u });
+            });
+        }
+        // Legacy single lead fallback
+        let lead = leads[0]?.user || null;
+        if (!lead && config?.leadUserId) lead = await User.findById(config.leadUserId).select('username profilePicture').lean();
         res.render('admin/pages/pathway-content', {
             user: req.user, admin: req.user,
             pathway: pw, PATHWAYS: ADMIN_PATHWAYS, PW_META: PW_META_ADMIN,
-            config: config||{}, content, lead, page: 'pathway-content'
+            config: config||{}, content, lead, leads, page: 'pathway-content'
         });
     } catch (err) { console.error('[admin pathway-content]', err); res.status(500).send('Error'); }
 });
@@ -2677,6 +2690,68 @@ router.post('/pathway-content/:id/toggle-publish', isAdminPage, async (req, res)
 router.post('/pathway-content/:id/delete', isAdminPage, async (req, res) => {
     try {
         await PathwayContent.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (err) { res.json({ success: false, message: err.message }); }
+});
+
+// ── Pathway Leads management ──────────────────────────────────────────────────
+
+// Search existing users for lead assignment
+router.get('/pathway-content/lead-search', isAdminPage, async (req, res) => {
+    try {
+        const User = require('../models/User');
+        const q = (req.query.q || '').trim();
+        if (!q) return res.json({ users: [] });
+        const users = await User.find({
+            $or: [
+                { username: { $regex: q, $options: 'i' } },
+                { email:    { $regex: q, $options: 'i' } }
+            ]
+        }).select('username email profilePicture').limit(8).lean();
+        res.json({ users });
+    } catch (err) { res.json({ users: [] }); }
+});
+
+// Assign a user as pathway lead
+router.post('/pathway-content/leads/assign', isAdminPage, async (req, res) => {
+    try {
+        const User = require('../models/User');
+        const { pathway, userId, displayName, bio } = req.body;
+        if (!ADMIN_PATHWAYS.includes(pathway)) return res.json({ success: false, message: 'Invalid pathway' });
+        const u = await User.findById(userId).select('username').lean();
+        if (!u) return res.json({ success: false, message: 'User not found' });
+
+        // Prevent duplicates
+        const existing = await PathwayConfigModel.findOne({ pathway, 'leads.userId': userId }).lean();
+        if (existing) return res.json({ success: false, message: 'User is already a lead for this pathway' });
+
+        await PathwayConfigModel.findOneAndUpdate(
+            { pathway },
+            { $push: { leads: { userId, displayName: displayName || u.username, bio: bio || '', assignedAt: new Date() } } },
+            { upsert: true, new: true }
+        );
+
+        // Mark on User model
+        await User.findByIdAndUpdate(userId, { $addToSet: { pathwayLeadOf: pathway } });
+
+        res.json({ success: true, username: u.username });
+    } catch (err) { res.json({ success: false, message: err.message }); }
+});
+
+// Remove a pathway lead
+router.post('/pathway-content/leads/remove', isAdminPage, async (req, res) => {
+    try {
+        const User = require('../models/User');
+        const { pathway, userId } = req.body;
+        if (!ADMIN_PATHWAYS.includes(pathway)) return res.json({ success: false, message: 'Invalid pathway' });
+
+        await PathwayConfigModel.findOneAndUpdate(
+            { pathway },
+            { $pull: { leads: { userId: mongoose.Types.ObjectId.createFromHexString(userId) } } }
+        );
+
+        await User.findByIdAndUpdate(userId, { $pull: { pathwayLeadOf: pathway } });
+
         res.json({ success: true });
     } catch (err) { res.json({ success: false, message: err.message }); }
 });

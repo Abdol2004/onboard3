@@ -32,30 +32,54 @@
 
 <% const m = PW_META[pathway]; %>
 
-<!-- Pathway Lead & Config -->
+<!-- Pathway Config -->
 <div class="a-card" style="margin-bottom:1.25rem">
- <div class="a-card-header">
- <h2><i class="fas fa-user-tie"></i> Pathway Lead & Info</h2>
- <% if (lead) { %>
- <div style="display:flex;align-items:center;gap:.5rem">
- <% if (lead.profilePicture) { %>
- <img src="<%= lead.profilePicture %>" style="width:28px;height:28px;border-radius:50%;object-fit:cover" alt="">
- <% } %>
- <span style="font-size:.8rem;font-weight:700;color:var(--text-2)"><%= config.leadName||lead.username %></span>
- </div>
- <% } %>
- </div>
- <div class="a-form-row">
+ <div class="a-card-header"><h2><i class="fas fa-sliders"></i> Pathway Info</h2></div>
  <div class="a-form-group"><label>Pathway Tagline</label><input type="text" id="cfg-tagline" class="a-input" value="<%= config.tagline||'' %>" placeholder="One-line description of this pathway"></div>
- <div class="a-form-group"><label>Lead Username (ONBOARD3)</label><input type="text" id="cfg-lead-username" class="a-input" value="<%= lead ? lead.username : '' %>" placeholder="e.g. abdol2004"></div>
- </div>
- <div class="a-form-row">
- <div class="a-form-group"><label>Lead Display Name</label><input type="text" id="cfg-lead-name" class="a-input" value="<%= config.leadName||'' %>" placeholder="Display name on pathway page"></div>
- <div class="a-form-group"><label>Lead Bio</label><input type="text" id="cfg-lead-bio" class="a-input" value="<%= config.leadBio||'' %>" placeholder="Short bio or tagline"></div>
- </div>
- <div style="display:flex;align-items:center;gap:1rem;margin-top:.5rem">
+ <div style="display:flex;align-items:center;gap:1rem;margin-top:.75rem">
  <button onclick="saveConfig()" class="a-btn a-btn-primary a-btn-sm"><i class="fas fa-save"></i> Save</button>
  <span id="cfgMsg" style="font-size:.8rem;display:none"></span>
+ </div>
+</div>
+
+<!-- Pathway Leads -->
+<div class="a-card" style="margin-bottom:1.25rem">
+ <div class="a-card-header"><h2><i class="fas fa-user-tie"></i> Pathway Leads</h2><span style="font-size:.78rem;color:var(--text-3)">Multiple leads supported</span></div>
+
+ <!-- Current leads list -->
+ <div id="leadsList" style="margin-bottom:1rem">
+ <% if (!leads || !leads.length) { %>
+ <p style="font-size:.82rem;color:var(--text-3);padding:.5rem 0">No leads assigned yet.</p>
+ <% } else { leads.forEach(l => { %>
+ <div id="lead-row-<%= l.userId %>" style="display:flex;align-items:center;gap:.75rem;padding:.625rem .875rem;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--border);margin-bottom:.5rem">
+ <% if (l.user && l.user.profilePicture) { %>
+ <img src="<%= l.user.profilePicture %>" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="">
+ <% } else { %>
+ <div style="width:34px;height:34px;border-radius:50%;background:rgba(94,194,19,.12);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--green);flex-shrink:0"><%= l.user ? l.user.username.charAt(0).toUpperCase() : '?' %></div>
+ <% } %>
+ <div style="flex:1">
+ <p style="font-size:.85rem;font-weight:700;color:var(--text)"><%= l.displayName || (l.user && l.user.username) || '—' %></p>
+ <p style="font-size:.72rem;color:var(--text-3)">@<%= l.user ? l.user.username : '—' %><% if (l.bio) { %> · <%= l.bio %><% } %></p>
+ </div>
+ <button onclick="removeLead('<%= l.userId %>')" class="a-btn a-btn-danger a-btn-sm"><i class="fas fa-times"></i> Remove</button>
+ </div>
+ <% }); } %>
+ </div>
+
+ <!-- Assign new lead -->
+ <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1rem">
+ <p style="font-size:.78rem;font-weight:800;color:var(--text-3);margin-bottom:.625rem;text-transform:uppercase;letter-spacing:.5px">Assign New Lead</p>
+ <div style="display:flex;gap:.625rem;flex-wrap:wrap;align-items:flex-start">
+ <div style="flex:1;min-width:200px;position:relative">
+ <input id="lead-search-input" type="text" class="a-input" placeholder="Search by username or email…" oninput="searchLeadUsers(this.value)">
+ <div id="lead-search-results" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:rgba(10,18,10,.98);border:1px solid var(--border);border-radius:10px;z-index:100;overflow:hidden;max-height:200px;overflow-y:auto"></div>
+ </div>
+ <div style="min-width:160px"><input id="lead-display-name" type="text" class="a-input" placeholder="Display name (optional)"></div>
+ <div style="min-width:180px"><input id="lead-bio-input" type="text" class="a-input" placeholder="Bio (optional)"></div>
+ <button onclick="assignLead()" class="a-btn a-btn-success a-btn-sm" style="white-space:nowrap"><i class="fas fa-user-plus"></i> Assign</button>
+ </div>
+ <input type="hidden" id="lead-selected-id">
+ <span id="lead-assign-msg" style="font-size:.78rem;color:var(--text-3);margin-top:.4rem;display:block"></span>
  </div>
 </div>
 
@@ -189,7 +213,7 @@
  <button onclick="togglePublish('<%= item._id %>')" class="a-btn a-btn-sm" style="font-size:.72rem;padding:.3rem .625rem">
  <%= item.isPublished ? 'Hide' : 'Show' %>
  </button>
- <button onclick="editItem('<%= item._id %>','<%= item.title.replace(/'/g,\"\\\\'\")||\"\" %>','<%= (item.body||'').replace(/'/g,\"\\\\'\")||\"\" %>','<%= item.externalUrl||item.resourceUrl||\"\" %>','<%= item.isPinned %>','<%= item.isLive %>')" class="a-btn a-btn-sm" style="font-size:.72rem;padding:.3rem .625rem">
+ <button onclick="editItem(this)" data-id="<%= item._id %>" data-title="<%= item.title||'' %>" data-body="<%= item.body||'' %>" data-url="<%= item.externalUrl||item.resourceUrl||'' %>" data-pinned="<%= item.isPinned %>" data-live="<%= item.isLive %>" class="a-btn a-btn-sm" style="font-size:.72rem;padding:.3rem .625rem">
  Edit
  </button>
  <button onclick="deleteItem('<%= item._id %>')" class="a-btn a-btn-sm" style="font-size:.72rem;padding:.3rem .625rem;color:#ef4444;border-color:rgba(239,68,68,.3)">
@@ -246,18 +270,62 @@ async function saveConfig() {
  const msg = document.getElementById('cfgMsg');
  const r = await fetch('/admin/pathway-content/save-config', {
  method:'POST', headers:{'Content-Type':'application/json'},
- body: JSON.stringify({
- pathway: _pathway,
- tagline: document.getElementById('cfg-tagline').value,
- leadUsername: document.getElementById('cfg-lead-username').value,
- leadName: document.getElementById('cfg-lead-name').value,
- leadBio: document.getElementById('cfg-lead-bio').value
- })
+ body: JSON.stringify({ pathway: _pathway, tagline: document.getElementById('cfg-tagline').value })
  });
  const d = await r.json();
  msg.style.display = 'inline'; msg.style.color = d.success ? 'var(--green)' : '#ef4444';
  msg.textContent = d.success ? 'Saved!' : (d.message||'Error');
  setTimeout(()=>{ msg.style.display='none'; }, 3000);
+}
+
+// ── Lead management ──────────────────────────────────────────────────────────
+var _leadSearchTimer;
+function searchLeadUsers(q) {
+ clearTimeout(_leadSearchTimer);
+ const res = document.getElementById('lead-search-results');
+ if (!q.trim()) { res.style.display='none'; return; }
+ _leadSearchTimer = setTimeout(async () => {
+ const data = await fetch('/admin/pathway-content/lead-search?q=' + encodeURIComponent(q)).then(r=>r.json());
+ if (!data.users.length) { res.style.display='none'; return; }
+ res.innerHTML = data.users.map(u =>
+ '<div onclick="selectLeadUser(\''+u._id+'\',\''+u.username+'\')" style="display:flex;align-items:center;gap:.625rem;padding:.6rem .875rem;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'rgba(255,255,255,.06)\'" onmouseout="this.style.background=\'\'">' +
+ (u.profilePicture ? '<img src="'+u.profilePicture+'" style="width:26px;height:26px;border-radius:50%;object-fit:cover">' : '<div style="width:26px;height:26px;border-radius:50%;background:rgba(94,194,19,.12);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;color:var(--green)">'+u.username.charAt(0).toUpperCase()+'</div>') +
+ '<div><p style="font-size:.82rem;font-weight:700;color:var(--text)">'+u.username+'</p><p style="font-size:.7rem;color:var(--text-3)">'+u.email+'</p></div></div>'
+ ).join('');
+ res.style.display = 'block';
+ }, 280);
+}
+function selectLeadUser(id, username) {
+ document.getElementById('lead-selected-id').value = id;
+ document.getElementById('lead-search-input').value = username;
+ document.getElementById('lead-search-results').style.display = 'none';
+}
+async function assignLead() {
+ const userId = document.getElementById('lead-selected-id').value;
+ const msg = document.getElementById('lead-assign-msg');
+ if (!userId) { msg.textContent = 'Search and select a user first.'; msg.style.color='#f87171'; return; }
+ const r = await fetch('/admin/pathway-content/leads/assign', {
+ method:'POST', headers:{'Content-Type':'application/json'},
+ body: JSON.stringify({
+ pathway: _pathway, userId,
+ displayName: document.getElementById('lead-display-name').value,
+ bio: document.getElementById('lead-bio-input').value
+ })
+ });
+ const d = await r.json();
+ msg.style.color = d.success ? 'var(--green)' : '#f87171';
+ msg.textContent = d.success ? '✓ '+d.username+' assigned as lead. Refreshing…' : (d.message||'Error');
+ if (d.success) setTimeout(()=>location.reload(), 1000);
+}
+async function removeLead(userId) {
+ if (!confirm('Remove this lead?')) return;
+ const r = await fetch('/admin/pathway-content/leads/remove', {
+ method:'POST', headers:{'Content-Type':'application/json'},
+ body: JSON.stringify({ pathway: _pathway, userId })
+ });
+ const d = await r.json();
+ if (d.success) { const row = document.getElementById('lead-row-'+userId); if (row) row.remove(); }
+ else alert(d.message||'Error removing lead');
 }
 
 async function createContent() {
@@ -314,13 +382,14 @@ async function deleteItem(id) {
  if (d.success) { const el = document.getElementById('item-'+id); if(el) el.remove(); }
 }
 
-function editItem(id, title, body, url, pinned, live) {
- document.getElementById('edit-id').value = id;
- document.getElementById('edit-title').value = title;
- document.getElementById('edit-body').value = body;
- document.getElementById('edit-url').value = url;
- document.getElementById('edit-isPinned').checked = pinned==='true';
- document.getElementById('edit-isLive').checked = live==='true';
+function editItem(btn) {
+ const d = btn.dataset;
+ document.getElementById('edit-id').value = d.id;
+ document.getElementById('edit-title').value = d.title;
+ document.getElementById('edit-body').value = d.body;
+ document.getElementById('edit-url').value = d.url;
+ document.getElementById('edit-isPinned').checked = d.pinned === 'true';
+ document.getElementById('edit-isLive').checked = d.live === 'true';
  document.getElementById('editModal').style.display = 'flex';
 }
 
