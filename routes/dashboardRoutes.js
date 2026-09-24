@@ -291,6 +291,7 @@ router.post('/welcome-quest/dismiss', isAuthenticated, async (req, res) => {
 });
 
 // ── Career Paths ──────────────────────────────────────────────────────────────
+const VALID_PATHWAY_SECTIONS = ['update', 'resource', 'opportunity', 'class', 'event'];
 const PATHWAY_META = {
   web3_jobs: { name:'Web3 Jobs',             icon:'fa-briefcase',  color:'#fbbf24', bg:'rgba(251,191,36,0.1)',  border:'rgba(251,191,36,0.3)',  tagline:'Find and land opportunities in Web3.' },
   ai:        { name:'AI & Web3',             icon:'fa-microchip',  color:'#c084fc', bg:'rgba(168,85,247,0.1)',  border:'rgba(168,85,247,0.3)',  tagline:'Explore the intersection of AI and Web3.' },
@@ -305,8 +306,10 @@ router.get('/career-paths', isAuthenticated, async (req, res) => {
 
     const user = await User.findById(req.session.userId).select('-password').lean();
 
-    // Only show the user's own pathway; if none selected, show empty state
-    const PATHWAYS = user.pathway ? [user.pathway] : [];
+    // Show the user's own pathway + any pathways they lead (deduped, valid slugs only)
+    const myLeadPaths = Array.isArray(user.pathwayLeadOf) ? user.pathwayLeadOf : [];
+    const rawPaths = [...new Set([user.pathway, ...myLeadPaths].filter(Boolean))];
+    const PATHWAYS = rawPaths.filter(p => PATHWAY_META[p]);
 
     const [configs, counts, liveSet] = await Promise.all([
       PathwayConfig.find({ pathway: { $in: PATHWAYS } }).lean(),
@@ -325,7 +328,7 @@ router.get('/career-paths', isAuthenticated, async (req, res) => {
 
     res.render('dashboard/career-paths', {
       title: 'Career Paths — ONBOARD3',
-      user, PATHWAYS, PATHWAY_META, cfgMap, cntMap, liveSet, leadMap,
+      user, PATHWAYS, PATHWAY_META, cfgMap, cntMap, liveSet, leadMap, myLeadPaths,
       currentPage: 'career-paths', pathwaySlug: null
     });
   } catch (err) {
@@ -360,6 +363,51 @@ router.post('/career-paths/comment', isAuthenticated, async (req, res) => {
   } catch (err) { console.error('[comment]', err); res.status(500).json({ success: false }); }
 });
 
+// ── Pathway Lead: create content ──────────────────────────────────────────────
+router.post('/career-paths/:pathway/post', isAuthenticated, async (req, res) => {
+  try {
+    const { pathway } = req.params;
+    if (!PATHWAY_META[pathway]) return res.json({ success: false, message: 'Invalid pathway' });
+
+    const user = await User.findById(req.session.userId).select('pathwayLeadOf').lean();
+    if (!user.pathwayLeadOf?.includes(pathway))
+      return res.json({ success: false, message: 'Not a pathway lead' });
+
+    const { section, title, body, resourceUrl, resourceType, opportunityType, externalUrl, scheduledAt, endsAt, venue } = req.body;
+    if (!VALID_PATHWAY_SECTIONS.includes(section) || !title?.trim())
+      return res.json({ success: false, message: 'Invalid fields' });
+
+    const PathwayContent = require('../models/PathwayContent');
+    const item = await PathwayContent.create({
+      pathway, section, title: title.trim(), body: body || '',
+      resourceUrl: resourceUrl || null, resourceType: resourceType || null,
+      opportunityType: opportunityType || null, externalUrl: externalUrl || null,
+      scheduledAt: scheduledAt || null, endsAt: endsAt || null, venue: venue || null,
+      isPublished: true, isLive: false, createdBy: req.session.userId
+    });
+    res.json({ success: true, item });
+  } catch (err) { console.error('[lead-post]', err); res.json({ success: false, message: err.message }); }
+});
+
+// ── Pathway Lead: delete own content ─────────────────────────────────────────
+router.post('/career-paths/:pathway/delete/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { pathway, id } = req.params;
+    const user = await User.findById(req.session.userId).select('pathwayLeadOf isAdmin').lean();
+    if (!user.pathwayLeadOf?.includes(pathway) && !user.isAdmin)
+      return res.json({ success: false, message: 'Not authorised' });
+
+    const PathwayContent = require('../models/PathwayContent');
+    const item = await PathwayContent.findById(id).lean();
+    if (!item || item.pathway !== pathway) return res.json({ success: false });
+    if (!user.isAdmin && item.createdBy?.toString() !== req.session.userId)
+      return res.json({ success: false, message: 'You can only delete your own posts' });
+
+    await PathwayContent.findByIdAndDelete(id);
+    res.json({ success: true });
+  } catch (err) { res.json({ success: false, message: err.message }); }
+});
+
 router.get('/career-paths/:pathway', isAuthenticated, async (req, res) => {
   try {
     const { pathway } = req.params;
@@ -376,24 +424,39 @@ router.get('/career-paths/:pathway', isAuthenticated, async (req, res) => {
         .lean()
     ]);
 
-    let lead = null;
-    if (config?.leadUserId) {
+    // Resolve all leads (multiple)
+    const allLeads = [];
+    if (config?.leads?.length) {
+      const leadUsers = await User.find({ _id: { $in: config.leads.map(l => l.userId) } })
+        .select('username profilePicture').lean();
+      const userMap = {}; leadUsers.forEach(u => { userMap[u._id.toString()] = u; });
+      config.leads.forEach(l => {
+        const u = userMap[l.userId?.toString()];
+        if (u) allLeads.push({ ...l, user: u });
+      });
+    }
+    // Legacy fallback
+    let lead = allLeads[0]?.user || null;
+    if (!lead && config?.leadUserId) {
       lead = await User.findById(config.leadUserId).select('username profilePicture').lean();
     }
 
+    const isLead = !!(user.pathwayLeadOf?.includes(pathway) || user.isAdmin);
+
     const now = new Date();
-    const liveItems  = content.filter(c => c.isLive);
-    const upcoming   = content.filter(c => !c.isLive && c.scheduledAt && new Date(c.scheduledAt) > now)
-                               .sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt));
-    const updates      = content.filter(c => c.section === 'update'      && !c.isLive);
-    const resources    = content.filter(c => c.section === 'resource');
+    const liveItems     = content.filter(c => c.isLive);
+    const upcoming      = content.filter(c => !c.isLive && c.scheduledAt && new Date(c.scheduledAt) > now)
+                                  .sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt));
+    const updates       = content.filter(c => c.section === 'update'      && !c.isLive);
+    const resources     = content.filter(c => c.section === 'resource');
     const opportunities = content.filter(c => c.section === 'opportunity');
 
     res.render('dashboard/pathway-detail', {
       title: `${PATHWAY_META[pathway].name} — ONBOARD3`,
       user, pathway, meta: PATHWAY_META[pathway],
       config: config || {},
-      lead, liveItems, upcoming, updates, resources, opportunities,
+      lead, allLeads, isLead,
+      liveItems, upcoming, updates, resources, opportunities,
       currentPage: 'career-paths', pathwaySlug: pathway
     });
   } catch (err) {

@@ -180,7 +180,7 @@
 
 <div class="content" style="max-width:1120px">
 
-<% if (!user.pathway) { %>
+<% if (!user.pathway && (!myLeadPaths || !myLeadPaths.length)) { %>
 <div style="text-align:center;padding:4rem 1rem">
   <i class="fas fa-road" style="font-size:2.5rem;color:var(--text-3);opacity:.3;display:block;margin-bottom:1rem"></i>
   <p style="font-size:1rem;font-weight:800;color:var(--text-2);margin-bottom:.5rem">No pathway selected yet</p>
@@ -193,12 +193,13 @@
 
 <div class="cp-grid">
 <% PATHWAYS.forEach(pw => {
-  const m      = PATHWAY_META[pw];
-  const cfg    = cfgMap[pw] || {};
-  const cnt    = cntMap[pw] || 0;
-  const live   = liveSet.includes(pw);
-  const lead   = cfg.leadUserId ? leadMap[cfg.leadUserId.toString()] : null;
+  const m        = PATHWAY_META[pw];
+  const cfg      = cfgMap[pw] || {};
+  const cnt      = cntMap[pw] || 0;
+  const live     = liveSet.includes(pw);
+  const lead     = cfg.leadUserId ? leadMap[cfg.leadUserId.toString()] : null;
   const isMyPath = user.pathway === pw;
+  const isMyLead = myLeadPaths && myLeadPaths.includes(pw);
 %>
 <a href="/dashboard/career-paths/<%= pw %>" class="cp-card <%= isMyPath ? 'cp-card--mine' : '' %>"
    style="--card-color:<%= m.color %>;--card-bg:<%= m.bg %>;--card-accent:<%= m.color %>55;--card-accent-border:<%= m.border %>;--card-glow:<%= m.color %>18;--card-accent-hover:<%= m.color %>22">
@@ -213,6 +214,9 @@
       <div class="cp-badges">
         <% if (isMyPath) { %>
         <span class="cp-badge cp-badge--mine"><i class="fas fa-check-circle" style="font-size:.55rem"></i> YOUR PATH</span>
+        <% } %>
+        <% if (isMyLead) { %>
+        <span class="cp-badge" style="background:rgba(251,191,36,.15);border-color:rgba(251,191,36,.4);color:#fbbf24"><i class="fas fa-star" style="font-size:.55rem"></i> LEAD</span>
         <% } %>
         <% if (live) { %>
         <span class="cp-badge cp-badge--live"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;animation:livePulse 1.4s ease-in-out infinite;display:inline-block"></span> LIVE NOW</span>

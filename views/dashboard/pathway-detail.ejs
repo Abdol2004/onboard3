@@ -120,31 +120,87 @@ const sectionLabel = { class:'Class', event:'Event', update:'Update', resource:'
  </a>
  <% } %>
  </div>
- <% if (lead) { %>
- <div style="display:flex;align-items:center;gap:1rem;margin-top:1.25rem;padding:1rem 1.25rem;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--border);flex-wrap:wrap">
- <% if (lead.profilePicture) { %>
- <img src="<%=lead.profilePicture%>" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid <%=BR%>" alt="">
+ <% if (allLeads && allLeads.length) { %>
+ <div style="margin-top:1.25rem;padding:1rem 1.25rem;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--border)">
+ <p style="font-size:.62rem;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3);margin-bottom:.75rem">Pathway Lead<%= allLeads.length > 1 ? 's' : '' %></p>
+ <div style="display:flex;flex-wrap:wrap;gap:.875rem">
+ <% allLeads.forEach(function(l) { var lu = l.user; if (!lu) return; %>
+ <div style="display:flex;align-items:center;gap:.625rem">
+ <% if (lu.profilePicture) { %>
+ <img src="<%=lu.profilePicture%>" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid <%=BR%>" alt="">
  <% } else { %>
- <div style="width:48px;height:48px;border-radius:50%;background:<%=BG%>;border:2px solid <%=BR%>;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.125rem;color:<%=C%>;flex-shrink:0"><%=lead.username.charAt(0).toUpperCase()%></div>
+ <div style="width:40px;height:40px;border-radius:50%;background:<%=BG%>;border:2px solid <%=BR%>;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1rem;color:<%=C%>;flex-shrink:0"><%=lu.username.charAt(0).toUpperCase()%></div>
  <% } %>
- <div style="flex:1;min-width:120px">
- <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
- <p style="font-size:.9rem;font-weight:800;color:var(--text)"><%=config.leadName||lead.username%></p>
- <span style="font-size:.62rem;font-weight:800;color:<%=C%>;background:<%=BG%>;border:1px solid <%=BR%>;border-radius:99px;padding:.1rem .45rem">Pathway Lead</span>
+ <div>
+ <p style="font-size:.875rem;font-weight:800;color:var(--text)"><%=l.displayName||lu.username%></p>
+ <% if (l.bio) { %><p style="font-size:.72rem;color:var(--text-3)"><%=l.bio%></p><% } %>
  </div>
- <% if (config.leadBio) { %><p style="font-size:.75rem;color:var(--text-3);margin-top:.2rem"><%=config.leadBio%></p><% } %>
  </div>
- <% if (config.xLink) { %>
- <a href="<%=config.xLink%>" target="_blank" class="pd-btn pd-btn-ghost pd-btn-sm" style="flex-shrink:0">
- <i class="fab fa-x-twitter"></i> Follow
- </a>
- <% } %>
+ <% }); %>
+ </div>
  </div>
  <% } %>
 </div>
 
 <!-- ══ BODY ══════════════════════════════════════════════ -->
 <div class="pd-body">
+
+<!-- ══ LEAD TOOLS ══ (only visible to pathway leads) -->
+<% if (isLead) { %>
+<div id="leadPanel" style="margin-bottom:2rem;border-radius:16px;border:1px solid <%=C%>44;background:<%=BG%>;overflow:hidden">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:.875rem 1.25rem;border-bottom:1px solid <%=C%>22;gap:.75rem;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:.625rem">
+      <div style="width:28px;height:28px;border-radius:8px;background:<%=C%>22;display:flex;align-items:center;justify-content:center"><i class="fas fa-pen-to-square" style="color:<%=C%>;font-size:.75rem"></i></div>
+      <span style="font-size:.8rem;font-weight:900;color:<%=C%>;letter-spacing:.5px;text-transform:uppercase">Lead Tools</span>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button onclick="leadOpen('update')"     class="pd-btn pd-btn-ghost pd-btn-sm"><i class="fas fa-bullhorn"></i> Post Update</button>
+      <button onclick="leadOpen('resource')"   class="pd-btn pd-btn-ghost pd-btn-sm"><i class="fas fa-book"></i> Resource</button>
+      <button onclick="leadOpen('opportunity')" class="pd-btn pd-btn-ghost pd-btn-sm"><i class="fas fa-briefcase"></i> Opportunity</button>
+      <button onclick="leadOpen('class')"      class="pd-btn pd-btn-ghost pd-btn-sm"><i class="fas fa-chalkboard"></i> Schedule Class</button>
+      <button onclick="leadOpen('event')"      class="pd-btn pd-btn-ghost pd-btn-sm"><i class="fas fa-calendar-star"></i> Add Event</button>
+    </div>
+  </div>
+
+  <!-- Post form (hidden until a button is clicked) -->
+  <div id="leadForm" style="display:none;padding:1.125rem 1.25rem">
+    <p id="leadFormTitle" style="font-size:.82rem;font-weight:800;color:var(--text);margin-bottom:.875rem"></p>
+    <input id="lf-title" placeholder="Title *" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:.6rem .875rem;color:var(--text);font-family:Outfit,sans-serif;font-size:.85rem;outline:none;margin-bottom:.625rem;box-sizing:border-box">
+    <textarea id="lf-body" placeholder="Description / body" rows="3" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:.6rem .875rem;color:var(--text);font-family:Outfit,sans-serif;font-size:.85rem;outline:none;resize:vertical;margin-bottom:.625rem;box-sizing:border-box"></textarea>
+
+    <!-- Resource fields -->
+    <div id="lf-res-fields" style="display:none">
+      <input id="lf-resourceUrl" placeholder="Resource URL" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:.6rem .875rem;color:var(--text);font-family:Outfit,sans-serif;font-size:.85rem;outline:none;margin-bottom:.625rem;box-sizing:border-box">
+      <select id="lf-resourceType" style="width:100%;background:rgba(20,30,20,.9);border:1px solid var(--border);border-radius:10px;padding:.6rem .875rem;color:var(--text);font-family:Outfit,sans-serif;font-size:.85rem;outline:none;margin-bottom:.625rem">
+        <option value="link">Link</option><option value="doc">Doc</option><option value="pdf">PDF</option><option value="video">Video</option>
+      </select>
+    </div>
+
+    <!-- Opportunity fields -->
+    <div id="lf-opp-fields" style="display:none">
+      <input id="lf-externalUrl" placeholder="External URL (apply link)" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:.6rem .875rem;color:var(--text);font-family:Outfit,sans-serif;font-size:.85rem;outline:none;margin-bottom:.625rem;box-sizing:border-box">
+      <select id="lf-opportunityType" style="width:100%;background:rgba(20,30,20,.9);border:1px solid var(--border);border-radius:10px;padding:.6rem .875rem;color:var(--text);font-family:Outfit,sans-serif;font-size:.85rem;outline:none;margin-bottom:.625rem">
+        <option value="job">Job</option><option value="internship">Internship</option><option value="gig">Gig</option><option value="grant">Grant</option>
+      </select>
+    </div>
+
+    <!-- Schedule fields (class / event) -->
+    <div id="lf-sched-fields" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin-bottom:.625rem">
+        <input type="datetime-local" id="lf-scheduledAt" style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:.6rem .875rem;color:var(--text);font-family:Outfit,sans-serif;font-size:.82rem;outline:none">
+        <input type="datetime-local" id="lf-endsAt"      style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:.6rem .875rem;color:var(--text);font-family:Outfit,sans-serif;font-size:.82rem;outline:none">
+      </div>
+      <input id="lf-venue" placeholder="Venue / location (e.g. Google Meet, Lagos Hub)" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:.6rem .875rem;color:var(--text);font-family:Outfit,sans-serif;font-size:.85rem;outline:none;margin-bottom:.625rem;box-sizing:border-box">
+    </div>
+
+    <div style="display:flex;align-items:center;gap:.625rem;flex-wrap:wrap">
+      <button id="lf-submit" onclick="leadSubmit()" class="pd-btn pd-btn-primary" style="background:<%=C%>22;border-color:<%=C%>55;color:<%=C%>"><i class="fas fa-paper-plane"></i> Publish</button>
+      <button onclick="leadClose()" class="pd-btn pd-btn-ghost">Cancel</button>
+      <span id="lf-msg" style="font-size:.78rem;color:var(--text-3)"></span>
+    </div>
+  </div>
+</div>
+<% } %>
 
 <!-- LIVE NOW -->
 <% if (liveItems.length) { %>
@@ -388,6 +444,68 @@ function toggleMore(sec, hiddenCnt) {
  btn.innerHTML = expand
  ? '<i class="fas fa-chevron-up" style="font-size:.65rem"></i> Show less'
  : '<i class="fas fa-chevron-down" style="font-size:.65rem"></i> See ' + hiddenCnt + ' more';
+}
+
+// ── Lead Tools ────────────────────────────────────────────────────────────────
+var _leadSection = '';
+var _sectionLabels = { update:'Post Update', resource:'Add Resource', opportunity:'Post Opportunity', class:'Schedule Class', event:'Add Event' };
+
+function leadOpen(section) {
+ _leadSection = section;
+ document.getElementById('leadFormTitle').textContent = _sectionLabels[section] || section;
+ document.getElementById('lf-res-fields').style.display   = section === 'resource'    ? '' : 'none';
+ document.getElementById('lf-opp-fields').style.display   = section === 'opportunity' ? '' : 'none';
+ document.getElementById('lf-sched-fields').style.display = (section === 'class' || section === 'event') ? '' : 'none';
+ document.getElementById('leadForm').style.display = '';
+ document.getElementById('lf-title').focus();
+ document.getElementById('lf-msg').textContent = '';
+}
+
+function leadClose() {
+ document.getElementById('leadForm').style.display = 'none';
+ document.getElementById('lf-title').value = '';
+ document.getElementById('lf-body').value = '';
+ _leadSection = '';
+}
+
+async function leadSubmit() {
+ const title = document.getElementById('lf-title').value.trim();
+ if (!title) { document.getElementById('lf-msg').textContent = 'Title is required.'; return; }
+ const btn = document.getElementById('lf-submit');
+ btn.disabled = true;
+ document.getElementById('lf-msg').textContent = 'Publishing…';
+
+ const body = {
+  section: _leadSection,
+  title,
+  body: document.getElementById('lf-body').value,
+  resourceUrl:      document.getElementById('lf-resourceUrl')     ? document.getElementById('lf-resourceUrl').value     : '',
+  resourceType:     document.getElementById('lf-resourceType')    ? document.getElementById('lf-resourceType').value    : '',
+  opportunityType:  document.getElementById('lf-opportunityType') ? document.getElementById('lf-opportunityType').value : '',
+  externalUrl:      document.getElementById('lf-externalUrl')     ? document.getElementById('lf-externalUrl').value     : '',
+  scheduledAt:      document.getElementById('lf-scheduledAt')     ? document.getElementById('lf-scheduledAt').value     : '',
+  endsAt:           document.getElementById('lf-endsAt')          ? document.getElementById('lf-endsAt').value          : '',
+  venue:            document.getElementById('lf-venue')           ? document.getElementById('lf-venue').value           : ''
+ };
+
+ try {
+  const r = await fetch('/dashboard/career-paths/<%= pathway %>/post', {
+   method: 'POST',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify(body)
+  });
+  const d = await r.json();
+  if (d.success) {
+   document.getElementById('lf-msg').textContent = '✓ Published! Refreshing…';
+   setTimeout(() => location.reload(), 900);
+  } else {
+   document.getElementById('lf-msg').textContent = d.message || 'Error';
+   btn.disabled = false;
+  }
+ } catch(e) {
+  document.getElementById('lf-msg').textContent = 'Network error';
+  btn.disabled = false;
+ }
 }
 </script>
 </body>
