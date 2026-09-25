@@ -3,6 +3,7 @@ const Bounty               = require('../models/Bounty');
 const BountySubmission     = require('../models/BountySubmission');
 const ThirdPartySubmission = require('../models/ThirdPartySubmission');
 const User                 = require('../models/User');
+const { notify }           = require('../utils/notificationService');
 
 const ZAD_API     = 'https://zeroauthoritydao.com/api';
 const ZAD_KEY     = process.env.ZAD_API_KEY || 'za_6b32ad87454525c5dff45303fea490ca6774c1b8f7c2fe4cea48f6c4d6818b1f';
@@ -465,6 +466,17 @@ exports.adminAnnounceWinners = async (req, res) => {
     bounty.winners = winners;
     bounty.status  = 'winners_announced';
     await bounty.save();
+
+    // Notify each winner
+    for (const w of winners) {
+      const rankLabel = w.rank === 1 ? '1st' : w.rank === 2 ? '2nd' : w.rank === 3 ? '3rd' : `${w.rank}th`;
+      notify(w.userId, {
+        type: 'reward',
+        title: 'You won a bounty!',
+        message: `You placed ${rankLabel} in "${bounty.title}" and earned ${w.amountWon} USDC!`,
+        link: '/dashboard'
+      }).catch(() => {});
+    }
 
     return res.json({ success: true, message: 'Winners announced!' });
   } catch (err) {
