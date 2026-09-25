@@ -121,7 +121,7 @@ exports.getDashboard = async (req, res) => {
       })),
       ...recentBountyWins.map(b => ({
         kind: 'bounty_won',
-        label: 'Bounty reward',
+        label: 'Bounty champion',
         sublabel: b.bountyId?.title || null,
         amount: b.amountWon || null,
         currency: b.amountWon ? 'USDC' : null,
@@ -131,7 +131,7 @@ exports.getDashboard = async (req, res) => {
       })),
       ...recentZadWins.map(z => ({
         kind: 'bounty_won',
-        label: 'Bounty reward',
+        label: 'Bounty champion',
         sublabel: null,
         amount: z.amountWon || null,
         currency: z.amountWon ? (z.tokenSymbol || 'STX') : null,
