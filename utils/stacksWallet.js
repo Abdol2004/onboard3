@@ -100,8 +100,9 @@ async function sweepWallet(userId) {
   const platformCut = totalUSD * 0.10;
   const userCredit  = Math.round((totalUSD - platformCut) * 100) / 100;
 
-  user.usdcBalance    = Math.round(((user.usdcBalance || 0) + userCredit) * 100) / 100;
-  user.stacksBalance  = 0;
+  user.usdcBalance     = Math.round(((user.usdcBalance || 0) + userCredit) * 100) / 100;
+  user.stacksBalance   = 0;
+  user.stacksBalanceUSD = 0;
   user.stacksCheckedAt = new Date();
   if (!user.recentActivity) user.recentActivity = [];
   user.recentActivity.unshift({
