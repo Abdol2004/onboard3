@@ -35,24 +35,24 @@ async function getAddress(index) {
   return getAddressFromPrivateKey(derivePrivKey(parent, index));
 }
 
-async function getBalance(address, retries = 3) {
+async function getBalance(address, retries = 2) {
+  const headers = {};
+  if (process.env.HIRO_API_KEY) headers['x-api-key'] = process.env.HIRO_API_KEY;
+
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const res = await axios.get(`${HIRO_API}/extended/v1/address/${address}/balances`, { timeout: 15000 });
-      // Handle rate limit response
-      if (res.status === 429) {
-        const wait = 2000 * (attempt + 1);
-        await new Promise(r => setTimeout(r, wait));
-        continue;
-      }
+      const res = await axios.get(`${HIRO_API}/extended/v1/address/${address}/balances`, { timeout: 10000, headers });
       const locked = parseInt(res.data.stx?.locked  || '0');
       const total  = parseInt(res.data.stx?.balance || '0');
       return Math.max(0, total - locked);
     } catch (err) {
-      // If rate limited via error response, wait longer
       const status = err.response?.status;
-      const wait = status === 429 ? 3000 * (attempt + 1) : 1500 * (attempt + 1);
-      if (attempt < retries) await new Promise(r => setTimeout(r, wait));
+      const errMsg = status || err.code || err.message;
+      console.error(`[getBalance] attempt ${attempt+1}/${retries+1} failed for ${address.slice(0,10)}...: ${errMsg}`);
+      if (attempt < retries) {
+        // Wait longer on rate-limit, shorter on other errors
+        await new Promise(r => setTimeout(r, status === 429 ? 2500 : 1000));
+      }
     }
   }
   return -1;

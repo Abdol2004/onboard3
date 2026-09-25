@@ -238,15 +238,23 @@ function refreshAll(btn) {
    totalUSD += w.usd;
   });
 
+  // Mark failed wallets in Last Checked column
+  (d.errors || []).forEach(function(e) {
+   var row = document.getElementById('row-' + e.id);
+   if (!row) return;
+   var chkCell = row.cells[5];
+   if (chkCell) chkCell.innerHTML = '<span style="color:#f87171;font-size:.75rem"><i class="fas fa-triangle-exclamation"></i> API failed</span>';
+  });
+
   // Update summary stats
   var stxEl = document.getElementById('statSTX');
   var usdEl = document.getElementById('statUSD');
   if (stxEl) stxEl.textContent = totalSTX.toFixed(2) + ' STX';
   if (usdEl) usdEl.textContent = '$' + totalUSD.toFixed(2);
 
-  var failed = d.total - d.updated;
-  var msg = '✓ ' + d.updated + ' / ' + d.total + ' wallets refreshed' + (failed > 0 ? ' (' + failed + ' failed)' : '');
-  aToast(msg);
+  var failedCount = d.failed || (d.total - d.updated);
+  var msg = d.updated + ' / ' + d.total + ' wallets refreshed' + (failedCount > 0 ? ' (' + failedCount + ' failed — check server logs)' : '');
+  aToast(msg, failedCount > 0 ? 'error' : 'success');
  }).catch(function() {
   btn.disabled = false;
   btn.innerHTML = orig;

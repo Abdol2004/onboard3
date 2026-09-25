@@ -1953,16 +1953,23 @@ router.post('/stacks-wallets/refresh', isAdminPage, async (req, res) => {
     const users  = await User.find(query).select('stacksWalletIndex stacksAddress').lean();
 
     const stxPrice = await stacksWallet.getSTXPrice();
-    const checkedAt = new Date();
-    const wallets = []; // return updated data to client for live table update
-    const BATCH = 2; // 2 concurrent — avoids Hiro API rate limits
+    const wallets = [];  // successful updates
+    const errors  = [];  // failed wallets (for DOM update)
 
-    for (let i = 0; i < users.length; i += BATCH) {
-      const batch = users.slice(i, i + BATCH);
-      await Promise.all(batch.map(async (u) => {
-        if (!u.stacksAddress) return;
-        const microSTX = await stacksWallet.getBalance(u.stacksAddress);
-        if (microSTX < 0) return;
+    // Sequential: 1 at a time, 1.2s gap → ~50 req/min (Hiro free-tier limit)
+    for (let i = 0; i < users.length; i++) {
+      const u = users[i];
+      if (!u.stacksAddress) {
+        errors.push({ id: u._id.toString(), address: u.stacksAddress || '', error: 'no address' });
+        continue;
+      }
+      const checkedAt = new Date();
+      // Use 1 retry for bulk (fail fast — don't hold up the whole queue)
+      const microSTX = await stacksWallet.getBalance(u.stacksAddress, 1);
+      if (microSTX < 0) {
+        errors.push({ id: u._id.toString(), address: u.stacksAddress, error: 'api_failed', checkedAt });
+        console.error(`[stacks-refresh] FAILED: ${u.stacksAddress} (user ${u._id})`);
+      } else {
         const usd = Math.round((microSTX / 1_000_000) * stxPrice * 100) / 100;
         await User.findByIdAndUpdate(u._id, {
           stacksBalance:    microSTX,
@@ -1970,12 +1977,12 @@ router.post('/stacks-wallets/refresh', isAdminPage, async (req, res) => {
           stacksCheckedAt:  checkedAt
         });
         wallets.push({ id: u._id.toString(), microSTX, stx: microSTX / 1_000_000, usd, checkedAt });
-      }));
-      // 800ms pause between batches — keeps us well under Hiro rate limits
-      if (i + BATCH < users.length) await new Promise(r => setTimeout(r, 800));
+      }
+      // 1200ms between requests stays under 50 req/min; skip pause after last wallet
+      if (i < users.length - 1) await new Promise(r => setTimeout(r, 1200));
     }
 
-    res.json({ success: true, updated: wallets.length, total: users.length, wallets, stxPrice });
+    res.json({ success: true, updated: wallets.length, failed: errors.length, total: users.length, wallets, errors, stxPrice });
   } catch (err) {
     res.json({ success: false, message: err.message });
   }
