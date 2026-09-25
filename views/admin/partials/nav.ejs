@@ -1,6 +1,6 @@
 <%
 const _navUser = (typeof admin !== 'undefined' ? admin : user) || {};
-const _ar = _navUser.adminRole || 'super_admin';
+const _ar = _navUser.adminRole || 'none';
 const _perms = {
  super_admin: null,
  operations: ['overview','analytics','users','quests','bounties','events','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','partners','pathway-content'],

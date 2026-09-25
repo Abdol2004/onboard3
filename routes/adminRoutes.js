@@ -1866,22 +1866,20 @@ router.post('/quests/:questId/upload-logo', isAdminPage, (req, res, next) => {
 // ── Admin Support Chat ────────────────────────────────────────────────────────
 const ChatConversation = require('../models/ChatConversation');
 
-router.get('/support', isAdminPage, async (req, res) => {
+router.get('/support', isAdminPage, requireSection('support'), async (req, res) => {
   try {
     const conversations = await ChatConversation.find()
       .sort({ lastMessageAt: -1 })
       .populate('userId', 'username profilePicture')
       .lean();
-    const User = require('../models/User');
-    const user = await User.findById(req.session.userId).select('username').lean();
-    res.render('admin/pages/support', { conversations, user });
+    res.render('admin/pages/support', { conversations, user: req.user, page: 'support' });
   } catch (err) {
     console.error('[admin support]', err);
     res.redirect('/admin');
   }
 });
 
-router.post('/support/:id/reply', isAdminPage, async (req, res) => {
+router.post('/support/:id/reply', isAdminPage, requireSection('support'), async (req, res) => {
   try {
     const User = require('../models/User');
     const admin = await User.findById(req.session.userId).select('username').lean();
@@ -1898,7 +1896,7 @@ router.post('/support/:id/reply', isAdminPage, async (req, res) => {
   }
 });
 
-router.post('/support/:id/mark-read', isAdminPage, async (req, res) => {
+router.post('/support/:id/mark-read', isAdminPage, requireSection('support'), async (req, res) => {
   try {
     await ChatConversation.findByIdAndUpdate(req.params.id, { unreadByAdmin: 0 });
     res.json({ success: true });
@@ -1907,7 +1905,7 @@ router.post('/support/:id/mark-read', isAdminPage, async (req, res) => {
   }
 });
 
-router.post('/support/:id/resolve', isAdminPage, async (req, res) => {
+router.post('/support/:id/resolve', isAdminPage, requireSection('support'), async (req, res) => {
   try {
     await ChatConversation.findByIdAndUpdate(req.params.id, { status: 'resolved' });
     res.json({ success: true });
