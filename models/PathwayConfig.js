@@ -8,15 +8,26 @@ const pathwayConfigSchema = new mongoose.Schema({
         unique: true
     },
     name:        { type: String, default: '' },
-    groupLink:   { type: String, default: null },  // Telegram group
-    channelLink: { type: String, default: null },  // Telegram channel
-    xLink:       { type: String, default: null },  // X community
+    groupLink:   { type: String, default: null },
+    channelLink: { type: String, default: null },
+    xLink:       { type: String, default: null },
     description: { type: String, default: '' },
     tagline:     { type: String, default: '' },
-    leadUserId:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    leadName:    { type: String, default: null },
-    leadBio:     { type: String, default: '' },
-    updatedAt:   { type: Date,   default: Date.now }
+
+    // Multiple leads
+    leads: [{
+        userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        displayName: { type: String, default: '' },
+        bio:         { type: String, default: '' },
+        assignedAt:  { type: Date, default: Date.now }
+    }],
+
+    // Legacy single-lead fields (kept for backward compat, populated from leads[0])
+    leadUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    leadName:   { type: String, default: null },
+    leadBio:    { type: String, default: '' },
+
+    updatedAt: { type: Date, default: Date.now }
 });
 
 pathwayConfigSchema.pre('save', function(next) { this.updatedAt = Date.now(); next(); });

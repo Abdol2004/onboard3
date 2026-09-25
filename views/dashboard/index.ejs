@@ -89,14 +89,22 @@
  const pm = pathwayMeta[user.pathway] || pathwayMeta.web3_jobs;
  const ps = user.pathwayStatus;
  const isApproved = !ps || ps === 'approved' || ps === 'auto_approved';
+ const isLead = Array.isArray(user.pathwayLeadOf) && user.pathwayLeadOf.includes(user.pathway);
  %>
  <!-- Pathway badge -->
  <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.375rem;border-radius:15px;background:<%=pm.color%>;border:1px solid <%=pm.border%>;animation:cardIn .5s ease both">
  <i class="fas <%= pm.fa %>" style="font-size:1.375rem;color:<%=pm.text%>;flex-shrink:0"></i>
- <div style="flex:1">
+ <div style="flex:1;min-width:0">
  <p style="font-size:.72rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:.2rem">Your Pathway</p>
- <p style="font-size:1rem;font-weight:800;color:<%=pm.text%>"><%= pm.name %></p>
+ <p style="font-size:1rem;font-weight:800;color:<%=pm.text%>;margin-bottom:.1rem"><%= pm.name %></p>
+ <p style="font-size:.72rem;color:var(--text-3);margin:0"><i class="fas fa-users" style="margin-right:.3rem"></i><%= pathwayCount.toLocaleString() %> member<%= pathwayCount !== 1 ? 's' : '' %></p>
  </div>
+ <div style="display:flex;gap:.5rem;align-items:center;flex-shrink:0">
+ <% if (isLead) { %>
+ <button type="button" onclick="openMembersModal()" style="font-size:.78rem;font-weight:700;padding:.45rem .9rem;border-radius:9px;background:<%=pm.color%>;border:1px solid <%=pm.border%>;color:<%=pm.text%>;cursor:pointer;font-family:Outfit,sans-serif">
+ <i class="fas fa-list-ul"></i> Members
+ </button>
+ <% } %>
  <% if (isApproved) { %>
  <button type="button" onclick="joinCommunity()" class="btn btn-outline" style="font-size:.8rem;padding:.5rem 1rem;border-color:<%=pm.border%>;color:<%=pm.text%>;cursor:pointer;background:none">
  <i class="fas fa-users"></i> Join Community
@@ -111,6 +119,46 @@
  </span>
  <% } %>
  </div>
+ </div>
+
+ <% if (isLead && pathwayMembers) { %>
+ <!-- Pathway Members Modal -->
+ <div id="membersModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem">
+ <div style="background:#0a120a;border:1px solid rgba(94,194,19,.2);border-radius:20px;width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+ <div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+ <div>
+ <h3 style="font-size:1rem;font-weight:800;color:var(--text);margin:0"><%= pm.name %> Members</h3>
+ <p style="font-size:.75rem;color:var(--text-3);margin:.2rem 0 0"><%= pathwayCount.toLocaleString() %> enrolled</p>
+ </div>
+ <button onclick="closeMembersModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:8px;width:32px;height:32px;cursor:pointer;color:var(--text-2);font-size:.9rem;display:flex;align-items:center;justify-content:center">
+ <i class="fas fa-times"></i>
+ </button>
+ </div>
+ <div style="overflow-y:auto;padding:.75rem 1rem">
+ <% if (!pathwayMembers.length) { %>
+ <p style="text-align:center;color:var(--text-3);padding:2rem;font-size:.875rem">No approved members yet</p>
+ <% } else { %>
+ <% pathwayMembers.forEach(function(m, i) { %>
+ <div style="display:flex;align-items:center;gap:.75rem;padding:.625rem .5rem;border-radius:10px;<%=i>0?'border-top:1px solid rgba(255,255,255,.04)':''%>">
+ <% if (m.profilePicture) { %>
+ <img src="<%=m.profilePicture%>" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+ <% } %>
+ <div style="width:34px;height:34px;border-radius:50%;background:rgba(94,194,19,.12);border:1px solid rgba(94,194,19,.2);display:<%= m.profilePicture ? 'none' : 'flex' %>;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:var(--green);flex-shrink:0">
+ <%=m.username.charAt(0).toUpperCase()%>
+ </div>
+ <div style="flex:1;min-width:0">
+ <p style="font-size:.875rem;font-weight:700;color:var(--text);margin:0">@<%=m.username%></p>
+ <p style="font-size:.7rem;color:var(--text-3);margin:.1rem 0 0">Joined <%=new Date(m.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})%></p>
+ </div>
+ <span style="font-size:.65rem;font-weight:700;padding:.2rem .5rem;border-radius:99px;background:rgba(94,194,19,.1);color:var(--green);border:1px solid rgba(94,194,19,.2);flex-shrink:0">#<%=i+1%></span>
+ </div>
+ <% }) %>
+ <% } %>
+ </div>
+ </div>
+ </div>
+ <% } %>
+
  <% } else { %>
  <!-- Pathway selection card -->
  <div id="pathwaySelectCard" style="border-radius:18px;border:1px solid rgba(94,194,19,.25);background:linear-gradient(135deg,rgba(14,23,14,.9),rgba(8,18,8,.95));padding:1.375rem;animation:cardIn .5s ease both">
@@ -759,6 +807,75 @@
  window.open(_communityLink, '_blank');
  }
 
+ /* ── Pathway members modal ── */
+ function openMembersModal() {
+ var m = document.getElementById('membersModal');
+ if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+ }
+ function closeMembersModal() {
+ var m = document.getElementById('membersModal');
+ if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+ }
+ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeMembersModal(); });
+
+ /* ── Pathway popup modal ── */
+ function openPathwayPopup() {
+ var m = document.getElementById('pathwayPopupModal');
+ if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+ }
+ function closePathwayPopup() {
+ var m = document.getElementById('pathwayPopupModal');
+ if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+ sessionStorage.setItem('pw_popup_dismissed', '1');
+ }
+ function selectPathwayPopup(pw) {
+ var opts = document.querySelectorAll('.pw-popup-opt');
+ opts.forEach(function(b){ b.disabled = true; b.style.opacity = '.5'; });
+ var msg = document.getElementById('pwPopupMsg');
+ msg.style.display = 'block'; msg.style.color = 'var(--text-3)';
+ msg.textContent = 'Saving your pathway...';
+ fetch('/dashboard/select-pathway', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ pathway: pw })
+ })
+ .then(function(r){ return r.json(); })
+ .then(function(d) {
+ if (!d.success) {
+ msg.style.color = '#ef4444';
+ msg.textContent = d.message || 'Error saving. Try again.';
+ opts.forEach(function(b){ b.disabled = false; b.style.opacity = '1'; });
+ return;
+ }
+ if (d.groupLink) _communityLink = d.groupLink;
+ var meta = _pwMeta[pw] || _pwMeta.web3_jobs;
+ document.getElementById('pwPopupContent').innerHTML =
+ '<div style="text-align:center;padding:1.5rem 0">' +
+ '<div style="width:56px;height:56px;border-radius:16px;background:' + meta.color + ';border:1px solid ' + meta.border + ';display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.5rem;color:' + meta.text + '"><i class="fas ' + meta.fa + '"></i></div>' +
+ '<p style="font-size:1.1rem;font-weight:800;color:' + meta.text + ';margin-bottom:.4rem">' + meta.name + '</p>' +
+ '<p style="font-size:.85rem;color:var(--text-3);margin-bottom:1.25rem">' + (d.status === 'auto_approved' ? 'You\'re all set! Welcome to the pathway.' : 'Application submitted — you\'ll be notified once approved.') + '</p>' +
+ '<button onclick="closePathwayPopup()" style="padding:.65rem 1.75rem;background:var(--green);color:#000;border:none;border-radius:10px;font-family:Outfit,sans-serif;font-size:.9rem;font-weight:800;cursor:pointer">Continue to Dashboard</button>' +
+ '</div>';
+ // also sync inline card
+ var inlineCard = document.getElementById('pathwaySelectCard');
+ if (inlineCard) inlineCard.style.display = 'none';
+ var sc = document.getElementById('pathwaySuccessCard');
+ if (sc) { sc.style.background = meta.color; sc.style.borderColor = meta.border; sc.style.padding = '1rem 1.375rem'; sc.style.display = 'flex'; sc.style.alignItems = 'center'; sc.style.gap = '1rem'; sc.innerHTML = '<i class="fas ' + meta.fa + '" style="font-size:1.375rem;color:' + meta.text + ';flex-shrink:0"></i><div style="flex:1"><p style="font-size:.72rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:.2rem">Your Pathway</p><p style="font-size:1rem;font-weight:800;color:' + meta.text + '">' + meta.name + '</p></div>'; }
+ })
+ .catch(function() {
+ msg.style.color = '#ef4444';
+ msg.textContent = 'Network error. Please try again.';
+ opts.forEach(function(b){ b.disabled = false; b.style.opacity = '1'; });
+ });
+ }
+ <% if (!user.pathway) { %>
+ (function() {
+ if (!sessionStorage.getItem('pw_popup_dismissed')) {
+ setTimeout(function() { openPathwayPopup(); }, 800);
+ }
+ })();
+ <% } %>
+
  /* ── Pathway selection ── */
  var _pwMeta = {
  web3_jobs: { fa:'fa-briefcase', name:'Web3 Jobs', color:'rgba(251,191,36,0.15)', border:'rgba(251,191,36,0.35)', text:'#fbbf24' },
@@ -991,6 +1108,44 @@
  setTimeout(function() { overlay.remove(); }, 320);
  }
 </script>
+<% } %>
+
+<% if (!user.pathway) { %>
+<!-- Pathway selection popup modal -->
+<div id="pathwayPopupModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1rem;animation:none">
+ <div style="background:linear-gradient(160deg,rgba(12,20,12,.99),rgba(7,14,7,.99));border:1px solid rgba(94,194,19,.25);border-radius:24px;width:100%;max-width:500px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 50px rgba(94,194,19,.06)">
+ <div style="padding:1.5rem 1.5rem .5rem;display:flex;align-items:flex-start;justify-content:space-between">
+ <div>
+ <h2 style="font-size:1.25rem;font-weight:900;color:var(--text);margin:0 0 .3rem">Choose Your Pathway</h2>
+ <p style="font-size:.8rem;color:var(--text-3);margin:0">Pick the area you want to focus on — you can always change it later</p>
+ </div>
+ <button onclick="closePathwayPopup()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:8px;width:32px;height:32px;cursor:pointer;color:var(--text-3);font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:.75rem">
+ <i class="fas fa-times"></i>
+ </button>
+ </div>
+ <div id="pwPopupContent" style="padding:1rem 1.5rem 1.5rem">
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin-bottom:.875rem">
+ <button onclick="selectPathwayPopup('web3_jobs')" class="pw-popup-opt" style="display:flex;align-items:center;gap:.625rem;padding:.875rem;border-radius:12px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);cursor:pointer;transition:all .2s;font-family:Outfit,sans-serif;text-align:left;width:100%">
+ <i class="fas fa-briefcase" style="color:#fbbf24;font-size:1rem;width:20px;flex-shrink:0"></i>
+ <span style="font-size:.82rem;font-weight:700;color:#fbbf24">Web3 Jobs</span>
+ </button>
+ <button onclick="selectPathwayPopup('ai')" class="pw-popup-opt" style="display:flex;align-items:center;gap:.625rem;padding:.875rem;border-radius:12px;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.25);cursor:pointer;transition:all .2s;font-family:Outfit,sans-serif;text-align:left;width:100%">
+ <i class="fas fa-microchip" style="color:#c084fc;font-size:1rem;width:20px;flex-shrink:0"></i>
+ <span style="font-size:.82rem;font-weight:700;color:#c084fc">AI & Web3</span>
+ </button>
+ <button onclick="selectPathwayPopup('trading')" class="pw-popup-opt" style="display:flex;align-items:center;gap:.625rem;padding:.875rem;border-radius:12px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.25);cursor:pointer;transition:all .2s;font-family:Outfit,sans-serif;text-align:left;width:100%">
+ <i class="fas fa-chart-line" style="color:#10b981;font-size:1rem;width:20px;flex-shrink:0"></i>
+ <span style="font-size:.82rem;font-weight:700;color:#10b981">Trading</span>
+ </button>
+ <button onclick="selectPathwayPopup('nft')" class="pw-popup-opt" style="display:flex;align-items:center;gap:.625rem;padding:.875rem;border-radius:12px;background:rgba(236,72,153,.07);border:1px solid rgba(236,72,153,.25);cursor:pointer;transition:all .2s;font-family:Outfit,sans-serif;text-align:left;width:100%">
+ <i class="fas fa-image" style="color:#f472b6;font-size:1rem;width:20px;flex-shrink:0"></i>
+ <span style="font-size:.82rem;font-weight:700;color:#f472b6">NFTs & Digital Assets</span>
+ </button>
+ </div>
+ <div id="pwPopupMsg" style="display:none;font-size:.78rem;font-weight:600;text-align:center;padding:.5rem"></div>
+ </div>
+ </div>
+</div>
 <% } %>
 </body>
 </html>

@@ -11,7 +11,7 @@ const QuestApplication = require('../models/QuestApplication');
 // Role-based permission map
 const ROLE_PERMISSIONS = {
   super_admin:  '*',
-  operations:   ['overview','analytics','users','quests','bounties','events','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','business-developers','businesses','partners'],
+  operations:   ['overview','analytics','users','quests','bounties','events','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','business-developers','businesses','partners','pathway-content'],
   community:    ['overview','analytics','users','applications','quest-applications','pathway-applications','support','ambassadors','banned','leaderboard'],
   partnerships: ['overview','analytics','quests','bounties','projects','partners','business-developers','businesses','fund-requests','commission-settings'],
   finance:      ['overview','analytics','withdrawals','fund-requests','wallet-addresses'],
@@ -84,9 +84,14 @@ const isAdminPage = async (req, res, next) => {
   } catch { res.redirect('/auth'); }
 };
 
-// Role-specific page guard — call after isAdminPage
+// Role-specific page guard — call after isAdminPage or isAdmin
 const requireSection = (section) => (req, res, next) => {
-  if (!canAccess(req.adminRole, section)) return res.redirect('/admin?error=access_denied');
+  if (!canAccess(req.adminRole, section)) {
+    const isJson = req.headers.accept && req.headers.accept.includes('application/json');
+    return isJson
+      ? res.status(403).json({ success: false, message: 'Access denied' })
+      : res.redirect('/admin?error=access_denied');
+  }
   next();
 };
 
@@ -338,7 +343,7 @@ router.post('/submissions/external/delete', isAdminPage, async (req, res) => {
 
 // ── Platform Settings ─────────────────────────────────
 // Render platform settings page
-router.get('/platform-settings', isAdminPage, async (req, res) => {
+router.get('/platform-settings', isAdminPage, requireSection('platform-settings'), async (req, res) => {
   try {
     const settings = await PlatformSettings.get();
     res.render('admin/pages/platform-settings', { user: req.user, settings: settings.toObject() });
@@ -349,7 +354,7 @@ router.get('/platform-settings', isAdminPage, async (req, res) => {
 });
 
 // Save platform settings
-router.post('/platform-settings', isAdminPage, async (req, res) => {
+router.post('/platform-settings', isAdminPage, requireSection('platform-settings'), async (req, res) => {
   try {
     const { apeitWalletUrl, withdrawalMin, feeTierSmall, feeTierSmallUpTo, feeTierMedium, feeTierMediumUpTo, feeTierLarge } = req.body;
     const settings = await PlatformSettings.get();
@@ -728,7 +733,7 @@ router.post('/businesses/:id/login-as', isAdminPage, async (req, res) => {
 
 // ── Fund requests ─────────────────────────────────────
 
-router.get('/fund-requests', isAdminPage, async (req, res) => {
+router.get('/fund-requests', isAdminPage, requireSection('fund-requests'), async (req, res) => {
   try {
     const statusFilter = req.query.status && req.query.status !== 'all' ? req.query.status : null;
     const query = statusFilter ? { status: statusFilter } : {};
@@ -759,7 +764,7 @@ router.get('/fund-requests', isAdminPage, async (req, res) => {
   }
 });
 
-router.post('/fund-requests/:id/approve', isAdminPage, async (req, res) => {
+router.post('/fund-requests/:id/approve', isAdminPage, requireSection('fund-requests'), async (req, res) => {
   try {
     const fr = await BusinessFundRequest.findById(req.params.id);
     if (!fr || fr.status !== 'pending') return res.json({ success: false, message: 'Request not found or already processed.' });
@@ -794,7 +799,7 @@ router.post('/fund-requests/:id/approve', isAdminPage, async (req, res) => {
   }
 });
 
-router.post('/fund-requests/:id/reject', isAdminPage, async (req, res) => {
+router.post('/fund-requests/:id/reject', isAdminPage, requireSection('fund-requests'), async (req, res) => {
   try {
     await BusinessFundRequest.findByIdAndUpdate(req.params.id, {
       status: 'rejected', rejectionReason: req.body.reason || ''
@@ -805,14 +810,14 @@ router.post('/fund-requests/:id/reject', isAdminPage, async (req, res) => {
 
 // ── Wallet addresses ──────────────────────────────────
 
-router.get('/wallet-addresses', isAdminPage, async (req, res) => {
+router.get('/wallet-addresses', isAdminPage, requireSection('wallet-addresses'), async (req, res) => {
   try {
     const wallets = await WalletAddress.find().populate('addedBy', 'username').sort({ token: 1, network: 1 });
     res.render('admin/pages/wallet-addresses', { user: req.user, wallets });
   } catch (err) { res.redirect('/admin'); }
 });
 
-router.post('/wallet-addresses/add', isAdminPage, async (req, res) => {
+router.post('/wallet-addresses/add', isAdminPage, requireSection('wallet-addresses'), async (req, res) => {
   try {
     const { token, network, address, label } = req.body;
     await WalletAddress.create({ token, network, address, label, addedBy: req.user._id });
@@ -820,7 +825,7 @@ router.post('/wallet-addresses/add', isAdminPage, async (req, res) => {
   } catch (err) { res.redirect('/admin/wallet-addresses?error=' + encodeURIComponent(err.message)); }
 });
 
-router.post('/wallet-addresses/:id/toggle', isAdminPage, async (req, res) => {
+router.post('/wallet-addresses/:id/toggle', isAdminPage, requireSection('wallet-addresses'), async (req, res) => {
   try {
     const w = await WalletAddress.findById(req.params.id);
     if (!w) return res.json({ success: false });
@@ -830,7 +835,7 @@ router.post('/wallet-addresses/:id/toggle', isAdminPage, async (req, res) => {
   } catch (err) { res.json({ success: false, message: err.message }); }
 });
 
-router.post('/wallet-addresses/:id/delete', isAdminPage, async (req, res) => {
+router.post('/wallet-addresses/:id/delete', isAdminPage, requireSection('wallet-addresses'), async (req, res) => {
   try {
     await WalletAddress.findByIdAndDelete(req.params.id);
     res.json({ success: true });
@@ -839,7 +844,7 @@ router.post('/wallet-addresses/:id/delete', isAdminPage, async (req, res) => {
 
 // ── Commission settings ───────────────────────────────
 
-router.get('/commission-settings', isAdminPage, async (req, res) => {
+router.get('/commission-settings', isAdminPage, requireSection('commission-settings'), async (req, res) => {
   try {
     const settings = await CommissionSettings.getCurrent();
     res.render('admin/pages/commission-settings', {
@@ -851,7 +856,7 @@ router.get('/commission-settings', isAdminPage, async (req, res) => {
   }
 });
 
-router.post('/commission-settings', isAdminPage, async (req, res) => {
+router.post('/commission-settings', isAdminPage, requireSection('commission-settings'), async (req, res) => {
   try {
     const { bdCommissionRate, platformCommissionRate } = req.body;
     await CommissionSettings.create({
@@ -1075,10 +1080,10 @@ router.post('/api/users/credit-balance', isAdmin, async (req, res) => {
 module.exports = router;
 router.get('/api/quests/:questId/winners', isAdmin, adminController.getQuestWinners);
 router.post('/api/quests/distribute-rewards', isAdmin, adminController.distributeQuestRewards);
-router.get('/api/withdrawals', isAdmin, adminController.getAllWithdrawals);
-router.get('/api/withdrawals/stats', isAdmin, adminController.getWithdrawalStats);
-router.post('/api/withdrawals/:transactionId/approve', isAdmin, adminController.approveWithdrawal);
-router.post('/api/withdrawals/:transactionId/reject', isAdmin, adminController.rejectWithdrawal);
+router.get('/api/withdrawals', isAdmin, requireSection('withdrawals'), adminController.getAllWithdrawals);
+router.get('/api/withdrawals/stats', isAdmin, requireSection('withdrawals'), adminController.getWithdrawalStats);
+router.post('/api/withdrawals/:transactionId/approve', isAdmin, requireSection('withdrawals'), adminController.approveWithdrawal);
+router.post('/api/withdrawals/:transactionId/reject', isAdmin, requireSection('withdrawals'), adminController.rejectWithdrawal);
 
 // Add these routes if they don't exist
 router.get('/api/quests/:questId/leaderboard', isAdmin, adminController.getQuestLeaderboardAdmin);
@@ -1191,7 +1196,7 @@ router.put("/api/projects/submissions/:id/review", isAdmin, async (req, res) => 
 
 // ==================== ROLE SETTINGS ====================
 
-router.get('/settings/roles', isAdmin, (req, res) => {
+router.get('/settings/roles', isAdminPage, requireSection('settings'), (req, res) => {
   const { ROLES } = require('../config/gamification');
   res.render('admin/role-settings', {
     title: 'Role Settings - Admin',
@@ -1290,7 +1295,7 @@ router.post('/api/update-roles', isAdmin, async (req, res) => {
 
 // ==================== LEADERBOARD MANAGER ====================
 
-router.get('/leaderboard', isAdmin, async (req, res) => {
+router.get('/leaderboard', isAdminPage, requireSection('leaderboard'), async (req, res) => {
   try {
     const User = require('../models/User');
     const Quest = require('../models/Quest');
@@ -1303,7 +1308,7 @@ router.get('/leaderboard', isAdmin, async (req, res) => {
 });
 
 // Get leaderboard data (global XP or quest-specific)
-router.get('/api/leaderboard/data', isAdmin, async (req, res) => {
+router.get('/api/leaderboard/data', isAdmin, requireSection('leaderboard'), async (req, res) => {
   try {
     const { type } = req.query;
     const User = require('../models/User');
@@ -1342,7 +1347,7 @@ router.get('/api/leaderboard/data', isAdmin, async (req, res) => {
   }
 });
 
-router.post('/api/leaderboard/add', isAdmin, async (req, res) => {
+router.post('/api/leaderboard/add', isAdmin, requireSection('leaderboard'), async (req, res) => {
   try {
     const { username, points, isFakeUser, leaderboardType } = req.body;
     const User = require('../models/User');
@@ -1413,7 +1418,7 @@ router.post('/api/leaderboard/add', isAdmin, async (req, res) => {
   }
 });
 
-router.post('/api/leaderboard/update/:userId', isAdmin, async (req, res) => {
+router.post('/api/leaderboard/update/:userId', isAdmin, requireSection('leaderboard'), async (req, res) => {
   try {
     const { username, points, delta, action, isFakeUser, leaderboardType } = req.body;
     const User = require('../models/User');
@@ -1459,7 +1464,7 @@ router.post('/api/leaderboard/update/:userId', isAdmin, async (req, res) => {
   }
 });
 
-router.post('/api/leaderboard/delete/:userId', isAdmin, async (req, res) => {
+router.post('/api/leaderboard/delete/:userId', isAdmin, requireSection('leaderboard'), async (req, res) => {
   try {
     const { type } = req.query;
     const User = require('../models/User');

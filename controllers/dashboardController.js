@@ -59,6 +59,25 @@ exports.getDashboard = async (req, res) => {
     // Get user role data
     const roleData = getUserRole(user.xp || 0, user.createdAt);
 
+    // Pathway enrollment count + member list for leads
+    let pathwayCount = 0;
+    let pathwayMembers = null;
+    if (user.pathway) {
+      pathwayCount = await User.countDocuments({
+        pathway: user.pathway,
+        pathwayStatus: { $in: ['approved', 'auto_approved'] }
+      });
+      if (Array.isArray(user.pathwayLeadOf) && user.pathwayLeadOf.includes(user.pathway)) {
+        pathwayMembers = await User.find({
+          pathway: user.pathway,
+          pathwayStatus: { $in: ['approved', 'auto_approved'] }
+        })
+        .select('username profilePicture createdAt')
+        .sort({ createdAt: -1 })
+        .limit(200)
+        .lean();
+      }
+    }
 
     // Add welcome activity if user just logged in
     if (!user.recentActivity) user.recentActivity = [];
@@ -78,7 +97,9 @@ exports.getDashboard = async (req, res) => {
       title: 'Dashboard',
       user: user.toObject(),
       totalUsers,
-      roleData
+      roleData,
+      pathwayCount,
+      pathwayMembers
     });
 
   } catch (error) {

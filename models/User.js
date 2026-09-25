@@ -104,6 +104,10 @@ const userSchema = new mongoose.Schema({
     enum: ['web3_jobs', 'ai', 'nft', 'trading', null],
     default: null
   },
+  pathwayLeadOf: {
+    type: [String],
+    default: []
+  },
   pathwayStatus: {
     type: String,
     enum: ['pending', 'auto_approved', 'approved', 'rejected', null],

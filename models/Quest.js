@@ -23,7 +23,11 @@ const taskSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  // NEW: Is this a daily task?
+  // Day offset from quest startDate when this task becomes available (0 = immediately)
+  availableFromDay: {
+    type: Number,
+    default: 0
+  },
   isDaily: {
     type: Boolean,
     default: false

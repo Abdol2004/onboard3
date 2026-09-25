@@ -809,6 +809,7 @@
  <span style="font-size:.78rem;font-weight:700;color:var(--text-3)"><%= userProgress.tasksCompleted %>/<%= quest.tasks.length %> done</span>
  </div>
  <div class="task-list">
+ <% var usesDayGate = quest.tasks.some(function(t) { return t.availableFromDay > 0; }); %>
  <% quest.tasks.forEach(function(task, index) {
  var taskProgress = userProgress.taskProgress.find(function(tp) { return tp.taskId.toString() === task._id.toString(); });
  var isCompleted = taskProgress && taskProgress.isCompleted;
@@ -817,7 +818,13 @@
  var prevTask = index > 0 ? quest.tasks[index - 1] : null;
  var prevTaskProgress = prevTask ? userProgress.taskProgress.find(function(tp) { return tp.taskId.toString() === prevTask._id.toString(); }) : null;
  var isPreviousCompleted = index === 0 || (prevTaskProgress && (prevTaskProgress.isCompleted || prevTaskProgress.approvalStatus === 'pending'));
- var isLocked = !isPreviousCompleted && !isCompleted && !isPending;
+ var isDayLocked = false;
+ var dayUnlockMs = 0;
+ if (usesDayGate && task.availableFromDay > 0 && quest.startDate) {
+   dayUnlockMs = new Date(quest.startDate).getTime() + task.availableFromDay * 24 * 60 * 60 * 1000;
+   isDayLocked = Date.now() < dayUnlockMs;
+ }
+ var isLocked = usesDayGate ? (isDayLocked && !isCompleted && !isPending) : (!isPreviousCompleted && !isCompleted && !isPending);
  var isActive = !isCompleted && !isLocked && !isPending;
  var taskXp = task.xpReward || 0;
  var cardClass = isCompleted ? 'task-card--completed' : isPending ? 'task-card--pending' : isLocked ? 'task-card--locked' : 'task-card--active';
@@ -876,9 +883,17 @@
  </button>
  </div>
  <% } else if (isLocked) { %>
+ <% if (isDayLocked) {
+   var daysLeft = Math.ceil((dayUnlockMs - Date.now()) / (24 * 60 * 60 * 1000));
+ %>
+ <div class="locked-notice">
+ <i class="fas fa-calendar-alt"></i> Unlocks on Day <%= task.availableFromDay + 1 %> of this quest<% if (daysLeft > 0) { %> — <%= daysLeft %> day<%= daysLeft !== 1 ? 's' : '' %> to go<% } %>
+ </div>
+ <% } else { %>
  <div class="locked-notice">
  <i class="fas fa-info-circle"></i> Complete Task <%= index %> to unlock this task
  </div>
+ <% } %>
  <% } else { %>
  <div class="task-actions-row">
  <% if (task.buttonText && task.buttonLink) { %>

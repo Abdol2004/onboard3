@@ -623,6 +623,18 @@ exports.submitTask = async (req, res) => {
       });
     }
 
+    // ==================== DAY-UNLOCK GATE ====================
+    if (task.availableFromDay > 0 && quest.startDate) {
+      const unlockAt = new Date(quest.startDate).getTime() + task.availableFromDay * 24 * 60 * 60 * 1000;
+      if (Date.now() < unlockAt) {
+        const daysLeft = Math.ceil((unlockAt - Date.now()) / (24 * 60 * 60 * 1000));
+        return res.status(400).json({
+          success: false,
+          message: `This task unlocks on Day ${task.availableFromDay + 1} of the quest (in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}).`
+        });
+      }
+    }
+
     // ==================== SPECIAL TASK TYPE VERIFICATION ====================
     const { verifyTelegramMembership, verifyDiscordMembership, callWebhook } = require('../utils/socialVerification');
 

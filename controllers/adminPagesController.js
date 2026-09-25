@@ -388,18 +388,19 @@ exports.addQuestTask = async (req, res) => {
     try {
         const quest = await Quest.findById(req.params.id);
         if (!quest) return res.json({ success: false, message: 'Quest not found' });
-        const { title, description, taskType, xpReward, buttonLink, buttonText, requiresApproval, inputLabel } = req.body;
+        const { title, description, taskType, xpReward, availableFromDay, buttonLink, buttonText, requiresApproval, inputLabel } = req.body;
         const isFcfs = quest.questType === 'fcfs';
         const task = {
-            title:           title || 'Untitled Task',
-            description:     description || title || 'Complete this task',
-            taskType:        taskType || 'external',
-            xpReward:        Math.max(0, parseInt(xpReward) || 0),
-            order:           quest.tasks.length + 1,
-            buttonLink:      buttonLink || '',
-            buttonText:      buttonText || 'Complete Task',
+            title:            title || 'Untitled Task',
+            description:      description || title || 'Complete this task',
+            taskType:         taskType || 'external',
+            xpReward:         Math.max(0, parseInt(xpReward) || 0),
+            availableFromDay: Math.max(0, parseInt(availableFromDay) || 0),
+            order:            quest.tasks.length + 1,
+            buttonLink:       buttonLink || '',
+            buttonText:       buttonText || 'Complete Task',
             requiresApproval: !isFcfs && (requiresApproval === true || requiresApproval === 'true'),
-            inputLabel:      inputLabel || ''
+            inputLabel:       inputLabel || ''
         };
         quest.tasks.push(task);
         await quest.save();

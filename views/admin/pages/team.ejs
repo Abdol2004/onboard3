@@ -23,7 +23,7 @@
  <!-- Role legend -->
  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;margin-bottom:1.5rem">
  <% const roleMeta = {
- operations: { label:'Operations', color:'#60a5fa', icon:'fa-bolt', desc:'Full platform access' },
+ operations: { label:'Operations', color:'#60a5fa', icon:'fa-bolt', desc:'Content & community (no finance, settings, or withdrawals)' },
  community: { label:'Community', color:'#a78bfa', icon:'fa-users', desc:'User & community management' },
  partnerships: { label:'Partnerships', color:'#fbbf24', icon:'fa-handshake', desc:'Business & BD access' },
  finance: { label:'Finance', color:'#10b981', icon:'fa-coins', desc:'Financial data only' },
@@ -90,7 +90,7 @@
  <tbody>
  <% team.forEach(member => {
  const rm = { super_admin:{label:'Super Admin',color:'#5EC213',icon:'fa-shield-halved'}, operations:{label:'Operations',color:'#60a5fa',icon:'fa-bolt'}, community:{label:'Community',color:'#a78bfa',icon:'fa-users'}, partnerships:{label:'Partnerships',color:'#fbbf24',icon:'fa-handshake'}, finance:{label:'Finance',color:'#10b981',icon:'fa-coins'} }[member.adminRole || 'super_admin'] || {label:'Super Admin',color:'#5EC213',icon:'fa-shield-halved'};
- const accessMap = { super_admin:'Full platform', operations:'Full platform', community:'Users, Applications, Support, Campus', partnerships:'Projects, BD, Businesses, Commissions', finance:'Withdrawals, Wallets, Fund Requests' };
+ const accessMap = { super_admin:'Full platform', operations:'Users, Quests, Bounties, Events, Applications, Support, Community', community:'Users, Applications, Support, Campus', partnerships:'Projects, BD, Businesses, Commissions', finance:'Withdrawals, Wallets, Fund Requests' };
  %>
  <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
  <td style="padding:.875rem 1rem">

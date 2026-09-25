@@ -3,7 +3,7 @@ const _navUser = (typeof admin !== 'undefined' ? admin : user) || {};
 const _ar = _navUser.adminRole || 'super_admin';
 const _perms = {
  super_admin: null,
- operations: ['overview','analytics','users','quests','bounties','events','withdrawals','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','leaderboard','business-developers','businesses','fund-requests','wallet-addresses','commission-settings','platform-settings','settings','partners','pathway-content'],
+ operations: ['overview','analytics','users','quests','bounties','events','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','business-developers','businesses','partners','pathway-content'],
  community: ['overview','analytics','users','applications','quest-applications','pathway-applications','support','ambassadors','banned','leaderboard'],
  partnerships: ['overview','analytics','quests','bounties','projects','partners','business-developers','businesses','fund-requests','commission-settings'],
  finance: ['overview','analytics','withdrawals','fund-requests','wallet-addresses'],
@@ -156,7 +156,7 @@ const roleBadgeColor = { super_admin:'#5EC213', operations:'#60a5fa', community:
  </a>
  <% } %>
 
- <% if (can('platform-settings') || can('settings') || _ar === 'super_admin') { %>
+ <% if (can('platform-settings') || can('settings') || can('pathway-content') || _ar === 'super_admin') { %>
  <span class="a-nav-label">Tools</span>
  <% if (can('platform-settings')) { %>
  <a href="/admin/platform-settings" class="a-nav-item <%= page==='platform-settings' ? 'active':'' %>">

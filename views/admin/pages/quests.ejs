@@ -514,10 +514,14 @@
  </select>
  </div>
  </div>
- <div class="aqf-grid">
+ <div class="aqf-grid" style="grid-template-columns:1fr 1fr 1fr">
  <div class="a-form-group" style="margin-bottom:0">
  <label style="font-size:.75rem">XP Reward</label>
  <input type="number" id="nt_xp" class="a-input" value="0" min="0" style="font-size:.82rem;padding:.5rem .75rem">
+ </div>
+ <div class="a-form-group" style="margin-bottom:0">
+ <label style="font-size:.75rem">Unlock on Day <span style="color:#5a7a56;font-weight:400">(0 = immediately)</span></label>
+ <input type="number" id="nt_day" class="a-input" value="0" min="0" style="font-size:.82rem;padding:.5rem .75rem" placeholder="0">
  </div>
  <div class="a-form-group" style="margin-bottom:0">
  <label style="font-size:.75rem">Button Link (optional)</label>
@@ -755,11 +759,14 @@ function loadQmTasks() {
  return;
  }
  list.innerHTML = tasks.map(function(t, i) {
+ var dayBadge = t.availableFromDay > 0
+   ? ' · <span style="color:#a78bfa;font-size:.68rem;font-weight:700">📅 Day ' + (t.availableFromDay + 1) + '</span>'
+   : '';
  return '<div class="task-row">' +
  '<div class="task-num">' + (i+1) + '</div>' +
  '<div class="task-info">' +
  '<p>' + escHtml(t.title) + '</p>' +
- '<span>' + (t.taskType || 'external') + (t.requiresApproval ? ' · <span style="color:#f59e0b;font-size:.68rem">⏳ manual review</span>' : '') + (t.buttonLink ? ' · <a href="' + escHtml(t.buttonLink) + '" target="_blank" style="color:#60a5fa">' + escHtml(t.buttonLink.replace(/^https?:\/\//,'').substring(0,40)) + '</a>' : '') + '</span>' +
+ '<span>' + (t.taskType || 'external') + dayBadge + (t.requiresApproval ? ' · <span style="color:#f59e0b;font-size:.68rem">⏳ manual review</span>' : '') + (t.buttonLink ? ' · <a href="' + escHtml(t.buttonLink) + '" target="_blank" style="color:#60a5fa">' + escHtml(t.buttonLink.replace(/^https?:\/\//,'').substring(0,40)) + '</a>' : '') + '</span>' +
  '</div>' +
  '<span class="task-xp">' + (t.xpReward||0) + ' XP</span>' +
  '</div>';
@@ -773,6 +780,7 @@ function submitAddTask() {
  var title = document.getElementById('nt_title').value.trim();
  var type = document.getElementById('nt_type').value;
  var xp = document.getElementById('nt_xp').value;
+ var day = document.getElementById('nt_day').value;
  var link = document.getElementById('nt_link').value.trim();
  var desc = document.getElementById('nt_desc').value.trim();
  if (!title) { showQmFlash('Title is required', false); return; }
@@ -781,7 +789,7 @@ function submitAddTask() {
  fetch('/admin/quests/' + _qmQuestId + '/add-task', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ title: title, taskType: type, xpReward: parseInt(xp)||0, buttonLink: link, description: desc || title, requiresApproval: document.getElementById('nt_approval').checked })
+ body: JSON.stringify({ title: title, taskType: type, xpReward: parseInt(xp)||0, availableFromDay: parseInt(day)||0, buttonLink: link, description: desc || title, requiresApproval: document.getElementById('nt_approval').checked })
  })
  .then(function(r){ return r.json(); })
  .then(function(d) {
@@ -792,6 +800,7 @@ function submitAddTask() {
  document.getElementById('nt_link').value = '';
  document.getElementById('nt_desc').value = '';
  document.getElementById('nt_xp').value = '0';
+ document.getElementById('nt_day').value = '0';
  loadQmTasks();
  } else {
  showQmFlash(d.message || 'Failed to add task', false);
