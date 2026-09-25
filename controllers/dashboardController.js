@@ -3,6 +3,7 @@ const { ROLES } = require("../config/gamification");
 const Transaction = require("../models/Transaction");
 const UserQuestProgress = require("../models/UserQuestProgress");
 const BountySubmission = require("../models/BountySubmission");
+const ThirdPartySubmission = require("../models/ThirdPartySubmission");
 
 // Cache total verified-user count — changes slowly, safe to cache 5 min
 let _totalUsersCache = { count: 0, ts: 0 };
@@ -83,15 +84,17 @@ exports.getDashboard = async (req, res) => {
     }
 
     // Build unified activity feed from multiple sources
-    const [recentTxns, recentQuests, recentBountyWins] = await Promise.all([
+    const [recentTxns, recentQuests, recentBountyWins, recentZadWins] = await Promise.all([
       Transaction.find({ user: user._id })
-        .sort({ createdAt: -1 }).limit(30).lean(),
+        .sort({ createdAt: -1 }).limit(50).lean(),
       UserQuestProgress.find({ userId: user._id, status: 'completed' })
-        .sort({ completedAt: -1 }).limit(15)
+        .sort({ completedAt: -1 }).limit(30)
         .populate('questId', 'title').lean(),
       BountySubmission.find({ userId: user._id, status: 'winner' })
-        .sort({ createdAt: -1 }).limit(10)
+        .sort({ createdAt: -1 }).limit(20)
         .populate('bountyId', 'title rewardAmount').lean(),
+      ThirdPartySubmission.find({ userId: user._id, status: 'winner' })
+        .sort({ createdAt: -1 }).limit(20).lean(),
     ]);
 
     const activityFeed = [
@@ -125,9 +128,17 @@ exports.getDashboard = async (req, res) => {
         status: 'completed',
         date: b.createdAt,
       })),
+      ...recentZadWins.map(z => ({
+        kind: 'bounty_won',
+        label: z.bountyName || 'ZAD Bounty',
+        amount: null,
+        currency: 'USDC',
+        status: 'completed',
+        date: z.createdAt,
+      })),
     ]
     .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 25);
+    .slice(0, 50);
 
     // Add welcome activity if user just logged in
     if (!user.recentActivity) user.recentActivity = [];

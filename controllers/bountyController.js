@@ -266,6 +266,7 @@ exports.externalBountyDetail = async (req, res) => {
 
         return {
           ...w,
+          onboardUserId:   onboardUser?._id || null,
           onboardUsername: resolvedUsername || null,
           onboardPfp:      onboardUser?.profilePicture || null,
           zadUsername:     w.username || w.submitter?.username || null,
@@ -273,6 +274,29 @@ exports.externalBountyDetail = async (req, res) => {
           isOnboard3:      !!(onboardUser || summaryUsername)
         };
       });
+
+      // Fire-and-forget: sync winner status in ThirdPartySubmission + notify first-time
+      ;(async () => {
+        for (let ri = 0; ri < enrichedWinners.length; ri++) {
+          const ew = enrichedWinners[ri];
+          if (!ew.onboardUserId) continue;
+          try {
+            const sub = await ThirdPartySubmission.findOne({ externalBountyId: bountyId, userId: ew.onboardUserId });
+            if (!sub || sub.status === 'winner') continue;
+            sub.status     = 'winner';
+            sub.bountyName = sub.bountyName || zadBounty.name || bountyId;
+            await sub.save();
+            const rank = ri + 1;
+            const rankLabel = rank === 1 ? '1st' : rank === 2 ? '2nd' : rank === 3 ? '3rd' : `${rank}th`;
+            notify(ew.onboardUserId, {
+              type: 'reward',
+              title: 'You won a bounty!',
+              message: `You placed ${rankLabel} in "${zadBounty.name || 'a bounty'}" on ZeroAuthorityDAO!`,
+              link: `/dashboard/bounties/external/${bountyId}`
+            }).catch(() => {});
+          } catch (_) {}
+        }
+      })().catch(() => {});
     }
 
     const prices   = await getTokenPrices([zadBounty.token?.symbol].filter(Boolean));
