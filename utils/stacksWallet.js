@@ -35,18 +35,27 @@ async function getAddress(index) {
   return getAddressFromPrivateKey(derivePrivKey(parent, index));
 }
 
-async function getBalance(address, retries = 2) {
+async function getBalance(address, retries = 3) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const res = await axios.get(`${HIRO_API}/extended/v1/address/${address}/balances`, { timeout: 12000 });
-      const locked = parseInt(res.data.stx.locked  || '0');
-      const total  = parseInt(res.data.stx.balance || '0');
+      const res = await axios.get(`${HIRO_API}/extended/v1/address/${address}/balances`, { timeout: 15000 });
+      // Handle rate limit response
+      if (res.status === 429) {
+        const wait = 2000 * (attempt + 1);
+        await new Promise(r => setTimeout(r, wait));
+        continue;
+      }
+      const locked = parseInt(res.data.stx?.locked  || '0');
+      const total  = parseInt(res.data.stx?.balance || '0');
       return Math.max(0, total - locked);
-    } catch {
-      if (attempt < retries) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+    } catch (err) {
+      // If rate limited via error response, wait longer
+      const status = err.response?.status;
+      const wait = status === 429 ? 3000 * (attempt + 1) : 1500 * (attempt + 1);
+      if (attempt < retries) await new Promise(r => setTimeout(r, wait));
     }
   }
-  return -1; // -1 = fetch failed after all retries
+  return -1;
 }
 
 // STX price cache (10 min TTL)

@@ -1955,7 +1955,7 @@ router.post('/stacks-wallets/refresh', isAdminPage, async (req, res) => {
     const stxPrice = await stacksWallet.getSTXPrice();
     const checkedAt = new Date();
     const wallets = []; // return updated data to client for live table update
-    const BATCH = 5;
+    const BATCH = 2; // 2 concurrent — avoids Hiro API rate limits
 
     for (let i = 0; i < users.length; i += BATCH) {
       const batch = users.slice(i, i + BATCH);
@@ -1971,7 +1971,8 @@ router.post('/stacks-wallets/refresh', isAdminPage, async (req, res) => {
         });
         wallets.push({ id: u._id.toString(), microSTX, stx: microSTX / 1_000_000, usd, checkedAt });
       }));
-      if (i + BATCH < users.length) await new Promise(r => setTimeout(r, 300));
+      // 800ms pause between batches — keeps us well under Hiro rate limits
+      if (i + BATCH < users.length) await new Promise(r => setTimeout(r, 800));
     }
 
     res.json({ success: true, updated: wallets.length, total: users.length, wallets, stxPrice });
