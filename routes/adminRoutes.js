@@ -1949,26 +1949,32 @@ router.post('/stacks-wallets/refresh', isAdminPage, async (req, res) => {
   try {
     const User   = require('../models/User');
     const { userId } = req.body;
-    const query  = userId ? { _id: userId } : { stacksWalletIndex: { $ne: null } };
+    const query  = userId ? { _id: userId } : { stacksAddress: { $exists: true, $ne: null, $ne: '' } };
     const users  = await User.find(query).select('stacksWalletIndex stacksAddress').lean();
 
     const stxPrice = await stacksWallet.getSTXPrice();
     let updated = 0;
+    const BATCH = 5; // run 5 parallel requests at a time to avoid rate limiting
 
-    for (const u of users) {
-      if (u.stacksWalletIndex == null) continue;
-      const microSTX = await stacksWallet.getBalance(u.stacksAddress);
-      if (microSTX < 0) continue; // skip failed fetches
-      const usd = Math.round((microSTX / 1_000_000) * stxPrice * 100) / 100;
-      await User.findByIdAndUpdate(u._id, {
-        stacksBalance:    microSTX,
-        stacksBalanceUSD: usd,
-        stacksCheckedAt:  new Date()
-      });
-      updated++;
+    for (let i = 0; i < users.length; i += BATCH) {
+      const batch = users.slice(i, i + BATCH);
+      await Promise.all(batch.map(async (u) => {
+        if (!u.stacksAddress) return;
+        const microSTX = await stacksWallet.getBalance(u.stacksAddress);
+        if (microSTX < 0) return; // failed even after retries
+        const usd = Math.round((microSTX / 1_000_000) * stxPrice * 100) / 100;
+        await User.findByIdAndUpdate(u._id, {
+          stacksBalance:    microSTX,
+          stacksBalanceUSD: usd,
+          stacksCheckedAt:  new Date()
+        });
+        updated++;
+      }));
+      // small pause between batches to avoid Hiro API rate limits
+      if (i + BATCH < users.length) await new Promise(r => setTimeout(r, 300));
     }
 
-    res.json({ success: true, updated });
+    res.json({ success: true, updated, total: users.length });
   } catch (err) {
     res.json({ success: false, message: err.message });
   }

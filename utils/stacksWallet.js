@@ -35,15 +35,18 @@ async function getAddress(index) {
   return getAddressFromPrivateKey(derivePrivKey(parent, index));
 }
 
-async function getBalance(address) {
-  try {
-    const res = await axios.get(`${HIRO_API}/extended/v1/address/${address}/balances`, { timeout: 8000 });
-    const locked = parseInt(res.data.stx.locked  || '0');
-    const total  = parseInt(res.data.stx.balance || '0');
-    return Math.max(0, total - locked);
-  } catch {
-    return -1; // -1 = fetch failed
+async function getBalance(address, retries = 2) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await axios.get(`${HIRO_API}/extended/v1/address/${address}/balances`, { timeout: 12000 });
+      const locked = parseInt(res.data.stx.locked  || '0');
+      const total  = parseInt(res.data.stx.balance || '0');
+      return Math.max(0, total - locked);
+    } catch {
+      if (attempt < retries) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+    }
   }
+  return -1; // -1 = fetch failed after all retries
 }
 
 // STX price cache (10 min TTL)

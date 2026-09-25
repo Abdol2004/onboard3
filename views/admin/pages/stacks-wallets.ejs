@@ -216,7 +216,8 @@ function refreshAll(btn) {
  body: JSON.stringify({})
  }).then(r => r.json()).then(d => {
  if (d.success) {
-  aToast('✓ Updated ' + d.updated + ' wallet' + (d.updated !== 1 ? 's' : ''));
+  const msg = d.total ? ('✓ Updated ' + d.updated + ' / ' + d.total + ' wallets') : ('✓ Updated ' + d.updated + ' wallet' + (d.updated !== 1 ? 's' : ''));
+  aToast(msg);
   setTimeout(() => location.reload(), 1000);
  } else {
   aToast(d.message || 'Refresh failed', 'error');
