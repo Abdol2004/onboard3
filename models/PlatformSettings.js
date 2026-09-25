@@ -9,11 +9,11 @@ const platformSettingsSchema = new mongoose.Schema({
   withdrawalMin:    { type: Number, default: 5 },
 
   // Fee tiers: { upTo: null means "everything above prev tier" }
-  feeTierSmall:     { type: Number, default: 1 },    // amount < 10
+  feeTierSmall:     { type: Number, default: 0.5 },  // amount < 10
   feeTierSmallUpTo: { type: Number, default: 10 },
-  feeTierMedium:    { type: Number, default: 2 },    // amount 10-50
-  feeTierMediumUpTo:{ type: Number, default: 50 },
-  feeTierLarge:     { type: Number, default: 3.5 },  // amount > 50
+  feeTierMedium:    { type: Number, default: 1 },    // amount 10-100
+  feeTierMediumUpTo:{ type: Number, default: 100 },
+  feeTierLarge:     { type: Number, default: 2 },    // amount > 100
 
   updatedAt: { type: Date, default: Date.now }
 }, { collection: 'platform_settings' });
