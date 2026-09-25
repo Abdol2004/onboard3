@@ -1953,28 +1953,28 @@ router.post('/stacks-wallets/refresh', isAdminPage, async (req, res) => {
     const users  = await User.find(query).select('stacksWalletIndex stacksAddress').lean();
 
     const stxPrice = await stacksWallet.getSTXPrice();
-    let updated = 0;
-    const BATCH = 5; // run 5 parallel requests at a time to avoid rate limiting
+    const checkedAt = new Date();
+    const wallets = []; // return updated data to client for live table update
+    const BATCH = 5;
 
     for (let i = 0; i < users.length; i += BATCH) {
       const batch = users.slice(i, i + BATCH);
       await Promise.all(batch.map(async (u) => {
         if (!u.stacksAddress) return;
         const microSTX = await stacksWallet.getBalance(u.stacksAddress);
-        if (microSTX < 0) return; // failed even after retries
+        if (microSTX < 0) return;
         const usd = Math.round((microSTX / 1_000_000) * stxPrice * 100) / 100;
         await User.findByIdAndUpdate(u._id, {
           stacksBalance:    microSTX,
           stacksBalanceUSD: usd,
-          stacksCheckedAt:  new Date()
+          stacksCheckedAt:  checkedAt
         });
-        updated++;
+        wallets.push({ id: u._id.toString(), microSTX, stx: microSTX / 1_000_000, usd, checkedAt });
       }));
-      // small pause between batches to avoid Hiro API rate limits
       if (i + BATCH < users.length) await new Promise(r => setTimeout(r, 300));
     }
 
-    res.json({ success: true, updated, total: users.length });
+    res.json({ success: true, updated: wallets.length, total: users.length, wallets, stxPrice });
   } catch (err) {
     res.json({ success: false, message: err.message });
   }
