@@ -320,7 +320,7 @@
  <p style="font-size:.78rem;margin:.3rem 0 0;opacity:.7">Complete quests or earn rewards to see your history here</p>
  </div>
  <% } else { %>
- <div style="overflow-x:auto">
+ <div style="max-height:420px;overflow-y:auto;overflow-x:hidden">
  <% activityFeed.forEach(function(ev, i) {
  const isLast = i === activityFeed.length - 1;
  const cfg = {
@@ -357,18 +357,17 @@
  <i class="fas <%=cfg.icon%>" style="font-size:.85rem;color:<%=cfg.color%>"></i>
  </div>
  <div style="flex:1;min-width:0">
- <p style="font-size:.875rem;font-weight:700;color:var(--text);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><%=ev.label%></p>
- <p style="font-size:.72rem;color:var(--text-3);margin:.15rem 0 0">
+ <p style="font-size:.875rem;font-weight:700;color:var(--text);margin:0"><%=ev.label%></p>
+ <% if (ev.sublabel) { %><p style="font-size:.72rem;color:var(--text-3);margin:.1rem 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><%=ev.sublabel%></p><% } %>
+ <p style="font-size:.72rem;color:var(--text-3);margin:.1rem 0 0">
  <%=timeAgo%>
  <% if (ev.rank) { %> · <span style="color:<%=cfg.color%>">#<%=ev.rank%> place</span><% } %>
  </p>
  </div>
  <div style="text-align:right;flex-shrink:0">
- <% if (ev.amount !== null && ev.amount !== undefined) { %>
+ <% if (ev.amount !== null && ev.amount !== undefined && ev.currency) { %>
  <p style="font-size:.9rem;font-weight:800;margin:0;color:<%=ev.currency==='XP'?'var(--green)':ev.kind==='withdrawal'?'#60a5fa':'#fbbf24'%>">
- <%=ev.kind==='withdrawal'?'−':'+' %>
- <%=ev.currency==='USDC'?'$':'+'%><%=typeof ev.amount==='number'?ev.amount.toLocaleString():ev.amount%>
- <span style="font-size:.65rem;font-weight:700;opacity:.8"><%=ev.currency%></span>
+ <%=ev.kind==='withdrawal'?'−':'+' %><%=ev.currency==='USDC'?'$':''%><%=typeof ev.amount==='number'?ev.amount.toLocaleString():ev.amount%><% if(ev.currency!=='USDC'){ %> <span style="font-size:.65rem;font-weight:700;opacity:.8"><%=ev.currency%></span><% } %>
  </p>
  <% } %>
  <% if (statusBadge.label) { %>
