@@ -1949,7 +1949,7 @@ router.post('/stacks-wallets/refresh', isAdminPage, async (req, res) => {
   try {
     const User   = require('../models/User');
     const { userId } = req.body;
-    const query  = userId ? { _id: userId } : { stacksAddress: { $exists: true, $ne: null, $ne: '' } };
+    const query  = userId ? { _id: userId } : { stacksWalletIndex: { $ne: null } };
     const users  = await User.find(query).select('stacksWalletIndex stacksAddress').lean();
 
     const stxPrice = await stacksWallet.getSTXPrice();
