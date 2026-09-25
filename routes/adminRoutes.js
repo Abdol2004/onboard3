@@ -11,7 +11,7 @@ const QuestApplication = require('../models/QuestApplication');
 // Role-based permission map
 const ROLE_PERMISSIONS = {
   super_admin:  '*',
-  operations:   ['overview','analytics','users','quests','bounties','events','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','business-developers','businesses','partners','pathway-content'],
+  operations:   ['overview','analytics','users','quests','bounties','events','applications','quest-applications','pathway-applications','support','ambassadors','projects','banned','partners','pathway-content'],
   community:    ['overview','analytics','users','applications','quest-applications','pathway-applications','support','ambassadors','banned','leaderboard'],
   partnerships: ['overview','analytics','quests','bounties','projects','partners','business-developers','businesses','fund-requests','commission-settings'],
   finance:      ['overview','analytics','withdrawals','fund-requests','wallet-addresses'],
