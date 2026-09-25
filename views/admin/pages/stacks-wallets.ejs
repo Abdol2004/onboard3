@@ -41,8 +41,8 @@
  <p>Custodial STX wallets generated for ZeroAuthDAO bounty submissions — sweep rewards to your main wallet</p>
  </div>
  <div style="display:flex;gap:.75rem;flex-wrap:wrap">
- <button onclick="refreshAll()" class="a-btn" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:#60a5fa">
- <i class="fas fa-rotate"></i> Refresh All Balances
+ <button id="refreshAllBtn" onclick="refreshAll(this)" class="a-btn a-btn-primary" style="min-width:180px">
+ <i class="fas fa-rotate"></i> Refresh All Wallets
  </button>
  </div>
  </div>
@@ -205,15 +205,28 @@ function refreshOne(userId, btn) {
  });
 }
 
-function refreshAll() {
- aToast('Refreshing all balances — this may take a moment...');
+function refreshAll(btn) {
+ if (!btn) btn = document.getElementById('refreshAllBtn');
+ const orig = btn.innerHTML;
+ btn.disabled = true;
+ btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing…';
  fetch('/admin/stacks-wallets/refresh', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
  body: JSON.stringify({})
  }).then(r => r.json()).then(d => {
- if (d.success) { aToast('Updated ' + d.updated + ' wallets'); setTimeout(() => location.reload(), 1000); }
- else aToast(d.message || 'Failed', 'error');
+ if (d.success) {
+  aToast('✓ Updated ' + d.updated + ' wallet' + (d.updated !== 1 ? 's' : ''));
+  setTimeout(() => location.reload(), 1000);
+ } else {
+  aToast(d.message || 'Refresh failed', 'error');
+  btn.disabled = false;
+  btn.innerHTML = orig;
+ }
+ }).catch(() => {
+ aToast('Network error', 'error');
+ btn.disabled = false;
+ btn.innerHTML = orig;
  });
 }
 
