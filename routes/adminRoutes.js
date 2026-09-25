@@ -18,8 +18,8 @@ const ROLE_PERMISSIONS = {
 };
 
 function getAdminRole(user) {
-  if (!user || !user.isAdmin) return null;
-  return user.adminRole || 'super_admin';
+  if (!user || !user.isAdmin || !user.adminRole) return null;
+  return user.adminRole;
 }
 
 function canAccess(role, section) {
