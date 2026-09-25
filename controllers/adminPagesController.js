@@ -106,16 +106,18 @@ exports.eventsPage = async (req, res) => {
 // ── GET /admin/withdrawals ────────────────────────────────────────────────────
 exports.withdrawalsPage = async (req, res) => {
     try {
+        const PlatformSettings = require('../models/PlatformSettings');
         const { status = 'pending' } = req.query;
         const query = status !== 'all' ? { type:'withdrawal', status } : { type:'withdrawal' };
-        const [withdrawals, pendingAgg, completedCount, allAgg] = await Promise.all([
+        const [withdrawals, pendingAgg, completedCount, allAgg, settings] = await Promise.all([
             Transaction.find(query).populate('user','username walletAddress').sort({ createdAt:-1 }).limit(100).lean(),
             Transaction.aggregate([{ $match:{ type:'withdrawal', status:'pending' } }, { $group:{ _id:null, total:{ $sum:'$amount' } } }]),
             Transaction.countDocuments({ type:'withdrawal', status:'completed' }),
-            Transaction.aggregate([{ $match:{ type:'withdrawal', status:'completed' } }, { $group:{ _id:null, total:{ $sum:'$amount' } } }])
+            Transaction.aggregate([{ $match:{ type:'withdrawal', status:'completed' } }, { $group:{ _id:null, total:{ $sum:'$amount' } } }]),
+            PlatformSettings.get()
         ]);
         res.render('admin/pages/withdrawals', { admin: req.user,
-            user: req.user, withdrawals, statusFilter: status,
+            user: req.user, withdrawals, statusFilter: status, platformSettings: settings,
             stats: {
                 pending: await Transaction.countDocuments({ type:'withdrawal', status:'pending' }),
                 completed: completedCount,

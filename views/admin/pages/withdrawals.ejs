@@ -37,12 +37,19 @@
  <div class="a-card">
  <div class="a-table-wrap">
  <table class="at">
- <thead><tr><th>User</th><th>Amount</th><th>Wallet</th><th>Status</th><th>Requested</th><th>Actions</th></tr></thead>
+ <thead><tr><th>User</th><th>Requested</th><th>You Send</th><th>Wallet</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
  <tbody>
- <% withdrawals.forEach(w => { %>
+ <% withdrawals.forEach(w => {
+   const _gross = w.amount || 0;
+   const _fee = _gross < platformSettings.feeTierSmallUpTo ? platformSettings.feeTierSmall
+              : _gross <= platformSettings.feeTierMediumUpTo ? platformSettings.feeTierMedium
+              : platformSettings.feeTierLarge;
+   const _net = Math.max(0, _gross - _fee);
+ %>
  <tr>
  <td style="font-weight:700;color:var(--text)"><%= w.user?.username || 'Unknown' %></td>
- <td style="font-size:1rem;font-weight:900;color:var(--amber)">$<%= (w.amount||0).toFixed(2) %></td>
+ <td style="font-size:.875rem;color:var(--text-3)">$<%= _gross.toFixed(2) %></td>
+ <td style="font-size:1rem;font-weight:900;color:var(--amber)">$<%= _net.toFixed(2) %> <span style="font-size:.7rem;font-weight:600;color:var(--text-3)">(-$<%= _fee.toFixed(2) %>)</span></td>
  <td style="font-family:monospace;font-size:.78rem;color:var(--text-3)"><%= w.walletAddress ? w.walletAddress.substring(0,16)+'...' : (w.user?.walletAddress ? w.user.walletAddress.substring(0,16)+'...' : '—') %></td>
  <td>
  <span class="a-badge <%= w.status==='completed'?'a-badge-success':w.status==='pending'?'a-badge-warning':'a-badge-danger' %>">
@@ -67,7 +74,7 @@
  </tr>
  <% }) %>
  <% if (!withdrawals.length) { %>
- <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--text-3)"><i class="fas fa-wallet" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No withdrawals found</td></tr>
+ <tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-3)"><i class="fas fa-wallet" style="display:block;font-size:1.5rem;margin-bottom:.5rem"></i>No withdrawals found</td></tr>
  <% } %>
  </tbody>
  </table>
