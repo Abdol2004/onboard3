@@ -138,26 +138,33 @@ exports.getDashboard = async (req, res) => {
         status: 'completed',
         date: z.createdAt,
       })),
-      // Legacy activity stored directly on user (covers pre-UserQuestProgress era)
+      // Legacy activity stored directly on user (covers pre-UserQuestProgress era).
+      // Withdrawals are excluded here — they're covered by Transaction records above.
       ...(user.recentActivity || [])
-        .filter(a => a.action && !a.action.includes('Logged in') && !a.action.toLowerCase().startsWith('started quest'))
+        .filter(a => {
+          if (!a.action || !a.timestamp) return false;
+          const lc = a.action.toLowerCase();
+          if (lc.includes('logged in')) return false;
+          if (lc.startsWith('started quest')) return false;
+          if (lc.includes('withdrawal') || lc.includes('withdraw')) return false;
+          if (lc.includes('connected wallet') || lc.includes('wallet address')) return false;
+          return true;
+        })
         .map(a => {
           const clean      = a.action.replace(/^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}\s]+/u, '').trim();
           const xpMatch    = a.action.match(/\+(\d+(?:,\d+)?)\s*XP/i);
           const usdcMatch  = a.action.match(/\+(\d+(?:\.\d+)?)\s*USDC/i);
           const isQuest    = /completed quest:/i.test(a.action);
-          const isWin      = /won #\d+ in quest/i.test(a.action);
+          const isWin      = /won.*quest|quest.*won/i.test(a.action);
           const isReferral = /referral/i.test(a.action);
           const label = isQuest
             ? clean.replace(/^completed quest:\s*/i, '').replace(/\s*\(\+[\d,]+ XP.*\)$/i, '').trim()
-            : isWin
-            ? clean
-            : a.action;
+            : clean;
           const xpAmt  = xpMatch  ? parseInt(xpMatch[1].replace(',', ''))  : null;
           const usdAmt = usdcMatch ? parseFloat(usdcMatch[1]) : null;
           return {
             kind:     isQuest || isWin ? 'quest_completed' : isReferral ? 'referral_bonus' : 'activity',
-            label,
+            label:    label || a.action,
             amount:   usdAmt || xpAmt || null,
             currency: usdAmt ? 'USDC' : xpAmt ? 'XP' : null,
             status:   'completed',
