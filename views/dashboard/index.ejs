@@ -358,7 +358,7 @@
  </div>
  <div style="flex:1;min-width:0">
  <p style="font-size:.875rem;font-weight:700;color:var(--text);margin:0"><%=ev.label%></p>
- <% if (ev.sublabel) { %><p style="font-size:.72rem;color:var(--text-3);margin:.1rem 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><%=ev.sublabel%></p><% } %>
+ <% if (ev.sublabel) { %><p style="font-size:.72rem;color:var(--text-3);margin:.1rem 0 0;line-height:1.4"><%=ev.sublabel%></p><% } %>
  <p style="font-size:.72rem;color:var(--text-3);margin:.1rem 0 0">
  <%=timeAgo%>
  <% if (ev.rank) { %> · <span style="color:<%=cfg.color%>">#<%=ev.rank%> place</span><% } %>

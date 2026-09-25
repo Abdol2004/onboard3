@@ -119,20 +119,31 @@ exports.getDashboard = async (req, res) => {
         status: 'completed',
         date: q.completedAt || q.updatedAt,
       })),
-      ...recentBountyWins.map(b => ({
-        kind: 'bounty_won',
-        label: 'Bounty champion',
-        sublabel: b.bountyId?.title || null,
-        amount: b.amountWon || null,
-        currency: b.amountWon ? 'USDC' : null,
-        rank: b.rank,
-        status: 'completed',
-        date: b.createdAt,
-      })),
+      ...recentBountyWins.map(b => {
+        const rankLabel = b.rank === 1 ? '1st' : b.rank === 2 ? '2nd' : b.rank === 3 ? '3rd' : b.rank ? `${b.rank}th` : null;
+        const title = b.bountyId?.title || null;
+        const desc = rankLabel && title
+          ? `You were selected as a ${rankLabel} place winner in "${title}"`
+          : rankLabel
+          ? `You were selected as a ${rankLabel} place winner`
+          : title
+          ? `You were selected as a winner in "${title}"`
+          : 'You have been selected as a bounty winner';
+        return {
+          kind: 'bounty_won',
+          label: 'Bounty champion',
+          sublabel: desc,
+          amount: b.amountWon || null,
+          currency: b.amountWon ? 'USDC' : null,
+          rank: b.rank,
+          status: 'completed',
+          date: b.createdAt,
+        };
+      }),
       ...recentZadWins.map(z => ({
         kind: 'bounty_won',
         label: 'Bounty champion',
-        sublabel: null,
+        sublabel: z.bountyName ? `You were selected as a winner in "${z.bountyName}"` : 'You have been selected as a bounty winner',
         amount: z.amountWon || null,
         currency: z.amountWon ? (z.tokenSymbol || 'STX') : null,
         status: 'completed',
