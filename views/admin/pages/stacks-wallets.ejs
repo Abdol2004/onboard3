@@ -185,102 +185,164 @@
 </div>
 
 <script>
+var _pollTimer = null;
+
 function copyAddr(addr) {
  navigator.clipboard.writeText(addr).then(() => aToast('Address copied'));
 }
 
 function refreshOne(userId, btn) {
- const orig = btn.innerHTML;
+ var orig = btn.innerHTML;
  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
  btn.disabled = true;
  fetch('/admin/stacks-wallets/refresh', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ userId })
- }).then(r => r.json()).then(d => {
- btn.innerHTML = orig;
- btn.disabled = false;
- if (d.success) { aToast('Balance updated'); setTimeout(() => location.reload(), 800); }
- else aToast(d.message || 'Failed', 'error');
- });
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ userId })
+ }).then(function(r) { return r.json(); }).then(function(d) {
+  btn.innerHTML = orig;
+  btn.disabled = false;
+  if (d.success) {
+   applyJobResults(d);
+   aToast('Balance updated');
+  } else {
+   aToast(d.message || 'Failed', 'error');
+  }
+ }).catch(function() { btn.innerHTML = orig; btn.disabled = false; aToast('Network error', 'error'); });
 }
 
 function refreshAll(btn) {
  if (!btn) btn = document.getElementById('refreshAllBtn');
- const orig = btn.innerHTML;
- btn.disabled = true;
- btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing…';
+ var origHtml = '<i class="fas fa-rotate"></i> Refresh All Wallets';
  fetch('/admin/stacks-wallets/refresh', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({})
- }).then(r => r.json()).then(d => {
-  btn.disabled = false;
-  btn.innerHTML = orig;
-  if (!d.success) { aToast(d.message || 'Refresh failed', 'error'); return; }
+ }).then(function(r) { return r.json(); }).then(function(d) {
+  if (!d.success) { aToast(d.message || 'Failed to start', 'error'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing…';
+  if (d.alreadyRunning) {
+   aToast('Refresh is already running in background');
+  } else {
+   aToast('Refresh started — running in background (8s per wallet)');
+  }
+  showProgressBanner();
+  startPolling(btn, origHtml);
+ }).catch(function() { aToast('Network error', 'error'); });
+}
 
-  // Apply each updated wallet live to the table
-  var totalSTX = 0, totalUSD = 0;
-  (d.wallets || []).forEach(function(w) {
-   var row = document.getElementById('row-' + w.id);
-   if (!row) return;
-   var hasBalance = w.microSTX > 0;
-   var cls = hasBalance ? 'sw-bal' : 'sw-zero';
-   var stxCell = row.cells[3]; // STX Balance column
-   var usdCell = row.cells[4]; // USD Value column
-   var chkCell = row.cells[5]; // Last Checked column
-   var sweepBtn = row.querySelector('.sw-btn-sweep');
-   if (stxCell) stxCell.innerHTML = '<span class="' + cls + '">' + w.stx.toFixed(6) + ' STX</span>';
-   if (usdCell) usdCell.innerHTML = '<span class="' + cls + '">$' + w.usd.toFixed(2) + '</span>';
-   if (chkCell) chkCell.textContent = new Date(w.checkedAt).toLocaleString();
-   if (sweepBtn) { sweepBtn.disabled = !hasBalance; sweepBtn.classList.toggle('disabled', !hasBalance); }
-   totalSTX += w.stx;
-   totalUSD += w.usd;
-  });
+function showProgressBanner() {
+ if (document.getElementById('_swProg')) return;
+ var el = document.createElement('div');
+ el.id = '_swProg';
+ el.style.cssText = 'position:fixed;bottom:1.25rem;right:1.25rem;background:#111827;border:1px solid var(--border);border-radius:14px;padding:1rem 1.25rem;min-width:290px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.6)';
+ el.innerHTML = '<div style="font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:.5rem">Background Refresh</div>'
+  + '<div id="_swProgTxt" style="font-size:.875rem;font-weight:700;color:var(--text);margin-bottom:.5rem">Starting…</div>'
+  + '<div style="background:rgba(255,255,255,.07);border-radius:6px;height:8px;overflow:hidden">'
+  + '<div id="_swProgBar" style="height:100%;background:linear-gradient(90deg,#5EC213,#84e040);border-radius:6px;transition:width .5s ease;width:0%"></div></div>'
+  + '<div id="_swProgSub" style="font-size:.75rem;color:var(--text-3);margin-top:.375rem">&nbsp;</div>';
+ document.body.appendChild(el);
+}
 
-  // Mark failed wallets in Last Checked column
-  (d.errors || []).forEach(function(e) {
-   var row = document.getElementById('row-' + e.id);
-   if (!row) return;
-   var chkCell = row.cells[5];
-   if (chkCell) chkCell.innerHTML = '<span style="color:#f87171;font-size:.75rem"><i class="fas fa-triangle-exclamation"></i> API failed</span>';
-  });
+function hideProgressBanner() {
+ var el = document.getElementById('_swProg');
+ if (el) { el.style.opacity = '0'; el.style.transition = 'opacity .4s ease'; setTimeout(function() { el.remove(); }, 450); }
+}
 
-  // Update summary stats
-  var stxEl = document.getElementById('statSTX');
-  var usdEl = document.getElementById('statUSD');
-  if (stxEl) stxEl.textContent = totalSTX.toFixed(2) + ' STX';
-  if (usdEl) usdEl.textContent = '$' + totalUSD.toFixed(2);
+function updateProgressBanner(d) {
+ var pct = d.total > 0 ? Math.round((d.done / d.total) * 100) : 0;
+ var bar = document.getElementById('_swProgBar');
+ var txt = document.getElementById('_swProgTxt');
+ var sub = document.getElementById('_swProgSub');
+ if (bar) bar.style.width = pct + '%';
+ if (txt) txt.textContent = 'Checking ' + d.done + ' / ' + (d.total || '?') + ' wallets (' + pct + '%)';
+ if (sub) {
+  var parts = [];
+  if (d.updated) parts.push('<span style="color:#5EC213">' + d.updated + ' updated</span>');
+  if (d.failed)  parts.push('<span style="color:#f87171">' + d.failed + ' failed</span>');
+  if (d.stxPrice) parts.push('STX $' + Number(d.stxPrice).toFixed(4));
+  sub.innerHTML = parts.join(' · ') || '&nbsp;';
+ }
+}
 
-  var failedCount = d.failed || (d.total - d.updated);
-  var msg = d.updated + ' / ' + d.total + ' wallets refreshed' + (failedCount > 0 ? ' (' + failedCount + ' failed — check server logs)' : '');
-  aToast(msg, failedCount > 0 ? 'error' : 'success');
- }).catch(function() {
-  btn.disabled = false;
-  btn.innerHTML = orig;
-  aToast('Network error', 'error');
+function applyJobResults(d) {
+ var totalSTX = 0, totalUSD = 0;
+ (d.wallets || []).forEach(function(w) {
+  var row = document.getElementById('row-' + w.id);
+  if (!row) return;
+  var hasBalance = w.microSTX > 0;
+  var cls = hasBalance ? 'sw-bal' : 'sw-zero';
+  var stxCell = row.cells[3], usdCell = row.cells[4], chkCell = row.cells[5];
+  var sweepBtn = row.querySelector('.sw-btn-sweep');
+  if (stxCell) stxCell.innerHTML = '<span class="' + cls + '">' + Number(w.stx).toFixed(6) + ' STX</span>';
+  if (usdCell) usdCell.innerHTML = '<span class="' + cls + '">$' + Number(w.usd).toFixed(2) + '</span>';
+  if (chkCell) chkCell.textContent = new Date(w.checkedAt).toLocaleString();
+  if (sweepBtn) { sweepBtn.disabled = !hasBalance; sweepBtn.classList.toggle('disabled', !hasBalance); }
+  totalSTX += Number(w.stx); totalUSD += Number(w.usd);
  });
+ (d.errors || []).forEach(function(e) {
+  var row = document.getElementById('row-' + e.id);
+  if (!row) return;
+  var chkCell = row.cells[5];
+  if (chkCell) chkCell.innerHTML = '<span style="color:#f87171;font-size:.75rem"><i class="fas fa-triangle-exclamation"></i> API failed</span>';
+ });
+ var stxEl = document.getElementById('statSTX'), usdEl = document.getElementById('statUSD');
+ if (stxEl && totalSTX > 0) stxEl.textContent = totalSTX.toFixed(2) + ' STX';
+ if (usdEl && totalUSD > 0) usdEl.textContent = '$' + totalUSD.toFixed(2);
+}
+
+function startPolling(btn, origHtml) {
+ if (_pollTimer) clearInterval(_pollTimer);
+ _pollTimer = setInterval(function() {
+  fetch('/admin/stacks-wallets/refresh-status')
+   .then(function(r) { return r.json(); })
+   .then(function(d) {
+    if (!d.success) return;
+    updateProgressBanner(d);
+    applyJobResults(d);
+    if (!d.running) {
+     clearInterval(_pollTimer); _pollTimer = null;
+     if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+     setTimeout(hideProgressBanner, 3000);
+     var fc = d.failed || 0;
+     aToast((d.updated || 0) + ' / ' + (d.total || 0) + ' wallets refreshed' + (fc > 0 ? ' (' + fc + ' failed)' : ''), fc > 0 ? 'error' : 'success');
+    }
+   }).catch(function() { /* ignore transient errors */ });
+ }, 3000);
 }
 
 function sweep(userId, username, btn) {
  if (!confirm('Sweep ' + username + "'s wallet to your main Stacks address?\n\n• All STX will be transferred\n• User receives 90% as USDC on their balance\n• 10% platform fee kept")) return;
- const orig = btn.innerHTML;
+ var orig = btn.innerHTML;
  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sweeping...';
  btn.disabled = true;
  fetch('/admin/stacks-wallets/sweep/' + userId, {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' }
- }).then(r => r.json()).then(d => {
- btn.innerHTML = orig;
- if (d.success) {
- aToast(username + ' swept — $' + d.userCredit.toFixed(2) + ' USDC credited (tx: ' + d.txId.slice(0,12) + '...)');
- setTimeout(() => location.reload(), 1500);
- } else {
- btn.disabled = false;
- aToast(d.message || 'Sweep failed', 'error');
- }
+  method: 'POST', headers: { 'Content-Type': 'application/json' }
+ }).then(function(r) { return r.json(); }).then(function(d) {
+  btn.innerHTML = orig;
+  if (d.success) {
+   aToast(username + ' swept — $' + d.userCredit.toFixed(2) + ' USDC credited (tx: ' + d.txId.slice(0,12) + '...)');
+   setTimeout(function() { location.reload(); }, 1500);
+  } else {
+   btn.disabled = false;
+   aToast(d.message || 'Sweep failed', 'error');
+  }
  });
 }
+
+// If a job is already running when the page loads, resume the progress banner
+document.addEventListener('DOMContentLoaded', function() {
+ fetch('/admin/stacks-wallets/refresh-status')
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+   if (!d.running) return;
+   var btn = document.getElementById('refreshAllBtn');
+   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing…'; }
+   applyJobResults(d);
+   showProgressBanner();
+   updateProgressBanner(d);
+   startPolling(btn, '<i class="fas fa-rotate"></i> Refresh All Wallets');
+  }).catch(function() {});
+});
 </script>
 </body>
 </html>

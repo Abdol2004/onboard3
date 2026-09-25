@@ -1919,6 +1919,53 @@ router.post('/support/:id/resolve', isAdminPage, async (req, res) => {
 // ── Stacks Wallets ─────────────────────────────────────────────────────────────
 const stacksWallet = require('../utils/stacksWallet');
 
+// Background refresh job state — persists across requests until server restarts
+let _refreshJob = { running: false, total: 0, done: 0, updated: 0, failed: 0, startedAt: null, finishedAt: null, wallets: [], errors: [], stxPrice: 0 };
+
+async function runRefreshJob() {
+  const User = require('../models/User');
+  try {
+    const users = await User.find({ stacksWalletIndex: { $ne: null } })
+      .sort({ stacksBalance: -1 })
+      .select('stacksWalletIndex stacksAddress')
+      .lean();
+    _refreshJob.total    = users.length;
+    _refreshJob.stxPrice = await stacksWallet.getSTXPrice();
+
+    for (let i = 0; i < users.length; i++) {
+      const u = users[i];
+      if (!u.stacksAddress) {
+        _refreshJob.failed++;
+        _refreshJob.errors.push({ id: u._id.toString(), address: '' });
+        _refreshJob.done = i + 1;
+        continue;
+      }
+      const checkedAt = new Date();
+      const microSTX  = await stacksWallet.getBalance(u.stacksAddress, 1);
+      if (microSTX < 0) {
+        _refreshJob.failed++;
+        _refreshJob.errors.push({ id: u._id.toString(), address: u.stacksAddress });
+        console.error(`[refresh-job] FAILED (${i+1}/${users.length}): ${u.stacksAddress}`);
+      } else {
+        const usd = Math.round((microSTX / 1_000_000) * _refreshJob.stxPrice * 100) / 100;
+        await User.findByIdAndUpdate(u._id, { stacksBalance: microSTX, stacksBalanceUSD: usd, stacksCheckedAt: checkedAt });
+        _refreshJob.updated++;
+        _refreshJob.wallets.push({ id: u._id.toString(), microSTX, stx: microSTX / 1_000_000, usd, checkedAt });
+        console.log(`[refresh-job] OK (${i+1}/${users.length}): ${u.stacksAddress.slice(0,12)}... = ${(microSTX/1e6).toFixed(4)} STX`);
+      }
+      _refreshJob.done = i + 1;
+      // 8-second gap between wallets → ~7.5 req/min, safely under Hiro's 10 req/min free limit
+      if (i < users.length - 1) await new Promise(r => setTimeout(r, 8000));
+    }
+  } catch (err) {
+    console.error('[refresh-job] Fatal:', err.message);
+  } finally {
+    _refreshJob.running    = false;
+    _refreshJob.finishedAt = new Date();
+    console.log(`[refresh-job] Done: ${_refreshJob.updated}/${_refreshJob.total} updated, ${_refreshJob.failed} failed`);
+  }
+}
+
 
 router.get('/stacks-wallets', isAdminPage, async (req, res) => {
   if (req.adminRole !== 'super_admin') return res.status(403).send('Forbidden');
@@ -1943,46 +1990,39 @@ router.get('/stacks-wallets', isAdminPage, async (req, res) => {
   }
 });
 
-// Refresh balance for all users (or single if userId provided)
+// GET refresh status — frontend polls this while job runs
+router.get('/stacks-wallets/refresh-status', isAdminPage, (req, res) => {
+  if (req.adminRole !== 'super_admin') return res.json({ success: false });
+  res.json({ success: true, ..._refreshJob });
+});
+
+// Refresh balance — single wallet (sync) or all wallets (background job)
 router.post('/stacks-wallets/refresh', isAdminPage, async (req, res) => {
   if (req.adminRole !== 'super_admin') return res.json({ success: false });
   try {
-    const User   = require('../models/User');
+    const User = require('../models/User');
     const { userId } = req.body;
-    const query  = userId ? { _id: userId } : { stacksWalletIndex: { $ne: null } };
-    const users  = await User.find(query).select('stacksWalletIndex stacksAddress').lean();
 
-    const stxPrice = await stacksWallet.getSTXPrice();
-    const wallets = [];  // successful updates
-    const errors  = [];  // failed wallets (for DOM update)
-
-    // Sequential: 1 at a time, 1.2s gap → ~50 req/min (Hiro free-tier limit)
-    for (let i = 0; i < users.length; i++) {
-      const u = users[i];
-      if (!u.stacksAddress) {
-        errors.push({ id: u._id.toString(), address: u.stacksAddress || '', error: 'no address' });
-        continue;
-      }
+    // ── Single wallet: synchronous, returns result immediately ──
+    if (userId) {
+      const user = await User.findById(userId).select('stacksAddress').lean();
+      if (!user?.stacksAddress) return res.json({ success: false, message: 'Wallet not found' });
+      const stxPrice = await stacksWallet.getSTXPrice();
+      const microSTX = await stacksWallet.getBalance(user.stacksAddress, 2);
+      if (microSTX < 0) return res.json({ success: false, message: 'Hiro API failed — try again shortly' });
+      const usd = Math.round((microSTX / 1_000_000) * stxPrice * 100) / 100;
       const checkedAt = new Date();
-      // Use 1 retry for bulk (fail fast — don't hold up the whole queue)
-      const microSTX = await stacksWallet.getBalance(u.stacksAddress, 1);
-      if (microSTX < 0) {
-        errors.push({ id: u._id.toString(), address: u.stacksAddress, error: 'api_failed', checkedAt });
-        console.error(`[stacks-refresh] FAILED: ${u.stacksAddress} (user ${u._id})`);
-      } else {
-        const usd = Math.round((microSTX / 1_000_000) * stxPrice * 100) / 100;
-        await User.findByIdAndUpdate(u._id, {
-          stacksBalance:    microSTX,
-          stacksBalanceUSD: usd,
-          stacksCheckedAt:  checkedAt
-        });
-        wallets.push({ id: u._id.toString(), microSTX, stx: microSTX / 1_000_000, usd, checkedAt });
-      }
-      // 1200ms between requests stays under 50 req/min; skip pause after last wallet
-      if (i < users.length - 1) await new Promise(r => setTimeout(r, 1200));
+      await User.findByIdAndUpdate(userId, { stacksBalance: microSTX, stacksBalanceUSD: usd, stacksCheckedAt: checkedAt });
+      return res.json({ success: true, wallets: [{ id: userId, microSTX, stx: microSTX / 1_000_000, usd, checkedAt }], stxPrice });
     }
 
-    res.json({ success: true, updated: wallets.length, failed: errors.length, total: users.length, wallets, errors, stxPrice });
+    // ── Bulk: start background job, return immediately ──
+    if (_refreshJob.running) {
+      return res.json({ success: true, alreadyRunning: true });
+    }
+    _refreshJob = { running: true, total: 0, done: 0, updated: 0, failed: 0, startedAt: new Date(), finishedAt: null, wallets: [], errors: [], stxPrice: 0 };
+    runRefreshJob().catch(e => console.error('[refresh-job] Uncaught:', e.message));
+    res.json({ success: true, started: true });
   } catch (err) {
     res.json({ success: false, message: err.message });
   }
