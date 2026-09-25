@@ -276,7 +276,8 @@
  <% transactions.forEach((tx, i) => {
  const isOut = tx.type === 'withdrawal';
  const typeLabel = tx.type.replace(/_/g, ' ');
- const detail = tx.questTitle || tx.notes || null;
+ const rawDetail = tx.questTitle || tx.notes || null;
+ const detail = rawDetail ? rawDetail.replace(/\s*\|?\s*Fee:[^|]*/gi, '').replace(/\s*\|?\s*You receive:[^|]*/gi, '').trim().replace(/\|$/, '').trim() || null : null;
  %>
  <div class="tx-item" style="animation-delay:<%= i * 40 %>ms">
  <div class="tx-icon <%= isOut ? 'tx-icon--out' : 'tx-icon--in' %>">

@@ -122,7 +122,7 @@ exports.requestWithdrawal = async (req, res) => {
       amount: withdrawAmount,
       status: 'pending',
       walletAddress: user.walletAddress,
-      notes: `Fee: $${fee} | You receive: $${youReceive.toFixed(2)}`
+      notes: null
     });
 
     await transaction.save();
