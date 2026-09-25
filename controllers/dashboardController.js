@@ -132,9 +132,9 @@ exports.getDashboard = async (req, res) => {
       ...recentZadWins.map(z => ({
         kind: 'bounty_won',
         label: 'Bounty reward',
-        sublabel: z.bountyName || null,
-        amount: null,
-        currency: null,
+        sublabel: null,
+        amount: z.amountWon || null,
+        currency: z.amountWon ? (z.tokenSymbol || 'STX') : null,
         status: 'completed',
         date: z.createdAt,
       })),

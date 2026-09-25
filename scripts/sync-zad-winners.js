@@ -136,8 +136,13 @@ async function run() {
         userId: onboardUser._id
       });
 
+      // Calculate per-winner share from total pool
+      const perWinner = bounty.totalPayment && rawWinners.length
+        ? Math.round((bounty.totalPayment / rawWinners.length) * 100) / 100
+        : null;
+      const tokenSym = bounty.token?.symbol || null;
+
       if (!sub) {
-        // Winner submitted directly on ZAD (no ONBOARD3 submission record) — create one
         sub = new ThirdPartySubmission({
           platform:         'zeroauthoritydao',
           externalBountyId: String(bounty.id),
@@ -146,19 +151,32 @@ async function run() {
           summary:          w.summary || w.submission?.summary || `Won ${rankLabel(rank)} place`,
           submissionUrl:    w.submissionUrl || w.submission?.submissionUrl || null,
           status:           'winner',
+          amountWon:        perWinner,
+          tokenSymbol:      tokenSym,
         });
         await sub.save();
-        console.log(`    Created ThirdPartySubmission (winner)`);
+        console.log(`    Created ThirdPartySubmission (winner, ${perWinner} ${tokenSym})`);
         totalUpdated++;
       } else if (sub.status !== 'winner') {
-        sub.status     = 'winner';
-        sub.bountyName = sub.bountyName || bounty.name || String(bounty.id);
+        sub.status      = 'winner';
+        sub.bountyName  = sub.bountyName || bounty.name || String(bounty.id);
+        sub.amountWon   = sub.amountWon  || perWinner;
+        sub.tokenSymbol = sub.tokenSymbol || tokenSym;
         await sub.save();
-        console.log(`    Updated ThirdPartySubmission → winner`);
+        console.log(`    Updated ThirdPartySubmission → winner (${perWinner} ${tokenSym})`);
         totalUpdated++;
       } else {
-        console.log(`    Already marked as winner — skipping notification`);
-        continue; // already synced, don't re-notify
+        // Already winner — update amounts if missing
+        if (!sub.amountWon && perWinner) {
+          sub.amountWon   = perWinner;
+          sub.tokenSymbol = sub.tokenSymbol || tokenSym;
+          await sub.save();
+          console.log(`    Updated amounts: ${perWinner} ${tokenSym}`);
+          totalUpdated++;
+        } else {
+          console.log(`    Already synced (${sub.amountWon} ${sub.tokenSymbol})`);
+        }
+        continue; // don't re-notify
       }
 
       // Send notification

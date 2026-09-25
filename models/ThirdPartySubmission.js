@@ -9,6 +9,8 @@ const thirdPartySubmissionSchema = new mongoose.Schema({
   submissionUrl:    { type: String, default: null },
   zadSubmissionId:  { type: String, default: null },    // confirmed ZAD submission ID if proxied successfully
   status:           { type: String, enum: ['pending', 'submitted', 'winner'], default: 'pending' },
+  amountWon:        { type: Number, default: null },
+  tokenSymbol:      { type: String, default: null },
   createdAt:        { type: Date, default: Date.now }
 });
 

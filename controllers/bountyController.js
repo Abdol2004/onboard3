@@ -283,8 +283,13 @@ exports.externalBountyDetail = async (req, res) => {
           try {
             const sub = await ThirdPartySubmission.findOne({ externalBountyId: bountyId, userId: ew.onboardUserId });
             if (!sub || sub.status === 'winner') continue;
-            sub.status     = 'winner';
-            sub.bountyName = sub.bountyName || zadBounty.name || bountyId;
+            const perWinner = zadBounty.totalPayment && enrichedWinners.length
+              ? Math.round((zadBounty.totalPayment / enrichedWinners.length) * 100) / 100
+              : null;
+            sub.status      = 'winner';
+            sub.bountyName  = sub.bountyName  || zadBounty.name || bountyId;
+            sub.amountWon   = sub.amountWon   || perWinner;
+            sub.tokenSymbol = sub.tokenSymbol || zadBounty.token?.symbol || null;
             await sub.save();
             const rank = ri + 1;
             const rankLabel = rank === 1 ? '1st' : rank === 2 ? '2nd' : rank === 3 ? '3rd' : `${rank}th`;
