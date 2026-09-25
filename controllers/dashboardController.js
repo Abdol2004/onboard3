@@ -1,5 +1,8 @@
 const User = require("../models/User");
 const { ROLES } = require("../config/gamification");
+const Transaction = require("../models/Transaction");
+const UserQuestProgress = require("../models/UserQuestProgress");
+const BountySubmission = require("../models/BountySubmission");
 
 // Cache total verified-user count — changes slowly, safe to cache 5 min
 let _totalUsersCache = { count: 0, ts: 0 };
@@ -79,6 +82,53 @@ exports.getDashboard = async (req, res) => {
       }
     }
 
+    // Build unified activity feed from multiple sources
+    const [recentTxns, recentQuests, recentBountyWins] = await Promise.all([
+      Transaction.find({ user: user._id })
+        .sort({ createdAt: -1 }).limit(30).lean(),
+      UserQuestProgress.find({ userId: user._id, status: 'completed' })
+        .sort({ completedAt: -1 }).limit(15)
+        .populate('questId', 'title').lean(),
+      BountySubmission.find({ userId: user._id, status: 'winner' })
+        .sort({ createdAt: -1 }).limit(10)
+        .populate('bountyId', 'title rewardAmount').lean(),
+    ]);
+
+    const activityFeed = [
+      ...recentTxns.map(t => ({
+        kind: t.type,
+        label: t.type === 'quest_reward'     ? (t.questTitle || 'Quest reward')
+             : t.type === 'referral_bonus'   ? 'Referral bonus'
+             : t.type === 'withdrawal'       ? 'Withdrawal'
+             : t.type === 'admin_adjustment' ? 'Balance adjustment'
+             : t.type,
+        amount: t.amount,
+        currency: 'USDC',
+        status: t.status,
+        txHash: t.txHash || null,
+        date: t.createdAt,
+      })),
+      ...recentQuests.map(q => ({
+        kind: 'quest_completed',
+        label: q.questId?.title || 'Quest completed',
+        amount: q.xpBreakdown?.totalXp || 0,
+        currency: 'XP',
+        status: 'completed',
+        date: q.completedAt || q.updatedAt,
+      })),
+      ...recentBountyWins.map(b => ({
+        kind: 'bounty_won',
+        label: b.bountyId?.title || b.title || 'Bounty',
+        amount: b.amountWon || null,
+        currency: 'USDC',
+        rank: b.rank,
+        status: 'completed',
+        date: b.createdAt,
+      })),
+    ]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 25);
+
     // Add welcome activity if user just logged in
     if (!user.recentActivity) user.recentActivity = [];
     const hasRecentLogin = user.recentActivity.some(
@@ -99,7 +149,8 @@ exports.getDashboard = async (req, res) => {
       totalUsers,
       roleData,
       pathwayCount,
-      pathwayMembers
+      pathwayMembers,
+      activityFeed,
     });
 
   } catch (error) {

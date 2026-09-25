@@ -336,6 +336,84 @@
  </div>
  </div>
 
+ <!-- ═══ ACTIVITY FEED ═══ -->
+ <div class="card" style="animation-delay:220ms;padding:0;overflow:hidden">
+ <div style="display:flex;align-items:center;justify-content:space-between;padding:.875rem 1.25rem;border-bottom:1px solid var(--border)">
+ <h3 style="font-size:.9375rem;font-weight:800;margin:0;display:flex;align-items:center;gap:.5rem">
+ <i class="fas fa-bolt" style="color:var(--green);font-size:.875rem"></i> Recent Activity
+ </h3>
+ <% if (activityFeed.length) { %>
+ <span style="font-size:.72rem;color:var(--text-3);font-weight:600"><%= activityFeed.length %> events</span>
+ <% } %>
+ </div>
+
+ <% if (!activityFeed.length) { %>
+ <div style="padding:2.5rem 1.25rem;text-align:center;color:var(--text-3)">
+ <i class="fas fa-clock" style="font-size:1.75rem;display:block;margin-bottom:.75rem;opacity:.4"></i>
+ <p style="font-size:.875rem;font-weight:600;margin:0">No activity yet</p>
+ <p style="font-size:.78rem;margin:.3rem 0 0;opacity:.7">Complete quests or earn rewards to see your history here</p>
+ </div>
+ <% } else { %>
+ <div style="overflow-x:auto">
+ <% activityFeed.forEach(function(ev, i) {
+ const isLast = i === activityFeed.length - 1;
+ const cfg = {
+ quest_completed:  { icon:'fa-flag-checkered', color:'#5EC213', bg:'rgba(94,194,19,.10)' },
+ quest_reward:     { icon:'fa-trophy',          color:'#fbbf24', bg:'rgba(251,191,36,.10)' },
+ bounty_won:       { icon:'fa-medal',           color:'#f59e0b', bg:'rgba(245,158,11,.10)' },
+ withdrawal:       { icon:'fa-arrow-up-right-dots', color:'#60a5fa', bg:'rgba(96,165,250,.10)' },
+ referral_bonus:   { icon:'fa-user-plus',       color:'#a78bfa', bg:'rgba(167,139,250,.10)' },
+ admin_adjustment: { icon:'fa-sliders',         color:'#10b981', bg:'rgba(16,185,129,.10)' },
+ }[ev.kind] || { icon:'fa-circle-dot', color:'var(--text-3)', bg:'rgba(255,255,255,.05)' };
+
+ const statusBadge = {
+ pending:   { label:'Pending',   color:'#f59e0b' },
+ completed: { label:'',          color:'' },
+ rejected:  { label:'Rejected',  color:'#ef4444' },
+ cancelled: { label:'Cancelled', color:'#6b7280' },
+ }[ev.status] || {};
+
+ const now = new Date();
+ const evDate = new Date(ev.date);
+ const diffMs = now - evDate;
+ const diffMins = Math.floor(diffMs / 60000);
+ const diffHrs = Math.floor(diffMs / 3600000);
+ const diffDays = Math.floor(diffMs / 86400000);
+ const timeAgo = diffMins < 1 ? 'just now'
+   : diffMins < 60 ? diffMins + 'm ago'
+   : diffHrs < 24 ? diffHrs + 'h ago'
+   : diffDays < 7 ? diffDays + 'd ago'
+   : evDate.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+ %>
+ <div style="display:flex;align-items:center;gap:.875rem;padding:.8rem 1.25rem;<%=isLast?'':'border-bottom:1px solid rgba(255,255,255,.04)'%>;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
+ <div style="width:36px;height:36px;border-radius:10px;background:<%=cfg.bg%>;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+ <i class="fas <%=cfg.icon%>" style="font-size:.85rem;color:<%=cfg.color%>"></i>
+ </div>
+ <div style="flex:1;min-width:0">
+ <p style="font-size:.875rem;font-weight:700;color:var(--text);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><%=ev.label%></p>
+ <p style="font-size:.72rem;color:var(--text-3);margin:.15rem 0 0">
+ <%=timeAgo%>
+ <% if (ev.rank) { %> · <span style="color:<%=cfg.color%>">#<%=ev.rank%> place</span><% } %>
+ </p>
+ </div>
+ <div style="text-align:right;flex-shrink:0">
+ <% if (ev.amount !== null && ev.amount !== undefined) { %>
+ <p style="font-size:.9rem;font-weight:800;margin:0;color:<%=ev.currency==='XP'?'var(--green)':ev.kind==='withdrawal'?'#60a5fa':'#fbbf24'%>">
+ <%=ev.kind==='withdrawal'?'−':'+' %>
+ <%=ev.currency==='USDC'?'$':'+'%><%=typeof ev.amount==='number'?ev.amount.toLocaleString():ev.amount%>
+ <span style="font-size:.65rem;font-weight:700;opacity:.8"><%=ev.currency%></span>
+ </p>
+ <% } %>
+ <% if (statusBadge.label) { %>
+ <span style="font-size:.65rem;font-weight:700;color:<%=statusBadge.color%>;background:<%=statusBadge.color%>18;border:1px solid <%=statusBadge.color%>33;border-radius:99px;padding:.1rem .4rem"><%=statusBadge.label%></span>
+ <% } %>
+ </div>
+ </div>
+ <% }) %>
+ </div>
+ <% } %>
+ </div>
+
  </div><!-- /content -->
  </main>
  </div>
