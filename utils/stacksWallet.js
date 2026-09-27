@@ -243,11 +243,6 @@ async function getFeeWalletInfo() {
 }
 
 const ZAD_BASE = 'https://zeroauthoritydao.com';
-const ZAD_API_KEY = () => process.env.ZAD_API_KEY || '';
-
-// Cache a working profile-update Server Action hash so we don't re-scan on every submission
-let _zadSACache = { hash: null, pageUrl: null, at: 0 };
-
 // Build a SIWE/SIWS message exactly as ZeroAuthDAO's frontend does
 // They use: new SiweMessage({ statement:"Cerulean Marketplace", domain: origin, address, uri: origin, ... })
 function buildSiwsMessage(address, nonce) {
@@ -300,7 +295,7 @@ async function authenticateWithZAD(privKey, profile = {}) {
       nonce,
       publicKey:  pubKey,
       // Pass username on signin — ZAD sets display name on first account creation
-      ...(profile.username ? { username: profile.username, name: profile.username, displayName: profile.username } : {}),
+      ...(typeof profile.username === 'string' && profile.username.trim() ? { username: profile.username.trim() } : {}),
       // Only pass avatarUrl if it's a real hosted URL (not a base64 data URI which ZAD can't use)
       ...(profile.avatarUrl && profile.avatarUrl.startsWith('http') ? { image: profile.avatarUrl, avatarUrl: profile.avatarUrl } : {}),
     }, {
@@ -327,183 +322,38 @@ async function authenticateWithZAD(privKey, profile = {}) {
 
 // Try to update the ZAD user profile — attempts session-based Server Actions,
 // REST endpoints, and admin-API-key approaches (in order of reliability)
+// Update a ZAD user's profile through the documented session-authenticated API.
 async function tryUpdateZADProfile(cookieStr, username, avatarUrl, walletAddress, signinUser) {
-  if (!username) return;
+  const displayName = typeof username === 'string' ? username.trim() : '';
+  if (!displayName || !walletAddress) return;
 
-  // Skip if ZAD already has this username on the account
-  const existingUsername = signinUser?.username || signinUser?.name || signinUser?.displayName;
-  if (existingUsername && existingUsername.toLowerCase() === username.toLowerCase()) {
-    console.log('[ZAD] Profile already has correct username, skipping update');
+  // wallet-signin already preserves a nonblank ZAD name; avoid replacing it here too.
+  const existingName = signinUser?.username || signinUser?.name || signinUser?.displayName;
+  if (typeof existingName === 'string' && existingName.trim()) {
+    console.log('[ZAD] Existing profile name retained:', existingName.trim());
     return;
   }
 
-  // Only pass avatar if it's a real hosted URL — base64 data URIs won't work on ZAD
-  const safeAvatar = avatarUrl && avatarUrl.startsWith('http') ? avatarUrl : null;
-
-  const profileBody = { username, name: username, displayName: username, ...(safeAvatar ? { image: safeAvatar, avatarUrl: safeAvatar } : {}) };
-  const jsonHeaders  = { 'Content-Type': 'application/json', 'Cookie': cookieStr };
-  const adminHeaders = { 'Authorization': `Bearer ${ZAD_API_KEY()}`, 'Content-Type': 'application/json' };
-  const zadUserId    = signinUser?.id || signinUser?._id || signinUser?.userId;
-
-  // Helper: try a Server Action call — returns true on success
-  async function trySA(pageUrl, hash) {
-    try {
-      const r = await axios.post(pageUrl, [profileBody], {
-        headers: {
-          'Cookie': cookieStr, 'Content-Type': 'application/json',
-          'Next-Action': hash, 'Next-Router-State-Tree': '%5B%22%22%2C%7B%7D%5D',
-          'Origin': ZAD_BASE, 'Referer': pageUrl,
-        },
-        timeout: 5000,
-      });
-      const text = typeof r.data === 'string' ? r.data : JSON.stringify(r.data);
-      if (r.status < 400 && !text.includes('"error"') && !text.toLowerCase().includes('unauthorized')) {
-        console.log('[ZAD] Profile SA OK hash', hash.slice(0, 8), '→', r.status);
-        _zadSACache = { hash, pageUrl, at: Date.now() };
-        return true;
-      }
-    } catch {}
-    return false;
-  }
-
-  // ── 0. Cookie-authenticated GET /api/users/update (highest-priority) ──
-  // ZAD exposes this endpoint which reads the logged-in user from the session cookie
+  const safeAvatar = typeof avatarUrl === 'string' && avatarUrl.startsWith('http') ? avatarUrl : null;
+  const body = { username: displayName, ...(safeAvatar ? { avatarUrl: safeAvatar } : {}) };
   try {
-    const params = new URLSearchParams({ username, name: username, displayName: username });
-    if (safeAvatar) { params.set('image', safeAvatar); params.set('avatarUrl', safeAvatar); }
-    const r = await axios.get(`${ZAD_BASE}/api/users/update?${params}`, {
-      headers: { 'Cookie': cookieStr, 'x-api-key': ZAD_API_KEY() },
-      timeout: 8000,
-    });
-    const text = typeof r.data === 'string' ? r.data : JSON.stringify(r.data);
-    if (r.status < 400 && !text.includes('"error"')) {
-      console.log('[ZAD] Profile GET update OK →', r.status, text.slice(0, 80));
+    const response = await axios.put(
+      `${ZAD_BASE}/api/users/${encodeURIComponent(walletAddress)}`,
+      body,
+      { headers: { 'Content-Type': 'application/json', Cookie: cookieStr }, timeout: 8000 }
+    );
+    console.log('[ZAD] Profile updated:', response.status, JSON.stringify(response.data || {}).slice(0, 200));
+  } catch (error) {
+    const status = error.response?.status;
+    const responseBody = error.response?.data;
+    const detail = typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody || error.message);
+    if ([400, 401, 403, 404].includes(status)) {
+      console.warn(`[ZAD] Profile update rejected (${status}):`, detail.slice(0, 200));
       return;
     }
-    console.log('[ZAD] Profile GET update returned:', r.status, text.slice(0, 120));
-  } catch (e) {
-    console.log('[ZAD] Profile GET update failed:', e.response?.status || e.message, JSON.stringify(e.response?.data || '').slice(0, 100));
+    console.warn('[ZAD] Profile update failed:', status || error.message, detail.slice(0, 200));
   }
-
-  // ── 0b. Cached working hash — skip full scan if we found one recently ──
-  if (_zadSACache.hash && Date.now() - _zadSACache.at < 86400000) {
-    if (await trySA(_zadSACache.pageUrl, _zadSACache.hash)) return;
-    _zadSACache = { hash: null, pageUrl: null, at: 0 }; // stale — reset
-  }
-
-  // ── 0b. Scan /profile page HTML + all linked JS chunks for action hashes ──
-  // Next.js Server Action IDs are 40-char hex embedded in bundle files
-  try {
-    const pageRes = await axios.get(`${ZAD_BASE}/profile`, {
-      headers: { 'Cookie': cookieStr, 'Accept': 'text/html,application/xhtml+xml' },
-      timeout: 8000,
-    });
-    const html = typeof pageRes.data === 'string' ? pageRes.data : JSON.stringify(pageRes.data);
-
-    // Collect hex strings from the HTML itself
-    const hexSet = new Set([...html.matchAll(/["'`\s,\[]([a-f0-9]{40})["'`\s,\]]/g)].map(m => m[1]));
-
-    // Find all linked JS chunk URLs and scan them — profile action hashes live in bundles, not HTML
-    const scriptSrcs = [...html.matchAll(/src="(\/_next\/static\/[^"]+\.js)"/g)].map(m => m[1]);
-    console.log('[ZAD] Scanning', scriptSrcs.length, 'JS chunks for profile action hashes');
-    for (const src of scriptSrcs.slice(0, 15)) {
-      try {
-        const chunkRes = await axios.get(`${ZAD_BASE}${src}`, { timeout: 6000 });
-        const chunkText = typeof chunkRes.data === 'string' ? chunkRes.data : JSON.stringify(chunkRes.data);
-        // Prioritise hashes that appear near profile/username keywords
-        const matches = [...chunkText.matchAll(/(?:profile|username|displayName|updateUser|editProfile|updateProfile|setUsername).{0,150}/gi)];
-        for (const m of matches) {
-          for (const hm of m[0].matchAll(/([a-f0-9]{40})/g)) hexSet.add(hm[1]);
-        }
-      } catch {}
-    }
-
-    const discoveredHashes = [...hexSet];
-    console.log('[ZAD] Total potential action hashes discovered:', discoveredHashes.length);
-    for (const hash of discoveredHashes) {
-      if (await trySA(`${ZAD_BASE}/profile`, hash)) return;
-    }
-  } catch (err) {
-    console.log('[ZAD] /profile page scan failed:', err.message);
-  }
-
-  // ── 1. Admin API key approach ──
-  const adminBody = { ...profileBody, ...(walletAddress ? { walletAddress, address: walletAddress } : {}) };
-  const adminTargets = [
-    ...(walletAddress ? [
-      `${ZAD_BASE}/api/users/${walletAddress}`,
-      `${ZAD_BASE}/api/users/${walletAddress}/profile`,
-      `${ZAD_BASE}/api/users/by-wallet/${walletAddress}`,
-      `${ZAD_BASE}/api/admin/users/${walletAddress}`,
-    ] : []),
-    ...(zadUserId ? [
-      `${ZAD_BASE}/api/users/${zadUserId}`,
-      `${ZAD_BASE}/api/users/${zadUserId}/profile`,
-      `${ZAD_BASE}/api/users/${zadUserId}/username`,
-    ] : []),
-    `${ZAD_BASE}/api/admin/profile`,
-    `${ZAD_BASE}/api/admin/users/update`,
-  ];
-
-  for (const url of adminTargets) {
-    for (const method of ['PATCH', 'PUT', 'POST']) {
-      try {
-        const r = await axios({ method, url, data: adminBody, headers: adminHeaders, timeout: 5000 });
-        console.log('[ZAD] Admin profile update OK:', method, url, '→', r.status);
-        return;
-      } catch (e) {
-        const s = e.response?.status;
-        if (s && s !== 404 && s !== 405 && s !== 403) {
-          console.log('[ZAD] Admin profile:', method, url, '→', s, JSON.stringify(e.response?.data || '').slice(0, 100));
-        }
-      }
-    }
-  }
-
-  // ── 2. Known Server Action hashes — try both /profile and /settings as targets ──
-  const KNOWN_HASHES = [
-    '13b35c40ed6572e56004b9107158ff6031eba5e8',
-    'db8221deb5eda1ebffe98847f0cd72065ad7b73e',
-    '684e86e176ad10a5d14dd6b0be2f5a86fe221e02',
-    '004c6de5f1cfefc9965c7ac5a3e051a07fcde1b2',
-    '6cbe8c93fb710967f41684e2d03c495d8895a393',
-    'ec0c4ba5407f61380e08ea5eb0b2d3f3cadd361a',
-    '1baff3dcd411e2a16a8c680c54ed74f442923793',
-    '4be4bab85bfd3db5c36d84e6d5732920970a7c7f',
-    '4d7f511e3aed9967f55c6be56bef6bffb0c7bb8b',
-  ];
-  for (const pageUrl of [`${ZAD_BASE}/profile`, `${ZAD_BASE}/settings`]) {
-    for (const hash of KNOWN_HASHES) {
-      if (await trySA(pageUrl, hash)) return;
-    }
-  }
-
-  // ── 3. Session REST fallbacks ──
-  for (const [url, method] of [
-    [`${ZAD_BASE}/api/user`,          'PATCH'],
-    [`${ZAD_BASE}/api/users/me`,      'PATCH'],
-    [`${ZAD_BASE}/api/profile`,       'PATCH'],
-    [`${ZAD_BASE}/api/user/profile`,  'PATCH'],
-    [`${ZAD_BASE}/api/me`,            'PATCH'],
-    [`${ZAD_BASE}/api/users/update`,  'POST'],
-    [`${ZAD_BASE}/api/profile/update`,'POST'],
-    [`${ZAD_BASE}/api/user/update`,   'POST'],
-  ]) {
-    try {
-      const r = await axios({ method, url, data: profileBody, headers: jsonHeaders, timeout: 5000 });
-      console.log('[ZAD] Profile REST', method, url, '→', r.status);
-      return;
-    } catch (e) {
-      const s = e.response?.status;
-      if (s && s !== 404 && s !== 405 && s !== 403) {
-        console.log('[ZAD] Profile REST', method, url, '→', s);
-      }
-    }
-  }
-
-  console.log('[ZAD] Profile update: no working endpoint found — username will show as blank on ZAD until fixed');
 }
-
 // Submit a bounty via ZAD's Next.js Server Action — this broadcasts the tx AND creates the DB record
 // signedTxHex: hex of the fully signed+sponsored transaction (ZAD broadcasts it on their end)
 // profile: { username, avatarUrl } — optional, used to update ZAD account name so it shows instead of Anonymous
@@ -532,7 +382,7 @@ async function submitToZADWebAPI(privKey, bountyId, summary, submissionUrl, sign
     // Include username in payload — ZAD may read it to display on their site
     const payload = [{
       bountyId, submitterAddress: address, signedTxHex, summary, submissionUrl: submissionUrl || null,
-      ...(profile.username ? { username: profile.username, name: profile.username, displayName: profile.username } : {}),
+      ...(typeof profile.username === 'string' && profile.username.trim() ? { username: profile.username.trim() } : {}),
     }];
 
     const subRes = await axios.post(`${ZAD_BASE}/bounty/${bountyId}`, payload, { headers, timeout: 30000 });
